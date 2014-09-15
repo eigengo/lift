@@ -8,22 +8,29 @@ class MotionRecorder {
     private var motionManager: CMMotionManager!
     private var queue: NSOperationQueue!
     private var buffer: NSString = ""
+    private var count: Int = 0
+    private var callback: ((Int) -> Void)?
     var recording: Bool { get { return self.motionManager != nil } }
-    
-    init() {
+
+    init(name: String) {
         let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first as String
-        self.filePath = documentsPath.stringByAppendingPathComponent("accelerate.csv")
+        let fileName = NSString(format: "%@-%lf.csv", name, NSDate().timeIntervalSince1970)
+        self.filePath = documentsPath.stringByAppendingPathComponent(fileName)
+        if !NSFileManager.defaultManager().fileExistsAtPath(self.filePath) {
+            NSFileManager.defaultManager().createFileAtPath(self.filePath, contents: nil, attributes: nil)
+        }
     }
     
     /*
      * Starts writing accelerometer events to the file. Calling this method more than once
      * has no effect.
      */
-    func startRecording() {
+    func startRecording(callback: ((Int) -> Void)?) {
         if self.motionManager == nil {
             self.motionManager = CMMotionManager()
             self.queue = NSOperationQueue.currentQueue() // NSOperationQueue();
             self.motionManager.startAccelerometerUpdatesToQueue(queue, withHandler: processAccelerometerData)
+            self.callback = callback
         }
     }
     
@@ -35,12 +42,7 @@ class MotionRecorder {
         self.queue = nil
         self.motionManager = nil
     }
-    
-    func mark() {
-        self.buffer = self.buffer + "\n"
-        flush()
-    }
-    
+        
     private func flush() {
         if self.buffer.length > 256 {
             let handle = NSFileHandle(forWritingAtPath: self.filePath)
@@ -52,7 +54,11 @@ class MotionRecorder {
     }
     
     func processAccelerometerData(data: CMAccelerometerData!, error: NSError!) -> Void {
-        let row = NSString(format: "%@,%f,%f,%f\n", [NSDate(), data.acceleration.x, data.acceleration.y, data.acceleration.z])
+        self.count++
+        if (self.callback != nil) {
+            self.callback!(self.count)
+        }
+        let row = NSString(format: "%f,%f,%f,%f\n", NSDate().timeIntervalSince1970, data.acceleration.x, data.acceleration.y, data.acceleration.z)
         self.buffer = self.buffer + row
         flush()
     }

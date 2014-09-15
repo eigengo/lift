@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>DBB29FEC-AC33-48EF-9E90-FF0A549B1EB9</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Lift</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>E167262D3C2F7F4C8100F9CF636732E23A033DB9</key>
+		<string>github.com:eigengo/lift.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Lift.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>E167262D3C2F7F4C8100F9CF636732E23A033DB9</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:eigengo/lift.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>E167262D3C2F7F4C8100F9CF636732E23A033DB9</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>E167262D3C2F7F4C8100F9CF636732E23A033DB9</string>
+			<key>IDESourceControlWCCName</key>
+			<string>lift</string>
+		</dict>
+	</array>
+</dict>
+</plist>
