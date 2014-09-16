@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
-		5427CDF019C60530005C9B4E /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEF19C60530005C9B4E /* HealthKit.framework */; };
 		5427CDF219C6075C005C9B4E /* RecordingControllerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDF119C6075C005C9B4E /* RecordingControllerViewController.swift */; };
+		548D058E19C8A99A000078AD /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 548D058D19C8A99A000078AD /* HealthKit.framework */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* ViewController.swift */; };
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
@@ -35,8 +35,8 @@
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
-		5427CDEF19C60530005C9B4E /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		5427CDF119C6075C005C9B4E /* RecordingControllerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingControllerViewController.swift; sourceTree = "<group>"; };
+		548D058D19C8A99A000078AD /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC699B19C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -55,7 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5427CDF019C60530005C9B4E /* HealthKit.framework in Frameworks */,
+				548D058E19C8A99A000078AD /* HealthKit.framework in Frameworks */,
 				5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */,
 				54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */,
 			);
@@ -82,7 +82,7 @@
 		54CC698E19C4AD8E00B29EC8 = {
 			isa = PBXGroup;
 			children = (
-				5427CDEF19C60530005C9B4E /* HealthKit.framework */,
+				548D058D19C8A99A000078AD /* HealthKit.framework */,
 				5427CDEA19C5F259005C9B4E /* CoreMotion.framework */,
 				5427CDE819C5F203005C9B4E /* Accelerate.framework */,
 				54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */,
@@ -381,7 +381,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "32678bbc-849d-4bfe-9a1d-d824ca522a7e";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -396,7 +396,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "32678bbc-849d-4bfe-9a1d-d824ca522a7e";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
