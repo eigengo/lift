@@ -29,7 +29,8 @@ class MotionRecorder {
         if self.motionManager == nil {
             self.motionManager = CMMotionManager()
             self.queue = NSOperationQueue.currentQueue() // NSOperationQueue();
-            self.motionManager.startAccelerometerUpdatesToQueue(queue, withHandler: processAccelerometerData)
+            self.motionManager.startDeviceMotionUpdatesToQueue(self.queue, withHandler: processDeviceMotionData)
+            self.motionManager.startAccelerometerUpdatesToQueue(self.queue, withHandler: processAccelerometerData)
             self.callback = callback
         }
     }
@@ -53,6 +54,10 @@ class MotionRecorder {
         }
     }
     
+    func processDeviceMotionData(data: CMDeviceMotion!, error: NSError!) -> Void {
+        
+    }
+
     func processAccelerometerData(data: CMAccelerometerData!, error: NSError!) -> Void {
         self.count++
         if (self.callback != nil) {
