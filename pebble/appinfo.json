@@ -1,0 +1,15 @@
+{
+  "uuid": "E113DED8-0EA6-4397-90FA-CE40941F7CBC",
+  "shortName": "Lift",
+  "longName": "Lift",
+  "companyName": "Eigengo",
+  "versionCode": 2,
+  "versionLabel": "2.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {},
+  "resources": {
+    "media": []
+  }
+}
