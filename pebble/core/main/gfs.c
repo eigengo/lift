@@ -8,6 +8,18 @@
 #define NUM_SAMPLES 16
 
 /**
+ * The first four bytes of the protocol are:
+ *
+ * 0x1e, 0x01, n, n'; followed by n bytes
+ * 
+ * where n is little-endian unsigned 16-bit integer.
+ */
+#define GFS_PEBBLE_PROTOCOL_H1 0x1e
+#define GFS_PEBBLE_PROTOCOL_H2 0x01
+#define GFS_PEBBLE_PROTOCOL_H3(n) ((n) & 0x00ff)
+#define GFS_PEBBLE_PROTOCOL_H4(n) ((n) & 0xff00 << 8)
+
+/**
  * Context that holds the current callback and frequency. It is used in the accelerometer
  * callback to calculate the G forces and to push the packed sample buffer to the callback.
  */
@@ -41,7 +53,7 @@ int gfs_start(accel_sample_callback callback, int frequency) {
     if (gfs_context.buffer == NULL) return E_GFS_MEM;
 
     accel_raw_data_service_subscribe(NUM_SAMPLES, gfs_raw_accel_data_handler);
-
+ 
     return 1;
 }
 
