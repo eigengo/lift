@@ -1,4 +1,5 @@
 #include "pebble.h"
+#include "core/main/gfs.h"
 
 #define ACCEL_STEP_MS 500
 

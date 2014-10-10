@@ -14,10 +14,10 @@
  * 
  * where n is little-endian unsigned 16-bit integer.
  */
-#define GFS_PEBBLE_PROTOCOL_H1 0x1e
-#define GFS_PEBBLE_PROTOCOL_H2 0x01
-#define GFS_PEBBLE_PROTOCOL_H3(n) ((n) & 0x00ff)
-#define GFS_PEBBLE_PROTOCOL_H4(n) ((n) & 0xff00 << 8)
+#define GFS_PROTOCOL_H1 0x1e
+#define GFS_PROTOCOL_H2 0x01
+#define GFS_PROTOCOL_H3(n) ((n) & 0x00ff)
+#define GFS_PROTOCOL_H4(n) ((n) & 0xff00 << 8)
 
 /**
  * Context that holds the current callback and frequency. It is used in the accelerometer
