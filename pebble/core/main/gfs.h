@@ -6,7 +6,15 @@
 
 typedef void (*accel_sample_callback) (char* samples, int samples_size);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int gfs_start(accel_sample_callback callback, int frequency);
 int gfs_stop();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

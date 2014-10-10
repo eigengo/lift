@@ -40,6 +40,7 @@ static struct {
 void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64_t timestamp) {
     if (num_samples != NUM_SAMPLES) return /* FAIL */;
     // pack
+    gfs_context.callback(gfs_context.buffer, 10);
 }
 
 int gfs_start(accel_sample_callback callback, int frequency) {
