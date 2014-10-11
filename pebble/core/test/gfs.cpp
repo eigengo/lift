@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
-#include <boost/bind.hpp>
 #include "gfs.h"
-#include "mock_pebble_accel.h"
+#include "mock.h"
+
+using namespace pebble::mock;
 
 class gfs_test : public testing::Test {
 protected:
@@ -18,9 +19,13 @@ char* gfs_test::buffer;
 int gfs_test::size;
 
 TEST_F(gfs_test, Trivial) {
-    AccelRawData d[8];
+    std::vector<AccelRawData> d;
+    AccelRawData a = {.x = 1, .y = 100, .z = -400 };
+    for (int i = 0; i < 20; i++) d.push_back(a);
+
     gfs_start(gfs_test::callback, 50);
-    mock_accel_send_data(d, 8, 0);
+    Pebble::accelService << d;
     gfs_stop();
     EXPECT_EQ("234234234234234", gfs_test::buffer);
 }
+

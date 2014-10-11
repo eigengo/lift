@@ -1,0 +1,6 @@
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/..)
+
+FILE(GLOB MainSources *.c *.cpp)
+
+ADD_LIBRARY(pebble-mock ${MainSources})
+TARGET_LINK_LIBRARIES(pebble-mock gtest ${Boost_LIBRARIES})

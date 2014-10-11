@@ -5,4 +5,4 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../main)
 FILE(GLOB TestSources *.cpp *.c)
 
 ADD_EXECUTABLE(${test_EXECUTABLE} ${TestSources})
-TARGET_LINK_LIBRARIES(${test_EXECUTABLE} gtest gtest_main pebble-core ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(${test_EXECUTABLE} gtest gtest_main pebble-core pebble-mock ${Boost_LIBRARIES})

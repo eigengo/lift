@@ -7,6 +7,8 @@
 // power-of-two samples at a time
 #define NUM_SAMPLES 16
 
+#define SIGN(x) ((x) < 0 ? -1 : 1)
+
 /**
  * The first four bytes of the protocol are:
  *
@@ -34,13 +36,31 @@ static struct {
     int buffer_position;
 } gfs_context;
 
+struct packed_accel_data {
+    int x_sign : 1;    //  1
+    unsigned int x_val  : 10;   // 11
+    int y_sign : 1;    // 12
+    unsigned int y_val  : 10;   // 22
+    int z_sign : 1;    // 23
+    unsigned int z_val  : 10;   // 33
+    unsigned int _pad   : 7;    // 40
+};
+
 /**
  * Handle the samples arriving.
  */
 void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64_t timestamp) {
     if (num_samples != NUM_SAMPLES) return /* FAIL */;
     // pack
-    gfs_context.callback(gfs_context.buffer, 10);
+    struct packed_accel_data ad[num_samples];
+    for (int i = 0; i < num_samples; ++i) {
+        ad[i].x_sign = SIGN(data[i].x);
+        ad[i].y_sign = SIGN(data[i].y);
+        ad[i].z_sign = SIGN(data[i].z);
+    }
+    size_t len = sizeof(struct packed_accel_data) * num_samples;
+    memcpy(gfs_context.buffer + gfs_context.buffer_position, ad, len);
+    gfs_context.buffer_position += len;
 }
 
 int gfs_start(accel_sample_callback callback, int frequency) {
