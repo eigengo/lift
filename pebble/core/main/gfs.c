@@ -53,7 +53,7 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     if (num_samples != NUM_SAMPLES) return /* FAIL */;
     // pack
     struct packed_accel_data ad[num_samples];
-    for (int i = 0; i < num_samples; ++i) {
+    for (unsigned int i = 0; i < num_samples; ++i) {
         ad[i].x_sign = SIGN(data[i].x);
         ad[i].y_sign = SIGN(data[i].y);
         ad[i].z_sign = SIGN(data[i].z);
