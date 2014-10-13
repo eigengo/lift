@@ -2,14 +2,14 @@
 #include "gfs.h"
 
 /**
- * Context that holds the current callback and frequency. It is used in the accelerometer
+ * Context that holds the current callback and samples_per_second. It is used in the accelerometer
  * callback to calculate the G forces and to push the packed sample buffer to the callback.
  */
 static struct {
     // the callback function
     gfs_sample_callback callback;
-    // the frequency
-    int frequency;
+    // the samples_per_second
+    uint16_t samples_per_second;
     // the buffer
     uint8_t* buffer;
     // the position in the buffer
@@ -23,7 +23,7 @@ void gfs_write_header() {
     struct gfs_header *h = (struct gfs_header *) gfs_context.buffer;
     h->h1 = GFS_HEADER_H1;
     h->h2 = GFS_HEADER_H2;
-    h->padding = 0;
+    h->samples_per_second = gfs_context.samples_per_second;
     gfs_context.buffer_position = sizeof(struct gfs_header);
 }
 
@@ -54,7 +54,7 @@ int gfs_start(gfs_sample_callback callback, int frequency) {
     if (gfs_context.callback != NULL) return E_GFS_ALREADY_RUNNING;
 
     gfs_context.callback = callback;
-    gfs_context.frequency = frequency;
+    gfs_context.samples_per_second = (uint16_t) frequency;
     gfs_context.buffer = malloc(GFS_BUFFER_SIZE + sizeof(struct gfs_header));
 
     if (gfs_context.buffer == NULL) return E_GFS_MEM;
