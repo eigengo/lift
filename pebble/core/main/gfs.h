@@ -5,13 +5,13 @@
 #define E_GFS_MEM -2
 
 // buffer size in B
-#define GFS_BUFFER_SIZE 12000
+#define GFS_BUFFER_SIZE (uint16_t)12000
 
 // power-of-two samples at a time
 #define GFS_NUM_SAMPLES 16
 
-#define GFS_HEADER_H1 (uint8_t)0xf1
-#define GFS_HEADER_H2 (uint8_t)0x1f
+#define GFS_HEADER_H1 (uint8_t)0x40
+#define GFS_HEADER_H2 (uint8_t)0x41
 
 /**
 * The first four bytes of the protocol are:
@@ -23,7 +23,7 @@
 struct __attribute__((__packed__)) gfs_header {
     int8_t h1;
     int8_t h2;
-    uint8_t size;
+    uint16_t padding;
 };
 
 /**
@@ -35,13 +35,13 @@ struct __attribute__((__packed__)) gfs_packed_accel_data {
     int16_t z_val : 10;
 };
 
-typedef void (*accel_sample_callback) (uint8_t* samples, int samples_size);
+typedef void (*gfs_sample_callback) (uint8_t* buffer, uint16_t size, uint16_t count);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int gfs_start(accel_sample_callback callback, int frequency);
+int gfs_start(gfs_sample_callback callback, int frequency);
 int gfs_stop();
 
 #ifdef __cplusplus
