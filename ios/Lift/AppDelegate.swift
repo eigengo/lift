@@ -1,12 +1,18 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate {
 
     var window: UIWindow?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        var uuid: UInt8 = 0
+        NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC").getUUIDBytes(&uuid)
         PBPebbleCentral.setDebugLogsEnabled(true)
+        let central = PBPebbleCentral.defaultCentral()
+        central!.appUUID = NSData(bytes: &uuid, length: 16)
+        central!.delegate = self
+        
         // Override point for customization after application launch.
         return true
     }
