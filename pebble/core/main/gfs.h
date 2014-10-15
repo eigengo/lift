@@ -1,5 +1,4 @@
-#ifndef GFS_H
-#define GFS_H
+#pragma once
 
 #define E_GFS_ALREADY_RUNNING -1
 #define E_GFS_MEM -2
@@ -35,17 +34,15 @@ struct __attribute__((__packed__)) gfs_packed_accel_data {
     int16_t z_val : 11;
 };
 
-typedef void (*gfs_sample_callback) (uint8_t* buffer, uint16_t size, uint16_t count);
+typedef void (*gfs_sample_callback_t) (uint8_t* buffer, uint16_t size, uint16_t count);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int gfs_start(gfs_sample_callback callback, int frequency);
+int gfs_start(gfs_sample_callback_t callback, int frequency);
 int gfs_stop();
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
