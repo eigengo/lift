@@ -9,7 +9,7 @@ static struct {
     // the callback function
     gfs_sample_callback_t callback;
     // the samples_per_second
-    uint16_t samples_per_second;
+    uint8_t samples_per_second;
     // the buffer
     uint8_t* buffer;
     // the position in the buffer
@@ -50,11 +50,11 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     gfs_context.buffer_position += len;
 }
 
-int gfs_start(gfs_sample_callback_t callback, int frequency) {
+int gfs_start(gfs_sample_callback_t callback, AccelSamplingRate frequency) {
     if (gfs_context.callback != NULL) return E_GFS_ALREADY_RUNNING;
 
     gfs_context.callback = callback;
-    gfs_context.samples_per_second = (uint16_t) frequency;
+    gfs_context.samples_per_second = (uint8_t) frequency;
     gfs_context.buffer = malloc(GFS_BUFFER_SIZE + sizeof(struct gfs_header));
 
     if (gfs_context.buffer == NULL) return E_GFS_MEM;

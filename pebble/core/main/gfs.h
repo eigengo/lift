@@ -20,9 +20,9 @@
 * where n is little-endian unsigned 16-bit integer.
 */
 struct __attribute__((__packed__)) gfs_header {
-    int8_t h1;
-    int8_t h2;
-    uint16_t samples_per_second;
+    uint8_t h1;
+    uint8_t h2;
+    uint8_t samples_per_second;
 };
 
 /**
@@ -40,7 +40,7 @@ typedef void (*gfs_sample_callback_t) (uint8_t* buffer, uint16_t size, uint16_t 
 extern "C" {
 #endif
 
-int gfs_start(gfs_sample_callback_t callback, int frequency);
+int gfs_start(gfs_sample_callback_t callback, AccelSamplingRate frequency);
 int gfs_stop();
 
 #ifdef __cplusplus
