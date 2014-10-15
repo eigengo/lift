@@ -132,3 +132,5 @@ xcuserdata
 .idea
 
 Pods
+*.xcworkspace
+

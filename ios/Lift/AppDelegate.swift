@@ -1,11 +1,3 @@
-//
-//  AppDelegate.swift
-//  Lift
-//
-//  Created by Jan Machacek on 13/09/2014.
-//  Copyright (c) 2014 Jan Machacek. All rights reserved.
-//
-
 import UIKit
 
 @UIApplicationMain
@@ -13,8 +5,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        PBPebbleCentral.setDebugLogsEnabled(true)
         // Override point for customization after application launch.
         return true
     }
