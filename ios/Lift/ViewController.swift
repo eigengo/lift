@@ -3,6 +3,7 @@ import UIKit
 class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     
     @IBOutlet var name: UITextField!
+    var count: UInt16?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,7 +21,15 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     }
     
     func dataLoggingService(service: PBDataLoggingService!, hasByteArrays bytes: UnsafePointer<UInt8>, numberOfItems: UInt16, forDataLoggingSession session: PBDataLoggingSessionMetadata!) -> Bool {
-        // let dlHeader =
+        let type = UnsafePointer<Byte>(bytes)
+
+        let dlHeader = UnsafePointer<dl_header>(bytes).getMirror()
+        // TODO: check if dlHeader or gfsHeader received
+        let gfsHeader = UnsafePointer<gfs_header>(bytes).getMirror()
+        
+        
+        let gfsData = UnsafeMutablePointer<gfs_accel_data>.alloc(dlHeader.count)
+        gfs_unpack_accel_data(bytes + sizeof(gfs_header), UInt16(dlHeader.count), gfsData)
         name.text = NSString(format: "received %d", numberOfItems)
 
         return true

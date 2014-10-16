@@ -9,19 +9,12 @@
 // power-of-two samples at a time
 #define GFS_NUM_SAMPLES 16
 
-#define GFS_HEADER_H1 (uint8_t)0x40
-#define GFS_HEADER_H2 (uint8_t)0x41
+#define GFS_HEADER_TYPE (uint8_t)0x40
 
 /**
-* The first four bytes of the protocol are:
-*
-* 0x1e, 0x01, n, n'; followed by n bytes
-*
-* where n is little-endian unsigned 16-bit integer.
-*/
+ */
 struct __attribute__((__packed__)) gfs_header {
-    uint8_t h1;
-    uint8_t h2;
+    uint8_t type;
     uint8_t samples_per_second;
 };
 
