@@ -38,6 +38,7 @@
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
 		5427CDF119C6075C005C9B4E /* RecordingControllerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingControllerViewController.swift; sourceTree = "<group>"; };
+		547C5E1219EFBE0300E0010B /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Protocol.h; path = Pebble/Protocol.h; sourceTree = "<group>"; };
 		548D058D19C8A99A000078AD /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -94,6 +95,14 @@
 			name = Motion;
 			sourceTree = "<group>";
 		};
+		547C5E1019EFBCAB00E0010B /* Pebble */ = {
+			isa = PBXGroup;
+			children = (
+				547C5E1219EFBE0300E0010B /* Protocol.h */,
+			);
+			name = Pebble;
+			sourceTree = "<group>";
+		};
 		54CC698E19C4AD8E00B29EC8 = {
 			isa = PBXGroup;
 			children = (
@@ -121,15 +130,16 @@
 		54CC699919C4AD8E00B29EC8 /* Lift */ = {
 			isa = PBXGroup;
 			children = (
-				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				5427CDE519C5EAF4005C9B4E /* Motion */,
+				547C5E1019EFBCAB00E0010B /* Pebble */,
+				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
+				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54CC699E19C4AD8E00B29EC8 /* ViewController.swift */,
 				5427CDF119C6075C005C9B4E /* RecordingControllerViewController.swift */,
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
 				54CC69A519C4AD8E00B29EC8 /* LaunchScreen.xib */,
-				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
 			);
 			path = Lift;

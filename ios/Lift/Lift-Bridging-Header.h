@@ -3,3 +3,4 @@
 //
 
 #import <PebbleKit/PebbleKit.h>
+#import "Pebble/Protocol.h"

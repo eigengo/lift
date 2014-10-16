@@ -20,6 +20,7 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     }
     
     func dataLoggingService(service: PBDataLoggingService!, hasByteArrays bytes: UnsafePointer<UInt8>, numberOfItems: UInt16, forDataLoggingSession session: PBDataLoggingSessionMetadata!) -> Bool {
+        // let dlHeader =
         name.text = NSString(format: "received %d", numberOfItems)
 
         return true
