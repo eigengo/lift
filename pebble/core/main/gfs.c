@@ -21,8 +21,8 @@ static struct {
  */
 void gfs_write_header() {
     struct gfs_header *h = (struct gfs_header *) gfs_context.buffer;
-    h->h1 = GFS_HEADER_H1;
-    h->h2 = GFS_HEADER_H2;
+    h->type = GFS_HEADER_TYPE;
+    h->count = 0;
     h->samples_per_second = gfs_context.samples_per_second;
     gfs_context.buffer_position = sizeof(struct gfs_header);
 }
@@ -34,9 +34,10 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     if (num_samples != GFS_NUM_SAMPLES) return /* FAIL */;
 
     size_t len = sizeof(struct gfs_packed_accel_data) * num_samples;
-    if (gfs_context.buffer_position + len >= GFS_BUFFER_SIZE) {
-        uint16_t count = (uint16_t)((gfs_context.buffer_position - sizeof(struct gfs_header)) / sizeof(struct gfs_packed_accel_data));
-        gfs_context.callback(gfs_context.buffer, gfs_context.buffer_position, count);
+    if (gfs_context.buffer_position + len > GFS_BUFFER_SIZE) {
+        struct gfs_header *header = (struct gfs_header*)gfs_context.buffer;
+        header->count  = (uint16_t)((gfs_context.buffer_position - sizeof(struct gfs_header)) / sizeof(struct gfs_packed_accel_data));
+        gfs_context.callback(gfs_context.buffer, gfs_context.buffer_position);
         gfs_write_header();
     }
 
@@ -50,7 +51,7 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     gfs_context.buffer_position += len;
 }
 
-int gfs_start(gfs_sample_callback_t callback, AccelSamplingRate frequency) {
+int gfs_start(gfs_sample_callback_t callback, gfs_sampling_rate_t frequency) {
     if (gfs_context.callback != NULL) return E_GFS_ALREADY_RUNNING;
 
     gfs_context.callback = callback;
@@ -60,9 +61,10 @@ int gfs_start(gfs_sample_callback_t callback, AccelSamplingRate frequency) {
     if (gfs_context.buffer == NULL) return E_GFS_MEM;
 
     gfs_write_header();
-    accel_service_set_sampling_rate(frequency);
+    accel_service_set_sampling_rate((AccelSamplingRate)frequency);
     accel_raw_data_service_subscribe(GFS_NUM_SAMPLES, gfs_raw_accel_data_handler);
- 
+    accel_service_set_sampling_rate((AccelSamplingRate)frequency);
+
     return 1;
 }
 

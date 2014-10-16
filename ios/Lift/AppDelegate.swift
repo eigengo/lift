@@ -6,15 +6,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate {
     var window: UIWindow?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        var uuid: UInt8 = 0
-        NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC").getUUIDBytes(&uuid)
+        let uuid = NSMutableData(length: 16)
+        NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC").getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
         PBPebbleCentral.setDebugLogsEnabled(true)
         let central = PBPebbleCentral.defaultCentral()
-        central!.appUUID = NSData(bytes: &uuid, length: 16)
+        central!.appUUID = uuid
         central!.delegate = self
+        for w in central!.connectedWatches {
+            launchLiftPebbleApp(w as PBWatch)
+        }
         
-        // Override point for customization after application launch.
         return true
+    }
+
+    func launchLiftPebbleApp(watch: PBWatch!) {
+        watch.appMessagesLaunch({ (watch: PBWatch!, error: NSError!) -> Void in
+            if (error != nil) {
+                NSLog(":(")
+            } else {
+                NSLog(":)")
+            }
+        }, withUUID: PBPebbleCentral.defaultCentral()!.appUUID)
+    }
+    
+    func pebbleCentral(central: PBPebbleCentral!, watchDidConnect watch: PBWatch!, isNew: Bool) {
+        launchLiftPebbleApp(watch)
+    }
+    
+    func pebbleCentral(central: PBPebbleCentral!, watchDidDisconnect watch: PBWatch!) {
+        NSLog("Gone")
     }
 
     func applicationWillResignActive(application: UIApplication) {

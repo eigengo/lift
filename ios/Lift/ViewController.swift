@@ -2,8 +2,12 @@ import UIKit
 
 class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     
-    @IBOutlet var name: UITextField!
-    var count: UInt16?
+    @IBOutlet var nameLabel: UILabel!
+    @IBOutlet var bytesLabel: UILabel!
+    
+    var samplesReceived: UInt = 0
+    var bytesReceived: UInt = 0
+    var start: NSTimeInterval?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,30 +17,35 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
- 
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "record" {
-            (segue.destinationViewController as RecordingControllerViewController).setName(name.text)
-        }
-    }
     
     func dataLoggingService(service: PBDataLoggingService!, hasByteArrays bytes: UnsafePointer<UInt8>, numberOfItems: UInt16, forDataLoggingSession session: PBDataLoggingSessionMetadata!) -> Bool {
-        let type = UnsafePointer<Byte>(bytes)
-
-        let dlHeader = UnsafePointer<dl_header>(bytes).getMirror()
-        // TODO: check if dlHeader or gfsHeader received
-        let gfsHeader = UnsafePointer<gfs_header>(bytes).getMirror()
+        if (start == nil) {
+            start = NSDate().timeIntervalSince1970
+        }
         
+        bytesReceived = bytesReceived + UInt(numberOfItems)
+        if (numberOfItems > 0) {
+            let gfsHeader = UnsafePointer<gfs_header>(bytes).memory
+            
+            let gfsData = UnsafeMutablePointer<gfs_accel_data>.alloc(Int(gfsHeader.count))
+            samplesReceived = samplesReceived + UInt(gfsHeader.count)
+            
+            gfs_unpack_accel_data(bytes + sizeof(gfs_header), gfsHeader.count, gfsData)
+            
+            nameLabel.text = NSString(format: "received %d", samplesReceived)
+        }
         
-        let gfsData = UnsafeMutablePointer<gfs_accel_data>.alloc(dlHeader.count)
-        gfs_unpack_accel_data(bytes + sizeof(gfs_header), UInt16(dlHeader.count), gfsData)
-        name.text = NSString(format: "received %d", numberOfItems)
-
+        if (start != nil) {
+            let elapsed = NSDate().timeIntervalSince1970 - start!
+            let bytesPerSecond = bytesReceived / UInt(elapsed)
+            bytesLabel.text = NSString(format:"%d bytes, %%f elapsed, %d bps", self.bytesReceived)
+        }
+        
         return true
     }
     
     func dataLoggingService(service: PBDataLoggingService!, sessionDidFinish session: PBDataLoggingSessionMetadata!) {
-        name.text = "Ended"
+        nameLabel.text = "Ended"
     }
     
 }

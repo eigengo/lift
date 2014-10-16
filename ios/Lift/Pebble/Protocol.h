@@ -3,8 +3,6 @@
 #include <stdio.h>
 
 const uint8_t GFS_HEADER_TYPE = (uint8_t)0x40;
-const uint8_t DL_HEADER_TYPE = (int8_t)0x41;
-
 
 /**
  * The accelerometer values
@@ -28,15 +26,8 @@ struct __attribute__((__packed__)) gfs_packed_accel_data {
  */
 struct __attribute__((__packed__)) gfs_header {
     uint8_t type;
-    uint8_t samples_per_second;
-};
-
-/**
- * The data logger header
- */
-struct __attribute__((__packed__)) dl_header {
-    int8_t type;
     uint16_t count;
+    uint8_t samples_per_second;
 };
 
 void gfs_unpack_accel_data(const uint8_t *packed_memory, const uint16_t count, struct gfs_accel_data *unpacked);

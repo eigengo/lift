@@ -57,7 +57,7 @@ static void init(void) {
     window_stack_push(window, true /* Animated */);
     window_set_background_color(window, GColorBlack);
 
-    gfs_start(dl_start(), 100);
+    gfs_start(dl_start(), GFS_SAMPLING_100HZ);
 
     timer = app_timer_register(TIMER_MS, timer_callback, NULL);
 }
