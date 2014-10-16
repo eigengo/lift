@@ -10,9 +10,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate {
         NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC").getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
         PBPebbleCentral.setDebugLogsEnabled(true)
         let central = PBPebbleCentral.defaultCentral()
-        central!.appUUID = uuid
-        central!.delegate = self
-        for w in central!.connectedWatches {
+        central.appUUID = uuid
+        central.delegate = self
+        for w in central.connectedWatches {
             launchLiftPebbleApp(w as PBWatch)
         }
         

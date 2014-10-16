@@ -12,8 +12,8 @@ class PebbleAccelerometerReceiver : NSObject, PBDataLoggingServiceDelegate {
     override init() {
         super.init()
 
-        PBPebbleCentral.defaultCentral()!.dataLoggingService.delegate = self
-        PBPebbleCentral.defaultCentral()!.dataLoggingService.setDelegateQueue(nil)
+        PBPebbleCentral.defaultCentral().dataLoggingService.delegate = self
+        PBPebbleCentral.defaultCentral().dataLoggingService.setDelegateQueue(nil)
     }
     
     func dataLoggingService(service: PBDataLoggingService!, hasByteArrays bytes: UnsafePointer<UInt8>, numberOfItems: UInt16, forDataLoggingSession session: PBDataLoggingSessionMetadata!) -> Bool {
