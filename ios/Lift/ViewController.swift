@@ -38,7 +38,7 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
         if start != nil {
             let elapsed = NSDate().timeIntervalSince1970 - start!
             let bytesPerSecond = Double(bytesReceived) / elapsed
-            bytesLabel.text = NSString(format:"%d bytes,\n%f elapsed,\n%f bps\n", self.bytesReceived, elapsed, bytesPerSecond)
+            bytesLabel.text = NSString(format:"%d bytes,\n%f elapsed,\n%f bps", self.bytesReceived, elapsed, bytesPerSecond)
         }
         objc_sync_exit(self)
         
