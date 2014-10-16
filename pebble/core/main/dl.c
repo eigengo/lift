@@ -5,7 +5,7 @@ static int _dl_count = 0;
 static DataLoggingSessionRef session = NULL;
 
 void gfs_sample_callback(uint8_t* buffer, uint16_t size) {
-    _dl_count++;
+    if (_dl_count >= 0) _dl_count++;
 
     DataLoggingResult result = data_logging_log(session, buffer, size);
     if (result != DATA_LOGGING_SUCCESS) {
@@ -20,7 +20,7 @@ gfs_sample_callback_t dl_start() {
     if (session == NULL) {
         _dl_count = -1001;
     } else {
-        _dl_count = -1;
+        _dl_count = 0;
     }
     return &gfs_sample_callback;
 }

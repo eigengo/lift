@@ -9,9 +9,10 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     var bytesReceived: UInt = 0
     var start: NSTimeInterval?
     
-    override func viewDidLoad() {
+    override func viewDidLoad() { 
         super.viewDidLoad()
         PBPebbleCentral.defaultCentral()!.dataLoggingService.delegate = self
+        PBPebbleCentral.defaultCentral()!.dataLoggingService.setDelegateQueue(nil)
     }
 
     override func didReceiveMemoryWarning() {
@@ -19,33 +20,33 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
     }
     
     func dataLoggingService(service: PBDataLoggingService!, hasByteArrays bytes: UnsafePointer<UInt8>, numberOfItems: UInt16, forDataLoggingSession session: PBDataLoggingSessionMetadata!) -> Bool {
-        if (start == nil) {
+        objc_sync_enter(self)
+        bytesReceived = bytesReceived + UInt(numberOfItems)
+        
+        if start == nil {
+            NSLog("start == 0")
             start = NSDate().timeIntervalSince1970
         }
         
-        bytesReceived = bytesReceived + UInt(numberOfItems)
-        if (numberOfItems > 0) {
+        if numberOfItems > 0 {
             let gfsHeader = UnsafePointer<gfs_header>(bytes).memory
-            
-            let gfsData = UnsafeMutablePointer<gfs_accel_data>.alloc(Int(gfsHeader.count))
             samplesReceived = samplesReceived + UInt(gfsHeader.count)
-            
-            gfs_unpack_accel_data(bytes + sizeof(gfs_header), gfsHeader.count, gfsData)
-            
-            nameLabel.text = NSString(format: "received %d", samplesReceived)
+            //gfs_unpack_accel_data(bytes + sizeof(gfs_header), gfsHeader.count, gfsData)
+            nameLabel.text = NSString(format: "received %d %@", samplesReceived, session.serialNumber)
         }
         
-        if (start != nil) {
+        if start != nil {
             let elapsed = NSDate().timeIntervalSince1970 - start!
-            let bytesPerSecond = bytesReceived / UInt(elapsed)
-            bytesLabel.text = NSString(format:"%d bytes, %%f elapsed, %d bps", self.bytesReceived)
+            let bytesPerSecond = Double(bytesReceived) / elapsed
+            bytesLabel.text = NSString(format:"%d bytes,\n%f elapsed,\n%f bps\n", self.bytesReceived, elapsed, bytesPerSecond)
         }
+        objc_sync_exit(self)
         
         return true
     }
     
     func dataLoggingService(service: PBDataLoggingService!, sessionDidFinish session: PBDataLoggingSessionMetadata!) {
-        nameLabel.text = "Ended"
+        nameLabel.text = NSString(format: "Ended %@", session.serialNumber)
     }
     
 }
