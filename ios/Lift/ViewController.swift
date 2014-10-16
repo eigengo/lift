@@ -23,11 +23,6 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
         objc_sync_enter(self)
         bytesReceived = bytesReceived + UInt(numberOfItems)
         
-        if start == nil {
-            NSLog("start == 0")
-            start = NSDate().timeIntervalSince1970
-        }
-        
         if numberOfItems > 0 {
             let gfsHeader = UnsafePointer<gfs_header>(bytes).memory
             samplesReceived = samplesReceived + UInt(gfsHeader.count)
@@ -38,7 +33,10 @@ class ViewController: UIViewController, PBDataLoggingServiceDelegate {
         if start != nil {
             let elapsed = NSDate().timeIntervalSince1970 - start!
             let bytesPerSecond = Double(bytesReceived) / elapsed
-            bytesLabel.text = NSString(format:"%d bytes,\n%f elapsed,\n%f bps", self.bytesReceived, elapsed, bytesPerSecond)
+            let samplesPerSecond = Double(samplesReceived) / elapsed
+            bytesLabel.text = NSString(format:"%d bytes\n%f elapsed\n%f bps\n%f sps", self.bytesReceived, elapsed, bytesPerSecond, samplesPerSecond)
+        } else {
+            start = NSDate().timeIntervalSince1970
         }
         objc_sync_exit(self)
         

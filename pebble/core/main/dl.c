@@ -18,7 +18,7 @@ gfs_sample_callback_t dl_start() {
 
     session = data_logging_create(DL_TAG, DATA_LOGGING_BYTE_ARRAY, sizeof(uint8_t), true);
     if (session == NULL) {
-        _dl_count = -1001;
+        _dl_count = -2001;
     } else {
         _dl_count = 0;
     }
