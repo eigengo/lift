@@ -1,50 +1,28 @@
 import UIKit
 
-class ViewController: UIViewController, PBDataLoggingServiceDelegate {
+class ViewController: UIViewController, PebbleAccelerometerReceiverDelegate {
     
-    @IBOutlet var nameLabel: UILabel!
-    @IBOutlet var bytesLabel: UILabel!
-    
-    var samplesReceived: UInt = 0
-    var bytesReceived: UInt = 0
-    var start: NSTimeInterval?
+    @IBOutlet var statusLabel: UILabel!
+    private let receiver = PebbleAccelerometerReceiver()
+    private let recorder = PebbleAccelerometerRecorder(name: "accel")
     
     override func viewDidLoad() { 
         super.viewDidLoad()
-        PBPebbleCentral.defaultCentral()!.dataLoggingService.delegate = self
-        PBPebbleCentral.defaultCentral()!.dataLoggingService.setDelegateQueue(nil)
+        receiver.delegate = self
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
     
-    func dataLoggingService(service: PBDataLoggingService!, hasByteArrays bytes: UnsafePointer<UInt8>, numberOfItems: UInt16, forDataLoggingSession session: PBDataLoggingSessionMetadata!) -> Bool {
-        objc_sync_enter(self)
-        bytesReceived = bytesReceived + UInt(numberOfItems)
-        
-        if numberOfItems > 0 {
-            let gfsHeader = UnsafePointer<gfs_header>(bytes).memory
-            samplesReceived = samplesReceived + UInt(gfsHeader.count)
-            //gfs_unpack_accel_data(bytes + sizeof(gfs_header), gfsHeader.count, gfsData)
-            nameLabel.text = NSString(format: "received %d %@", samplesReceived, session.serialNumber)
-        }
-        
-        if start != nil {
-            let elapsed = NSDate().timeIntervalSince1970 - start!
-            let bytesPerSecond = Double(bytesReceived) / elapsed
-            let samplesPerSecond = Double(samplesReceived) / elapsed
-            bytesLabel.text = NSString(format:"%d bytes\n%f elapsed\n%f bps\n%f sps", self.bytesReceived, elapsed, bytesPerSecond, samplesPerSecond)
-        } else {
-            start = NSDate().timeIntervalSince1970
-        }
-        objc_sync_exit(self)
-        
-        return true
+    func accelerometerReceiverEnded() {
+        statusLabel.text = "Ended"
+        recorder.accelerometerReceiverEnded()
     }
     
-    func dataLoggingService(service: PBDataLoggingService!, sessionDidFinish session: PBDataLoggingSessionMetadata!) {
-        nameLabel.text = NSString(format: "Ended %@", session.serialNumber)
+    func accelerometerReceiverReceived(data: NSData, bytesReceived: UInt, bytesPerSecond: Double) {
+        recorder.accelerometerReceiverReceived(data, bytesReceived: bytesReceived, bytesPerSecond: bytesPerSecond)
+        statusLabel.text = NSString(format: "Received %d\nBPS %f", bytesReceived, bytesPerSecond)
     }
-    
+        
 }

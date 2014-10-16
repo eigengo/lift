@@ -7,21 +7,21 @@
 /*
  * The messages are 304 bytes each, each containing 50 samples.
  *
- * At 100 Hz sampling rate, we expect to transmit 100 / 58 * 294 bps = 506 B/s
+ * At 100 Hz sampling rate, we expect to transmit 100 / 58 * 295 bps = 506 B/s
  *
  */
 // buffer size in B (314)
-#define GFS_BUFFER_SIZE (uint16_t)294 // 290 = 58 samples per call
+#define GFS_BUFFER_SIZE (uint16_t)295 // 290 = 58 samples per call
 
 // power-of-two samples at a time
 #define GFS_NUM_SAMPLES 2
 
-#define GFS_HEADER_TYPE (uint8_t)0x40
+#define GFS_HEADER_TYPE (uint16_t)0xfef7
 
 /**
  */
 struct __attribute__((__packed__)) gfs_header {
-    uint8_t type;
+    uint16_t type;
     uint16_t count;
     uint8_t samples_per_second;
 };

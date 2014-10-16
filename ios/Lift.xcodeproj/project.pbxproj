@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
+		549B467219F0439A00028BB9 /* AccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549B467119F0439A00028BB9 /* AccelerometerRecorder.swift */; };
+		549B467419F0467E00028BB9 /* AccelerometerReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549B467319F0467E00028BB9 /* AccelerometerReceiver.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* ViewController.swift */; };
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
@@ -16,7 +18,7 @@
 		54CC69A719C4AD8E00B29EC8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A519C4AD8E00B29EC8 /* LaunchScreen.xib */; };
 		54CC69B319C4AD8E00B29EC8 /* LiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC69B219C4AD8E00B29EC8 /* LiftTests.swift */; };
 		54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */; };
-		54D0A61A19EFC64700429C3B /* Protocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 54D0A61919EFC64700429C3B /* Protocol.c */; };
+		54D0A61A19EFC64700429C3B /* AccelerometerProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 54D0A61919EFC64700429C3B /* AccelerometerProtocol.c */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -36,7 +38,9 @@
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
-		547C5E1219EFBE0300E0010B /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Protocol.h; path = Pebble/Protocol.h; sourceTree = "<group>"; };
+		547C5E1219EFBE0300E0010B /* AccelerometerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AccelerometerProtocol.h; path = Pebble/AccelerometerProtocol.h; sourceTree = "<group>"; };
+		549B467119F0439A00028BB9 /* AccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccelerometerRecorder.swift; sourceTree = "<group>"; };
+		549B467319F0467E00028BB9 /* AccelerometerReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccelerometerReceiver.swift; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC699B19C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -49,7 +53,7 @@
 		54CC69B119C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54CC69B219C4AD8E00B29EC8 /* LiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftTests.swift; sourceTree = "<group>"; };
 		54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
-		54D0A61919EFC64700429C3B /* Protocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Protocol.c; path = Pebble/Protocol.c; sourceTree = "<group>"; };
+		54D0A61919EFC64700429C3B /* AccelerometerProtocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = AccelerometerProtocol.c; path = Pebble/AccelerometerProtocol.c; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		604C4FB0BC879EB56AD28A81 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -95,8 +99,10 @@
 		547C5E1019EFBCAB00E0010B /* Pebble */ = {
 			isa = PBXGroup;
 			children = (
-				547C5E1219EFBE0300E0010B /* Protocol.h */,
-				54D0A61919EFC64700429C3B /* Protocol.c */,
+				547C5E1219EFBE0300E0010B /* AccelerometerProtocol.h */,
+				54D0A61919EFC64700429C3B /* AccelerometerProtocol.c */,
+				549B467119F0439A00028BB9 /* AccelerometerRecorder.swift */,
+				549B467319F0467E00028BB9 /* AccelerometerReceiver.swift */,
 			);
 			name = Pebble;
 			sourceTree = "<group>";
@@ -315,9 +321,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54D0A61A19EFC64700429C3B /* Protocol.c in Sources */,
+				549B467219F0439A00028BB9 /* AccelerometerRecorder.swift in Sources */,
+				54D0A61A19EFC64700429C3B /* AccelerometerProtocol.c in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* ViewController.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
+				549B467419F0467E00028BB9 /* AccelerometerReceiver.swift in Sources */,
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

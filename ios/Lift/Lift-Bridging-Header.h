@@ -3,4 +3,4 @@
 //
 
 #import <PebbleKit/PebbleKit.h>
-#import "Pebble/Protocol.h"
+#import "Pebble/AccelerometerProtocol.h"

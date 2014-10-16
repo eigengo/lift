@@ -1,4 +1,4 @@
-#include "Protocol.h"
+#include "AccelerometerProtocol.h"
 
 void gfs_unpack_accel_data(const uint8_t *packed_memory, const uint16_t count, struct gfs_accel_data *unpacked) {
     struct gfs_packed_accel_data *packed = (struct gfs_packed_accel_data*)packed_memory;
