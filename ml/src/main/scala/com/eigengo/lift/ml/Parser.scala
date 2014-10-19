@@ -10,11 +10,17 @@ trait PebbleAccelerometerParser {
 
   private type ZYX = (Int, Int, Int)
 
+  case class GfsHeader(tpe: Int, count: Int, samplesPerSecond: Int)
+
   private implicit val packedAccelerometerData: Codec[ZYX] = fixedSizeBits(33, {
-      ("z" | int(11)                   ) ::
-      ("y" | int(11)                   ) ::
-      ("x" | int(11)                   )
+      ("z" | int(11)) :: ("y" | int(11)) :: ("x" | int(11))
   }).as[ZYX]
+
+  private implicit val packedGfsHeader: Codec[GfsHeader] = fixedSizeBytes(5, {
+    "type" | int16 :: ("count" | int16) :: ("samplesPerSecond" | int8)
+  }).as[GfsHeader]
+
+  //private implicit val pebbleCodec = listOfN(packedGfsHeader.map(_.count), packedAccelerometerData)
 
   def parsePackedAccelerometerData(bytes: BitVector): \/[String, (BitVector, AccelerometerData)] = {
     val rev = bytes.reverseByteOrder.drop(7)
