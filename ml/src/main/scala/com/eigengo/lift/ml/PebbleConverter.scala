@@ -6,7 +6,7 @@ import scodec.bits.BitVector
 
 object PebbleConverter extends App {
   
-  val fileName = "accel-1413542383.400994"
+  val fileName = "accel-1413803254.927871"
 
   // Do not touch
   import PebbleAccelerometerParser._
