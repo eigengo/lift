@@ -1,29 +1,26 @@
 package com.eigengo.lift.ml
 
-import scodec.{Decoder, CodecAsAux, Codec}
+import scodec.Codec
 import scodec.bits.BitVector
 
-import scalaz.\/
+import scalaz.{\/-, \/}
 
 trait PebbleAccelerometerParser {
   import scodec.codecs._
 
   private type ZYX = (Int, Int, Int)
+  private type CSU = (Int, Int, Unit)
 
-  private case class Gfs(header: GfsHeader, data: List[AccelerometerValue])
-  private case class GfsHeader(count: Int, samplesPerSecond: Int)
-
-  private implicit val packedAccelerometerData: Codec[ZYX] = fixedSizeBits(40, {
+  private implicit val packedAccelerometerData: Codec[ZYX] = new FixedSizeReversedCodec(40, {
       ignore(7) :~>: ("z" | int(11)) :: ("y" | int(11)) :: ("x" | int(11))
   }).as[ZYX]
 
-  private implicit val packedGfsHeader: Codec[GfsHeader] = fixedSizeBytes(5, {
-    constant(BitVector(0xff, 0xf7)) :~>: ("count" | int16) :: ("samplesPerSecond" | int8)
-  }).as[GfsHeader]
+  private implicit val packedGfsHeader: Codec[CSU] = new FixedSizeReversedCodec(40, {
+    ("samplesPerSecond" | int8) :: ("count" | int16) :: constant(BitVector(0xfe, 0xf7))
+  }).as[CSU]
 
   def parsePackedAccelerometerData(bytes: BitVector): \/[String, (BitVector, AccelerometerValue)] = {
-    val rev = bytes.reverseByteOrder
-    Codec.decode[ZYX](rev).map {
+    Codec.decode[ZYX](bytes).map {
       case (bv, (z, y, x)) => (bv, AccelerometerValue(x, y, z))
     }
     // FF, FF, FF, FF, 01 is pad->x_val = -1; pad->y_val = -1; pad->z_val = -1;
@@ -36,21 +33,26 @@ trait PebbleAccelerometerParser {
     // z  2B from (2): 6-7 + 8B from (3): 0-7 + 1B from (3) 0
   }
 
+  def parseGfsHeader(bytes: BitVector) = {
+    Codec.decode[CSU](bytes)
+  }
+
   def parse(bits: BitVector): List[AccelerometerData] = {
-    val rev = bits.reverseByteOrder
     implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
 
-    def iter(b: BitVector, ads: List[AccelerometerData]): \/[String, (BitVector, AccelerometerData)] = {
-      for {
-        (body, header) <- Codec.decode[GfsHeader](b)
-        (rest, zyxs) <- Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(header.count))(body)
-        avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
-        if rest.nonEmpty
-        (x, y) <- iter(rest, AccelerometerData(header.samplesPerSecond, avs) :: ads)
-      } yield (x, y)
+    def iter(b: BitVector, ads: List[AccelerometerData]): \/[String, (BitVector, List[AccelerometerData])] = {
+      if (b.isEmpty)
+        \/-((BitVector.empty, ads))
+      else
+        for {
+          (body, (samplesPerSecond, count, _))  <- Codec.decode[CSU](b)
+          (rest, zyxs) <- Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(count))(body)
+          avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
+          (x, y) <- iter(rest, AccelerometerData(samplesPerSecond, avs) :: ads)
+        } yield (x, y)
     }
 
-    iter(rev, Nil).toList.map(_._2)
+    iter(bits, Nil).toList.flatMap(_._2)
   }
 
 }
