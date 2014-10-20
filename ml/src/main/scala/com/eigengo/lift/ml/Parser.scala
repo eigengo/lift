@@ -3,6 +3,7 @@ package com.eigengo.lift.ml
 import scodec.Codec
 import scodec.bits.BitVector
 
+import scala.collection.mutable.ListBuffer
 import scalaz.{\/-, \/}
 
 trait PebbleAccelerometerParser {
@@ -39,20 +40,19 @@ trait PebbleAccelerometerParser {
 
   def parse(bits: BitVector): List[AccelerometerData] = {
     implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
+    var b = bits
+    val result = ListBuffer[AccelerometerData]()
+    while (b.nonEmpty) {
+      val r = for {
+        (body, (samplesPerSecond, count, _))  <- Codec.decode[CSU](b)
+        (rest, zyxs) <- Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(count))(body)
+        avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
+      } yield (rest, AccelerometerData(samplesPerSecond, avs))
 
-    def iter(b: BitVector, ads: List[AccelerometerData]): \/[String, (BitVector, List[AccelerometerData])] = {
-      if (b.isEmpty)
-        \/-((BitVector.empty, ads))
-      else
-        for {
-          (body, (samplesPerSecond, count, _))  <- Codec.decode[CSU](b)
-          (rest, zyxs) <- Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(count))(body)
-          avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
-          (x, y) <- iter(rest, AccelerometerData(samplesPerSecond, avs) :: ads)
-        } yield (x, y)
+      r.fold(_ => (), { case (rest, ad) => b = rest; result += ad })
     }
 
-    iter(bits, Nil).toList.flatMap(_._2)
+    result.toList
   }
 
 }
