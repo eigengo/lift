@@ -32,10 +32,4 @@ object PebbleAccelerometerParserTest extends App {
   println(parsePackedAccelerometerData(BitVector(0x01, 0x08, 0x40, 0x00, 0x00)))
   println(parsePackedAccelerometerData(BitVector(0x8C, 0xC0, 0x39, 0xFA, 0x00)))
 
-  val all = BitVector.fromInputStream(getClass.getResourceAsStream("/accel-1413542383.400994.dat"))
-  val fos = new FileOutputStream("/Users/janmachacek/x.csv")
-  parse(all).foreach(ad => ad.values.foreach(av => fos.write(s"${av.x},${av.y},${av.z}\n".getBytes)))
-  fos.close()
-
-
 }
