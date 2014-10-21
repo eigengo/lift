@@ -8,7 +8,7 @@ resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 lazy val root = Project("lift-ml", file("."))
                   .configs(IntegrationTest)
-                  //.settings(Build.Settings.project:_*)
+                  .settings(Build.Settings.project:_*)
 
 libraryDependencies  ++= Seq(
   "org.typelevel" %% "scodec-core" % "1.3.0",

@@ -4,6 +4,7 @@ import scodec.Codec
 import scodec.bits.BitVector
 
 import scala.collection.mutable.ListBuffer
+import scalaz.\/-
 
 trait PebbleAccelerometerParser {
   import scodec.codecs._
@@ -24,12 +25,15 @@ trait PebbleAccelerometerParser {
     var b = bits
     val result = ListBuffer[AccelerometerData]()
     while (b.nonEmpty) {
-      val r = for {
-        (body, (samplesPerSecond, count, _))  <- Codec.decode[CSU](b)
-        (rest, zyxs) <- Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(count))(body)
-        avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
-      } yield (rest, AccelerometerData(samplesPerSecond, avs))
-
+      val r = Codec.decode[CSU](b).flatMap {
+        case (body, (samplesPerSecond, count, _)) =>
+          Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(count))(body).flatMap {
+            case (rest, zyxs) =>
+              val avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
+              \/-(rest, AccelerometerData(samplesPerSecond, avs))
+          }
+      }
+      
       r.fold(_ => b = b.drop(1), { case (rest, ad) => b = rest; result += ad })
     }
 
