@@ -30,7 +30,7 @@ trait PebbleAccelerometerParser {
         avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z)}
       } yield (rest, AccelerometerData(samplesPerSecond, avs))
 
-      r.fold(_ => (), { case (rest, ad) => b = rest; result += ad })
+      r.fold(_ => b = b.drop(1), { case (rest, ad) => b = rest; result += ad })
     }
 
     result.toList
