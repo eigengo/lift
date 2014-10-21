@@ -1,9 +1,9 @@
 # data <- scale(read.csv("/Users/janmachacek/accel-1413803254.927871.csv", col.names=c('x', 'y', 'z'))) # chest
-raw <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/arms2-1.csv", col.names=c('x', 'y', 'z'))) # arms
+raw <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/arms1.csv", col.names=c('x', 'y', 'z'))) # arms
 data <- data[,c(1)]
 
 # K-Means Cluster Analysis
-fit <- kmeans(data, 2)
+fit <- kmeans(data, 4)
 # get cluster means 
 aggregate(data, by=list(fit$cluster), FUN=mean)
 # append cluster assignment
