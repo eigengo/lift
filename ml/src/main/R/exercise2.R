@@ -1,5 +1,5 @@
-data <- scale(read.csv("/Users/janmachacek/accel-1413803254.927871.csv", col.names=c('x', 'y', 'z'))) # chest
-# data <- scale(read.csv("/Users/janmachacek/accel-1413542383.400994.csv", col.names=c('x', 'y', 'z'))) # arms
+data <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/accel-1413803254.927871.csv", col.names=c('x', 'y', 'z'))) # chest
+# data <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/accel-1413542383.400994.csv", col.names=c('x', 'y', 'z'))) # arms
 
 # K-Means Cluster Analysis
 fit <- kmeans(data, 7)
