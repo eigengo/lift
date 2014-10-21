@@ -33,7 +33,7 @@ trait PebbleAccelerometerParser {
               \/-(rest, AccelerometerData(samplesPerSecond, avs))
           }
       }
-      
+
       r.fold(_ => b = b.drop(1), { case (rest, ad) => b = rest; result += ad })
     }
 

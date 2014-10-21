@@ -1,5 +1,5 @@
-data <- scale(read.csv("/Users/janmachacek/accel-1413803254.927871.csv", nrows=10000)) # chest day
-# data <- scale(read.csv("/Users/janmachacek/accel-1413542383.400994.csv")) # arms day
+data <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/accel-1413803254.927871.csv", nrows=10000)) # chest day
+# data <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/accel-1413542383.400994.csv")) # arms day
 
 # Determine number of clusters
 wss <- (nrow(data)-1) * sum(apply(data, 2, var))
