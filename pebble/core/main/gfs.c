@@ -16,6 +16,8 @@ static struct {
     uint16_t buffer_position;
 } gfs_context;
 
+#define SIGNED_12_MAX(x) (uint16_t)((x) > 4095 ? 4095 : ((x) < -4095 ? -4095 : (x)))
+
 /**
  * Write the header and reset the buffer position
  */
@@ -34,7 +36,7 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     if (num_samples != GFS_NUM_SAMPLES) return /* FAIL */;
 
     size_t len = sizeof(struct gfs_packed_accel_data) * num_samples;
-    if (gfs_context.buffer_position + len > GFS_BUFFER_SIZE) {
+    if (gfs_context.buffer_position + len >= GFS_BUFFER_SIZE) {
         struct gfs_header *header = (struct gfs_header*)gfs_context.buffer;
         header->count  = (uint16_t)((gfs_context.buffer_position - sizeof(struct gfs_header)) / sizeof(struct gfs_packed_accel_data));
         gfs_context.callback(gfs_context.buffer, gfs_context.buffer_position);
@@ -44,9 +46,9 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     // pack
     struct gfs_packed_accel_data *ad = (struct gfs_packed_accel_data *)(gfs_context.buffer + gfs_context.buffer_position);
     for (unsigned int i = 0; i < num_samples; ++i) {
-        ad[i].x_val = data[i].x;
-        ad[i].y_val = data[i].y;
-        ad[i].z_val = data[i].z;
+        ad[i].x_val = SIGNED_12_MAX(data[i].x);
+        ad[i].y_val = SIGNED_12_MAX(data[i].y);
+        ad[i].z_val = SIGNED_12_MAX(data[i].z);
     }
     gfs_context.buffer_position += len;
 }

@@ -7,7 +7,7 @@ import scodec.bits.BitVector
 
 object PebbleConverter extends App {
   
-  val fileName = "accel-1413884189.054500"
+  val fileName = "arm3"
 
   // Do not touch
   import PebbleAccelerometerParser._

@@ -1,6 +1,6 @@
 # data <- scale(read.csv("/Users/janmachacek/accel-1413803254.927871.csv", col.names=c('x', 'y', 'z'))) # chest
-raw <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/arms1.csv", col.names=c('x', 'y', 'z'))) # arms
-data <- data[,c(1)]
+raw <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/abs1.csv", col.names=c('x', 'y', 'z'))) # arms
+data <- ts(raw)
 
 # K-Means Cluster Analysis
 fit <- kmeans(data, 4)

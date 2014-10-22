@@ -35,7 +35,7 @@ TEST_F(gfs_test, Version1) {
 
     // that is, we must push 376 * 8 packets of accel data
     std::vector<AccelRawData> mock_data;
-    AccelRawData a = { .x = 1000, .y = 100, .z = -1000 };
+    AccelRawData a = { .x = 1000, .y = 5000, .z = -5000 };
     for (int i = 0; i < 16; i++) mock_data.push_back(a);
 
     gfs_start(gfs_test::gfs_callback, GFS_SAMPLING_100HZ);
@@ -50,8 +50,8 @@ TEST_F(gfs_test, Version1) {
     gfs_packed_accel_data *data = reinterpret_cast<gfs_packed_accel_data*>(gfs_test::buffer + sizeof(gfs_header));
     for (int i = 0; i < h->count; i++) {
         EXPECT_EQ(data[i].x_val, 1000);
-        EXPECT_EQ(data[i].y_val, 100);
-        EXPECT_EQ(data[i].z_val, -1000);
+        EXPECT_EQ(data[i].y_val, 4095);
+        EXPECT_EQ(data[i].z_val, -4095);
     }
 
     gfs_stop();

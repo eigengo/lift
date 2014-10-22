@@ -16,9 +16,10 @@
 // power-of-two samples at a time
 #define GFS_NUM_SAMPLES 2
 
-#define GFS_HEADER_TYPE (uint16_t)0xfef7
+#define GFS_HEADER_TYPE (uint16_t)0xfefc
 
 /**
+ * 5 B in header
  */
 struct __attribute__((__packed__)) gfs_header {
     uint16_t type;
@@ -27,12 +28,12 @@ struct __attribute__((__packed__)) gfs_header {
 };
 
 /**
- * The accelerometer values
+ * Packed 5 B of the accelerometer values
  */
 struct __attribute__((__packed__)) gfs_packed_accel_data {
-    int16_t x_val : 11;
-    int16_t y_val : 11;
-    int16_t z_val : 11;
+    int16_t x_val : 13;
+    int16_t y_val : 13;
+    int16_t z_val : 13;
 };
 
 typedef enum {
