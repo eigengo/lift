@@ -1,7 +1,6 @@
 package com.eigengo.lift.ml
 
 import java.io.{File, FileOutputStream}
-import java.nio.file.FileSystem
 
 import scodec.bits.BitVector
 

@@ -1,5 +1,5 @@
 # data <- scale(read.csv("/Users/janmachacek/accel-1413803254.927871.csv", col.names=c('x', 'y', 'z'))) # chest
-raw <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/abs1.csv", col.names=c('x', 'y', 'z'))) # arms
+raw <- scale(read.csv("/Users/janmachacek/Eigengo/lift/ml/src/main/resources/chest1-1.csv", col.names=c('x', 'y', 'z'))) # arms
 data <- ts(raw)
 
 # K-Means Cluster Analysis
