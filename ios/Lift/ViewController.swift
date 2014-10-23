@@ -4,7 +4,7 @@ class ViewController: UIViewController, PebbleAccelerometerReceiverDelegate {
     
     @IBOutlet var statusLabel: UILabel!
     private let receiver = PebbleAccelerometerReceiver()
-    private let recorder = PebbleAccelerometerRecorder(name: "accel")
+    private let recorder = PebbleAccelerometerRecorder()
     
     override func viewDidLoad() { 
         super.viewDidLoad()
@@ -20,9 +20,9 @@ class ViewController: UIViewController, PebbleAccelerometerReceiverDelegate {
         recorder.accelerometerReceiverEnded()
     }
     
-    func accelerometerReceiverReceived(data: NSData, bytesReceived: UInt, bytesPerSecond: Double) {
-        recorder.accelerometerReceiverReceived(data, bytesReceived: bytesReceived, bytesPerSecond: bytesPerSecond)
-        statusLabel.text = NSString(format: "Received %d\nBPS %f", bytesReceived, bytesPerSecond)
+    func accelerometerReceiverReceived(data: NSData, bytesReceived: UInt, bytesPerSecond: Double, session: PBDataLoggingSessionMetadata!) {
+        recorder.accelerometerReceiverReceived(data, bytesReceived: bytesReceived, bytesPerSecond: bytesPerSecond, session: session)
+        statusLabel.text = NSString(format: "Session: %@\nReceived %d\nBPS %f", session.description, bytesReceived, bytesPerSecond)
     }
         
 }

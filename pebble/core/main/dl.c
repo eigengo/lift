@@ -1,6 +1,8 @@
 #include "dl.h"
 
 static int _dl_count = 0;
+static int _dl_last_error = 0;
+static int32_t _dl_tag = 0;
 
 static DataLoggingSessionRef session = NULL;
 
@@ -9,16 +11,18 @@ void gfs_sample_callback(uint8_t* buffer, uint16_t size) {
 
     DataLoggingResult result = data_logging_log(session, buffer, size);
     if (result != DATA_LOGGING_SUCCESS) {
-        _dl_count = -1000 - (int)result;
+        _dl_last_error = (int)result;
     }
 }
 
 gfs_sample_callback_t dl_start() {
     if (session != NULL) return &gfs_sample_callback;
 
-    session = data_logging_create(DL_TAG, DATA_LOGGING_BYTE_ARRAY, sizeof(uint8_t), true);
+    _dl_tag = rand();
+
+    session = data_logging_create(_dl_tag, DATA_LOGGING_BYTE_ARRAY, sizeof(uint8_t), true);
     if (session == NULL) {
-        _dl_count = -2001;
+        _dl_last_error = -1;
     } else {
         _dl_count = 0;
     }
@@ -32,4 +36,12 @@ void dl_stop() {
 
 int dl_count() {
     return _dl_count;
+}
+
+int dl_last_error() {
+    return _dl_last_error;
+}
+
+int32_t dl_tag() {
+    return _dl_tag;
 }

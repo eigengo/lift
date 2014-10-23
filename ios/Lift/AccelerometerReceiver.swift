@@ -1,5 +1,5 @@
 protocol PebbleAccelerometerReceiverDelegate {
-    func accelerometerReceiverReceived(data: NSData, bytesReceived: UInt, bytesPerSecond: Double)
+    func accelerometerReceiverReceived(data: NSData, bytesReceived: UInt, bytesPerSecond: Double, session: PBDataLoggingSessionMetadata!)
     func accelerometerReceiverEnded()
 }
 
@@ -21,7 +21,7 @@ class PebbleAccelerometerReceiver : NSObject, PBDataLoggingServiceDelegate {
         bytesReceived = bytesReceived + UInt(numberOfItems)
         
         if numberOfItems > 0 && delegate != nil {
-            delegate?.accelerometerReceiverReceived(NSData(bytes: bytes, length: Int(numberOfItems)), bytesReceived: bytesReceived, bytesPerSecond: bytesPerSecond)
+            delegate?.accelerometerReceiverReceived(NSData(bytes: bytes, length: Int(numberOfItems)), bytesReceived: bytesReceived, bytesPerSecond: bytesPerSecond, session: session)
         }
         
         if start != nil {

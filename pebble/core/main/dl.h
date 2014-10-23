@@ -10,6 +10,8 @@ extern "C" {
 gfs_sample_callback_t dl_start();
 void dl_stop();
 int dl_count();
+int32_t dl_tag();
+int dl_last_error();
 
 #ifdef __cplusplus
 }

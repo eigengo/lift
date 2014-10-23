@@ -16,16 +16,12 @@ static void disc_layer_update_callback(Layer *me, GContext *ctx) {
     graphics_context_set_text_color(ctx, GColorWhite);
     GRect bounds = layer_get_frame(me);
 
-    char text[32];
+    char text[40];
     char wall_text[10];
     clock_copy_time_string(wall_text, 10);
 
-    uint8_t data[5];
-    struct gfs_packed_accel_data *pad = (struct gfs_packed_accel_data*)data;
-    pad->x_val = 1; pad->y_val = 1; pad->z_val = 1;
-    snprintf(text, 31, "%02X, %02X, %02X, %02X, %02X", data[0], data[1], data[2], data[3], data[4]);
-
-    // snprintf(text, 31, "%s Sent %d", wall_text, dl_count());
+    snprintf(text, 31, "TOD: %s\nTag: %ld\nLE: %d\nSent %d\n", 
+    	wall_text, dl_tag(), dl_last_error(), dl_count());
 
     graphics_draw_text(ctx,
             text,
