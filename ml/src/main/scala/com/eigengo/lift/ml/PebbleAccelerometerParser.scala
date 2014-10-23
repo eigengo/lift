@@ -13,11 +13,11 @@ trait PebbleAccelerometerParser {
   private type CSU = (Int, Int, Unit)
 
   private implicit val packedAccelerometerData: Codec[ZYX] = new FixedSizeReversedCodec(40, {
-      ignore(7) :~>: ("z" | int(11)) :: ("y" | int(11)) :: ("x" | int(11))
+      ignore(1) :~>: ("z" | int(13)) :: ("y" | int(13)) :: ("x" | int(13))
   }).as[ZYX]
 
   private implicit val packedGfsHeader: Codec[CSU] = new FixedSizeReversedCodec(40, {
-    ("samplesPerSecond" | int8) :: ("count" | int16) :: constant(BitVector(0xfe, 0xf7))
+    ("samplesPerSecond" | int8) :: ("count" | int16) :: constant(BitVector(0xfe, 0xfc))
   }).as[CSU]
 
   def parse(bits: BitVector): List[AccelerometerData] = {
