@@ -31,7 +31,7 @@ class PebbleAccelerometerRecorder : NSObject, PebbleAccelerometerReceiverDelegat
     
     private func flush(force: Bool) {
         if self.buffer.length > 16384 || force {
-            let handle = NSFileHandle(forWritingAtPath: self.filePath)
+            let handle = NSFileHandle(forWritingAtPath: self.filePath)!
             handle.seekToEndOfFile()
             handle.writeData(self.buffer)
             handle.closeFile()

@@ -46,7 +46,7 @@ class MotionRecorder {
         
     private func flush() {
         if self.buffer.length > 256 {
-            let handle = NSFileHandle(forWritingAtPath: self.filePath)
+            let handle = NSFileHandle(forWritingAtPath: self.filePath)!
             handle.seekToEndOfFile()
             handle.writeData(self.buffer.dataUsingEncoding(NSASCIIStringEncoding)!)
             handle.closeFile()

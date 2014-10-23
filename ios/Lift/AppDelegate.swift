@@ -6,8 +6,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate {
     var window: UIWindow?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        let uuid = NSMutableData(length: 16)
-        NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC").getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
+        let uuid = NSMutableData(length: 16)!
+        NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC")!.getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
         PBPebbleCentral.setDebugLogsEnabled(true)
         let central = PBPebbleCentral.defaultCentral()
         central.appUUID = uuid
