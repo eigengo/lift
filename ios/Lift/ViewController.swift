@@ -22,7 +22,7 @@ class ViewController: UIViewController, PebbleAccelerometerReceiverDelegate {
     
     func accelerometerReceiverReceived(data: NSData, bytesReceived: UInt, bytesPerSecond: Double, session: PBDataLoggingSessionMetadata!) {
         recorder.accelerometerReceiverReceived(data, bytesReceived: bytesReceived, bytesPerSecond: bytesPerSecond, session: session)
-        statusLabel.text = NSString(format: "Session: %@\nReceived %d\nBPS %f", session.description, bytesReceived, bytesPerSecond)
+        statusLabel.text = NSString(format: "Session: %x\nReceived %d\nBPS %f", session.tag, bytesReceived, bytesPerSecond)
     }
         
 }

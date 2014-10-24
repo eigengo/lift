@@ -16,11 +16,11 @@ void gfs_sample_callback(uint8_t* buffer, uint16_t size) {
 }
 
 gfs_sample_callback_t dl_start() {
-    if (session != NULL) return &gfs_sample_callback;
+    if (session != NULL) data_logging_finish(session);
 
     _dl_tag = rand();
 
-    session = data_logging_create(_dl_tag, DATA_LOGGING_BYTE_ARRAY, sizeof(uint8_t), true);
+    session = data_logging_create(_dl_tag, DATA_LOGGING_BYTE_ARRAY, sizeof(uint8_t), false);
     if (session == NULL) {
         _dl_last_error = -1;
     } else {
@@ -31,7 +31,9 @@ gfs_sample_callback_t dl_start() {
 
 void dl_stop() {
     if (session != NULL) data_logging_finish(session);
-    _dl_count = -1000;
+
+    session = NULL;
+    _dl_count = -1;
 }
 
 int dl_count() {

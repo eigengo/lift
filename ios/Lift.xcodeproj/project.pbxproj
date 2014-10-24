@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
-		5460122719F90A7F009B7CC8 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5460122619F90A7F009B7CC8 /* CloudKit.framework */; };
 		549B467219F0439A00028BB9 /* AccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549B467119F0439A00028BB9 /* AccelerometerRecorder.swift */; };
 		549B467419F0467E00028BB9 /* AccelerometerReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549B467319F0467E00028BB9 /* AccelerometerReceiver.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
@@ -39,7 +38,6 @@
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
-		5460122619F90A7F009B7CC8 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		547C5E1219EFBE0300E0010B /* AccelerometerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AccelerometerProtocol.h; path = Pebble/AccelerometerProtocol.h; sourceTree = "<group>"; };
 		549B467119F0439A00028BB9 /* AccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccelerometerRecorder.swift; sourceTree = "<group>"; };
 		549B467319F0467E00028BB9 /* AccelerometerReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccelerometerReceiver.swift; sourceTree = "<group>"; };
@@ -66,7 +64,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */,
-				5460122719F90A7F009B7CC8 /* CloudKit.framework in Frameworks */,
 				54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */,
 				83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */,
 			);
@@ -178,7 +175,6 @@
 		8D64789A58A65961D3659708 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5460122619F90A7F009B7CC8 /* CloudKit.framework */,
 				604C4FB0BC879EB56AD28A81 /* libPods.a */,
 			);
 			name = Frameworks;
@@ -241,7 +237,7 @@
 								enabled = 0;
 							};
 							com.apple.iCloud = {
-								enabled = 1;
+								enabled = 0;
 							};
 						};
 					};
@@ -458,7 +454,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Lift/Lift.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Lift/Info.plist;
@@ -481,7 +476,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Lift/Lift.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Lift/Info.plist;

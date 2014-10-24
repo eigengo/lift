@@ -17,11 +17,9 @@ static void disc_layer_update_callback(Layer *me, GContext *ctx) {
     GRect bounds = layer_get_frame(me);
 
     char text[40];
-    char wall_text[10];
-    clock_copy_time_string(wall_text, 10);
 
-    snprintf(text, 31, "TOD: %s\nTag: %ld\nLE: %d\nSent %d\n", 
-    	wall_text, dl_tag(), dl_last_error(), dl_count());
+    snprintf(text, 31, "Tag: %lx\nLE: %d\nSent %d\n", 
+    	dl_tag(), dl_last_error(), dl_count());
 
     graphics_draw_text(ctx,
             text,
@@ -51,6 +49,7 @@ static void window_unload(Window *window) {
 }
 
 static void init(void) {
+    srand(time(NULL));
     window = window_create();
     window_set_window_handlers(window, (WindowHandlers) {
             .load = window_load,
