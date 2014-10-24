@@ -1,7 +1,7 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate, PBWatchDelegate {
 
     var window: UIWindow?
 
@@ -30,13 +30,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate {
     }
     
     func pebbleCentral(central: PBPebbleCentral!, watchDidConnect watch: PBWatch!, isNew: Bool) {
-        launchLiftPebbleApp(watch)
+        NSLog("Connected %@", watch)
+        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
     }
     
     func pebbleCentral(central: PBPebbleCentral!, watchDidDisconnect watch: PBWatch!) {
-        NSLog("Gone")
+        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
+        NSLog("Gone %@", watch)
     }
-
+    
     func applicationWillResignActive(application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
