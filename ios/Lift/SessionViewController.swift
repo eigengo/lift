@@ -26,12 +26,17 @@ enum CellData {
 class SessionViewController: UITableViewController, UITableViewDelegate, UITableViewDataSource, PebbleAccelerometerReceiverDelegate {
     private let receiver = PebbleAccelerometerReceiver()
     private let recorder = PebbleAccelerometerRecorder()
-    private var sessionCells: [CellData] = []
+    private var sessionCells: [CellData] = [
+        .ActiveCell(session: 100, bytesReceived: 200, bytesPerSecond: 12.2)
+    ]
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.automaticallyAdjustsScrollViewInsets = false
         receiver.delegate = self
+    }
+    
+    @IBAction func poll(AnyObject) {
+        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
     }
 
     // #pragma mark - UITableViewDataSource
