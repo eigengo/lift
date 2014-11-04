@@ -1,7 +1,8 @@
 package com.eigengo.pe
 
 import scodec.bits.BitVector
-import spray.http.HttpRequest
+import spray.http.{ContentTypes, HttpEntity, HttpResponse, HttpRequest}
+import spray.httpx.marshalling.{ToResponseMarshallingContext, ToResponseMarshaller}
 import spray.httpx.unmarshalling.{Deserialized, FromRequestUnmarshaller}
 import spray.routing.directives.MarshallingDirectives
 
