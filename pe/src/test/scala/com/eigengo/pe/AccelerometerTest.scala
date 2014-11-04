@@ -1,4 +1,4 @@
-package org.eigengo.pe
+package com.eigengo.pe
 
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector

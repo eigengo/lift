@@ -1,8 +1,8 @@
-package org.eigengo.pe.exercise
+package com.eigengo.pe.exercise
 
 import akka.actor.Actor
-import org.eigengo.pe.AccelerometerData
-import org.eigengo.pe.exercise.UserExerciseProtocol.ClassifiedExercise
+import com.eigengo.pe.AccelerometerData
+import com.eigengo.pe.exercise.UserExerciseProtocol.ClassifiedExercise
 
 import scala.util.Random
 

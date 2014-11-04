@@ -1,4 +1,4 @@
-package org.eigengo.pe
+package com.eigengo.pe
 
 import scodec.Codec
 import scodec.bits.BitVector

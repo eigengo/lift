@@ -1,4 +1,4 @@
-package org.eigengo.pe.exercise
+package com.eigengo.pe.exercise
 
 import akka.actor.Props
 import akka.persistence.{PersistentView, SnapshotOffer}

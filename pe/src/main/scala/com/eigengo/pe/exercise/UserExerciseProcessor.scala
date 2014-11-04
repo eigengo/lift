@@ -1,8 +1,8 @@
-package org.eigengo.pe.exercise
+package com.eigengo.pe.exercise
 
 import akka.actor.Actor
 import akka.persistence.PersistentActor
-import org.eigengo.pe.AccelerometerData
+import com.eigengo.pe.AccelerometerData
 import scodec.bits.BitVector
 
 /**

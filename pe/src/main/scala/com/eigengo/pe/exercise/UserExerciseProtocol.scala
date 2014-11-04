@@ -1,6 +1,6 @@
-package org.eigengo.pe.exercise
+package com.eigengo.pe.exercise
 
-import org.eigengo.pe.AccelerometerData
+import com.eigengo.pe.AccelerometerData
 import scodec.bits.BitVector
 
 /**
