@@ -12,7 +12,7 @@ class UserExerciseProcessorServiceTest
   with UserExerciseProcessorService with LiftMarshallers with LiftTestMarshallers {
 
   def actorRefFactory: ActorRefFactory = system
-  
+
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)
     BitVector.fromInputStream(is)
