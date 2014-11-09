@@ -16,7 +16,7 @@ trait LiftMarshallers extends MarshallingDirectives {
    * It is possible to have empty ``BitVector``, though this might not be particularly
    * useful for the app
    */
-  implicit object BitVectorMarshaller extends FromRequestUnmarshaller[BitVector] {
+  implicit object BitVectorFromRequestUnmarshaller extends FromRequestUnmarshaller[BitVector] {
 
     override def apply(request: HttpRequest): Deserialized[BitVector] = {
       val bs = request.entity.data.toByteString

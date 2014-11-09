@@ -1,9 +1,12 @@
 package com.eigengo.pe
 
+import java.nio.ByteOrder
+
 import scodec.Codec
 import scodec.bits.BitVector
 
 import scala.annotation.tailrec
+import scalaz.\/
 
 /**
  * Accelerometer data groups ``values`` at the given ``samplingRate``
@@ -46,26 +49,53 @@ case class AccelerometerValue(x: Int, y: Int, z: Int)
  * }}}
  */
 object AccelerometerData {
-  import scodec.codecs._
+  import codec._
 
-  private type ZYX = (Int, Int, Int)
-  private type CSU = (Int, Int, Unit)
+  private implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
 
-  private implicit val packedAccelerometerData: Codec[ZYX] = new FixedSizeReversedCodec(40, {
-    ignore(1) :~>: ("z" | int(13)) :: ("y" | int(13)) :: ("x" | int(13))
-  }).as[ZYX]
+  private val packedAccelerometerData = new ReverseByteOrderCodecPrimitive(
+    new CodecPrimitive[(Int, Int, Int)] {
+      val ignore1 = IgnoreCodecPrimitive(1)
+      val int13 = IntCodecPrimitive(13, signed = true, ByteOrder.BIG_ENDIAN)
 
-  private implicit val packedGfsHeader: Codec[CSU] = new FixedSizeReversedCodec(40, {
-    ("samplesPerSecond" | int8) :: ("count" | int16) :: constant(BitVector(0xfe, 0xfc))
-  }).as[CSU]
+      override val bits: Long = 40
+
+      override def decode(buffer: BitVector): \/[String, (BitVector, (Int, Int, Int))] = {
+        for {
+          (b1, _) ← ignore1.decode(buffer)
+          (b2, z) ← int13.decode(b1)
+          (b3, y) ← int13.decode(b2)
+          (b4, x) ← int13.decode(b3)
+        } yield (b4, (x, y, z))
+      }
+    }
+  )
+
+  private val packedGfsHeader = new ReverseByteOrderCodecPrimitive(
+    new CodecPrimitive[(Int, Int)] {
+      val unsigned8 = IntCodecPrimitive(8, signed = false, ByteOrder.BIG_ENDIAN)
+      val unsigned16 = IntCodecPrimitive(16, signed = false, ByteOrder.BIG_ENDIAN)
+      val header = ConstantCodecPrimitive(BitVector(0xfe, 0xfc))
+
+      override val bits: Long = 40
+
+      override def decode(buffer: BitVector): \/[String, (BitVector, (Int, Int))] = {
+        // S, C, Const
+        for {
+          (b1, sps) ← unsigned8.decode(buffer)
+          (b2, count) ← unsigned16.decode(b1)
+          (b3, _) ← header.decode(b2)
+        } yield (b3, (sps, count))
+      }
+    }
+  )
 
   private def decode(bits: BitVector): (BitVector, List[AccelerometerData]) = {
-    implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
     val result = for {
-      (body, (samplesPerSecond, count, _)) <- Codec.decode[CSU](bits)
-      (rest, zyxs) <- Codec.decodeCollect[List, ZYX](packedAccelerometerData, Some(count))(body)
+      (body, (sps, count)) ← packedGfsHeader.decode(bits)
+      (rest, zyxs) ← packedAccelerometerData.decodeCollect[List](body, count)
       avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z) }
-    } yield (rest, AccelerometerData(samplesPerSecond, avs))
+    } yield (rest, AccelerometerData(sps, avs))
 
     result.fold(_ => (bits, Nil), { case (bits2, ad) => (bits2, List(ad)) })
   }

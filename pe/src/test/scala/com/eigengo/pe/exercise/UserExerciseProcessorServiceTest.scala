@@ -1,17 +1,16 @@
 package com.eigengo.pe.exercise
 
-import akka.actor.{ActorRefFactory, ActorSystem}
-import akka.testkit.TestKit
-import com.eigengo.pe.{LiftTestMarshallers, LiftMarshallers}
-import org.scalatest.{FlatSpecLike, Matchers}
+import akka.actor.ActorRefFactory
+import com.eigengo.pe.{LiftMarshallers, LiftTestMarshallers}
+import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
 import spray.testkit.ScalatestRouteTest
 
 class UserExerciseProcessorServiceTest
-  extends TestKit(ActorSystem()) with ScalatestRouteTest with FlatSpecLike with Matchers
+  extends FlatSpec with ScalatestRouteTest with Matchers
   with UserExerciseProcessorService with LiftMarshallers with LiftTestMarshallers {
 
-  override implicit def actorRefFactory: ActorRefFactory = system
+  def actorRefFactory: ActorRefFactory = system
 
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)
@@ -20,11 +19,10 @@ class UserExerciseProcessorServiceTest
     bv
   }
 
-
   "UserExerciseProcessor" should "accept requests" in {
     val bv = getResourceBitVector("/training/arm3.dat")
     Post("/exercise", bv) ~> userExerciseProcessorRoute ~> check {
-      responseAs[String] should be("OK")
+      responseAs[String] === "OK"
     }
   }
 

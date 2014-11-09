@@ -1,4 +1,4 @@
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.4"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "io.spray"           %% "spray-httpx"                   % Spray,
   "io.spray"           %% "spray-can"                     % Spray,
   "io.spray"           %% "spray-routing"                 % Spray,
-  "org.typelevel"      %% "scodec-core"                   % "1.3.0",
+  "org.typelevel"      %% "scodec-bits"                   % "1.5.0",
   // Apple push notifications
   "com.notnoop.apns"    % "apns"                          % "0.1.6",
   "org.slf4j"           % "slf4j-simple"                  % "1.6.1",
