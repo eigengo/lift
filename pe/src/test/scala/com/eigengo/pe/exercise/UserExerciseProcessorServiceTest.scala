@@ -14,9 +14,7 @@ class UserExerciseProcessorServiceTest
 
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)
-    val bv = BitVector.fromInputStream(is)
-    is.close()
-    bv
+    BitVector.fromInputStream(is)
   }
 
   "UserExerciseProcessor" should "accept requests" in {
