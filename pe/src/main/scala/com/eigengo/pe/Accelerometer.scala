@@ -1,9 +1,6 @@
 package com.eigengo.pe
 
-import java.nio.ByteOrder
-
-import scodec.Codec
-import scodec.bits.BitVector
+import scodec.bits.{BitVector, ByteOrdering}
 
 import scala.annotation.tailrec
 import scalaz.\/
@@ -49,32 +46,32 @@ case class AccelerometerValue(x: Int, y: Int, z: Int)
  * }}}
  */
 object AccelerometerData {
-  import codec._
+  import com.eigengo.pe.codec._
 
   private implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
 
   private val packedAccelerometerData = new ReverseByteOrderCodecPrimitive(
-    new CodecPrimitive[(Int, Int, Int)] {
+    new CodecPrimitive[AccelerometerValue] {
       val ignore1 = IgnoreCodecPrimitive(1)
-      val int13 = IntCodecPrimitive(13, signed = true, ByteOrder.BIG_ENDIAN)
+      val int13 = IntCodecPrimitive(13, signed = true, ByteOrdering.BigEndian)
 
       override val bits: Long = 40
 
-      override def decode(buffer: BitVector): \/[String, (BitVector, (Int, Int, Int))] = {
+      override def decode(buffer: BitVector): \/[String, (BitVector, AccelerometerValue)] = {
         for {
           (b1, _) ← ignore1.decode(buffer)
           (b2, z) ← int13.decode(b1)
           (b3, y) ← int13.decode(b2)
           (b4, x) ← int13.decode(b3)
-        } yield (b4, (x, y, z))
+        } yield (b4, AccelerometerValue(x, y, z))
       }
     }
   )
 
   private val packedGfsHeader = new ReverseByteOrderCodecPrimitive(
     new CodecPrimitive[(Int, Int)] {
-      val unsigned8 = IntCodecPrimitive(8, signed = false, ByteOrder.BIG_ENDIAN)
-      val unsigned16 = IntCodecPrimitive(16, signed = false, ByteOrder.BIG_ENDIAN)
+      val unsigned8 = IntCodecPrimitive(8, signed = false, ByteOrdering.BigEndian)
+      val unsigned16 = IntCodecPrimitive(16, signed = false, ByteOrdering.BigEndian)
       val header = ConstantCodecPrimitive(BitVector(0xfe, 0xfc))
 
       override val bits: Long = 40
@@ -93,8 +90,7 @@ object AccelerometerData {
   private def decode(bits: BitVector): (BitVector, List[AccelerometerData]) = {
     val result = for {
       (body, (sps, count)) ← packedGfsHeader.decode(bits)
-      (rest, zyxs) ← packedAccelerometerData.decodeCollect[List](body, count)
-      avs = zyxs.map { case (z, y, x) => AccelerometerValue(x, y, z) }
+      (rest, avs) ← packedAccelerometerData.decodeCollect[List](body, count)
     } yield (rest, AccelerometerData(sps, avs))
 
     result.fold(_ => (bits, Nil), { case (bits2, ad) => (bits2, List(ad)) })

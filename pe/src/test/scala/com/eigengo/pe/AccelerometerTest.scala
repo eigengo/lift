@@ -1,7 +1,12 @@
 package com.eigengo.pe
 
+import java.nio.ByteOrder
+
+import com.eigengo.pe.codec.IntCodecPrimitive
 import org.scalatest.{FlatSpec, Matchers}
-import scodec.bits.BitVector
+import scodec.bits.{ByteOrdering, BitVector}
+
+import scalaz.\/-
 
 /**
  * Tests that the accelerometer data can be decoded from a stream constructed from
@@ -56,4 +61,14 @@ class AccelerometerTest extends FlatSpec with Matchers {
     ads(1).values should contain (AccelerometerValue(376, 592, -784))
   }
 
+  "Decoder" should "manipulate bits" in {
+    val pad = BitVector(0x78, 0x01, 0x4a, 0xc0, 0x73).reverseByteOrder
+
+    val \/-((_, z)) = IntCodecPrimitive(13, signed = true, ByteOrdering.BigEndian).decode(pad.drop(1))
+    val \/-((_, y)) = IntCodecPrimitive(13, signed = true, ByteOrdering.BigEndian).decode(pad.drop(14))
+    val \/-((_, x)) = IntCodecPrimitive(13, signed = true, ByteOrdering.BigEndian).decode(pad.drop(27))
+    z should be(-784)
+    y should be(592)
+    x should be(376)
+  }
 }

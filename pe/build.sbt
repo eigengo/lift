@@ -15,7 +15,8 @@ libraryDependencies ++= Seq(
   "io.spray"           %% "spray-httpx"                   % Spray,
   "io.spray"           %% "spray-can"                     % Spray,
   "io.spray"           %% "spray-routing"                 % Spray,
-  "org.typelevel"      %% "scodec-bits"                   % "1.5.0",
+  "org.typelevel"      %% "scodec-bits"                   % "1.0.4",
+  "org.scalaz"         %% "scalaz-core"                   % "7.1.0",
   // Apple push notifications
   "com.notnoop.apns"    % "apns"                          % "0.1.6",
   "org.slf4j"           % "slf4j-simple"                  % "1.6.1",

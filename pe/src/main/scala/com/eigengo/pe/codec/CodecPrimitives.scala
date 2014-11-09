@@ -1,11 +1,9 @@
 package com.eigengo.pe.codec
 
-import java.nio.ByteOrder
-
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits.{BitVector, ByteOrdering}
 
 import scala.language.higherKinds
-import scalaz.{\/-, -\/, \/}
+import scalaz.{-\/, \/, \/-}
 
 trait CodecPrimitive[A] {
   type Err = String
@@ -35,61 +33,34 @@ trait CodecPrimitive[A] {
 
 class ReverseByteOrderCodecPrimitive[A](codec: CodecPrimitive[A]) extends CodecPrimitive[A] {
   override lazy val bits: Long = codec.bits
-  override def decode(buffer: BitVector): \/[String, (BitVector, A)] = {
-    buffer.acquire(codec.bits) match {
+  override def decode(buffer: BitVector): \/[Err, (BitVector, A)] = {
+    buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(b) ⇒
         codec.decode(b.reverseByteOrder) match {
           case e @ -\/(_) ⇒ e
-          case \/-((rest, res)) ⇒ \/-((buffer.drop(codec.bits), res))
+          case \/-((_, res)) ⇒ \/-((buffer.drop(bits), res))
         }
     }
   }
 }
 
 case class IgnoreCodecPrimitive(bits: Long) extends CodecPrimitive[Unit] {
-  override def decode(buffer: BitVector): \/[String, (BitVector, Unit)] =
+  override def decode(buffer: BitVector): \/[Err, (BitVector, Unit)] =
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(b) ⇒ \/.right((buffer.drop(bits), ()))
     }
 }
 
-case class IntCodecPrimitive(bits: Long, signed: Boolean, ordering: ByteOrder) extends CodecPrimitive[Int] {
+case class IntCodecPrimitive(bits: Long, signed: Boolean, ordering: ByteOrdering) extends CodecPrimitive[Int] {
 
   require(bits > 0 && bits <= (if (signed) 32 else 31), "bits must be in range [1, 32] for signed and [1, 31] for unsigned")
 
-  override def decode(buffer: BitVector): \/[String, (BitVector, Int)] = {
+  override def decode(buffer: BitVector): \/[Err, (BitVector, Int)] = {
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
-      case Right(b) ⇒
-        val mod = bits % 8
-        var result = 0
-        ordering match {
-          case ByteOrder.BIG_ENDIAN ⇒
-            @annotation.tailrec
-            def go(bv: ByteVector): Unit =
-              if (bv.nonEmpty) {
-                result = (result << 8) | (0x0ff & bv.head)
-                go(bv.tail)
-              }
-            go(b.toByteVector)
-          case ByteOrder.LITTLE_ENDIAN ⇒
-            @annotation.tailrec
-            def go(bv: ByteVector, i: Int): Unit =
-              if (bv.nonEmpty) {
-                result = result | ((0x0ff & bv.head) << (8 * i))
-                go(bv.tail, i + 1)
-              }
-            go(b.toByteVector, 0)
-        }
-        if (mod != 0) result = result >>> (8 - mod)
-        // Sign extend if necessary
-        if (signed && bits != 32 && ((1 << (bits - 1)) & result) != 0) {
-          val toShift = 32 - bits
-          result = (result << toShift) >> toShift
-        }
-        \/.right((buffer.drop(bits), result))
+      case Right(b) ⇒ \/.right((buffer.drop(bits), b.toInt(signed, ordering)))
     }
   }
 }
@@ -97,7 +68,7 @@ case class IntCodecPrimitive(bits: Long, signed: Boolean, ordering: ByteOrder) e
 case class ConstantCodecPrimitive(constant: BitVector) extends CodecPrimitive[Unit] {
   lazy val bits = constant.size
 
-  override def decode(buffer: BitVector): \/[String, (BitVector, Unit)] =
+  override def decode(buffer: BitVector): \/[Err, (BitVector, Unit)] =
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(`constant`) ⇒ \/.right((buffer.drop(bits), ()))
