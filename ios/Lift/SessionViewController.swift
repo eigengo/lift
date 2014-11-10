@@ -23,9 +23,9 @@ enum CellData {
     }
 }
 
-class SessionViewController: UITableViewController, UITableViewDelegate, UITableViewDataSource, PebbleAccelerometerReceiverDelegate {
+class SessionViewController: UITableViewController, UITableViewDelegate, UITableViewDataSource, AccelerometerReceiverDelegate {
     private let receiver = PebbleAccelerometerReceiver()
-    private let recorder = PebbleAccelerometerRecorder()
+    private let recorder = CombinedAccelerometerRecorder(recorders: [LocalAccelerometerRecorder(), PEAccelerometerRecorder()])
     private var sessionCells: [CellData] = []
     
     override func viewDidLoad() {

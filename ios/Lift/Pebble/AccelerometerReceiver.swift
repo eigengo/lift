@@ -28,14 +28,14 @@ class AccelerometerSessionStats {
     }
 }
 
-protocol PebbleAccelerometerReceiverDelegate {
+protocol AccelerometerReceiverDelegate {
     func accelerometerReceiverReceived(data: NSData, session: UInt32, stats: AccelerometerSessionStats?)
     func accelerometerReceiverEnded(session: UInt32, stats: AccelerometerSessionStats?)
 }
 
 class PebbleAccelerometerReceiver : NSObject, PBDataLoggingServiceDelegate {
     private var sessionStats: [UInt32: AccelerometerSessionStats] = [:]
-    var delegate: PebbleAccelerometerReceiverDelegate?
+    var delegate: AccelerometerReceiverDelegate?
     
     override init() {
         super.init()

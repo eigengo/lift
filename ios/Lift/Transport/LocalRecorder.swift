@@ -3,7 +3,7 @@ import CloudKit
 /*
 * Motion recorder uses the accelerometer to record the data to a file for later analysis.
 */
-class PebbleAccelerometerRecorder : NSObject, PebbleAccelerometerReceiverDelegate {
+class LocalAccelerometerRecorder : NSObject, AccelerometerReceiverDelegate {
     private let documentsPath: String = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first as String
     
     private func writeData(data: NSData, session: UInt32) {
@@ -12,7 +12,7 @@ class PebbleAccelerometerRecorder : NSObject, PebbleAccelerometerReceiverDelegat
         if !NSFileManager.defaultManager().fileExistsAtPath(filePath) {
             NSFileManager.defaultManager().createFileAtPath(filePath, contents: nil, attributes: nil)
         }
-
+        
         let handle = NSFileHandle(forWritingAtPath: filePath)!
         handle.seekToEndOfFile()
         handle.writeData(data)

@@ -9,8 +9,11 @@
 /* Begin PBXBuildFile section */
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
+		543F0C751A11713800EC8BE6 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 543F0C741A11713800EC8BE6 /* Alamofire.framework */; };
+		543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C771A11727000EC8BE6 /* LocalRecorder.swift */; };
+		543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C781A11727000EC8BE6 /* PERecorder.swift */; };
+		543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */; };
 		5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */; };
-		5460122C19FAA1D4009B7CC8 /* AccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5460122A19FAA1D4009B7CC8 /* AccelerometerRecorder.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* SessionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* SessionViewController.swift */; };
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
@@ -37,8 +40,11 @@
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
+		543F0C741A11713800EC8BE6 /* Alamofire.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Alamofire.framework; path = "../../../Library/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos/Alamofire.framework"; sourceTree = "<group>"; };
+		543F0C771A11727000EC8BE6 /* LocalRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalRecorder.swift; sourceTree = "<group>"; };
+		543F0C781A11727000EC8BE6 /* PERecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PERecorder.swift; sourceTree = "<group>"; };
+		543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedRecorder.swift; sourceTree = "<group>"; };
 		5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AccelerometerReceiver.swift; path = Pebble/AccelerometerReceiver.swift; sourceTree = "<group>"; };
-		5460122A19FAA1D4009B7CC8 /* AccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AccelerometerRecorder.swift; path = Pebble/AccelerometerRecorder.swift; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC699B19C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -60,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				543F0C751A11713800EC8BE6 /* Alamofire.framework in Frameworks */,
 				5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */,
 				54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */,
 				83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */,
@@ -93,11 +100,20 @@
 			name = Motion;
 			sourceTree = "<group>";
 		};
+		543F0C761A11727000EC8BE6 /* Transport */ = {
+			isa = PBXGroup;
+			children = (
+				543F0C771A11727000EC8BE6 /* LocalRecorder.swift */,
+				543F0C781A11727000EC8BE6 /* PERecorder.swift */,
+				543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */,
+			);
+			path = Transport;
+			sourceTree = "<group>";
+		};
 		547C5E1019EFBCAB00E0010B /* Pebble */ = {
 			isa = PBXGroup;
 			children = (
 				5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */,
-				5460122A19FAA1D4009B7CC8 /* AccelerometerRecorder.swift */,
 			);
 			name = Pebble;
 			sourceTree = "<group>";
@@ -131,6 +147,7 @@
 				5427CDE519C5EAF4005C9B4E /* Motion */,
 				547C5E1019EFBCAB00E0010B /* Pebble */,
 				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
+				543F0C761A11727000EC8BE6 /* Transport */,
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54CC699E19C4AD8E00B29EC8 /* SessionViewController.swift */,
@@ -170,6 +187,7 @@
 		8D64789A58A65961D3659708 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				543F0C741A11713800EC8BE6 /* Alamofire.framework */,
 				604C4FB0BC879EB56AD28A81 /* libPods.a */,
 			);
 			name = Frameworks;
@@ -319,10 +337,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* SessionViewController.swift in Sources */,
+				543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */,
+				543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */,
-				5460122C19FAA1D4009B7CC8 /* AccelerometerRecorder.swift in Sources */,
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -399,7 +419,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -435,7 +455,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -450,6 +470,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos",
+				);
 				INFOPLIST_FILE = Lift/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -472,6 +496,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos",
+				);
 				INFOPLIST_FILE = Lift/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
