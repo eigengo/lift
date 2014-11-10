@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   // Core Akka
   "com.typesafe.akka"  %% "akka-actor"                    % Akka,
   "com.typesafe.akka"  %% "akka-cluster"                  % Akka,
+  "com.typesafe.akka"  %% "akka-contrib"                  % Akka,
   "com.typesafe.akka"  %% "akka-persistence-experimental" % Akka,
   // For future REST API
   "io.spray"           %% "spray-httpx"                   % Spray,
