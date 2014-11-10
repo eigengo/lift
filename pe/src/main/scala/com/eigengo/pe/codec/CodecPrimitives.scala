@@ -3,14 +3,16 @@ package com.eigengo.pe.codec
 import scodec.bits.{BitVector, ByteOrdering}
 
 import scala.language.higherKinds
-import scalaz.{-\/, \/, \/-}
+import scalaz._
 
 trait CodecPrimitive[A] {
   type Err = String
+  type Decoded[A] = \/[Err, (BitVector, A)]
   def bits: Long
-  def decode(buffer: BitVector): \/[String, (BitVector, A)]
 
-  final def decodeCollect[F[_]](buffer: BitVector, limit: Int)(implicit cbf: collection.generic.CanBuildFrom[F[A], A, F[A]]): \/[String, (BitVector, F[A])] = {
+  def decode(buffer: BitVector): Decoded[A]
+
+  final def decode[F[_]](buffer: BitVector, limit: Int)(implicit cbf: collection.generic.CanBuildFrom[F[A], A, F[A]]): Decoded[F[A]] = {
     val builder = cbf()
     var remaining = buffer
     var count = 0
@@ -33,7 +35,7 @@ trait CodecPrimitive[A] {
 
 class ReverseByteOrderCodecPrimitive[A](codec: CodecPrimitive[A]) extends CodecPrimitive[A] {
   override lazy val bits: Long = codec.bits
-  override def decode(buffer: BitVector): \/[Err, (BitVector, A)] = {
+  override def decode(buffer: BitVector): Decoded[A] = {
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(b) ⇒
@@ -46,7 +48,7 @@ class ReverseByteOrderCodecPrimitive[A](codec: CodecPrimitive[A]) extends CodecP
 }
 
 case class IgnoreCodecPrimitive(bits: Long) extends CodecPrimitive[Unit] {
-  override def decode(buffer: BitVector): \/[Err, (BitVector, Unit)] =
+  override def decode(buffer: BitVector): Decoded[Unit] =
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(b) ⇒ \/.right((buffer.drop(bits), ()))
@@ -57,7 +59,7 @@ case class IntCodecPrimitive(bits: Long, signed: Boolean, ordering: ByteOrdering
 
   require(bits > 0 && bits <= (if (signed) 32 else 31), "bits must be in range [1, 32] for signed and [1, 31] for unsigned")
 
-  override def decode(buffer: BitVector): \/[Err, (BitVector, Int)] = {
+  override def decode(buffer: BitVector): Decoded[Int] = {
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(b) ⇒ \/.right((buffer.drop(bits), b.toInt(signed, ordering)))
@@ -68,7 +70,7 @@ case class IntCodecPrimitive(bits: Long, signed: Boolean, ordering: ByteOrdering
 case class ConstantCodecPrimitive(constant: BitVector) extends CodecPrimitive[Unit] {
   lazy val bits = constant.size
 
-  override def decode(buffer: BitVector): \/[Err, (BitVector, Unit)] =
+  override def decode(buffer: BitVector): Decoded[Unit] =
     buffer.acquire(bits) match {
       case Left(e) ⇒ \/.left(e)
       case Right(`constant`) ⇒ \/.right((buffer.drop(bits), ()))

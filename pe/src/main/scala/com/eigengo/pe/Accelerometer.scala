@@ -79,9 +79,9 @@ object AccelerometerData {
       override def decode(buffer: BitVector): \/[String, (BitVector, (Int, Int))] = {
         // S, C, Const
         for {
-          (b1, sps) ← unsigned8.decode(buffer)
+          (b1, sps)   ← unsigned8.decode(buffer)
           (b2, count) ← unsigned16.decode(b1)
-          (b3, _) ← header.decode(b2)
+          (b3, _)     ← header.decode(b2)
         } yield (b3, (sps, count))
       }
     }
@@ -90,7 +90,7 @@ object AccelerometerData {
   private def decode(bits: BitVector): (BitVector, List[AccelerometerData]) = {
     val result = for {
       (body, (sps, count)) ← packedGfsHeader.decode(bits)
-      (rest, avs) ← packedAccelerometerData.decodeCollect[List](body, count)
+      (rest, avs)          ← packedAccelerometerData.decode[List](body, count)
     } yield (rest, AccelerometerData(sps, avs))
 
     result.fold(_ => (bits, Nil), { case (bits2, ad) => (bits2, List(ad)) })
