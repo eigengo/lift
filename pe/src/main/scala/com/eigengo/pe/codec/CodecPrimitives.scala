@@ -7,7 +7,7 @@ import scalaz._
 
 trait CodecPrimitive[A] {
   type Err = String
-  type Decoded[A] = \/[Err, (BitVector, A)]
+  type Decoded[R] = \/[Err, (BitVector, R)]
   def bits: Long
 
   def decode(buffer: BitVector): Decoded[A]
