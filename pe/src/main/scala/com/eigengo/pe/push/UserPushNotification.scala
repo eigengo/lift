@@ -1,6 +1,6 @@
 package com.eigengo.pe.push
 
-import akka.actor.Actor
+import akka.actor.{Props, Actor}
 import com.notnoop.apns.APNS
 
 import scala.io.Source
@@ -9,6 +9,9 @@ import scala.io.Source
  * UserPushNotification protocol
  */
 object UserPushNotification {
+  val name: String = "user-push-notification"
+
+  val props: Props = Props[UserPushNotification]
 
   /**
    * Sends default message to the client

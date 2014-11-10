@@ -5,6 +5,7 @@ import akka.contrib.pattern.ClusterSharding
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.pe.exercise._
+import com.eigengo.pe.push.UserPushNotification
 import com.typesafe.config.ConfigFactory
 import spray.routing.HttpServiceActor
 
@@ -30,11 +31,13 @@ object PeMain extends App {
       startupSharedJournal(system, startStore = port == "2551", path =
         ActorPath.fromString("akka.tcp://ClusterSystem@127.0.0.1:2551/user/store"))
 
-      val userExerciseRegion = ClusterSharding(system).start(
+      ClusterSharding(system).start(
         typeName = UserExercise.shardName,
         entryProps = Some(UserExercise.props),
         idExtractor = UserExercise.idExtractor,
         shardResolver = UserExercise.shardResolver)
+      system.actorOf(UserExerciseView.props, UserExerciseView.name)
+      system.actorOf(UserPushNotification.props, UserPushNotification.name)
 
       if (port != "2551" && port != "2552") {
         val exercise = system.actorOf(Props[Exercise], "exercise")

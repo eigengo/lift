@@ -12,7 +12,7 @@ object UserExercise {
   val props: Props = Props[UserExercise]
 
   val idExtractor: ShardRegion.IdExtractor = {
-    case cmd: Command => (cmd.userId.toString, cmd)
+    case ExerciseDataCmd(userId, bits) ⇒ (userId.toString, UserExerciseDataCmd(bits))
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
@@ -25,13 +25,13 @@ object UserExercise {
    * The exercise command with the ``bits`` received from the fitness device
    * @param bits the received data
    */
-  case class ExerciseDataCmd(bits: BitVector)
+  case class UserExerciseDataCmd(bits: BitVector)
 
   /**
    * The event with processed fitness data into ``List[AccelerometerData]``
    * @param data the accelerometer data
    */
-  case class ExerciseDataEvt(data: List[AccelerometerData])
+  case class UserExerciseDataEvt(data: List[AccelerometerData])
 }
 
 /**
@@ -54,10 +54,10 @@ class UserExercise extends PersistentActor {
   override val receiveRecover: Receive = Actor.emptyBehavior
 
   override def receiveCommand: Receive = {
-    case ExerciseDataCmd(bits) =>
+    case UserExerciseDataCmd(bits) =>
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       if (validateData(data)) {
-        persistAsync(ExerciseDataEvt(data)) { e =>
+        persistAsync(UserExerciseDataEvt(data)) { e =>
           buffer = bits2
         }
       }

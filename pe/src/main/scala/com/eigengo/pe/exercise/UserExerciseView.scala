@@ -4,6 +4,10 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence.{SnapshotOffer, PersistentView}
 
 object UserExerciseView {
+  val name: String = "user-exercise-view"
+
+  val props: Props = Props[UserExerciseView]
+
 
   /**
    * List all user's exercises
@@ -39,7 +43,7 @@ class UserExerciseView extends PersistentView with ActorLogging {
       exercises = offeredSnapshot
 
     // send the exercise to be classified to the children
-    case e@ExerciseDataEvt(data) if isPersistent =>
+    case e@UserExerciseDataEvt(data) if isPersistent =>
       context.actorSelection("*") ! e
 
     // classification received
