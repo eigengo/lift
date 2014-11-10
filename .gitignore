@@ -135,3 +135,7 @@ Pods
 *.xcworkspace
 
 target
+
+journal
+snapshots
+

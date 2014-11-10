@@ -2,8 +2,10 @@ package com.eigengo.pe
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
+import com.eigengo.pe.exercise.UserExerciseProtocol.ExerciseDataCmd
 import com.eigengo.pe.exercise.{UserExerciseProcessor, UserExerciseProcessorService, UserExerciseView, UserExerciseViewService}
 import com.eigengo.pe.push.UserPushNotification
+import scodec.bits.BitVector
 import spray.can.Http
 import spray.routing.HttpServiceActor
 
