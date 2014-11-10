@@ -7,7 +7,8 @@ trait UserExerciseViewService extends HttpService {
   def userExerciseView = actorRefFactory.actorSelection("/user/userExerciseView")
 
   import akka.pattern.ask
-  import com.eigengo.pe.exercise.UserExerciseProtocol._
+  import com.eigengo.pe.exercise.UserExerciseView._
+  import com.eigengo.pe.exercise.ExerciseClassifier._
   import com.eigengo.pe.timeouts.defaults._
 
 

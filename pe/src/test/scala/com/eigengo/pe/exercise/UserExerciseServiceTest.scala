@@ -7,7 +7,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
 import spray.testkit.ScalatestRouteTest
 
-class UserExerciseProcessorServiceTest
+class UserExerciseServiceTest
   extends FlatSpec with ScalatestRouteTest with Matchers
   with UserExerciseProcessorService with LiftMarshallers with LiftTestMarshallers {
 

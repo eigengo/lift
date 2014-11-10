@@ -1,17 +1,46 @@
 package com.eigengo.pe.exercise
 
-import akka.actor.Actor
+import akka.actor.{Props, Actor}
+import akka.contrib.pattern.ShardRegion
 import akka.persistence.PersistentActor
 import com.eigengo.pe.AccelerometerData
 import scodec.bits.BitVector
+
+object UserExercise {
+  import Exercise._
+
+  val props: Props = Props[UserExercise]
+
+  val idExtractor: ShardRegion.IdExtractor = {
+    case cmd: Command => (cmd.userId.toString, cmd)
+  }
+
+  val shardResolver: ShardRegion.ShardResolver = {
+    case cmd: Command => (math.abs(cmd.userId.hashCode()) % 100).toString
+  }
+
+  val shardName: String = "UserExercise"
+
+  /**
+   * The exercise command with the ``bits`` received from the fitness device
+   * @param bits the received data
+   */
+  case class ExerciseDataCmd(bits: BitVector)
+
+  /**
+   * The event with processed fitness data into ``List[AccelerometerData]``
+   * @param data the accelerometer data
+   */
+  case class ExerciseDataEvt(data: List[AccelerometerData])
+}
 
 /**
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class UserExerciseProcessor extends PersistentActor {
+class UserExercise extends PersistentActor {
   import AccelerometerData._
-  import UserExerciseProtocol._
+  import UserExercise._
 
   private var buffer: BitVector = BitVector.empty
 

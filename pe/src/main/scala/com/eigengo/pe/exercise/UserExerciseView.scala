@@ -1,18 +1,27 @@
 package com.eigengo.pe.exercise
 
-import akka.actor.Props
-import akka.persistence.{PersistentView, SnapshotOffer}
-import com.eigengo.pe.actors
-import com.eigengo.pe.push.UserPushNotification
+import akka.actor.{ActorLogging, Props}
+import akka.persistence.{SnapshotOffer, PersistentView}
+
+object UserExerciseView {
+
+  /**
+   * List all user's exercises
+   */
+  case object GetExercises
+
+}
 
 /**
  * View that handles processing the events, delegates to the classifiers,
  * and provides the query functions.
  */
-class UserExerciseView extends PersistentView {
-  import UserExerciseProtocol._
-  import UserPushNotification._
-  import actors._
+class UserExerciseView extends PersistentView with ActorLogging {
+  import com.eigengo.pe.actors._
+  import com.eigengo.pe.exercise.UserExercise._
+  import com.eigengo.pe.exercise.UserExerciseView._
+  import com.eigengo.pe.push.UserPushNotification._
+  import ExerciseClassifier._
 
   private var exercises: List[ClassifiedExercise] = Nil
 
@@ -35,6 +44,7 @@ class UserExerciseView extends PersistentView {
 
     // classification received
     case e@ClassifiedExercise(confidence, exercise) =>
+      log.debug(s"ClassifiedExercise $e")
       if (confidence > 0.0) exercises = e :: exercises
       saveSnapshot(exercises)
       // notice the lookup rather than injection of the /user/push actor
