@@ -47,8 +47,7 @@ object PeMain extends App {
 
     def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
       import akka.pattern.ask
-
-import scala.concurrent.duration._
+      import scala.concurrent.duration._
       // Start the shared journal one one node (don't crash this SPOF)
       // This will not be needed with a distributed journal
       if (startStore) system.actorOf(Props[SharedLeveldbStore], "store")
