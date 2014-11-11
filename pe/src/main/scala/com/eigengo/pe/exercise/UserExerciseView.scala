@@ -2,12 +2,11 @@ package com.eigengo.pe.exercise
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{SnapshotOffer, PersistentView}
+import com.eigengo.pe.push.UserPushNotification
 
 object UserExerciseView {
   val name: String = "user-exercise-view"
-
   val props: Props = Props[UserExerciseView]
-
 
   /**
    * List all user's exercises
@@ -21,7 +20,6 @@ object UserExerciseView {
  * and provides the query functions.
  */
 class UserExerciseView extends PersistentView with ActorLogging {
-  import com.eigengo.pe.actors._
   import com.eigengo.pe.exercise.UserExercise._
   import com.eigengo.pe.exercise.UserExerciseView._
   import com.eigengo.pe.push.UserPushNotification._
@@ -52,7 +50,7 @@ class UserExerciseView extends PersistentView with ActorLogging {
       if (confidence > 0.0) exercises = e :: exercises
       saveSnapshot(exercises)
       // notice the lookup rather than injection of the /user/push actor
-      exercise.foreach(e => pushNotification.apply ! DefaultMessage(e, Some(1), Some("default")))
+      exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(e, Some(1), Some("default")))
 
     // query for exercises
     case GetExercises =>

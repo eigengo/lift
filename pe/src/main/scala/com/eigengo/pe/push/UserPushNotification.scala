@@ -1,6 +1,9 @@
 package com.eigengo.pe.push
 
-import akka.actor.{Props, Actor}
+import java.net.UnknownHostException
+
+import akka.actor.SupervisorStrategy.Restart
+import akka.actor._
 import com.notnoop.apns.APNS
 
 import scala.io.Source
@@ -9,6 +12,8 @@ import scala.io.Source
  * UserPushNotification protocol
  */
 object UserPushNotification {
+  def lookup(implicit arf: ActorRefFactory): ActorSelection = arf.actorSelection(s"/user/$name")
+
   val name: String = "user-push-notification"
 
   val props: Props = Props[UserPushNotification]
@@ -27,11 +32,16 @@ object UserPushNotification {
  */
 class UserPushNotification extends Actor {
   import com.eigengo.pe.push.UserPushNotification._
+  import scala.concurrent.duration._
 
   private val userHomeIos = System.getProperty("user.home") + "/.ios"
   private val certificatePath = s"$userHomeIos/lift-push-development.p12"
   private val certificatePassword = Source.fromFile(s"$userHomeIos/lift-push-development.pwd").mkString
   private val service = APNS.newService.withCert(certificatePath, certificatePassword).withSandboxDestination.build
+
+  override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 10.seconds) {
+    case x: UnknownHostException ⇒ Restart
+  }
 
   override def receive: Receive = {
     case DefaultMessage(message, badge, sound) =>

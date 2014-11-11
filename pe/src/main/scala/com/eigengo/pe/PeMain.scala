@@ -1,12 +1,16 @@
 package com.eigengo.pe
 
+import java.util.UUID
+
 import akka.actor._
 import akka.contrib.pattern.ClusterSharding
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
+import com.eigengo.pe.exercise.Exercise.ExerciseDataCmd
 import com.eigengo.pe.exercise._
 import com.eigengo.pe.push.UserPushNotification
 import com.typesafe.config.ConfigFactory
+import scodec.bits.BitVector
 import spray.routing.HttpServiceActor
 
 class PeMain extends HttpServiceActor with UserExerciseViewService with UserExerciseProcessorService {
@@ -40,11 +44,12 @@ object PeMain extends App {
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
 
       if (port != "2551" && port != "2552") {
-        val exercise = system.actorOf(Props[Exercise], "exercise")
-
+        val userExerciseRegion = ClusterSharding(system).shardRegion(UserExercise.shardName)
         Thread.sleep(10000)
+
         // DEMO here
-        CliDemo.demo
+        val arm3 = BitVector.fromInputStream(getClass.getResourceAsStream("/arm3.dat"))
+        userExerciseRegion ! ExerciseDataCmd(UUID.randomUUID(), arm3)
       }
     }
 

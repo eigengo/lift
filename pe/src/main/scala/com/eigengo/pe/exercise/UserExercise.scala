@@ -8,7 +8,7 @@ import scodec.bits.BitVector
 
 object UserExercise {
   import Exercise._
-
+  val shardName: String = "UserExercise"
   val props: Props = Props[UserExercise]
 
   val idExtractor: ShardRegion.IdExtractor = {
@@ -18,8 +18,6 @@ object UserExercise {
   val shardResolver: ShardRegion.ShardResolver = {
     case cmd: Command => (math.abs(cmd.userId.hashCode()) % 100).toString
   }
-
-  val shardName: String = "UserExercise"
 
   /**
    * The exercise command with the ``bits`` received from the fitness device
