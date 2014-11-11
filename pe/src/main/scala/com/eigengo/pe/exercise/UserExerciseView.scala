@@ -2,9 +2,9 @@ package com.eigengo.pe.exercise
 
 import java.util.UUID
 
-import akka.actor.{ActorRef, ActorSystem, ActorLogging, Props}
+import akka.actor.{ActorLogging, ActorRef, ActorSystem, Props}
 import akka.contrib.pattern.{ClusterSharding, ShardRegion}
-import akka.persistence.{Persistent, SnapshotOffer, PersistentView}
+import akka.persistence.{PersistentView, SnapshotOffer}
 import com.eigengo.pe.AccelerometerData
 import com.eigengo.pe.push.UserPushNotification
 
@@ -53,9 +53,11 @@ object UserExerciseView {
  * and provides the query functions.
  */
 class UserExerciseView extends PersistentView with ActorLogging {
+  import com.eigengo.pe.exercise.ExerciseClassifier._
   import com.eigengo.pe.exercise.UserExerciseView._
   import com.eigengo.pe.push.UserPushNotification._
-  import ExerciseClassifier._
+
+  println("View starting")
 
   private var exercises: List[ClassifiedExercise] = Nil
 
@@ -87,5 +89,8 @@ class UserExerciseView extends PersistentView with ActorLogging {
     // query for exercises
     case UserGetExercises =>
       sender() ! exercises
+
+    case x ⇒
+      println(">>>> " + x)
   }
 }
