@@ -56,9 +56,7 @@ class UserExerciseView extends PersistentView with ActorLogging {
   import com.eigengo.pe.exercise.ExerciseClassifier._
   import com.eigengo.pe.exercise.UserExerciseView._
   import com.eigengo.pe.push.UserPushNotification._
-
-  println("View starting")
-
+  
   private var exercises: List[ClassifiedExercise] = Nil
 
   context.actorOf(Props(classOf[ExerciseClassifier], NaiveModel))
