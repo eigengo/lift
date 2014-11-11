@@ -55,11 +55,11 @@ class ExerciseClassifier(model: ExerciseModel) extends Actor {
   import UserExerciseView._
 
   override def receive: Receive = {
-    case UserExerciseDataEvt(data) if data.nonEmpty =>
+    case ExerciseDataEvt(userId, data) if data.nonEmpty =>
       Thread.sleep(300 + Random.nextInt(1000)) // Is complicated, no? :)
 
       val ad = data.foldRight(data.last)((res, ad) => ad.copy(values = ad.values ++ res.values))
-      sender() ! model(ad)
+      sender() ! (userId, model(ad))
   }
 
 }

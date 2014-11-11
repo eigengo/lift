@@ -22,29 +22,13 @@ object UserExerciseView {
    */
   case class ExerciseDataEvt(userId: UUID, data: List[AccelerometerData])
 
-  case class UserExerciseDataEvt(data: List[AccelerometerData])
-
   val idExtractor: ShardRegion.IdExtractor = {
-    case ExerciseDataEvt(userId, data) ⇒ (userId.toString, UserExerciseDataEvt(data))
-    case GetExercises(userId) ⇒ (userId.toString, UserGetExercises)
-    case x ⇒
-      println("Unhandled " + x)
-      ???
+    case msg@GetExercises(userId) ⇒ (userId.toString, msg)
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
     case GetExercises(userId) ⇒ (math.abs(userId.hashCode()) % 100).toString
-    case ExerciseDataEvt(userId, _) ⇒ (math.abs(userId.hashCode()) % 100).toString
-    case x ⇒
-      println("Unhandled " + x)
-      ???
   }
-
-
-  /**
-   * List all user's exercises
-   */
-  case object UserGetExercises
 
 }
 
@@ -56,8 +40,9 @@ class UserExerciseView extends PersistentView with ActorLogging {
   import com.eigengo.pe.exercise.ExerciseClassifier._
   import com.eigengo.pe.exercise.UserExerciseView._
   import com.eigengo.pe.push.UserPushNotification._
-  
-  private var exercises: List[ClassifiedExercise] = Nil
+
+  type Exercises = Map[UUID, List[ClassifiedExercise]]
+  private var exercises: Exercises = Map.empty
 
   context.actorOf(Props(classOf[ExerciseClassifier], NaiveModel))
   context.actorOf(Props(classOf[ExerciseClassifier], WaveletModel))
@@ -69,26 +54,25 @@ class UserExerciseView extends PersistentView with ActorLogging {
 
   override def receive: Receive = {
     // Remember to handle snapshot offers when using ``saveSnapshot``
-    case SnapshotOffer(metadata, offeredSnapshot: List[ClassifiedExercise @unchecked]) =>
+    case SnapshotOffer(metadata, offeredSnapshot: Exercises) =>
       exercises = offeredSnapshot
 
     // send the exercise to be classified to the children
-    case e@UserExerciseDataEvt(data) if isPersistent =>
+    case e@ExerciseDataEvt(userId, data) if isPersistent ⇒
       context.actorSelection("*") ! e
 
     // classification received
-    case e@ClassifiedExercise(confidence, exercise) =>
+    case (userId: UUID, e@ClassifiedExercise(confidence, exercise)) =>
       log.debug(s"ClassifiedExercise $e")
-      if (confidence > 0.0) exercises = e :: exercises
+      if (confidence > 0.0) {
+        val userExercises = e :: exercises.getOrElse(userId, List.empty[ClassifiedExercise])
+        exercises = exercises + (userId → userExercises)
+        exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(e, Some(1), Some("default")))
+      }
       saveSnapshot(exercises)
-      // notice the lookup rather than injection of the /user/push actor
-      exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(e, Some(1), Some("default")))
 
     // query for exercises
-    case UserGetExercises =>
-      sender() ! exercises
-
-    case x ⇒
-      println(">>>> " + x)
+    case GetExercises(userId) =>
+      sender() ! exercises.getOrElse(userId, List.empty[ClassifiedExercise])
   }
 }
