@@ -4,6 +4,7 @@ import java.util.UUID
 
 import akka.actor._
 import akka.contrib.pattern.ClusterSharding
+import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.pe.exercise.Exercise.ExerciseDataCmd
@@ -11,6 +12,7 @@ import com.eigengo.pe.exercise._
 import com.eigengo.pe.push.UserPushNotification
 import com.typesafe.config.ConfigFactory
 import scodec.bits.BitVector
+import spray.can.Http
 import spray.routing.HttpServiceActor
 
 class PeMain extends HttpServiceActor with UserExerciseViewService with UserExerciseProcessorService {
@@ -22,10 +24,10 @@ class PeMain extends HttpServiceActor with UserExerciseViewService with UserExer
  */
 object PeMain extends App {
 
-  startup(Seq("2551", "2552", "0"))
+  singleJvmStartup(Seq("2551", "2552", "0"))
 
-  def startup(ports: Seq[String]): Unit = {
-    ports foreach { port =>
+  def singleJvmStartup(ports: Seq[String]): Unit = {
+    ports.foreach { port ⇒
       // Override the configuration of the port
       val config = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port).withFallback(ConfigFactory.load())
 
@@ -43,13 +45,13 @@ object PeMain extends App {
       system.actorOf(UserExerciseView.props, UserExerciseView.name)
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
 
+      val userExerciseRegion = ClusterSharding(system).shardRegion(UserExercise.shardName)
       if (port != "2551" && port != "2552") {
-        val userExerciseRegion = ClusterSharding(system).shardRegion(UserExercise.shardName)
-        Thread.sleep(10000)
-
-        // DEMO here
         val arm3 = BitVector.fromInputStream(getClass.getResourceAsStream("/arm3.dat"))
         userExerciseRegion ! ExerciseDataCmd(UUID.randomUUID(), arm3)
+
+        val restService = system.actorOf(Props[PeMain])
+        IO(Http) ! Http.Bind(restService, interface = "0.0.0.0", port = 8080)
       }
     }
 
@@ -65,7 +67,7 @@ object PeMain extends App {
       implicit val timeout = Timeout(15.seconds)
       val f = system.actorSelection(path) ? Identify(None)
       f.onSuccess {
-        case ActorIdentity(_, Some(ref)) => SharedLeveldbJournal.setStore(ref, system)
+        case ActorIdentity(_, Some(ref)) ⇒ SharedLeveldbJournal.setStore(ref, system)
         case _ =>
           system.log.error("Shared journal not started at {}", path)
           system.shutdown()
