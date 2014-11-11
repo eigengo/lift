@@ -1,15 +1,18 @@
 package com.eigengo.pe.exercise
 
-import akka.actor.{Props, Actor}
-import akka.contrib.pattern.ShardRegion
+import java.util.UUID
+
+import akka.actor._
+import akka.contrib.pattern.{ClusterSharding, ShardRegion}
 import akka.persistence.PersistentActor
 import com.eigengo.pe.AccelerometerData
 import scodec.bits.BitVector
 
 object UserExercise {
-  import Exercise._
-  val shardName: String = "UserExercise"
+  val shardName: String = "user-exercise"
   val props: Props = Props[UserExercise]
+
+  def lookup(implicit system: ActorSystem): ActorRef = ClusterSharding(system).shardRegion(shardName)
 
   val idExtractor: ShardRegion.IdExtractor = {
     case ExerciseDataCmd(userId, bits) ⇒ (userId.toString, UserExerciseDataCmd(bits))
@@ -18,6 +21,17 @@ object UserExercise {
   val shardResolver: ShardRegion.ShardResolver = {
     case cmd: Command => (math.abs(cmd.userId.hashCode()) % 100).toString
   }
+
+  sealed trait Command {
+    def userId: UUID
+  }
+
+  /**
+   *
+   * @param userId
+   * @param bits
+   */
+  case class ExerciseDataCmd(userId: UUID, bits: BitVector) extends Command
 
   /**
    * The exercise command with the ``bits`` received from the fitness device

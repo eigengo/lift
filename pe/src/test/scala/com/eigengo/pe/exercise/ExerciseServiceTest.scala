@@ -7,9 +7,9 @@ import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
 import spray.testkit.ScalatestRouteTest
 
-class UserExerciseServiceTest
+class ExerciseServiceTest
   extends FlatSpec with ScalatestRouteTest with Matchers
-  with UserExerciseProcessorService with LiftMarshallers with LiftTestMarshallers {
+  with ExerciseService with LiftMarshallers with LiftTestMarshallers {
 
   def actorRefFactory: ActorRefFactory = system
 

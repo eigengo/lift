@@ -1,0 +1,2 @@
+#!/bin/sh
+curl -X POST -d @../resources/training/arm3.dat http://localhost:10000/exercise

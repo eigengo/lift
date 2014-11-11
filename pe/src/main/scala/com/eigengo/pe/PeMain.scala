@@ -1,21 +1,18 @@
 package com.eigengo.pe
 
-import java.util.UUID
-
 import akka.actor._
 import akka.contrib.pattern.ClusterSharding
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
-import com.eigengo.pe.exercise.Exercise.ExerciseDataCmd
 import com.eigengo.pe.exercise._
 import com.eigengo.pe.push.UserPushNotification
 import com.typesafe.config.ConfigFactory
-import scodec.bits.BitVector
 import spray.can.Http
 import spray.routing.HttpServiceActor
 
-class PeMain extends HttpServiceActor with UserExerciseViewService with UserExerciseProcessorService {
+class PeMain extends HttpServiceActor with UserExerciseViewService with ExerciseService {
+  override implicit def system: ActorSystem = context.system
   override def receive: Receive = runRoute(userExerciseProcessorRoute ~ userExerciseViewRoute)
 }
 
@@ -24,40 +21,56 @@ class PeMain extends HttpServiceActor with UserExerciseViewService with UserExer
  */
 object PeMain extends App {
 
-  singleJvmStartup(Seq("2551", "2552", "0"))
+  singleJvmStartup(Seq(2551, 2552, 0))
 
-  def singleJvmStartup(ports: Seq[String]): Unit = {
+  def singleJvmStartup(ports: Seq[Int]): Unit = {
     ports.foreach { port ⇒
+      import scala.collection.JavaConverters._
       // Override the configuration of the port
-      val config = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port).withFallback(ConfigFactory.load())
+      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load())
+      val firstSeedNodePort = (for {
+        seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
+        port ← ActorPath.fromString(seedNode).address.port
+      } yield port).head
 
       // Create an Akka system
       implicit val system = ActorSystem("ClusterSystem", config)
 
-      startupSharedJournal(system, startStore = port == "2551", path =
-        ActorPath.fromString("akka.tcp://ClusterSystem@127.0.0.1:2551/user/store"))
+      // Startup the journal
+      startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://ClusterSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
+      // Start the shards
       ClusterSharding(system).start(
         typeName = UserExercise.shardName,
         entryProps = Some(UserExercise.props),
         idExtractor = UserExercise.idExtractor,
         shardResolver = UserExercise.shardResolver)
-      system.actorOf(UserExerciseView.props, UserExerciseView.name)
+
+      ClusterSharding(system).start(
+        typeName = UserExerciseView.shardName,
+        entryProps = Some(UserExerciseView.props),
+        idExtractor = UserExerciseView.idExtractor,
+        shardResolver = UserExerciseView.shardResolver)
+
+      // Start other actors & views
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
 
-      val userExerciseRegion = ClusterSharding(system).shardRegion(UserExercise.shardName)
-      if (port != "2551" && port != "2552") {
-        val arm3 = BitVector.fromInputStream(getClass.getResourceAsStream("/arm3.dat"))
-        userExerciseRegion ! ExerciseDataCmd(UUID.randomUUID(), arm3)
+      startupHttpService(system, port)
+//      if (port != "2551" && port != "2552") {
+//        val arm3 = BitVector.fromInputStream(getClass.getResourceAsStream("/arm3.dat"))
+//        UserExercise.lookup ! ExerciseDataCmd(UUID.randomUUID(), arm3)
+//      }
+    }
 
-        val restService = system.actorOf(Props[PeMain])
-        IO(Http) ! Http.Bind(restService, interface = "0.0.0.0", port = 8080)
-      }
+    def startupHttpService(system: ActorSystem, port: Int): Unit = {
+      val restService = system.actorOf(Props[PeMain])
+      IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 10000 + port)
     }
 
     def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
       import akka.pattern.ask
-      import scala.concurrent.duration._
+
+import scala.concurrent.duration._
       // Start the shared journal one one node (don't crash this SPOF)
       // This will not be needed with a distributed journal
       if (startStore) system.actorOf(Props[SharedLeveldbStore], "store")
