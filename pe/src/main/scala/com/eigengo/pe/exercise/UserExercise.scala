@@ -9,21 +9,17 @@ import com.eigengo.pe.AccelerometerData
 import scodec.bits.BitVector
 
 object UserExercise {
-  val shardName: String = "user-exercise"
+  val shardName: String = "user-exercise-shard"
   val props: Props = Props[UserExercise]
 
   def lookup(implicit system: ActorSystem): ActorRef = ClusterSharding(system).shardRegion(shardName)
 
   val idExtractor: ShardRegion.IdExtractor = {
-    case ExerciseDataCmd(userId, bits) ⇒ (userId.toString, UserExerciseDataCmd(bits))
+    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
-    case cmd: Command => (math.abs(cmd.userId.hashCode()) % 100).toString
-  }
-
-  sealed trait Command {
-    def userId: UUID
+    case ExerciseDataCmd(userId, _) => (math.abs(userId.hashCode()) % 100).toString
   }
 
   /**
@@ -31,19 +27,8 @@ object UserExercise {
    * @param userId
    * @param bits
    */
-  case class ExerciseDataCmd(userId: UUID, bits: BitVector) extends Command
+  case class ExerciseDataCmd(userId: UUID, bits: BitVector)
 
-  /**
-   * The exercise command with the ``bits`` received from the fitness device
-   * @param bits the received data
-   */
-  case class UserExerciseDataCmd(bits: BitVector)
-
-  /**
-   * The event with processed fitness data into ``List[AccelerometerData]``
-   * @param data the accelerometer data
-   */
-  case class UserExerciseDataEvt(data: List[AccelerometerData])
 }
 
 /**
@@ -53,6 +38,7 @@ object UserExercise {
 class UserExercise extends PersistentActor {
   import AccelerometerData._
   import UserExercise._
+  import UserExerciseView._
 
   private var buffer: BitVector = BitVector.empty
 
@@ -66,10 +52,10 @@ class UserExercise extends PersistentActor {
   override val receiveRecover: Receive = Actor.emptyBehavior
 
   override def receiveCommand: Receive = {
-    case UserExerciseDataCmd(bits) =>
+    case ExerciseDataCmd(userId, bits) =>
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       if (validateData(data)) {
-        persistAsync(UserExerciseDataEvt(data)) { e =>
+        persist(ExerciseDataEvt(userId, data)) { e =>
           buffer = bits2
         }
       }

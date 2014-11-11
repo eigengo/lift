@@ -52,7 +52,7 @@ object ExerciseClassifier {
  * @param model the model
  */
 class ExerciseClassifier(model: ExerciseModel) extends Actor {
-  import UserExercise._
+  import UserExerciseView._
 
   override def receive: Receive = {
     case UserExerciseDataEvt(data) if data.nonEmpty =>

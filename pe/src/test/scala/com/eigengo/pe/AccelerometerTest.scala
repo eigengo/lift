@@ -61,6 +61,12 @@ class AccelerometerTest extends FlatSpec with Matchers {
     ads(1).values should contain (AccelerometerValue(376, 592, -784))
   }
 
+  "Decoder" should "decode training file" in {
+    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/training/arm3.dat"))
+    val (BitVector.empty, ads) = AccelerometerData.decodeAll(bv, Nil)
+    println(ads)
+  }
+
   "Decoder" should "manipulate bits" in {
     val pad = BitVector(0x78, 0x01, 0x4a, 0xc0, 0x73).reverseByteOrder
 

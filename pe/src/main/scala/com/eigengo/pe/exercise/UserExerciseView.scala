@@ -4,28 +4,40 @@ import java.util.UUID
 
 import akka.actor.{ActorRef, ActorSystem, ActorLogging, Props}
 import akka.contrib.pattern.{ClusterSharding, ShardRegion}
-import akka.persistence.{SnapshotOffer, PersistentView}
-import com.eigengo.pe.exercise.UserExercise.UserExerciseDataEvt
+import akka.persistence.{Persistent, SnapshotOffer, PersistentView}
+import com.eigengo.pe.AccelerometerData
 import com.eigengo.pe.push.UserPushNotification
 
 object UserExerciseView {
-  val shardName: String = "user-exercise-view"
+  val shardName: String = "user-exercise-view-shard"
   val props: Props = Props[UserExerciseView]
 
   def lookup(implicit system: ActorSystem): ActorRef = ClusterSharding(system).shardRegion(shardName)
 
-  sealed trait Query {
-    def userId: UUID
-  }
-  case class GetExercises(userId: UUID) extends Query
+  case class GetExercises(userId: UUID)
+
+  /**
+   * The event with processed fitness data into ``List[AccelerometerData]``
+   * @param data the accelerometer data
+   */
+  case class ExerciseDataEvt(userId: UUID, data: List[AccelerometerData])
+
+  case class UserExerciseDataEvt(data: List[AccelerometerData])
 
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseDataEvt()
+    case ExerciseDataEvt(userId, data) ⇒ (userId.toString, UserExerciseDataEvt(data))
     case GetExercises(userId) ⇒ (userId.toString, UserGetExercises)
+    case x ⇒
+      println("Unhandled " + x)
+      ???
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
-    case query: Query => (math.abs(query.userId.hashCode()) % 100).toString
+    case GetExercises(userId) ⇒ (math.abs(userId.hashCode()) % 100).toString
+    case ExerciseDataEvt(userId, _) ⇒ (math.abs(userId.hashCode()) % 100).toString
+    case x ⇒
+      println("Unhandled " + x)
+      ???
   }
 
 
@@ -41,7 +53,6 @@ object UserExerciseView {
  * and provides the query functions.
  */
 class UserExerciseView extends PersistentView with ActorLogging {
-  import com.eigengo.pe.exercise.UserExercise._
   import com.eigengo.pe.exercise.UserExerciseView._
   import com.eigengo.pe.push.UserPushNotification._
   import ExerciseClassifier._
