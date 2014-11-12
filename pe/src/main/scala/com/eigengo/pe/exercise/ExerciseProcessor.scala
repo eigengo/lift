@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.PersistentActor
+import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
 import com.eigengo.pe.{AccelerometerData, actors}
 import scodec.bits.BitVector
 
@@ -34,7 +34,7 @@ object ExerciseProcessor {
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class ExerciseProcessor extends PersistentActor {
+class ExerciseProcessor extends PersistentActor with AtLeastOnceDelivery {
   import com.eigengo.pe.AccelerometerData._
   import com.eigengo.pe.exercise.ExerciseProcessor._
   import com.eigengo.pe.exercise.ExerciseView._

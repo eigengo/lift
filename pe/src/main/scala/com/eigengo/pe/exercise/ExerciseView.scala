@@ -4,7 +4,7 @@ import java.util.{Date, UUID}
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentView, SnapshotOffer}
+import akka.persistence.{AtLeastOnceDelivery, PersistentView, SnapshotOffer}
 import com.eigengo.pe.push.UserPushNotification
 import com.eigengo.pe.{AccelerometerData, actors}
 
