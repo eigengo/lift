@@ -51,10 +51,6 @@ object PeMain extends App {
       system.actorOf(ExerciseView.props, ExerciseView.name)
 
       startupHttpService(system, port)
-//      if (port != "2551" && port != "2552") {
-//        val arm3 = BitVector.fromInputStream(getClass.getResourceAsStream("/arm3.dat"))
-//        UserExercise.lookup ! ExerciseDataCmd(UUID.randomUUID(), arm3)
-//      }
     }
 
     def startupHttpService(system: ActorSystem, port: Int): Unit = {
