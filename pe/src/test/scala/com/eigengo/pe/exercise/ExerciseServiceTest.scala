@@ -1,6 +1,7 @@
 package com.eigengo.pe.exercise
 
-import akka.actor.ActorRefFactory
+import akka.actor.{ActorRef, ActorRefFactory}
+import akka.testkit.{TestActor, TestActorRef}
 import com.eigengo.pe.{LiftMarshallers, LiftTestMarshallers}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
@@ -11,6 +12,7 @@ class ExerciseServiceTest
   with ExerciseService with LiftMarshallers with LiftTestMarshallers {
 
   def actorRefFactory: ActorRefFactory = system
+  override val exercise: ActorRef = TestActorRef[TestActor]
 
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)
