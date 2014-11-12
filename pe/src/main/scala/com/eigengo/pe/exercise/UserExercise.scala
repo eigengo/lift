@@ -2,15 +2,13 @@ package com.eigengo.pe.exercise
 
 import java.util.UUID
 
-import akka.actor.{ActorLogging, ActorRefFactory, Props, Actor}
+import akka.actor.{Actor, ActorLogging, ActorRefFactory, Props}
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{SnapshotOffer, PersistentActor}
+import akka.persistence.{PersistentView, PersistentActor, SnapshotOffer}
 import com.eigengo.pe.actors
-import com.eigengo.pe.push.UserPushNotification
-import com.eigengo.pe.push.UserPushNotification.DefaultMessage
 
 object UserExercise {
-  import ExerciseClassifier._
+  import com.eigengo.pe.exercise.ExerciseClassifier._
   val shardName = "user-exercise-shard"
   val props = Props[UserExercise]
   def lookup(implicit arf: ActorRefFactory) = actors.shard.lookup(arf, shardName)
@@ -30,14 +28,15 @@ object UserExercise {
 
 }
 
-class UserExercise extends PersistentActor with ActorLogging {
-  import UserExercise._
-  import ExerciseClassifier._
+class UserExercise extends PersistentView with ActorLogging {
+  import com.eigengo.pe.exercise.ExerciseClassifier._
+  import com.eigengo.pe.exercise.UserExercise._
   private var exercises = List.empty[ClassificationResult]
 
-  override def receiveRecover: Receive = Actor.emptyBehavior
+  override def viewId: String = s"user-exercise-view-${self.path.name}"
+  override val persistenceId: String = s"user-exercise-${self.path.name}"
 
-  override def receiveCommand: Receive = {
+  override def receive: Receive = {
     case SnapshotOffer(_, offeredSnapshot: List[ClassificationResult @unchecked]) ⇒
       exercises = offeredSnapshot
 
@@ -47,13 +46,12 @@ class UserExercise extends PersistentActor with ActorLogging {
 
     case e@ClassificationResult(confidence, exercise) ⇒
       log.info(s"ClassificationResult in AS ${self.path.toString}")
-      persist(e) { evt ⇒
-        if (confidence > 0.0) {
-          exercises = e :: exercises
-          //exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(e, Some(1), Some("default")))
-        }
-        log.info(s"Now with ${exercises.size} exercises")
+      if (confidence > 0.0) {
+        exercises = e :: exercises
+        //exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(e, Some(1), Some("default")))
       }
+      saveSnapshot(exercises)
+      log.info(s"Now with ${exercises.size} exercises")
 
     // query for exercises
     case GetExercises =>
@@ -61,5 +59,4 @@ class UserExercise extends PersistentActor with ActorLogging {
       sender() ! exercises
   }
 
-  override def persistenceId: String = s"user-exercise-${self.path.name}"
 }
