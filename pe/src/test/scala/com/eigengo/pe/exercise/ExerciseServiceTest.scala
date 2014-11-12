@@ -17,9 +17,9 @@ class ExerciseServiceTest
     BitVector.fromInputStream(is)
   }
 
-  "UserExerciseProcessor" should "accept requests" in {
+  "ExerciseProcessor" should "accept requests" in {
     val bv = getResourceBitVector("/training/arm3.dat")
-    Post("/exercise", bv) ~> userExerciseProcessorRoute ~> check {
+    Post("/exercise", bv) ~> exerciseProcessorRoute ~> check {
       responseAs[String] === "OK"
     }
   }

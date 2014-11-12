@@ -12,7 +12,7 @@ import spray.can.Http
 import spray.routing.HttpServiceActor
 
 class PeMain extends HttpServiceActor with ExerciseViewService with ExerciseService {
-  override def receive: Receive = runRoute(userExerciseProcessorRoute ~ userExerciseViewRoute)
+  override def receive: Receive = runRoute(exerciseProcessorRoute ~ userExerciseViewRoute)
 }
 
 /**

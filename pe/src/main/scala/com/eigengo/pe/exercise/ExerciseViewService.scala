@@ -2,7 +2,6 @@ package com.eigengo.pe.exercise
 
 import java.util.UUID
 
-import akka.actor.ActorContext
 import spray.routing.HttpService
 
 trait ExerciseViewService extends HttpService {

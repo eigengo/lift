@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 trait ExerciseService extends HttpService with LiftMarshallers {
   import Exercise._
 
-  val userExerciseProcessorRoute =
+  val exerciseProcessorRoute =
     path("exercise") {
       post {
         handleWith { bits: BitVector =>
