@@ -2,9 +2,9 @@ package com.eigengo.pe.exercise
 
 import java.util.UUID
 
-import akka.actor.{Actor, ActorLogging, ActorRefFactory, Props}
+import akka.actor.{ActorLogging, ActorRefFactory, Props}
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentView, PersistentActor, SnapshotOffer}
+import akka.persistence.{PersistentView, SnapshotOffer}
 import com.eigengo.pe.actors
 
 object UserExercise {
