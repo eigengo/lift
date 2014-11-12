@@ -1,9 +1,11 @@
 package com.eigengo.pe.push
 
 import java.net.UnknownHostException
+import java.util.UUID
 
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
+import akka.persistence.PersistentActor
 import com.notnoop.apns.APNS
 
 import scala.io.Source
@@ -20,17 +22,19 @@ object UserPushNotification {
 
   /**
    * Sends default message to the client
+   *
+   * @param to the recipient
    * @param message the message
    * @param badge the badge
    * @param sound the sound
    */
-  case class DefaultMessage(message: String, badge: Option[Int], sound: Option[String])
+  case class DefaultMessage(to: UUID, message: String, badge: Option[Int], sound: Option[String])
 }
 
 /**
  * Pushes the notifications to the given user
  */
-class UserPushNotification extends Actor {
+class UserPushNotification extends PersistentActor {
   import com.eigengo.pe.push.UserPushNotification._
   import scala.concurrent.duration._
 
@@ -43,14 +47,21 @@ class UserPushNotification extends Actor {
     case x: UnknownHostException ⇒ Restart
   }
 
-  override def receive: Receive = {
-    case DefaultMessage(message, badge, sound) =>
-      // lookup user device Id
-      // "131af4f2 64f2c000 b5814833 90d01b87 f5cbd074 48bea21b 9b517640 97a5c74c"
-      val deviceToken = "5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8"
-      val payloadBuilder = APNS.newPayload.alertBody(message)
-      badge.foreach(payloadBuilder.badge)
-      sound.foreach(payloadBuilder.sound)
-      service.push(deviceToken, payloadBuilder.build())
+  override def receiveRecover: Receive = Actor.emptyBehavior
+
+  override def receiveCommand: Receive = {
+    case m@DefaultMessage(userId, message, badge, sound) =>
+      persist(m) { m ⇒
+        // lookup user device Id
+        // "131af4f2 64f2c000 b5814833 90d01b87 f5cbd074 48bea21b 9b517640 97a5c74c"
+        val deviceToken = "5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8"
+        val payloadBuilder = APNS.newPayload.alertBody(message)
+        badge.foreach(payloadBuilder.badge)
+        sound.foreach(payloadBuilder.sound)
+        service.push(deviceToken, payloadBuilder.build())
+      }
   }
+
+  override def persistenceId: String = "user-push-notification"
+
 }

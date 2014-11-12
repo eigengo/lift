@@ -39,7 +39,7 @@ object PeMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://ClusterSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // Start the shards
-      ClusterSharding(system).start(
+      val userExercise = ClusterSharding(system).start(
         typeName = UserExercise.shardName,
         entryProps = Some(UserExercise.props),
         idExtractor = UserExercise.idExtractor,
@@ -47,8 +47,9 @@ object PeMain extends App {
 
       // Start other actors & views
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
-      system.actorOf(ExerciseProcessor.props, ExerciseProcessor.name)
-      system.actorOf(ExerciseView.props, ExerciseView.name)
+      system.actorOf(ExerciseProcessor.props(userExercise), ExerciseProcessor.name)
+      // system.actorOf(ExerciseView.props, ExerciseView.name)
+      system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
 
       startupHttpService(system, port)
     }

@@ -5,6 +5,8 @@ import akka.contrib.pattern.ClusterSharding
 
 object actors {
 
+  case class ActorProps(props: Props, name: String)
+
   object local {
     def lookup(arf: ActorRefFactory, name: String): ActorSelection = arf match {
       case ctx: ActorContext ⇒ ctx.system.actorSelection(s"/user/$name")

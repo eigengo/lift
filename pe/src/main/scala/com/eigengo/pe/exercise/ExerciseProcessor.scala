@@ -4,12 +4,14 @@ import java.util.UUID
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
+import akka.persistence.{Channel, AtLeastOnceDelivery, PersistentActor}
 import com.eigengo.pe.{AccelerometerData, actors}
 import scodec.bits.BitVector
 
+import scalaz.\/
+
 object ExerciseProcessor {
-  val props = Props[ExerciseProcessor]
+  def props(destination: ActorRef) = Props(classOf[ExerciseProcessor], destination)
   val name = "exercise-processor"
   def lookup(implicit arf: ActorRefFactory) = actors.local.lookup(arf, name)
 
@@ -28,22 +30,31 @@ object ExerciseProcessor {
    */
   case class ExerciseDataCmd(userId: UUID, bits: BitVector)
 
+  /**
+   * The event with processed fitness data into ``List[AccelerometerData]``
+   * @param data the accelerometer data
+   */
+  case class ExerciseDataEvt(userId: UUID, data: AccelerometerData)
 }
 
 /**
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class ExerciseProcessor extends PersistentActor with AtLeastOnceDelivery {
+class ExerciseProcessor(destination: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
   import com.eigengo.pe.AccelerometerData._
   import com.eigengo.pe.exercise.ExerciseProcessor._
-  import com.eigengo.pe.exercise.ExerciseView._
 
   private var buffer: BitVector = BitVector.empty
 
-  private def validateData(data: List[AccelerometerData]): Boolean = data match {
-    case Nil => true
-    case h :: t => data.forall(_.samplingRate == h.samplingRate)
+  private def validateData(data: List[AccelerometerData]): \/[String, AccelerometerData] = data match {
+    case Nil => \/.left("Empty")
+    case h :: t =>
+      if (data.forall(_.samplingRate == h.samplingRate)) {
+        \/.right(data.foldRight(data.last)((res, ad) => ad.copy(values = ad.values ++ res.values)))
+      } else {
+        \/.left("Unmatched sampling rates")
+      }
   }
 
   override val persistenceId: String = "exercise-persistence"
@@ -53,12 +64,12 @@ class ExerciseProcessor extends PersistentActor with AtLeastOnceDelivery {
   override def receiveCommand: Receive = {
     case ExerciseDataCmd(userId, bits) =>
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
-      if (validateData(data)) {
-        persist(ExerciseDataEvt(userId, data)) { e =>
+      validateData(data).foreach { ad ⇒
+        persist(ExerciseDataEvt(userId, ad)) { e =>
           buffer = bits2
+          destination ! e
         }
       }
-
   }
 
 }
