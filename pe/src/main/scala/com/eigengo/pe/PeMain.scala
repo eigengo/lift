@@ -11,8 +11,8 @@ import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.HttpServiceActor
 
-class PeMain extends HttpServiceActor with ExerciseViewService with ExerciseService {
-  override def receive: Receive = runRoute(exerciseProcessorRoute ~ exerciseViewRoute)
+class PeMain extends HttpServiceActor with ExerciseService {
+  override def receive: Receive = runRoute(exerciseRoute)
 }
 
 /**
@@ -20,7 +20,7 @@ class PeMain extends HttpServiceActor with ExerciseViewService with ExerciseServ
  */
 object PeMain extends App {
 
-  singleJvmStartup(Seq(2551, 2552, 0))
+  singleJvmStartup(Seq(2551, 2552, 2553, 0))
 
   def singleJvmStartup(ports: Seq[Int]): Unit = {
     ports.foreach { port ⇒
@@ -40,19 +40,15 @@ object PeMain extends App {
 
       // Start the shards
       ClusterSharding(system).start(
-        typeName = Exercise.shardName,
-        entryProps = Some(Exercise.props),
-        idExtractor = Exercise.idExtractor,
-        shardResolver = Exercise.shardResolver)
-
-      ClusterSharding(system).start(
-        typeName = ExerciseView.shardName,
-        entryProps = Some(ExerciseView.props),
-        idExtractor = ExerciseView.idExtractor,
-        shardResolver = ExerciseView.shardResolver)
+        typeName = UserExercise.shardName,
+        entryProps = Some(UserExercise.props),
+        idExtractor = UserExercise.idExtractor,
+        shardResolver = UserExercise.shardResolver)
 
       // Start other actors & views
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
+      system.actorOf(ExerciseProcessor.props, ExerciseProcessor.name)
+      system.actorOf(ExerciseView.props, ExerciseView.name)
 
       startupHttpService(system, port)
 //      if (port != "2551" && port != "2552") {

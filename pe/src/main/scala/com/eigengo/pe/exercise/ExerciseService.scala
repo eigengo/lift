@@ -1,24 +1,31 @@
 package com.eigengo.pe.exercise
 
-import java.util.UUID
-
-import akka.actor.{ActorRef, ActorSystem, ActorContext}
-import com.eigengo.pe.{timeouts, LiftMarshallers}
+import akka.actor.{ActorSelection, ActorRef}
+import com.eigengo.pe.LiftMarshallers
 import scodec.bits.BitVector
-import spray.routing.{HttpServiceActor, HttpService}
-
-import scala.concurrent.ExecutionContext
+import spray.routing.HttpService
 
 trait ExerciseService extends HttpService with LiftMarshallers {
-  import Exercise._
-  def exercise: ActorRef = Exercise.lookup
+  import ExerciseProcessor._
+  import UserExercise._
+  import akka.pattern.ask
+  import com.eigengo.pe.timeouts.defaults._
 
-  val exerciseProcessorRoute =
-    path("exercise") {
+  implicit val _ = actorRefFactory.dispatcher
+  def exercise: ActorSelection = ExerciseProcessor.lookup
+  def userExercise: ActorRef = UserExercise.lookup
+
+  val exerciseRoute =
+    path("exercise" / JavaUUID) { userId ⇒
       post {
         handleWith { bits: BitVector =>
-          exercise ! ExerciseDataCmd(UUID.fromString("091284FA-2044-435E-BC6B-0E5EE34A6C77"), bits)
+          exercise ! ExerciseDataCmd(userId, bits)
           "OK"
+        }
+      } ~
+      get {
+        complete {
+          (userExercise ? GetUserExercises(userId)).map(_.toString)
         }
       }
     }

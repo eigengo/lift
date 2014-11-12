@@ -8,11 +8,10 @@ import akka.persistence.PersistentActor
 import com.eigengo.pe.{AccelerometerData, actors}
 import scodec.bits.BitVector
 
-object Exercise {
-  val shardName: String = "exercise-shard"
-  val props: Props = Props[Exercise]
-
-  def lookup(implicit arf: ActorRefFactory): ActorRef = actors.shard.lookup(arf, shardName)
+object ExerciseProcessor {
+  val props = Props[ExerciseProcessor]
+  val name = "exercise-processor"
+  def lookup(implicit arf: ActorRefFactory) = actors.local.lookup(arf, name)
 
   val idExtractor: ShardRegion.IdExtractor = {
     case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
@@ -23,9 +22,9 @@ object Exercise {
   }
 
   /**
-   *
-   * @param userId
-   * @param bits
+   * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
+   * @param userId the user identity
+   * @param bits the submitted bits
    */
   case class ExerciseDataCmd(userId: UUID, bits: BitVector)
 
@@ -35,9 +34,9 @@ object Exercise {
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class Exercise extends PersistentActor {
+class ExerciseProcessor extends PersistentActor {
   import com.eigengo.pe.AccelerometerData._
-  import com.eigengo.pe.exercise.Exercise._
+  import com.eigengo.pe.exercise.ExerciseProcessor._
   import com.eigengo.pe.exercise.ExerciseView._
 
   private var buffer: BitVector = BitVector.empty
@@ -47,7 +46,7 @@ class Exercise extends PersistentActor {
     case h :: t => data.forall(_.samplingRate == h.samplingRate)
   }
 
-  override val persistenceId: String = "user-exercise-persistence"
+  override val persistenceId: String = "exercise-persistence"
 
   override val receiveRecover: Receive = Actor.emptyBehavior
 
