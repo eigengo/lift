@@ -2,17 +2,17 @@ package com.eigengo.pe.exercise
 
 import java.util.UUID
 
-import akka.actor.{ActorLogging, ActorRef, ActorSystem, Props}
-import akka.contrib.pattern.{ClusterSharding, ShardRegion}
+import akka.actor._
+import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentView, SnapshotOffer}
-import com.eigengo.pe.AccelerometerData
 import com.eigengo.pe.push.UserPushNotification
+import com.eigengo.pe.{AccelerometerData, actors}
 
-object UserExerciseView {
-  val shardName: String = "user-exercise-view-shard"
-  val props: Props = Props[UserExerciseView]
+object ExerciseView {
+  val shardName: String = "exercise-view-shard"
+  val props: Props = Props[ExerciseView]
 
-  def lookup(implicit system: ActorSystem): ActorRef = ClusterSharding(system).shardRegion(shardName)
+  def lookup(implicit arf: ActorRefFactory): ActorRef = actors.shard.lookup(arf, shardName)
 
   case class GetExercises(userId: UUID)
 
@@ -36,9 +36,9 @@ object UserExerciseView {
  * View that handles processing the events, delegates to the classifiers,
  * and provides the query functions.
  */
-class UserExerciseView extends PersistentView with ActorLogging {
+class ExerciseView extends PersistentView with ActorLogging {
   import com.eigengo.pe.exercise.ExerciseClassifier._
-  import com.eigengo.pe.exercise.UserExerciseView._
+  import com.eigengo.pe.exercise.ExerciseView._
   import com.eigengo.pe.push.UserPushNotification._
 
   type Exercises = Map[UUID, List[ClassifiedExercise]]

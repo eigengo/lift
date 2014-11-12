@@ -11,8 +11,7 @@ import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.HttpServiceActor
 
-class PeMain extends HttpServiceActor with UserExerciseViewService with ExerciseService {
-  override implicit def system: ActorSystem = context.system
+class PeMain extends HttpServiceActor with ExerciseViewService with ExerciseService {
   override def receive: Receive = runRoute(userExerciseProcessorRoute ~ userExerciseViewRoute)
 }
 
@@ -41,16 +40,16 @@ object PeMain extends App {
 
       // Start the shards
       ClusterSharding(system).start(
-        typeName = UserExercise.shardName,
-        entryProps = Some(UserExercise.props),
-        idExtractor = UserExercise.idExtractor,
-        shardResolver = UserExercise.shardResolver)
+        typeName = Exercise.shardName,
+        entryProps = Some(Exercise.props),
+        idExtractor = Exercise.idExtractor,
+        shardResolver = Exercise.shardResolver)
 
       ClusterSharding(system).start(
-        typeName = UserExerciseView.shardName,
-        entryProps = Some(UserExerciseView.props),
-        idExtractor = UserExerciseView.idExtractor,
-        shardResolver = UserExerciseView.shardResolver)
+        typeName = ExerciseView.shardName,
+        entryProps = Some(ExerciseView.props),
+        idExtractor = ExerciseView.idExtractor,
+        shardResolver = ExerciseView.shardResolver)
 
       // Start other actors & views
       system.actorOf(UserPushNotification.props, UserPushNotification.name)

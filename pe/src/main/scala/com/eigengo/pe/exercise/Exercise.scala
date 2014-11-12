@@ -3,16 +3,16 @@ package com.eigengo.pe.exercise
 import java.util.UUID
 
 import akka.actor._
-import akka.contrib.pattern.{ClusterSharding, ShardRegion}
+import akka.contrib.pattern.ShardRegion
 import akka.persistence.PersistentActor
-import com.eigengo.pe.AccelerometerData
+import com.eigengo.pe.{AccelerometerData, actors}
 import scodec.bits.BitVector
 
-object UserExercise {
-  val shardName: String = "user-exercise-shard"
-  val props: Props = Props[UserExercise]
+object Exercise {
+  val shardName: String = "exercise-shard"
+  val props: Props = Props[Exercise]
 
-  def lookup(implicit system: ActorSystem): ActorRef = ClusterSharding(system).shardRegion(shardName)
+  def lookup(implicit arf: ActorRefFactory): ActorRef = actors.shard.lookup(arf, shardName)
 
   val idExtractor: ShardRegion.IdExtractor = {
     case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
@@ -35,10 +35,10 @@ object UserExercise {
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class UserExercise extends PersistentActor {
-  import AccelerometerData._
-  import UserExercise._
-  import UserExerciseView._
+class Exercise extends PersistentActor {
+  import com.eigengo.pe.AccelerometerData._
+  import com.eigengo.pe.exercise.Exercise._
+  import com.eigengo.pe.exercise.ExerciseView._
 
   private var buffer: BitVector = BitVector.empty
 
