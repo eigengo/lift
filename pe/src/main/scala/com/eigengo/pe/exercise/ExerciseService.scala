@@ -19,8 +19,7 @@ trait ExerciseService extends HttpService with LiftMarshallers {
     path("exercise" / JavaUUID) { userId ⇒
       post {
         handleWith { bits: BitVector =>
-          exercise ! ExerciseDataCmd(userId, bits)
-          "OK"
+          (exercise ? ExerciseDataCmd(userId, bits)).map(_.toString)
         }
       } ~
       get {

@@ -57,10 +57,10 @@ class ExerciseProcessor(destination: ActorRef) extends PersistentActor with AtLe
     case ExerciseDataCmd(userId, bits) =>
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       validateData(data).fold(
-        sender() !,
+        err ⇒ sender() ! \/.left(err),
         evt ⇒ persist(ExerciseDataEvt(userId, evt)) { ad ⇒
           buffer = bits2
-          sender() ! 'OK
+          sender() ! \/.right('OK)
           destination ! ad
         }
       )
