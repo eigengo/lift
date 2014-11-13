@@ -3,8 +3,7 @@ package com.eigengo.pe.exercise
 import java.util.UUID
 
 import akka.actor._
-import akka.contrib.pattern.ShardRegion
-import akka.persistence.{Channel, AtLeastOnceDelivery, PersistentActor}
+import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
 import com.eigengo.pe.{AccelerometerData, actors}
 import scodec.bits.BitVector
 
@@ -14,14 +13,6 @@ object ExerciseProcessor {
   def props(destination: ActorRef) = Props(classOf[ExerciseProcessor], destination)
   val name = "exercise-processor"
   def lookup(implicit arf: ActorRefFactory) = actors.local.lookup(arf, name)
-
-  val idExtractor: ShardRegion.IdExtractor = {
-    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
-  }
-
-  val shardResolver: ShardRegion.ShardResolver = {
-    case ExerciseDataCmd(userId, _) => (math.abs(userId.hashCode()) % 100).toString
-  }
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed

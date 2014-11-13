@@ -7,13 +7,13 @@ import spray.routing.HttpService
 
 trait ExerciseService extends HttpService with LiftMarshallers {
   import ExerciseProcessor._
-  import UserExercise._
+  import UserExercises._
   import akka.pattern.ask
   import com.eigengo.pe.timeouts.defaults._
 
   implicit val _ = actorRefFactory.dispatcher
   def exercise: ActorSelection = ExerciseProcessor.lookup
-  def userExercise: ActorRef = UserExercise.lookup
+  def userExercise: ActorRef = UserExercises.lookup
 
   val exerciseRoute =
     path("exercise" / JavaUUID) { userId ⇒

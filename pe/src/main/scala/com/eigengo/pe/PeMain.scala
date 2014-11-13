@@ -40,10 +40,10 @@ object PeMain extends App {
 
       // Start the shards
       val userExercise = ClusterSharding(system).start(
-        typeName = UserExercise.shardName,
-        entryProps = Some(UserExercise.props),
-        idExtractor = UserExercise.idExtractor,
-        shardResolver = UserExercise.shardResolver)
+        typeName = UserExercises.shardName,
+        entryProps = Some(UserExercises.props),
+        idExtractor = UserExercises.idExtractor,
+        shardResolver = UserExercises.shardResolver)
 
       // Start other actors & views
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
