@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.{ActorLogging, ActorRefFactory, Props}
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentView, SnapshotOffer}
+import akka.persistence.{RecoveryCompleted, PersistentActor, PersistentView, SnapshotOffer}
 import com.eigengo.pe.push.UserPushNotification
 import com.eigengo.pe.push.UserPushNotification.DefaultMessage
 import com.eigengo.pe.{AccelerometerData, actors}
@@ -30,17 +30,21 @@ object UserExercise {
 
 }
 
-class UserExercise extends PersistentView with ActorLogging {
+class UserExercise extends PersistentActor with ActorLogging {
   import com.eigengo.pe.exercise.ExerciseClassifier._
   import com.eigengo.pe.exercise.UserExercise._
   private var exercises = List.empty[ClassifiedExercise]
   private val userId: UUID = UUID.fromString(self.path.name)
-  override def viewId: String = s"user-exercise-view-${self.path.name}"
   override val persistenceId: String = s"user-exercise-${self.path.name}"
 
-  override def receive: Receive = {
+
+  override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: List[ClassifiedExercise @unchecked]) ⇒
       exercises = offeredSnapshot
+    case RecoveryCompleted ⇒
+  }
+
+  override def receiveCommand: Receive = {
 
     case ad@AccelerometerData(_, _) ⇒
       log.info(s"AccelerometerData in AS ${self.path.toString}")
@@ -48,12 +52,14 @@ class UserExercise extends PersistentView with ActorLogging {
 
     case e@ClassifiedExercise(confidence, exercise) ⇒
       log.info(s"ClassificationResult in AS ${self.path.toString}")
-      if (confidence > 0.0) {
-        exercises = e :: exercises
-        exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(userId, e, Some(1), Some("default")))
+      persist(e) { ce ⇒
+        if (confidence > 0.0) {
+          exercises = e :: exercises
+          exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(userId, e, Some(1), Some("default")))
+        }
+        saveSnapshot(exercises)
+        log.info(s"Now with ${exercises.size} exercises")
       }
-      saveSnapshot(exercises)
-      log.info(s"Now with ${exercises.size} exercises")
 
     // query for exercises
     case GetExercises =>
