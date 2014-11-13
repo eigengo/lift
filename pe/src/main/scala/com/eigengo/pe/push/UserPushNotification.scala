@@ -1,7 +1,7 @@
 package com.eigengo.pe.push
 
 import java.net.UnknownHostException
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
@@ -47,19 +47,26 @@ class UserPushNotification extends PersistentActor {
     case x: UnknownHostException ⇒ Restart
   }
 
-  override def receiveRecover: Receive = Actor.emptyBehavior
+  override def receiveRecover: Receive = {
+    case m@DefaultMessage(_, _, _, _) ⇒ sendNotification(m)
+  }
 
   override def receiveCommand: Receive = {
-    case m@DefaultMessage(userId, message, badge, sound) =>
+    case m@DefaultMessage(_, _, _, _) =>
       persist(m) { m ⇒
-        // lookup user device Id
-        // "131af4f2 64f2c000 b5814833 90d01b87 f5cbd074 48bea21b 9b517640 97a5c74c"
-        val deviceToken = "5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8"
-        val payloadBuilder = APNS.newPayload.alertBody(message)
-        badge.foreach(payloadBuilder.badge)
-        sound.foreach(payloadBuilder.sound)
-        service.push(deviceToken, payloadBuilder.build())
+        sendNotification(m)
+        saveSnapshot(new Date())
       }
+  }
+
+  def sendNotification(message: DefaultMessage) {
+    // lookup user device Id
+    // "131af4f2 64f2c000 b5814833 90d01b87 f5cbd074 48bea21b 9b517640 97a5c74c"
+    val deviceToken = "5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8"
+    val payloadBuilder = APNS.newPayload.alertBody(message.message)
+    message.badge.foreach(payloadBuilder.badge)
+    message.sound.foreach(payloadBuilder.sound)
+    service.push(deviceToken, payloadBuilder.build())
   }
 
   override def persistenceId: String = "user-push-notification"

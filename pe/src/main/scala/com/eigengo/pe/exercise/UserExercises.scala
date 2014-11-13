@@ -2,9 +2,9 @@ package com.eigengo.pe.exercise
 
 import java.util.UUID
 
-import akka.actor.{ActorLogging, ActorRefFactory, Props}
+import akka.actor.{ActorLogging, ActorRefFactory, Props, ReceiveTimeout}
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
+import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.pe.push.UserPushNotification
 import com.eigengo.pe.push.UserPushNotification.DefaultMessage
 import com.eigengo.pe.{AccelerometerData, actors}
@@ -31,26 +31,42 @@ object UserExercises {
 }
 
 class UserExercises extends PersistentActor with ActorLogging {
+  import akka.contrib.pattern.ShardRegion.Passivate
   import com.eigengo.pe.exercise.ExerciseClassifier._
   import com.eigengo.pe.exercise.UserExercises._
-  private var exercises = List.empty[ClassifiedExercise]
-  private val userId: UUID = UUID.fromString(self.path.name)
+  import scala.concurrent.duration._
+
+  // the shard lives for the specified timeout seconds before passivating
+  context.setReceiveTimeout(360.seconds)
+
   override val persistenceId: String = s"user-exercises-${self.path.name}"
+  private val userId: UUID = UUID.fromString(self.path.name)
+  private var exercises = List.empty[ClassifiedExercise]
 
   override def receiveRecover: Receive = {
+    // restore from snapshot
     case SnapshotOffer(_, offeredSnapshot: List[ClassifiedExercise @unchecked]) ⇒
+      log.info(s"SnapshotOffer in AS ${self.path.toString}")
       exercises = offeredSnapshot
-    case RecoveryCompleted ⇒
+
+    // reclassify the exercise in AccelerometerData
     case ad@AccelerometerData(_, _) ⇒
       ExerciseClassifiers.lookup ! ad
-
   }
 
   override def receiveCommand: Receive = {
+    // passivation support
+    case ReceiveTimeout ⇒
+      context.parent ! Passivate(stopMessage = 'stop)
+    case 'stop ⇒
+      context.stop(self)
+
+    // classify the exercise in AccelerometerData
     case evt@AccelerometerData(_, _) ⇒
       log.info(s"AccelerometerData in AS ${self.path.toString}")
       persist(evt) { ad ⇒ ExerciseClassifiers.lookup ! ad }
 
+    // classification results received
     case e@ClassifiedExercise(confidence, exercise) ⇒
       log.info(s"ClassificationResult in AS ${self.path.toString}")
       if (confidence > 0.0) {
