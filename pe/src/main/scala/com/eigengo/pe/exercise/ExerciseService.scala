@@ -13,7 +13,7 @@ trait ExerciseService extends HttpService with LiftMarshallers {
 
   implicit val _ = actorRefFactory.dispatcher
   def exercise: ActorSelection = ExerciseProcessor.lookup
-  def userExercise: ActorRef = UserExercises.lookup
+  def userExercises: ActorRef = UserExercises.lookup
 
   val exerciseRoute =
     path("exercise" / JavaUUID) { userId ⇒
@@ -25,7 +25,7 @@ trait ExerciseService extends HttpService with LiftMarshallers {
       } ~
       get {
         complete {
-          (userExercise ? GetUserExercises(userId)).map(_.toString)
+          (userExercises ? GetUserExercises(userId)).map(_.toString)
         }
       }
     }
