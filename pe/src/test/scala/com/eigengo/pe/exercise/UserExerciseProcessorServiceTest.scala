@@ -7,12 +7,12 @@ import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
 import spray.testkit.ScalatestRouteTest
 
-class ExerciseProcessorServiceTest
+class UserExerciseProcessorServiceTest
   extends FlatSpec with ScalatestRouteTest with TestKitBase with Matchers
   with ExerciseService with LiftMarshallers with LiftTestMarshallers {
 
   def actorRefFactory: ActorRefFactory = system
-  override val exercise: ActorSelection = system.actorSelection(testActor.path)
+  override val userExerciseProcessor: ActorRef = testActor
 
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)

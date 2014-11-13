@@ -45,10 +45,14 @@ object PeMain extends App {
         idExtractor = UserExercises.idExtractor,
         shardResolver = UserExercises.shardResolver)
 
+      ClusterSharding(system).start(
+        typeName = UserExerciseProcessor.shardName,
+        entryProps = Some(UserExerciseProcessor.props(userExercise)),
+        idExtractor = UserExerciseProcessor.idExtractor,
+        shardResolver = UserExerciseProcessor.shardResolver)
+
       // Start other actors & views
       system.actorOf(UserPushNotification.props, UserPushNotification.name)
-      system.actorOf(ExerciseProcessor.props(userExercise), ExerciseProcessor.name)
-      // system.actorOf(ExerciseView.props, ExerciseView.name)
       system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
 
       startupHttpService(system, port)

@@ -6,20 +6,20 @@ import scodec.bits.BitVector
 import spray.routing.HttpService
 
 trait ExerciseService extends HttpService with LiftMarshallers {
-  import ExerciseProcessor._
+  import UserExerciseProcessor._
   import UserExercises._
   import akka.pattern.ask
   import com.eigengo.pe.timeouts.defaults._
 
   implicit val _ = actorRefFactory.dispatcher
-  def exercise: ActorSelection = ExerciseProcessor.lookup
+  def userExerciseProcessor: ActorRef = UserExerciseProcessor.lookup
   def userExercises: ActorRef = UserExercises.lookup
 
   val exerciseRoute =
     path("exercise" / JavaUUID) { userId ⇒
       post {
         handleWith { bits: BitVector =>
-          (exercise ? ExerciseDataCmd(userId, bits)).map(_.toString)
+          (userExerciseProcessor ? ExerciseDataCmd(userId, bits)).map(_.toString)
         }
       } ~
       get {

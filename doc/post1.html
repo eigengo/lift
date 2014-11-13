@@ -1,0 +1,78 @@
+<p>In the previous post, I showed a simple CQRS/ES application. It contained one <code>PersistentActor</code> and one <code>PersistentView</code>. The view was set to auto-update; and so, as the actor persisted messages, the view consumed them. To save reprocessing of <em>all</em> messages upon re-creation of the view, the view periodically created <em>snapshots</em>. However, the example fell way short of actually usable application: it had no API, and it made no distinction between the source of the requests. It was only usable for a single user using its console interface.</p>
+<h2>Lift</h2>
+<p>So, let's expand on the earlier example, and build a usable application. I'll call it Lift as in <em>do you even </em>lift<em>?</em>" Its smartwatch component sends data over bluetooth LE to a phone, and the phone forwards the data to the application's REST API. The data hits one of the nodes in the cluster, where it is validated, and then analysed.</p>
+IMG HERE
+<p>In this post, I'll skim over the wearable and mobile code, and focus on the server-side code, starting with the domain. The domain of the application is <em>all users and all their exercises</em>. Allow me to be a bit megalomaniacal, and assume that the application is handling millions of users, each with hundreds of exercises. Clearly, this domain would not fit into a single JVM. It needs to be sharded across the cluster. <!--This is very different than the traditional approach, where one typically uses a database to store the domain, and to provide a contested (!) shared mutable state for all the nodes. Contended access to shared mutable state is the cthulhu of distributed systems.--></p>
+<p>Moreover, well-defined supervisor chains and supervisor strategies, together with the event-sourced nature provide the resilience. Underpinning all this is event-driven approach, where the components talk to each other using message-passing. The components themselves use strictly non-blocking code, which aids responsiveness. Event-driven architecture with non-blocking components, appropriate error handling and recovery, together with the ability to shard the domain gives the application the elasticity that my megalomaniacal delusions require.</p>
+<h3>API</h3>
+<p>The REST API is handled by Spray. The application has only two endpoints: <code>POST /exercise/:id</code> and <code>GET /exercise/:id</code>. The first endpoint submits new data from the smartwatch to be processed, the second endpoint retrieves the exercises, all for user identified by <code>:id</code>. The Scala code follows typical Spray code:</p>
+[code language="scala"]
+trait ExerciseService extends HttpService with LiftMarshallers {
+  import ExerciseProcessor._
+  import UserExercises._
+  import akka.pattern.ask
+  import com.eigengo.pe.timeouts.defaults._
+
+  implicit val _ = actorRefFactory.dispatcher
+  def userExerciseProcessor = UserExerciseProcessor.lookup
+  def userExercises = UserExercises.lookup
+
+  val exerciseRoute =
+    path("exercise" / JavaUUID) { userId ⇒
+      post {
+        handleWith { bits: BitVector =>
+          (userExerciseProcessor ? ExerciseDataCmd(userId, bits)).map(_.toString)
+        }
+      } ~
+      get {
+        complete {
+          (userExercises ? GetUserExercises(userId)).mapTo[List[ClassifiedExercise]]
+        }
+      }
+    }
+
+}
+[/code]
+<p>The <code>exercise</code> and <code>userExercises</code> are the actors that process the submitted data, and give the current view of the entire domain, respecitvely. Let's now follow the data through the system. In the POST handler, we ask the <code>ExerciseProcessor</code> actor to handle the <code>ExerciseDataCmd</code> message. It must validate 
+
+<h3>The domain</h3>
+<p>Let's start modeling the domain from its smallest block. The <code>UserExercises</code>, which represents a <code>exercises: List[ClassifiedExercise]</code> for a given <code>userId: UUID</code>. The <code>userId</code> is immutable, but the <code>exercises</code> mutates over time.</p>
+[code language="scala"]
+class UserExercises extends PersistentActor with ActorLogging {
+  private val userId: UUID = ???
+  private var exercises = List.empty[ClassifiedExercise]
+
+}
+[/code]
+<p>Notice that the user-exercises domain is <code>PersistentActor</code>. In other words, there is potentially an actor instance for every user in the system! (Notice potentially: I will explain how to prevent needless user-exercises instances hanging around in memory.) Onwards. The <code>UserExercise</code> actor handles the <code>AccelerometerData</code> with the validated and parsed data the mobile app received from the smartwatch. Upon receiving this message, it will turn the <code>AccelerometerData</code> into <code>ClassifiedExercise</code>. It also handles the <code>GetExercises</code> message, to which it replies with its current state: the <code>exercises</code>. With all this, we can write the <code>receiveCommand</code> function.</p>
+[code language="scala"]
+class UserExercises extends PersistentActor with ActorLogging {
+  import com.eigengo.pe.exercise.ExerciseClassifier._
+  import com.eigengo.pe.exercise.UserExercises._
+
+  private val userId: UUID = ???
+  private var exercises = List.empty[ClassifiedExercise]
+
+  override def receiveCommand: Receive = {
+    // classify the exercise in AccelerometerData
+    case evt@AccelerometerData(_, _) ⇒
+      persist(evt)(ExerciseClassifiers.lookup !)
+
+    // classification results received
+    case e@ClassifiedExercise(confidence, exercise) ⇒
+      if (confidence > 0.0) {
+        exercises = e :: exercises
+        exercise.foreach(e ⇒
+          UserPushNotification.lookup ! 
+            DefaultMessage(userId, e, Some(1), Some("default")))
+      }
+      saveSnapshot(exercises)
+
+    // query for exercises
+    case GetExercises =>
+      sender() ! exercises
+  }
+
+}
+[/code]
+<p>When the <code>AccelerometerData</code> message arrives, the actor persists it, and then pass it on to the exercise classifiers to perform the classification. The result arrives as the <code>ClassifiedExercise</code>, the code that handles the message updates the <code>exercises</code> state, sends notification to the user, and saves the state in the snapshot. Finally, the <code>GetExercises</code> case replies with the current state of the actor to the sender.</p>

@@ -9,11 +9,13 @@ import com.eigengo.pe.push.UserPushNotification
 import com.eigengo.pe.push.UserPushNotification.DefaultMessage
 import com.eigengo.pe.{AccelerometerData, actors}
 
+import scala.language.postfixOps
+
 /**
  * User + list of exercises companion
  */
 object UserExercises {
-  import com.eigengo.pe.exercise.ExerciseProcessor._
+  import com.eigengo.pe.exercise.UserExerciseProcessor._
 
   /** The shard name */
   val shardName = "user-exercises-shard"
@@ -100,14 +102,14 @@ class UserExercises extends PersistentActor with ActorLogging {
     // classify the exercise in AccelerometerData
     case evt@AccelerometerData(_, _) ⇒
       log.info(s"AccelerometerData in AS ${self.path.toString}")
-      persist(evt) { ad ⇒ ExerciseClassifiers.lookup ! ad }
+      persist(evt)(ExerciseClassifiers.lookup !)
 
     // classification results received
     case e@ClassifiedExercise(confidence, exercise) ⇒
       log.info(s"ClassificationResult in AS ${self.path.toString}")
       if (confidence > 0.0) {
         exercises = e :: exercises
-        exercise.foreach(e => UserPushNotification.lookup ! DefaultMessage(userId, e, Some(1), Some("default")))
+        exercise.foreach(e ⇒ UserPushNotification.lookup ! DefaultMessage(userId, e, Some(1), Some("default")))
       }
       saveSnapshot(exercises)
       log.info(s"Now with ${exercises.size} exercises")
