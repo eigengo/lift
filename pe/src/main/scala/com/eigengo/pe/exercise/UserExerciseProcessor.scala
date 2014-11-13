@@ -21,7 +21,7 @@ object UserExerciseProcessor {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, bits)
+    case ExerciseDataCmd(userId, bits) ⇒ (userId.toString, bits)
   }
 
   /**
@@ -47,7 +47,10 @@ object UserExerciseProcessor {
 class UserExerciseProcessor(userExercises: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
   import com.eigengo.pe.AccelerometerData._
   import com.eigengo.pe.exercise.UserExercises._
+  import scala.concurrent.duration._
+  import ShardRegion.Passivate
 
+  context.setReceiveTimeout(120.seconds)
   private var buffer: BitVector = BitVector.empty
   private val userId: UUID = UUID.fromString(self.path.name)
 
@@ -69,6 +72,12 @@ class UserExerciseProcessor(userExercises: ActorRef) extends PersistentActor wit
   }
 
   override def receiveCommand: Receive = {
+    // passivation support
+    case ReceiveTimeout ⇒
+      context.parent ! Passivate(stopMessage = 'stop)
+    case 'stop ⇒
+      context.stop(self)
+
     case bits: BitVector ⇒
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       validateData(data).fold(

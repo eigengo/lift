@@ -20,7 +20,7 @@ class PeMain extends HttpServiceActor with ExerciseService {
  */
 object PeMain extends App {
 
-  singleJvmStartup(Seq(2551, 2552, 2553, 0))
+  singleJvmStartup(Seq(2551, 2552, 2553, 2554))
 
   def singleJvmStartup(ports: Seq[Int]): Unit = {
     ports.foreach { port ⇒

@@ -4,5 +4,5 @@ if [ -z $USER_ID ] ; then
 	USER_ID=`uuidgen`
 fi
 echo $USER_ID
-curl --request POST --data-binary @../resources/training/arm3.dat http://localhost:10000/exercise/$USER_ID
+curl --request POST --data-binary @../resources/training/arm3.dat http://localhost:12552/exercise/$USER_ID
 echo $USER_ID | pbcopy

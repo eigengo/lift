@@ -2,6 +2,8 @@
 <h2>Lift</h2>
 <p>So, let's expand on the earlier example, and build a usable application. I'll call it Lift as in <em>do you even </em>lift<em>?</em>" Its smartwatch component sends data over bluetooth LE to a phone, and the phone forwards the data to the application's REST API. The data hits one of the nodes in the cluster, where it is validated, and then analysed.</p>
 IMG HERE
+<p>The main actors &amp; messages that the system handles are shown on the next figure.</p>
+IMG HERE
 <p>In this post, I'll skim over the wearable and mobile code, and focus on the server-side code, starting with the domain. The domain of the application is <em>all users and all their exercises</em>. Allow me to be a bit megalomaniacal, and assume that the application is handling millions of users, each with hundreds of exercises. Clearly, this domain would not fit into a single JVM. It needs to be sharded across the cluster. <!--This is very different than the traditional approach, where one typically uses a database to store the domain, and to provide a contested (!) shared mutable state for all the nodes. Contended access to shared mutable state is the cthulhu of distributed systems.--></p>
 <p>Moreover, well-defined supervisor chains and supervisor strategies, together with the event-sourced nature provide the resilience. Underpinning all this is event-driven approach, where the components talk to each other using message-passing. The components themselves use strictly non-blocking code, which aids responsiveness. Event-driven architecture with non-blocking components, appropriate error handling and recovery, together with the ability to shard the domain gives the application the elasticity that my megalomaniacal delusions require.</p>
 <h3>API</h3>
@@ -20,7 +22,7 @@ trait ExerciseService extends HttpService with LiftMarshallers {
   val exerciseRoute =
     path("exercise" / JavaUUID) { userId ⇒
       post {
-        handleWith { bits: BitVector =>
+        handleWith { bits: BitVector ⇒
           (userExerciseProcessor ? ExerciseDataCmd(userId, bits)).map(_.toString)
         }
       } ~
@@ -33,15 +35,16 @@ trait ExerciseService extends HttpService with LiftMarshallers {
 
 }
 [/code]
-<p>The <code>userExerciseProcessor</code> and <code>userExercises</code> are the actors that process the submitted data, and give the current view of the entire domain, respecitvely. Let's now follow the data through the system. In the POST handler, we ask the <code>UserExerciseProcessor</code> actor to handle the <code>BitVector</code> message. It must combine the new bits with the bits that it may have left over from previous incomplete packets received from the smartwatch, and attempt to decode the new bits. This is all clear, but as you can see, the actor maintains state. It is therefore important that messages from a single user reach the same actor instance. However, the HTTP-level router sends requests to arbitrary node. And so, I must be sure to shard this actor to maintain the appropriate isolation of state. The sharding code needs to be able to look at the message for the actor and decide which actor to send it to. In other words, it needs to be able to—given a message—extract identity of the sharded actor, and extract the name of the sharded actor. The name of the actor shall be the <code>String</code> representation of the <code>userId: UUID</code>. This allows me to take a first stab at the implementation:</p>
+<p>The <code>userExerciseProcessor</code> and <code>userExercises</code> are the actors that process the submitted data, and give the current view of the entire domain, respecitvely. Let's now follow the data through the system. In the POST handler, we ask the <code>UserExerciseProcessor</code> actor to handle the <code>BitVector</code> message. It must combine the new bits with the bits that it may have left over from previous incomplete packets received from the smartwatch, and attempt to decode the new bits into <code>AccelerometerData</code>. On success, it sends the decoded <code>AccelerometerData</code> to the <code>userExercises</code> reference.</p>
+<p>This is all clear, but as you can see, the actor maintains state. It is therefore important that messages from a single user reach the same actor instance. However, the HTTP-level router sends requests to arbitrary node. And so, I must be sure to shard this actor to maintain the appropriate isolation of state. The sharding code needs to be able to look at the message for the actor and decide which actor to send it to. In other words, it needs to be able to—given a message—extract identity of the sharded actor, and extract the name of the sharded actor. The name of the actor shall be the <code>String</code> representation of the <code>userId: UUID</code>. This allows me to take a first stab at the implementation:</p>
 [code language="scala"]
 class UserExerciseProcessor(userExercises: ActorRef) 
-  extends PersistentActor with AtLeastOnceDelivery {
-
+  extends PersistentActor {
   import com.eigengo.pe.AccelerometerData._
-  import com.eigengo.pe.exercise.UserExerciseProcessor._
+  import com.eigengo.pe.exercise.UserExercises._
 
   private var buffer: BitVector = BitVector.empty
+  private val userId: UUID = UUID.fromString(self.path.name)
 
   private def validateData(data: List[AccelerometerData]): 
     \/[String, AccelerometerData] = ???
@@ -53,7 +56,7 @@ class UserExerciseProcessor(userExercises: ActorRef)
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       validateData(data).fold(
         err ⇒ sender() ! \/.left(err),
-        evt ⇒ persist(ExerciseDataEvt(???, evt)) { ad ⇒
+        evt ⇒ persist(ExerciseDataEvt(userId, evt)) { ad ⇒
           buffer = bits2
           sender() ! \/.right('OK)
           userExercises ! ad
@@ -63,15 +66,14 @@ class UserExerciseProcessor(userExercises: ActorRef)
 
 }
 [/code]
-<p>Before I move on to sharding this actor, I should remember to implement the ability to save snapshots and to recover from saved snapshots. This will ensure that the actor can be re-created in the correct state if it ever needs to be restarted.</p>
+<p>Before I move on to details of sharding this actor, I should remember to implement the ability to save snapshots and to recover from saved snapshots. This will ensure that the actor can be re-created in the correct state if it ever needs to be restarted.</p>
 [code language="scala"]
-class UserExerciseProcessor(userExercises: ActorRef) 
-  extends PersistentActor with AtLeastOnceDelivery {
-
+class UserExerciseProcessor(userExercises: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
   import com.eigengo.pe.AccelerometerData._
-  import com.eigengo.pe.exercise.UserExerciseProcessor._
+  import com.eigengo.pe.exercise.UserExercises._
 
   private var buffer: BitVector = BitVector.empty
+  private val userId: UUID = UUID.fromString(self.path.name)
 
   private def validateData(data: List[AccelerometerData]): 
     \/[String, AccelerometerData] = ???
@@ -84,7 +86,7 @@ class UserExerciseProcessor(userExercises: ActorRef)
   }
 
   override def receiveCommand: Receive = {
-    case ExerciseDataCmd(userId, bits) ⇒
+    case bits: BitVector ⇒
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       validateData(data).fold(
         err ⇒ sender() ! \/.left(err),
@@ -99,18 +101,18 @@ class UserExerciseProcessor(userExercises: ActorRef)
 
 }
 [/code]
-<p>Notice the implementation of <code>receiveRecover</code> and <code>saveSnapshot</code> in the command handler.</p>
-<p>Now, as you can see, the actor maintains state. It is therefore important that messages from a single user reach the same actor instance. However, the HTTP-level router sends requests to arbitrary node. And so, I must be sure to shard this actor to maintain the appropriate isolation of state. The sharding code needs to be able to look at the message for the actor and decide which actor to send it to. In other words, it needs to be able to—given a message—extract identity of the sharded actor, and extract the name of the sharded actor. I find it useful to keep the implementations of <code>ShardRegion.IdExtractor</code> and <code>ShardRegion.ShardResolver</code> in the companion object. And so, I have:</p>
+<p>Notice the implementation of <code>receiveRecover</code> and <code>saveSnapshot</code> in the command handler.</p> 
+<p>Recall that the sharding code needs to be able to look at the message for the actor and decide which actor to send it to. In other words, it needs to be able to—given a message—extract identity of the sharded actor, and extract the name of the sharded actor. I find it useful to keep the implementations of <code>ShardRegion.IdExtractor</code> and <code>ShardRegion.ShardResolver</code> in the companion object. And so, I have:</p>
 [code language="scala"]
 object UserExerciseProcessor {
   def props(userExercises: ActorRef) = 
     Props(classOf[UserExerciseProcessor], userExercises)
   val shardName = "user-exercise-processor"
   def lookup(implicit arf: ActorRefFactory) = 
-  	actors.shard.lookup(arf, shardName)
+    actors.shard.lookup(arf, shardName)
 
   val idExtractor: ShardRegion.IdExtractor = {
-    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
+    case ExerciseDataCmd(userId, bits) ⇒ (userId.toString, bits)
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
@@ -118,11 +120,35 @@ object UserExerciseProcessor {
   }
 
   case class ExerciseDataCmd(userId: UUID, bits: BitVector)
-
-  case class ExerciseDataEvt(userId: UUID, data: AccelerometerData)
 }
 [/code]
-<p>One does not create sharded actor using the <code>actorOf</code> call, but using the <code>ClusterSharding(system).start()</code> call. And so, in <code>PeMain</code> I start the <code>UserExerciseProcessor</code> shard using:</p>
+<p>Spot that the <code>idExtractor</code> transforms the <code>ExerciseDataCmd</code> into tuple containing the identity (name) of the shard and the message to be sent to it. The <code>shardResolver</code> serves as grouping for the messages: given <code>ExerciseDataCmd</code>, which actor (name) should it be sent to?</p>
+<p>Before I move on to the <code>UserExercises</code>, I want to make sure that the <code>UserExerciseProcessor</code>s do not hang around in memory long after the user is done exercising. I will use the <em>passivation</em> support in the cluster sharding. To allow an actor to be passivated, one has to add just a few lines of code:</p>
+[code language="scala"]
+class UserExerciseProcessor(userExercises: ActorRef) 
+  extends PersistentActor {
+  import com.eigengo.pe.AccelerometerData._
+  import com.eigengo.pe.exercise.UserExercises._
+  import scala.concurrent.duration._
+  import ShardRegion.Passivate
+
+  context.setReceiveTimeout(120.seconds)
+  ...
+
+  override def receiveCommand: Receive = {
+    // passivation support
+    case ReceiveTimeout ⇒
+      context.parent ! Passivate(stopMessage = 'stop)
+    case 'stop ⇒
+      context.stop(self)
+
+    case bits: BitVector ⇒ ...
+  }
+
+}
+
+[/code]
+<p>Now I have a well-behaved actor that can be sharded across the cluster! All I have to do is to start it. To do so, one does not use the <code>system.actorOf</code> call, but the <code>ClusterSharding(system).start()</code> call, where <code>system</code> is an instance of <code>ActorSystem</code>. And so, in <code>PeMain</code> I start the <code>UserExerciseProcessor</code> shard using:</p>
 [code language="scala"]
 ClusterSharding(system).start(
   typeName = UserExerciseProcessor.shardName,
@@ -132,7 +158,7 @@ ClusterSharding(system).start(
 [/code]
 <p>The <code>userExercises</code> parameter passed to the <code>UserExerciseProcessor</code> is a reference to the <code>UserExercises</code> actor, which also happens to be sharded. It receives the <code>AccelerometerData</code> and its job is to classify the data and come up with an exercise from the data.</p>
 <h3>UserExercises</h3>
-<p>Let's start modeling the domain from its smallest block. The <code>UserExercises</code>, which represents a <code>exercises: List[ClassifiedExercise]</code> for a given <code>userId: UUID</code>. The <code>userId</code> is immutable, but the <code>exercises</code> mutates over time.</p>
+<p>The <code>UserExercises</code> follows the <code>UserExerciseProcessor</code>. It represents a <code>exercises: List[ClassifiedExercise]</code> for a given <code>userId: UUID</code>. The <code>userId</code> is immutable, but the <code>exercises</code> mutates over time.</p>
 [code language="scala"]
 class UserExercises extends PersistentActor with ActorLogging {
   private val userId: UUID = ???
@@ -172,3 +198,222 @@ class UserExercises extends PersistentActor with ActorLogging {
 }
 [/code]
 <p>When the <code>AccelerometerData</code> message arrives, the actor persists it, and then pass it on to the exercise classifiers to perform the classification. The result arrives as the <code>ClassifiedExercise</code>, the code that handles the message updates the <code>exercises</code> state, sends notification to the user, and saves the state in the snapshot. Finally, the <code>GetExercises</code> case replies with the current state of the actor to the sender.</p>
+<p>Alongside with saving a snapshot, I need to add the code to recover from the snapshot. This means appropriate implementation of the <code>receiveRecover</code>.</p>
+[code language="scala"]
+class UserExercises extends PersistentActor with ActorLogging {
+  import akka.contrib.pattern.ShardRegion.Passivate
+  import com.eigengo.pe.exercise.ExerciseClassifier._
+  import com.eigengo.pe.exercise.UserExercises._
+  import scala.concurrent.duration._
+
+  override val persistenceId: String = s"user-exercises-${self.path.name}"
+  private val userId: UUID = ???
+  private var exercises = List.empty[ClassifiedExercise]
+
+  override def receiveRecover: Receive = {
+    // restore from snapshot
+    case SnapshotOffer(_, offeredSnapshot: List[ClassifiedExercise @unchecked]) ⇒
+      exercises = offeredSnapshot
+
+    // reclassify the exercise in AccelerometerData
+    case ad@AccelerometerData(_, _) ⇒
+      ExerciseClassifiers.lookup ! ad
+  }
+
+  // after recovery is complete, we move to processing commands
+  override def receiveCommand: Receive = ...
+
+}
+[/code]
+<p>This actor should really be well-behaved, and not stay around when it is no longer needed. By no longer needed, I mean when it has not received a message for some specified timeout, say 120 seconds. By now, you should jump to use the passivation pattern.</p>
+[code language="scala"]
+class UserExercises extends PersistentActor with ActorLogging {
+  import akka.contrib.pattern.ShardRegion.Passivate
+  import com.eigengo.pe.exercise.ExerciseClassifier._
+  import com.eigengo.pe.exercise.UserExercises._
+  import scala.concurrent.duration._
+
+  context.setReceiveTimeout(10.seconds)
+
+  override val persistenceId: String = s"user-exercises-${self.path.name}"
+  private val userId: UUID = ???
+  private var exercises = List.empty[ClassifiedExercise]
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = {
+    // passivation support
+    case ReceiveTimeout ⇒
+      context.parent ! Passivate(stopMessage = 'stop)
+    case 'stop ⇒
+      context.stop(self)
+
+    ...
+  }
+
+}
+[/code]
+<p>Just like the <code>UserExerciseProcessor</code>, this actor is also sharded on <code>userId</code>, and so it needs the <code>ShardRegion.IdExtractor</code> and <code>ShardRegion.ShardResolver</code>, which live—amongst other things—in the companion object.</p>
+[code language="scala"]
+object UserExercises {
+  val shardName = "user-exercises-shard"
+  val props = Props[UserExercises]
+  def lookup(implicit arf: ActorRefFactory) = actors.shard.lookup(arf, shardName)
+
+  case class ExerciseDataEvt(userId: UUID, data: AccelerometerData)
+
+  case class GetUserExercises(userId: UUID)
+
+  private case object GetExercises
+
+  val idExtractor: ShardRegion.IdExtractor = {
+    case ExerciseDataEvt(userId, data) ⇒ (userId.toString, data)
+    case GetUserExercises(userId) ⇒ (userId.toString, GetExercises)
+  }
+
+  val shardResolver: ShardRegion.ShardResolver = {
+    case GetUserExercises(userId) ⇒ userId.toString
+    case ExerciseDataEvt(userId, _) ⇒ userId.toString
+  }
+
+}
+[/code]
+<p>The <code>ShardRegion.IdExtractor</code> constructs the name using the <code>userId.toString</code>, and so, I can re-create the <code>userId</code> in the actor by parsing its name.</p>
+[code language="scala"]
+class UserExercises extends PersistentActor with ActorLogging {
+  import akka.contrib.pattern.ShardRegion.Passivate
+  import com.eigengo.pe.exercise.ExerciseClassifier._
+  import com.eigengo.pe.exercise.UserExercises._
+  import scala.concurrent.duration._
+
+  context.setReceiveTimeout(10.seconds)
+
+  override val persistenceId: String = s"user-exercises-${self.path.name}"
+  private val userId: UUID = UUID.fromString(self.path.name)
+  private var exercises = List.empty[ClassifiedExercise]
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+
+}
+[/code]
+<p>Starting the <code>UserExercises</code> shard now follows the same pattern as starting the <code>UserExerciseProcessor</code> shard.</p>
+[code language="scala"]
+val userExercise = ClusterSharding(system).start(
+  typeName = UserExercises.shardName,
+  entryProps = Some(UserExercises.props),
+  idExtractor = UserExercises.idExtractor,
+  shardResolver = UserExercises.shardResolver)
+
+ClusterSharding(system).start(
+  typeName = UserExerciseProcessor.shardName,
+  entryProps = Some(UserExerciseProcessor.props(userExercise)),
+  idExtractor = UserExerciseProcessor.idExtractor,
+  shardResolver = UserExerciseProcessor.shardResolver)
+[/code]
+<h2>The main application</h2>
+<p>It is now time to assemble all the components into a runnable application. For this post, I will stick to a single JVM implementation. Docker &amp; friends are the topic for the next post. So, we need a class that wraps the Spray <code>Route</code>s into an <code>Actor</code> and an <code>object</code> with the <code>main</code> method.</p>
+[code language="scala"]
+class PeMain extends HttpServiceActor with ExerciseService {
+  override def receive: Receive = runRoute(exerciseRoute)
+}
+
+object PeMain extends App {
+  singleJvmStartup(Seq(2551, 2552, 2553, 2554))
+
+  def singleJvmStartup(ports: Seq[Int]): Unit = ...
+}
+[/code]
+<p>The <code>singleJvmStartup</code> creates an <code>ActorSystem</code> for each port, and the <code>application.conf</code> file defines—amongst others—the <code>ActorSystem</code>s on ports 2551 and 2552 to be the seed nodes of the cluster.</p>
+[code language="javascript"]
+akka {
+  loglevel = INFO
+
+  actor {
+    provider = "akka.cluster.ClusterActorRefProvider"
+  }
+
+  remote {
+    log-remote-lifecycle-events = off
+    netty.tcp {
+      hostname = "127.0.0.1"
+      port = 0
+    }
+  }
+
+  cluster {
+    seed-nodes = [
+      "akka.tcp://ClusterSystem@127.0.0.1:2551",
+      "akka.tcp://ClusterSystem@127.0.0.1:2552"
+    ]
+
+    auto-down-unreachable-after = 10s
+  }
+
+  persistence {
+    journal.plugin = "akka.persistence.journal.leveldb-shared"
+    journal.leveldb-shared.store {
+      # DO NOT USE 'native = off' IN PRODUCTION !!!
+      native = off
+      dir = "target/shared-journal"
+    }
+    snapshot-store.local.dir = "target/snapshots"
+  }
+}
+[/code]
+<p>To complete the work, I just have to provide the implementation of the <code>singleJvmStartup</code>. It needs to start the <code>ActorSystem</code>, the Spray REST API, and set up the shared journal. The journal startup is the only clunky operation.</p>
+[code language="scala"]
+def singleJvmStartup(ports: Seq[Int]): Unit = {
+  ports.foreach { port ⇒
+    import scala.collection.JavaConverters._
+    // Override the configuration of the port
+    val config = ConfigFactory.
+      parseString(s"akka.remote.netty.tcp.port=$port").
+      withFallback(ConfigFactory.load())
+
+    val firstSeedNodePort = (for {
+      seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
+      port ← ActorPath.fromString(seedNode).address.port
+    } yield port).head
+
+    // Create an Akka system
+    implicit val system = ActorSystem("ClusterSystem", config)
+
+    // Startup the journal
+    startupSharedJournal(system, 
+      startStore = port == firstSeedNodePort, 
+      path = ActorPath.fromString(s"akka.tcp://ClusterSystem@127.0.0.1:$firstSeedNodePort/user/store"))
+
+    // Start the shards
+    val userExercise = ClusterSharding(system).start(
+      typeName = UserExercises.shardName,
+      entryProps = Some(UserExercises.props),
+      idExtractor = UserExercises.idExtractor,
+      shardResolver = UserExercises.shardResolver)
+
+    ClusterSharding(system).start(
+      typeName = UserExerciseProcessor.shardName,
+      entryProps = Some(UserExerciseProcessor.props(userExercise)),
+      idExtractor = UserExerciseProcessor.idExtractor,
+      shardResolver = UserExerciseProcessor.shardResolver)
+
+    // Start other actors
+    system.actorOf(UserPushNotification.props, UserPushNotification.name)
+    system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
+
+    startupHttpService(system, port)
+  }
+
+  def startupHttpService(system: ActorSystem, port: Int): Unit = {
+    val restService = system.actorOf(Props[PeMain])
+   IO(Http)(system) ! Http.Bind(restService, 
+    interface = "0.0.0.0", port = 10000 + port)
+  }
+
+  def startupSharedJournal(system: ActorSystem, 
+    startStore: Boolean, path: ActorPath): Unit = ???
+}
+[/code]
+<p>This completes the application. You can start it, and post data to its REST API. Feel free to pick any port (the application listens on 12551, 12552, 12553, 12554), and see it hit the <code>UserExerciseProcessor</code> shard, and then the <code>UserExercises</code> shard. For your convenience, you can run the script <code>post</code> in <code>pe/src/test/sh</code>. When executed without parameters, it generates a random UUID and posts the data in <code>src/test/resources/training/arm3.dat</code>; when run with a parameter, it uses that parameter as the <code>userId</code>.</p>
+<p>Finally and as always, the code is on <a href="https://github.com/eigengo/lift" target="_blank">https://github.com/eigengo/lift</a>. Happy hAkking!</p>

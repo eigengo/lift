@@ -18,7 +18,7 @@ trait ExerciseService extends HttpService with LiftMarshallers {
   val exerciseRoute =
     path("exercise" / JavaUUID) { userId ⇒
       post {
-        handleWith { bits: BitVector =>
+        handleWith { bits: BitVector ⇒
           (userExerciseProcessor ? ExerciseDataCmd(userId, bits)).map(_.toString)
         }
       } ~
