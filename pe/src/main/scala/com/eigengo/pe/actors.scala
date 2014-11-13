@@ -3,10 +3,14 @@ package com.eigengo.pe
 import akka.actor._
 import akka.contrib.pattern.ClusterSharding
 
+/**
+ * Convenience lookup functionality
+ */
 object actors {
 
-  case class ActorProps(props: Props, name: String)
-
+  /**
+   * Local actor lookups
+   */
   object local {
     def lookup(arf: ActorRefFactory, name: String): ActorSelection = arf match {
       case ctx: ActorContext ⇒ ctx.system.actorSelection(s"/user/$name")
@@ -14,7 +18,9 @@ object actors {
     }
   }
 
-  // TODO: Logging!
+  /**
+   * Cluster-sharded actor lookups
+   */
   object shard {
 
     def lookup(arf: ActorRefFactory, shardName: String): ActorRef = arf match {

@@ -7,6 +7,7 @@ import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
 import com.eigengo.pe.{AccelerometerData, actors}
 import scodec.bits.BitVector
 
+import scala.language.postfixOps
 import scalaz.\/
 
 object ExerciseProcessor {
@@ -55,12 +56,14 @@ class ExerciseProcessor(destination: ActorRef) extends PersistentActor with AtLe
   override def receiveCommand: Receive = {
     case ExerciseDataCmd(userId, bits) =>
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
-      validateData(data).foreach { ad ⇒
-        persist(ExerciseDataEvt(userId, ad)) { e =>
+      validateData(data).fold(
+        sender() !,
+        evt ⇒ persist(ExerciseDataEvt(userId, evt)) { ad ⇒
           buffer = bits2
-          destination ! e
+          sender() ! 'OK
+          destination ! ad
         }
-      }
+      )
   }
 
 }
