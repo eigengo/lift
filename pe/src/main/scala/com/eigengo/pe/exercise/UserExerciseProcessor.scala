@@ -12,7 +12,7 @@ import scala.language.postfixOps
 import scalaz.\/
 
 object UserExerciseProcessor {
-  def props(destination: ActorRef) = Props(classOf[UserExerciseProcessor], destination)
+  def props(userExercises: ActorRef) = Props(classOf[UserExerciseProcessor], userExercises)
   val shardName = "user-exercise-processor"
   def lookup(implicit arf: ActorRefFactory) = actors.shard.lookup(arf, shardName)
 
@@ -21,7 +21,7 @@ object UserExerciseProcessor {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
+    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, bits)
   }
 
   /**
@@ -38,23 +38,18 @@ object UserExerciseProcessor {
    * @param bits the submitted bits
    */
   case class ExerciseDataCmd(userId: UUID, bits: BitVector)
-
-  /**
-   * The event with processed fitness data into ``List[AccelerometerData]``
-   * @param data the accelerometer data
-   */
-  case class ExerciseDataEvt(userId: UUID, data: AccelerometerData)
 }
 
 /**
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class UserExerciseProcessor(destination: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
+class UserExerciseProcessor(userExercises: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
   import com.eigengo.pe.AccelerometerData._
-  import com.eigengo.pe.exercise.UserExerciseProcessor._
+  import com.eigengo.pe.exercise.UserExercises._
 
   private var buffer: BitVector = BitVector.empty
+  private val userId: UUID = UUID.fromString(self.path.name)
 
   private def validateData(data: List[AccelerometerData]): \/[String, AccelerometerData] = data match {
     case Nil => \/.left("Empty")
@@ -74,7 +69,7 @@ class UserExerciseProcessor(destination: ActorRef) extends PersistentActor with 
   }
 
   override def receiveCommand: Receive = {
-    case ExerciseDataCmd(userId, bits) =>
+    case bits: BitVector ⇒
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       validateData(data).fold(
         err ⇒ sender() ! \/.left(err),
@@ -82,7 +77,7 @@ class UserExerciseProcessor(destination: ActorRef) extends PersistentActor with 
           buffer = bits2
           saveSnapshot(buffer)
           sender() ! \/.right('OK)
-          destination ! ad
+          userExercises ! ad
         }
       )
   }

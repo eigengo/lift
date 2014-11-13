@@ -33,9 +33,105 @@ trait ExerciseService extends HttpService with LiftMarshallers {
 
 }
 [/code]
-<p>The <code>exercise</code> and <code>userExercises</code> are the actors that process the submitted data, and give the current view of the entire domain, respecitvely. Let's now follow the data through the system. In the POST handler, we ask the <code>ExerciseProcessor</code> actor to handle the <code>ExerciseDataCmd</code> message. It must validate 
+<p>The <code>userExerciseProcessor</code> and <code>userExercises</code> are the actors that process the submitted data, and give the current view of the entire domain, respecitvely. Let's now follow the data through the system. In the POST handler, we ask the <code>UserExerciseProcessor</code> actor to handle the <code>BitVector</code> message. It must combine the new bits with the bits that it may have left over from previous incomplete packets received from the smartwatch, and attempt to decode the new bits. This is all clear, but as you can see, the actor maintains state. It is therefore important that messages from a single user reach the same actor instance. However, the HTTP-level router sends requests to arbitrary node. And so, I must be sure to shard this actor to maintain the appropriate isolation of state. The sharding code needs to be able to look at the message for the actor and decide which actor to send it to. In other words, it needs to be able to—given a message—extract identity of the sharded actor, and extract the name of the sharded actor. The name of the actor shall be the <code>String</code> representation of the <code>userId: UUID</code>. This allows me to take a first stab at the implementation:</p>
+[code language="scala"]
+class UserExerciseProcessor(userExercises: ActorRef) 
+  extends PersistentActor with AtLeastOnceDelivery {
 
-<h3>The domain</h3>
+  import com.eigengo.pe.AccelerometerData._
+  import com.eigengo.pe.exercise.UserExerciseProcessor._
+
+  private var buffer: BitVector = BitVector.empty
+
+  private def validateData(data: List[AccelerometerData]): 
+    \/[String, AccelerometerData] = ???
+
+  override val persistenceId: String = "user-exercise-persistence"
+
+  override def receiveCommand: Receive = {
+    case bits: BitVector ⇒
+      val (bits2, data) = decodeAll(buffer ++ bits, Nil)
+      validateData(data).fold(
+        err ⇒ sender() ! \/.left(err),
+        evt ⇒ persist(ExerciseDataEvt(???, evt)) { ad ⇒
+          buffer = bits2
+          sender() ! \/.right('OK)
+          userExercises ! ad
+        }
+      )
+  }
+
+}
+[/code]
+<p>Before I move on to sharding this actor, I should remember to implement the ability to save snapshots and to recover from saved snapshots. This will ensure that the actor can be re-created in the correct state if it ever needs to be restarted.</p>
+[code language="scala"]
+class UserExerciseProcessor(userExercises: ActorRef) 
+  extends PersistentActor with AtLeastOnceDelivery {
+
+  import com.eigengo.pe.AccelerometerData._
+  import com.eigengo.pe.exercise.UserExerciseProcessor._
+
+  private var buffer: BitVector = BitVector.empty
+
+  private def validateData(data: List[AccelerometerData]): 
+    \/[String, AccelerometerData] = ???
+
+  override val persistenceId: String = "user-exercise-persistence"
+
+  override val receiveRecover: Receive = {
+    case SnapshotOffer(_, snapshot: BitVector) ⇒
+      buffer = snapshot
+  }
+
+  override def receiveCommand: Receive = {
+    case ExerciseDataCmd(userId, bits) ⇒
+      val (bits2, data) = decodeAll(buffer ++ bits, Nil)
+      validateData(data).fold(
+        err ⇒ sender() ! \/.left(err),
+        evt ⇒ persist(ExerciseDataEvt(userId, evt)) { ad ⇒
+          buffer = bits2
+          saveSnapshot(buffer)
+          sender() ! \/.right('OK)
+          userExercises ! ad
+        }
+      )
+  }
+
+}
+[/code]
+<p>Notice the implementation of <code>receiveRecover</code> and <code>saveSnapshot</code> in the command handler.</p>
+<p>Now, as you can see, the actor maintains state. It is therefore important that messages from a single user reach the same actor instance. However, the HTTP-level router sends requests to arbitrary node. And so, I must be sure to shard this actor to maintain the appropriate isolation of state. The sharding code needs to be able to look at the message for the actor and decide which actor to send it to. In other words, it needs to be able to—given a message—extract identity of the sharded actor, and extract the name of the sharded actor. I find it useful to keep the implementations of <code>ShardRegion.IdExtractor</code> and <code>ShardRegion.ShardResolver</code> in the companion object. And so, I have:</p>
+[code language="scala"]
+object UserExerciseProcessor {
+  def props(userExercises: ActorRef) = 
+    Props(classOf[UserExerciseProcessor], userExercises)
+  val shardName = "user-exercise-processor"
+  def lookup(implicit arf: ActorRefFactory) = 
+  	actors.shard.lookup(arf, shardName)
+
+  val idExtractor: ShardRegion.IdExtractor = {
+    case cmd@ExerciseDataCmd(userId, bits) ⇒ (userId.toString, cmd)
+  }
+
+  val shardResolver: ShardRegion.ShardResolver = {
+    case ExerciseDataCmd(userId, _) ⇒ userId.toString
+  }
+
+  case class ExerciseDataCmd(userId: UUID, bits: BitVector)
+
+  case class ExerciseDataEvt(userId: UUID, data: AccelerometerData)
+}
+[/code]
+<p>One does not create sharded actor using the <code>actorOf</code> call, but using the <code>ClusterSharding(system).start()</code> call. And so, in <code>PeMain</code> I start the <code>UserExerciseProcessor</code> shard using:</p>
+[code language="scala"]
+ClusterSharding(system).start(
+  typeName = UserExerciseProcessor.shardName,
+  entryProps = Some(UserExerciseProcessor.props(???)),
+  idExtractor = UserExerciseProcessor.idExtractor,
+  shardResolver = UserExerciseProcessor.shardResolver)
+[/code]
+<p>The <code>userExercises</code> parameter passed to the <code>UserExerciseProcessor</code> is a reference to the <code>UserExercises</code> actor, which also happens to be sharded. It receives the <code>AccelerometerData</code> and its job is to classify the data and come up with an exercise from the data.</p>
+<h3>UserExercises</h3>
 <p>Let's start modeling the domain from its smallest block. The <code>UserExercises</code>, which represents a <code>exercises: List[ClassifiedExercise]</code> for a given <code>userId: UUID</code>. The <code>userId</code> is immutable, but the <code>exercises</code> mutates over time.</p>
 [code language="scala"]
 class UserExercises extends PersistentActor with ActorLogging {

@@ -15,7 +15,6 @@ import scala.language.postfixOps
  * User + list of exercises companion
  */
 object UserExercises {
-  import com.eigengo.pe.exercise.UserExerciseProcessor._
 
   /** The shard name */
   val shardName = "user-exercises-shard"
@@ -23,6 +22,12 @@ object UserExercises {
   val props = Props[UserExercises]
   /** Convenience lookup function */
   def lookup(implicit arf: ActorRefFactory) = actors.shard.lookup(arf, shardName)
+
+  /**
+   * The event with processed fitness data into ``List[AccelerometerData]``
+   * @param data the accelerometer data
+   */
+  case class ExerciseDataEvt(userId: UUID, data: AccelerometerData)
 
   /**
    * Query to receive all exercises for the given ``userId``
