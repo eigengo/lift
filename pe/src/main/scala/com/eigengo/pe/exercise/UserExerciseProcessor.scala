@@ -25,11 +25,10 @@ object UserExerciseProcessor {
   }
 
   /**
-   * Resolves the shard name from the incoming message. We have per-user shard, so the name is simply the
-   * ``userId.toString``
+   * Resolves the shard name from the incoming message. 
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case ExerciseDataCmd(userId, _) ⇒ userId.toString
+    case ExerciseDataCmd(userId, _) ⇒ "global"
   }
 
   /**
