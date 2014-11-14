@@ -2,7 +2,7 @@ package com.eigengo.pe
 
 import akka.util.Timeout
 
-object timeouts {
+object Timeouts {
   import scala.concurrent.duration._
 
   object defaults {

@@ -6,7 +6,7 @@ import akka.contrib.pattern.ClusterSharding
 /**
  * Convenience lookup functionality
  */
-object actors {
+object Actors {
 
   /**
    * Local actor lookups

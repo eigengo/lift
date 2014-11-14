@@ -1,15 +1,15 @@
 package com.eigengo.pe
 
 import scodec.bits.BitVector
-import spray.http.{ContentTypes, HttpEntity, HttpResponse, HttpRequest}
-import spray.httpx.marshalling.{ToResponseMarshallingContext, ToResponseMarshaller}
+import spray.http.HttpRequest
 import spray.httpx.unmarshalling.{Deserialized, FromRequestUnmarshaller}
-import spray.routing.directives.MarshallingDirectives
+import spray.routing._
+import spray.routing.directives.{MarshallingDirectives, PathDirectives}
 
 /**
  * Defines the marshallers for the Lift system
  */
-trait LiftMarshallers extends MarshallingDirectives {
+trait LiftMarshallers extends MarshallingDirectives with PathDirectives {
 
   /**
    * Unmarshals the ``HttpRequest`` to an instance of (off-heap) ``BitVector``.
@@ -25,4 +25,6 @@ trait LiftMarshallers extends MarshallingDirectives {
 
   }
 
+  val UserIdValue: PathMatcher1[UserId] = JavaUUID.map(UserId.apply)
+  val SessionIdValue: PathMatcher1[SessionId] = JavaUUID.map(SessionId.apply)
 }

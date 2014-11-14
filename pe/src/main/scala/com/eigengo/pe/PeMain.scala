@@ -6,7 +6,7 @@ import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.pe.exercise._
-import com.eigengo.pe.push.UserPushNotification
+import com.eigengo.pe.push.PushNotification
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.HttpServiceActor
@@ -46,13 +46,13 @@ object PeMain extends App {
         shardResolver = UserExercises.shardResolver)
 
       ClusterSharding(system).start(
-        typeName = UserExerciseProcessor.shardName,
-        entryProps = Some(UserExerciseProcessor.props(userExercise)),
-        idExtractor = UserExerciseProcessor.idExtractor,
-        shardResolver = UserExerciseProcessor.shardResolver)
+        typeName = UserExerciseDataProcessor.shardName,
+        entryProps = Some(UserExerciseDataProcessor.props(userExercise)),
+        idExtractor = UserExerciseDataProcessor.idExtractor,
+        shardResolver = UserExerciseDataProcessor.shardResolver)
 
       // Start other actors & views
-      system.actorOf(UserPushNotification.props, UserPushNotification.name)
+      system.actorOf(PushNotification.props, PushNotification.name)
       system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
 
       startupHttpService(system, port)

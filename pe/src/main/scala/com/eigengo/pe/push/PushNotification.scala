@@ -1,7 +1,7 @@
 package com.eigengo.pe.push
 
 import java.net.UnknownHostException
-import java.util.{Date, UUID}
+import java.util.Date
 
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
@@ -13,30 +13,32 @@ import scala.io.Source
 /**
  * UserPushNotification protocol
  */
-object UserPushNotification {
+object PushNotification {
   def lookup(implicit arf: ActorRefFactory): ActorSelection = arf.actorSelection(s"/user/$name")
+  val name: String = "push-notification"
+  val props: Props = Props[PushNotification]
 
-  val name: String = "user-push-notification"
-
-  val props: Props = Props[UserPushNotification]
+  sealed trait NotificationAddress
+  case class IOSNotificationAddress(deviceToken: String) extends NotificationAddress
 
   /**
    * Sends default message to the client
    *
-   * @param to the recipient
+   * @param address the recipient
    * @param message the message
    * @param badge the badge
    * @param sound the sound
    */
-  case class DefaultMessage(to: UUID, message: String, badge: Option[Int], sound: Option[String])
+  case class DefaultMessage(address: NotificationAddress, message: String, badge: Option[Int], sound: Option[String])
 }
 
 /**
  * Pushes the notifications to the given user
  */
-class UserPushNotification extends PersistentActor {
-  import com.eigengo.pe.push.UserPushNotification._
-  import scala.concurrent.duration._
+class PushNotification extends PersistentActor {
+  import com.eigengo.pe.push.PushNotification._
+
+import scala.concurrent.duration._
 
   private val userHomeIos = System.getProperty("user.home") + "/.ios"
   private val certificatePath = s"$userHomeIos/lift-push-development.p12"

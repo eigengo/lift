@@ -1,30 +1,30 @@
 package com.eigengo.pe.exercise
 
-import akka.actor.{ActorSelection, ActorRef}
+import akka.actor.ActorRef
 import com.eigengo.pe.LiftMarshallers
 import scodec.bits.BitVector
 import spray.routing.HttpService
 
 trait ExerciseService extends HttpService with LiftMarshallers {
-  import UserExerciseProcessor._
-  import UserExercises._
   import akka.pattern.ask
-  import com.eigengo.pe.timeouts.defaults._
+  import com.eigengo.pe.Timeouts.defaults._
+  import com.eigengo.pe.exercise.UserExerciseDataProcessor._
+  import com.eigengo.pe.exercise.UserExercises._
 
   implicit val _ = actorRefFactory.dispatcher
-  def userExerciseProcessor: ActorRef = UserExerciseProcessor.lookup
+  def userExerciseProcessor: ActorRef = UserExerciseDataProcessor.lookup
   def userExercises: ActorRef = UserExercises.lookup
 
   val exerciseRoute =
-    path("exercise" / JavaUUID) { userId ⇒
+    path("exercise" / UserIdValue / SessionIdValue) { (userId, sessionId) ⇒
       post {
         handleWith { bits: BitVector ⇒
-          (userExerciseProcessor ? ExerciseDataCmd(userId, bits)).map(_.toString)
+          (userExerciseProcessor ? UserExerciseDataCmd(userId, sessionId, bits)).map(_.toString)
         }
       } ~
       get {
         complete {
-          (userExercises ? GetUserExercises(userId)).map(_.toString)
+          (userExercises ? UserGetAllExercises(userId)).map(_.toString)
         }
       }
     }

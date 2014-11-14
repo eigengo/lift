@@ -1,57 +1,64 @@
 package com.eigengo.pe.exercise
 
-import java.util.UUID
-
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{SnapshotOffer, AtLeastOnceDelivery, PersistentActor}
-import com.eigengo.pe.{AccelerometerData, actors}
+import akka.persistence.{AtLeastOnceDelivery, PersistentActor, SnapshotOffer}
+import com.eigengo.pe.{AccelerometerData, Actors, SessionId, UserId}
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
 import scalaz.\/
 
-object UserExerciseProcessor {
-  def props(userExercises: ActorRef) = Props(classOf[UserExerciseProcessor], userExercises)
+object UserExerciseDataProcessor {
+  def props(userExercises: ActorRef) = Props(classOf[UserExerciseDataProcessor], userExercises)
   val shardName = "user-exercise-processor"
-  def lookup(implicit arf: ActorRefFactory) = actors.shard.lookup(arf, shardName)
+  def lookup(implicit arf: ActorRefFactory) = Actors.shard.lookup(arf, shardName)
 
   /**
    * Extracts the identity of the shard from the messages sent to the coordinator. We have per-user shard,
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case ExerciseDataCmd(userId, bits) ⇒ (userId.toString, bits)
+    case UserExerciseDataCmd(userId, sessionId, bits) ⇒ (userId.toString, ExerciseDataCmd(sessionId, bits))
   }
 
   /**
    * Resolves the shard name from the incoming message. 
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case ExerciseDataCmd(userId, _) ⇒ "global"
+    case UserExerciseDataCmd(userId, _) ⇒ "global"
   }
+
+  /**
+   * Exercise data for the given session and bits
+   * @param sessionId the session id
+   * @param bits the bits
+   */
+  private case class ExerciseDataCmd(sessionId: SessionId, bits: BitVector)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
    * @param userId the user identity
+   * @param sessionId the session identity               
    * @param bits the submitted bits
    */
-  case class ExerciseDataCmd(userId: UUID, bits: BitVector)
+  case class UserExerciseDataCmd(userId: UserId, sessionId: SessionId, bits: BitVector)
 }
 
 /**
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class UserExerciseProcessor(userExercises: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
+class UserExerciseDataProcessor(userExercises: ActorRef) extends PersistentActor with AtLeastOnceDelivery {
+  import akka.contrib.pattern.ShardRegion.Passivate
   import com.eigengo.pe.AccelerometerData._
+  import com.eigengo.pe.exercise.UserExerciseDataProcessor._
   import com.eigengo.pe.exercise.UserExercises._
   import scala.concurrent.duration._
-  import ShardRegion.Passivate
 
   context.setReceiveTimeout(120.seconds)
   private var buffer: BitVector = BitVector.empty
-  private val userId: UUID = UUID.fromString(self.path.name)
+  private val userId: UserId = UserId(self.path.name)
 
   private def validateData(data: List[AccelerometerData]): \/[String, AccelerometerData] = data match {
     case Nil => \/.left("Empty")
@@ -77,11 +84,11 @@ class UserExerciseProcessor(userExercises: ActorRef) extends PersistentActor wit
     case 'stop ⇒
       context.stop(self)
 
-    case bits: BitVector ⇒
+    case ExerciseDataCmd(sessionId, bits) ⇒
       val (bits2, data) = decodeAll(buffer ++ bits, Nil)
       validateData(data).fold(
         err ⇒ sender() ! \/.left(err),
-        evt ⇒ persist(ExerciseDataEvt(userId, evt)) { ad ⇒
+        evt ⇒ persist(UserExerciseDataEvt(userId, sessionId, evt)) { ad ⇒
           buffer = bits2
           saveSnapshot(buffer)
           sender() ! \/.right('OK)

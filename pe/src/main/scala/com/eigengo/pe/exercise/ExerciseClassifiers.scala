@@ -3,7 +3,7 @@ package com.eigengo.pe.exercise
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
 import akka.routing.RoundRobinPool
-import com.eigengo.pe.actors
+import com.eigengo.pe.Actors
 
 /**
  * Companion for "all classifiers"
@@ -17,7 +17,7 @@ object ExerciseClassifiers {
    * @param arf the ActorContext or ActorSystem
    * @return the selection of all available ``ExerciseClassifier`` actors
    */
-  def lookup(implicit arf: ActorRefFactory) = actors.local.lookup(arf, s"$name/*")
+  def lookup(implicit arf: ActorRefFactory) = Actors.local.lookup(arf, s"$name/*")
 }
 
 /**
