@@ -5,7 +5,7 @@ import akka.contrib.pattern.ClusterSharding
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
-import com.eigengo.lift.exercise.{ExerciseClassifiers, ExerciseService, ExerciseDataProcessor, UserExercises}
+import com.eigengo.lift.exercise._
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.HttpServiceActor
@@ -39,13 +39,7 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // Start the shards
-      val userExercise = ClusterSharding(system).start(
-         typeName = UserExercises.shardName,
-         entryProps = Some(UserExercises.props),
-         idExtractor = UserExercises.idExtractor,
-         shardResolver = UserExercises.shardResolver)
-      system.actorOf(ExerciseDataProcessor.props(userExercise), ExerciseDataProcessor.name)
-      system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
+      system.actorOf(ExerciseBoot.props)
 
       // ClusterSharding(system).start(
       //   typeName = UserExerciseDataProcessor.shardName,
