@@ -11,9 +11,13 @@ curl --request POST -H "Content-Type:application/json" --data '{"id": "'$SESSION
 
 # post session data
 curl --request PUT --data-binary @../resources/training/arm1.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+sleep 4
 curl --request PUT --data-binary @../resources/training/arm2.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+sleep 4
 curl --request PUT --data-binary @../resources/training/arm3.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+sleep 5
 curl --request PUT --data-binary @../resources/training/chest1.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+sleep 8
 
 # end the session
 curl --request DELETE http://localhost:12552/exercise/$USER_ID/$SESSION_ID

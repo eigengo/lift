@@ -4,7 +4,7 @@ import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{UserId, AutoPassivation}
-import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
+import com.eigengo.lift.exercise.ExerciseClassifier.{ClassifiedExercise, Classify, FullyClassifiedExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.notification.NotificationProtocol.{WatchDestination, MobileDestination, PushMessage}
 
@@ -143,9 +143,9 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   override def receiveRecover: Receive = {
     // restore from snapshot
     case SnapshotOffer(_, offeredSnapshot: Exercises) ⇒
-      log.debug(s"Recovered from snapshot. Now with $exercises")
       exercises = offeredSnapshot
-      
+      log.info(s"Recovered from snapshot with ${exercises.sessions.size} sessions")
+
     // restart session 
     case ExerciseSessionStart(session) ⇒ exercises = exercises.start(session) 
       
@@ -155,36 +155,31 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
 
   private def exercising(session: Session): Receive = withPassivation {
     case ExerciseSessionStart(_) ⇒
+      log.warning("ExerciseSessionStart when session is active")
       sender() ! \/.left("Session is running")
 
     // classify the exercise in AccelerometerData
     case ExerciseSessionData(id, data) if id == session.id ⇒
-      log.debug(s"ExerciseSessionData ${self.path.toString}")
       persist(Classify(session, data))(exerciseClasssifiers !)
 
     // classification results received
     case FullyClassifiedExercise(`session`, confidence, name, intensity) ⇒
       if (confidence > confidenceThreshold) exercises = exercises.add(session, Exercise(name, intensity))
-      println(">>>>>>>>>>>>> " + exercises.sessions.size)
       intensity.foreach(i ⇒ if (i < session.intendedIntensity) {
         notification ! PushMessage(userId, "Harder!", None, Some("default"), MobileDestination, WatchDestination)
       })
       saveSnapshot(exercises)
 
     case UnclassifiedExercise(`session`) ⇒
-      println(">>>>>>>>>>>>> " + exercises.sessions.size)
       notification ! PushMessage(userId, "Missed exercise", None, None, WatchDestination)
 
     case ExerciseSessionEnd(id) ⇒
-      log.debug(s"ExerciseSessionEnded($id)")
       context.become(notExercising)
       sender() ! \/.right("ended")
-      println(">>>>>>>>>>>>> " + exercises.sessions.size)
       saveSnapshot(exercises)
 
     // query for exercises
     case GetExercises =>
-      log.debug(s"GetExercises ${self.path.toString}")
       sender() ! exercises
   }
 
@@ -193,6 +188,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
       if (confidence > confidenceThreshold) exercises = exercises.add(session, Exercise(name, intensity))
 
     case ExerciseSessionEnd(_) ⇒
+      log.warning("ExerciseSessionEnd when no session active")
       sender() ! \/.left("Session not running")
 
     case ExerciseSessionStart(session) ⇒
@@ -201,7 +197,6 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
       sender() ! \/.right('OK)
 
     case GetExercises ⇒
-      println(">>>>>>>>> sdfsfsfsdf")
       sender() ! exercises
   }
 
