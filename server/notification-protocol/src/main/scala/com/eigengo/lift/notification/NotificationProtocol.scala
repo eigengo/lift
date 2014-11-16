@@ -15,6 +15,6 @@ object NotificationProtocol {
    * @param badge the badge
    * @param sound the sound
    */
-  case class PushMessage(user: UserId, message: String, badge: Option[Int], sound: Option[String], destinations: Destination*)
+  case class PushMessage(user: UserId, message: String, badge: Option[Int], sound: Option[String], destinations: Seq[Destination])
 
 }

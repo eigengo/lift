@@ -5,7 +5,7 @@ import java.net.UnknownHostException
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
 import akka.routing.RoundRobinPool
-import com.eigengo.lift.notification.ApplePushNotification.DefaultMessage
+import com.eigengo.lift.notification.ApplePushNotification.ScreenMessage
 import com.notnoop.apns.APNS
 
 import scala.io.Source
@@ -21,7 +21,7 @@ object ApplePushNotification {
    * @param badge the badge
    * @param sound the sound
    */
-  case class DefaultMessage(deviceToken: String, message: String, badge: Option[Int], sound: Option[String])
+  case class ScreenMessage(deviceToken: String, message: String, badge: Option[Int], sound: Option[String])
 
 }
 
@@ -38,8 +38,8 @@ class ApplePushNotification extends Actor with ActorLogging {
   }
 
   override def receive: Receive = {
-    case DefaultMessage(deviceToken, message, badge, sound) ⇒
-      log.info(s"Push message to $deviceToken")
+    case ScreenMessage(deviceToken, message, badge, sound) ⇒
+      log.info(s"Screen message $message to $deviceToken")
       val payloadBuilder = APNS.newPayload.alertBody(message)
       badge.foreach(payloadBuilder.badge)
       sound.foreach(payloadBuilder.sound)

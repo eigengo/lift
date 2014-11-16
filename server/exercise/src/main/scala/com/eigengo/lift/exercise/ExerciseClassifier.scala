@@ -31,7 +31,7 @@ case object DynamicTimeWrappingModel extends ExerciseModel {
  */
 case object NaiveModel extends ExerciseModel {
   override def apply(classify: Classify): ClassifiedExercise =
-    FullyClassifiedExercise(classify.session, 1.0, "Goku was your spotter!", Some(Random.nextDouble()))
+    FullyClassifiedExercise(classify.session, 1.0, "Goku was your spotter", Some(Random.nextDouble()))
 }
 
 /**

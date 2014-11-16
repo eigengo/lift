@@ -166,13 +166,12 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case FullyClassifiedExercise(`session`, confidence, name, intensity) ⇒
       if (confidence > confidenceThreshold) exercises = exercises.add(session, Exercise(name, intensity))
       intensity.foreach(i ⇒ if (i < session.intendedIntensity) {
-        log.info("Harder")
-        notification ! PushMessage(userId, "Harder!", None, Some("default"), MobileDestination, WatchDestination)
+        notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
       })
       saveSnapshot(exercises)
 
     case UnclassifiedExercise(`session`) ⇒
-      notification ! PushMessage(userId, "Missed exercise", None, None, WatchDestination)
+      notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
 
     case ExerciseSessionEnd(id) ⇒
       context.become(notExercising)

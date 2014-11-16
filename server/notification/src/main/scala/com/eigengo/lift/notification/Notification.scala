@@ -2,7 +2,7 @@ package com.eigengo.lift.notification
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.routing.RoundRobinPool
-import com.eigengo.lift.notification.NotificationProtocol.PushMessage
+import com.eigengo.lift.notification.NotificationProtocol.{WatchDestination, MobileDestination, PushMessage}
 import com.eigengo.lift.profile.UserProfileProtocol.{AndroidUserDevice, IOSUserDevice, UserDevices, UserGetDevices}
 
 object Notification {
@@ -20,8 +20,14 @@ class Notification(userProfile: ActorRef) extends Actor with ActorLogging {
     case PushMessage(userId, message, badge, sound, destinations) ⇒
       (userProfile ? UserGetDevices(userId)).mapTo[UserDevices].onSuccess {
         case ud ⇒ ud.foreach {
-          case IOSUserDevice(deviceToken) ⇒ apple ! ApplePushNotification.DefaultMessage(deviceToken, message, badge, sound)
+          case IOSUserDevice(deviceToken) ⇒
+            destinations.foreach {
+              case MobileDestination ⇒ apple ! ApplePushNotification.ScreenMessage(deviceToken, message, badge, sound)
+              case WatchDestination ⇒ // nowt for now
+            }
+
           case AndroidUserDevice() ⇒
+            // nowt for now
         }
       }
   }
