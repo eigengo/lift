@@ -1,1 +1,0 @@
-addSbtPlugin("org.eigengo" % "sbt-build" % "1.0.0-SNAPSHOT")
