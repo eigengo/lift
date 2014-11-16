@@ -8,7 +8,7 @@ import spray.testkit.ScalatestRouteTest
 
 class UserExercisesExerciseDataProcessorServiceTest
   extends FlatSpec with ScalatestRouteTest with TestKitBase with Matchers
-  with ExerciseService with LiftMarshallers with LiftTestMarshallers {
+  with ExerciseService with ExerciseMarshallers with LiftTestMarshallers {
 
   def actorRefFactory: ActorRefFactory = system
   override val userExerciseProcessor = system.actorSelection(testActor.path)

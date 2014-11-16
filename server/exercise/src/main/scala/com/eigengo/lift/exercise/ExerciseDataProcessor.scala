@@ -2,8 +2,8 @@ package com.eigengo.lift.exercise
 
 import akka.actor._
 import com.eigengo.lift.common.Actors
-import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataCmd
-import com.eigengo.lift.exercise.UserExercises.{SessionId, UserExerciseDataEvt}
+import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataProcess
+import com.eigengo.lift.exercise.UserExercises.UserExerciseDataProcessed
 import com.eigengo.lift.profile.UserProfileProtocol.UserId
 import scodec.bits.BitVector
 
@@ -21,7 +21,7 @@ object ExerciseDataProcessor {
    * @param sessionId the session identity               
    * @param bits the submitted bits
    */
-  case class UserExerciseDataCmd(userId: UserId, sessionId: SessionId, bits: BitVector)
+  case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
 }
 
 /**
@@ -30,8 +30,7 @@ object ExerciseDataProcessor {
  */
 class ExerciseDataProcessor(userExercises: ActorRef) extends Actor {
   import com.eigengo.lift.exercise.AccelerometerData._
-
-import scala.concurrent.duration._
+  import scala.concurrent.duration._
 
   context.setReceiveTimeout(120.seconds)
 
@@ -46,13 +45,13 @@ import scala.concurrent.duration._
   }
 
   override def receive: Receive = {
-    case UserExerciseDataCmd(userId, sessionId, bits) ⇒
+    case UserExerciseDataProcess(userId, sessionId, bits) ⇒
       val (BitVector.empty, data) = decodeAll(bits, Nil)
       validateData(data).fold(
         { err ⇒ sender() ! \/.left(err) },
         { ad ⇒
           sender() ! \/.right('OK)
-          userExercises ! UserExerciseDataEvt(userId, sessionId, ad)
+          userExercises ! UserExerciseDataProcessed(userId, sessionId, ad)
         }
       )
   }

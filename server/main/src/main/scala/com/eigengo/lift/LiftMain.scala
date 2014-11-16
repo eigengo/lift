@@ -39,7 +39,7 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // Start the shards
-      system.actorOf(ExerciseBoot.props)
+      ExerciseBoot.boot(system)
 
       // ClusterSharding(system).start(
       //   typeName = UserExerciseDataProcessor.shardName,

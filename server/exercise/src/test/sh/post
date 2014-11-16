@@ -1,9 +1,21 @@
 #!/bin/sh
-SESSION_ID=276B7A62-B6E5-4CED-AB14-6CED4C26BE7C
+SESSION_ID=`uuidgen`
 USER_ID=$1
 if [ -z $USER_ID ] ; then
 	USER_ID=`uuidgen`
 fi
 echo $USER_ID
-curl --request POST --data-binary @../resources/training/arm3.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+
+# start the session
+curl --request POST -H "Content-Type:application/json" --data '{"id": "'$SESSION_ID'", "muscleGroups": [], "intendedIntensity": 0.8}' http://localhost:12552/exercise/$USER_ID
+
+# post session data
+curl --request PUT --data-binary @../resources/training/arm1.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+curl --request PUT --data-binary @../resources/training/arm2.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+curl --request PUT --data-binary @../resources/training/arm3.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+curl --request PUT --data-binary @../resources/training/chest1.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+
+# end the session
+curl --request DELETE http://localhost:12552/exercise/$USER_ID/$SESSION_ID
+
 echo $USER_ID | pbcopy
