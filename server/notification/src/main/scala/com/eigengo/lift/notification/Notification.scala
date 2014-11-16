@@ -1,9 +1,9 @@
 package com.eigengo.lift.notification
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorRef, Props, Actor}
 
 object Notification {
-  val props = Props[Notification]
+  def props(userProfile: ActorRef) = Props(classOf[Notification], userProfile)
   val name = "notification"
 }
 

@@ -6,8 +6,8 @@ case class NotificaitonBoot(notification: ActorRef)
 
 object NotificaitonBoot {
 
-  def boot(implicit system: ActorSystem): NotificaitonBoot = {
-    val notification = system.actorOf(Notification.props, Notification.name)
+  def boot(userProfile: ActorRef)(implicit system: ActorSystem): NotificaitonBoot = {
+    val notification = system.actorOf(Notification.props(userProfile), Notification.name)
     NotificaitonBoot(notification)
   }
 

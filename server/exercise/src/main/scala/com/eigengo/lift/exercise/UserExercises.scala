@@ -3,10 +3,10 @@ package com.eigengo.lift.exercise
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.eigengo.lift.common.{UserId, AutoPassivation}
-import com.eigengo.lift.exercise.ExerciseClassifier.{ClassifiedExercise, Classify, FullyClassifiedExercise, UnclassifiedExercise}
+import com.eigengo.lift.common.{AutoPassivation, UserId}
+import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
-import com.eigengo.lift.notification.NotificationProtocol.{WatchDestination, MobileDestination, PushMessage}
+import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
 
 import scala.language.postfixOps
 import scalaz.\/
