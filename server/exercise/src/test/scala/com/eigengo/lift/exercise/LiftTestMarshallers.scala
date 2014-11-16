@@ -1,4 +1,4 @@
-package com.eigengo.pe
+package com.eigengo.lift.exercise
 
 import scodec.bits.BitVector
 import spray.http.{ContentTypes, HttpEntity}

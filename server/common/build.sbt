@@ -10,5 +10,7 @@ libraryDependencies ++= Seq(
   akka.actor,
   akka.cluster,
   akka.contrib,
-  akka.persistence
+  akka.persistence,
+  spray.routing,
+  scodec_bits
 )

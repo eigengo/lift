@@ -1,8 +1,7 @@
-package com.eigengo.pe.exercise
+package com.eigengo.lift.exercise
 
-import akka.actor.{ActorSelection, ActorRef, ActorRefFactory}
+import akka.actor.ActorRefFactory
 import akka.testkit.TestKitBase
-import com.eigengo.pe.{LiftMarshallers, LiftTestMarshallers}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
 import spray.testkit.ScalatestRouteTest
@@ -12,7 +11,7 @@ class UserExercisesExerciseDataProcessorServiceTest
   with ExerciseService with LiftMarshallers with LiftTestMarshallers {
 
   def actorRefFactory: ActorRefFactory = system
-  override val userExerciseProcessor: ActorRef = testActor
+  override val userExerciseProcessor = system.actorSelection(testActor.path)
 
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)

@@ -1,8 +1,5 @@
-package com.eigengo.pe
+package com.eigengo.lift.exercise
 
-import java.nio.ByteOrder
-
-import com.eigengo.pe.codec.IntCodecPrimitive
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.{ByteOrdering, BitVector}
 
