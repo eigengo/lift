@@ -6,12 +6,13 @@ import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStor
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.notification.NotificaitonBoot
+import com.eigengo.lift.profile.UserProfileBoot
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route}
 
-class LiftMain(route: Route) extends HttpServiceActor {
-  override def receive: Receive = runRoute(route)
+class LiftMain(routes: Route*) extends HttpServiceActor {
+  override def receive: Receive = runRoute(routes.reduce(_ ~ _))
 }
 
 /**
@@ -40,14 +41,15 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      val notificaiton = NotificaitonBoot.boot
+      val profile = UserProfileBoot.boot
+      val notificaiton = NotificaitonBoot.boot(profile.userProfile)
       val exercise = ExerciseBoot.boot(notificaiton.notification)
 
-      startupHttpService(system, port, ExerciseBoot.route(exercise))
+      startupHttpService(system, port, exercise.route, profile.route)
     }
 
-    def startupHttpService(system: ActorSystem, port: Int, route: Route): Unit = {
-      val restService = system.actorOf(Props(classOf[LiftMain], route))
+    def startupHttpService(system: ActorSystem, port: Int, routes: Route*): Unit = {
+      val restService = system.actorOf(Props(classOf[LiftMain], routes))
       IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 10000 + port)
     }
 

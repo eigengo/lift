@@ -1,10 +1,15 @@
 #!/bin/sh
-SESSION_ID=`uuidgen`
-USER_ID=$1
-if [ -z $USER_ID ] ; then
-	USER_ID=`uuidgen`
-fi
+# register user
+RND=`uuidgen`
+USER_ID=`curl -s --request POST -H "Content-Type:application/json" --data '{"email": "foo@b'$RND'.com", "password":"letmein"}' http://localhost:12552/user`
+USER_ID="${USER_ID//\"}"
 echo $USER_ID
+
+curl --request POST -H "Content-Type:application/json" --data '{"deviceToken": "a234234" }' http://localhost:12552/user/$USER_ID/device
+
+exit 1
+
+SESSION_ID=`uuidgen`
 
 # start the session
 curl --request POST -H "Content-Type:application/json" --data '{"id": "'$SESSION_ID'", "muscleGroups": [], "intendedIntensity": 0.8}' http://localhost:12552/exercise/$USER_ID
