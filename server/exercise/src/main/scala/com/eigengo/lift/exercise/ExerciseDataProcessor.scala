@@ -1,9 +1,8 @@
 package com.eigengo.lift.exercise
 
 import akka.actor._
-import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.Actors
-import com.eigengo.lift.exercise.ExerciseDataProcessor.ExerciseDataCmd
+import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataCmd
 import com.eigengo.lift.exercise.UserExercises.{SessionId, UserExerciseDataEvt}
 import com.eigengo.lift.profile.UserProfileProtocol.UserId
 import scodec.bits.BitVector
@@ -15,13 +14,6 @@ object ExerciseDataProcessor {
   def props(userExercises: ActorRef) = Props(classOf[ExerciseDataProcessor], userExercises)
   val name = "exercise-processor"
   def lookup(implicit arf: ActorRefFactory) = Actors.local.lookup(arf, name)
-
-  /**
-   * Exercise data for the given session and bits
-   * @param sessionId the session id
-   * @param bits the bits
-   */
-  private case class ExerciseDataCmd(sessionId: SessionId, bits: BitVector)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
@@ -36,14 +28,12 @@ object ExerciseDataProcessor {
  * Processes the exercise data commands by parsing the bits and then generating the
  * appropriate events.
  */
-class ExerciseDataProcessor(userExercises: ActorRef) extends PersistentActor {
-  import akka.contrib.pattern.ShardRegion.Passivate
-  import scala.concurrent.duration._
-  import AccelerometerData._
+class ExerciseDataProcessor(userExercises: ActorRef) extends Actor {
+  import com.eigengo.lift.exercise.AccelerometerData._
+
+import scala.concurrent.duration._
 
   context.setReceiveTimeout(120.seconds)
-  private var buffer: BitVector = BitVector.empty
-  private val userId: UserId = UserId(self.path.name)
 
   private def validateData(data: List[AccelerometerData]): \/[String, AccelerometerData] = data match {
     case Nil => \/.left("Empty")
@@ -55,29 +45,14 @@ class ExerciseDataProcessor(userExercises: ActorRef) extends PersistentActor {
       }
   }
 
-  override val persistenceId: String = s"user-exercise-persistence-${self.path.name}"
-
-  override val receiveRecover: Receive = {
-    case SnapshotOffer(_, snapshot: BitVector) ⇒
-      buffer = snapshot
-  }
-
-  override def receiveCommand: Receive = {
-    // passivation support
-    case ReceiveTimeout ⇒
-      context.parent ! Passivate(stopMessage = 'stop)
-    case 'stop ⇒
-      context.stop(self)
-
-    case ExerciseDataCmd(sessionId, bits) ⇒
-      val (bits2, data) = decodeAll(buffer ++ bits, Nil)
+  override def receive: Receive = {
+    case UserExerciseDataCmd(userId, sessionId, bits) ⇒
+      val (BitVector.empty, data) = decodeAll(bits, Nil)
       validateData(data).fold(
-        err ⇒ sender() ! \/.left(err),
-        evt ⇒ persist(UserExerciseDataEvt(userId, sessionId, evt)) { ad ⇒
-          buffer = bits2
-          saveSnapshot(buffer)
+        { err ⇒ sender() ! \/.left(err) },
+        { ad ⇒
           sender() ! \/.right('OK)
-          userExercises ! ad
+          userExercises ! UserExerciseDataEvt(userId, sessionId, ad)
         }
       )
   }

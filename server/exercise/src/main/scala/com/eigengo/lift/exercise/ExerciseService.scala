@@ -19,7 +19,9 @@ trait ExerciseService extends HttpService with LiftMarshallers {
         handleWith { bits: BitVector ⇒
           (userExerciseProcessor ? UserExerciseDataCmd(userId, sessionId, bits)).map(_.toString)
         }
-      } ~
+      }
+    } ~
+    path("exercise" / UserIdValue) { userId ⇒
       get {
         complete {
           (userExercises ? UserGetAllExercises(userId)).map(_.toString)
