@@ -12,5 +12,6 @@ libraryDependencies ++= Seq(
   akka.contrib,
   akka.persistence,
   spray.routing,
+  json4s.native,
   scodec_bits
 )

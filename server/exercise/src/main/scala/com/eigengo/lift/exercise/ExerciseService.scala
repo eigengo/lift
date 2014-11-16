@@ -3,7 +3,7 @@ package com.eigengo.lift.exercise
 import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataProcess
 import com.eigengo.lift.exercise.UserExercises.{UserExerciseSessionEnd, UserExerciseSessionStart, UserGetAllExercises}
 import scodec.bits.BitVector
-import spray.routing.{Directives, HttpService}
+import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
 

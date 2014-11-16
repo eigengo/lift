@@ -5,6 +5,7 @@ import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
+import com.eigengo.lift.notification.NotificaitonBoot
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route}
@@ -33,28 +34,20 @@ object LiftMain extends App {
 
       // Create an Akka system
       implicit val system = ActorSystem(LiftActorSystem, config)
+      import system.dispatcher
 
       // Startup the journal
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
-      // Start the shards
-      ExerciseBoot.boot()
+      // boot the microservices
+      val notificaiton = NotificaitonBoot.boot
+      val exercise = ExerciseBoot.boot(notificaiton.notification)
 
-      // ClusterSharding(system).start(
-      //   typeName = UserExerciseDataProcessor.shardName,
-      //   entryProps = Some(UserExerciseDataProcessor.props(userExercise)),
-      //   idExtractor = UserExerciseDataProcessor.idExtractor,
-      //   shardResolver = UserExerciseDataProcessor.shardResolver)
-
-      // // Start other actors & views
-      // system.actorOf(PushNotification.props, PushNotification.name)
-      // system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
-
-      startupHttpService(system, port)
+      startupHttpService(system, port, ExerciseBoot.route(exercise))
     }
 
-    def startupHttpService(system: ActorSystem, port: Int): Unit = {
-      val restService = system.actorOf(Props[LiftMain])
+    def startupHttpService(system: ActorSystem, port: Int, route: Route): Unit = {
+      val restService = system.actorOf(Props(classOf[LiftMain], route))
       IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 10000 + port)
     }
 

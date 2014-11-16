@@ -1,9 +1,9 @@
 package com.eigengo.lift.exercise
 
 import akka.actor._
+import com.eigengo.lift.common.UserId
 import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataProcess
 import com.eigengo.lift.exercise.UserExercises.UserExerciseDataProcessed
-import com.eigengo.lift.profile.UserProfileProtocol.UserId
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
