@@ -3,14 +3,15 @@ package com.eigengo.lift.notification
 import java.net.UnknownHostException
 
 import akka.actor.SupervisorStrategy.Restart
-import akka.actor.{Props, OneForOneStrategy, SupervisorStrategy, Actor}
+import akka.actor._
+import akka.routing.RoundRobinPool
 import com.eigengo.lift.notification.ApplePushNotification.DefaultMessage
 import com.notnoop.apns.APNS
 
 import scala.io.Source
 
 object ApplePushNotification {
-  val props = Props[ApplePushNotification]
+  val props = Props[ApplePushNotification].withRouter(RoundRobinPool(nrOfInstances = 10))
 
   /**
    * Sends default message to the client
@@ -24,7 +25,7 @@ object ApplePushNotification {
 
 }
 
-class ApplePushNotification extends Actor {
+class ApplePushNotification extends Actor with ActorLogging {
   import scala.concurrent.duration._
 
   private val userHomeIos = System.getProperty("user.home") + "/.ios"
@@ -38,6 +39,7 @@ class ApplePushNotification extends Actor {
 
   override def receive: Receive = {
     case DefaultMessage(deviceToken, message, badge, sound) ⇒
+      log.info(s"Push message to $deviceToken")
       val payloadBuilder = APNS.newPayload.alertBody(message)
       badge.foreach(payloadBuilder.badge)
       sound.foreach(payloadBuilder.sound)

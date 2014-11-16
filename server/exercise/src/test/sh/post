@@ -1,15 +1,19 @@
 #!/bin/sh
 # register user
 RND=`uuidgen`
-USER_ID=`curl -s --request POST -H "Content-Type:application/json" --data '{"email": "foo@b'$RND'.com", "password":"letmein"}' http://localhost:12552/user`
+USERNAME="foo@xxx'$RND'xxx.com"
+DEVICE_TOKEN="5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8"
+
+USER_ID=`curl -s --request POST -H "Content-Type:application/json" --data '{"email": "'$USERNAME'", "password":"letmein"}' http://localhost:12552/user`
 USER_ID="${USER_ID//\"}"
-echo $USER_ID
+echo "Registered $USERNAME as $USER_ID"
 
-curl --request POST -H "Content-Type:application/json" --data '{"deviceToken": "a234234" }' http://localhost:12552/user/$USER_ID/device
-
-exit 1
+curl --request POST -H "Content-Type:application/json" --data "{\"deviceToken\": \"$DEVICE_TOKEN\" }" http://localhost:12552/user/$USER_ID/device/ios
+echo ""
+echo "Set iOS device with device token $DEVICE_TOKEN"
 
 SESSION_ID=`uuidgen`
+echo "Starting session $SESSION_ID"
 
 # start the session
 curl --request POST -H "Content-Type:application/json" --data '{"id": "'$SESSION_ID'", "muscleGroups": [], "intendedIntensity": 0.8}' http://localhost:12552/exercise/$USER_ID
@@ -27,4 +31,5 @@ sleep 8
 # end the session
 curl --request DELETE http://localhost:12552/exercise/$USER_ID/$SESSION_ID
 
+echo "Done"
 echo $USER_ID | pbcopy
