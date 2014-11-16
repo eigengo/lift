@@ -26,7 +26,7 @@ object UserExerciseDataProcessor {
    * Resolves the shard name from the incoming message. 
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserExerciseDataCmd(userId, _) ⇒ "global"
+    case UserExerciseDataCmd(userId, _, _) ⇒ "global"
   }
 
   /**
@@ -70,7 +70,7 @@ class UserExerciseDataProcessor(userExercises: ActorRef) extends PersistentActor
       }
   }
 
-  override val persistenceId: String = "user-exercise-persistence"
+  override val persistenceId: String = s"user-exercise-persistence-${self.path.name}"
 
   override val receiveRecover: Receive = {
     case SnapshotOffer(_, snapshot: BitVector) ⇒

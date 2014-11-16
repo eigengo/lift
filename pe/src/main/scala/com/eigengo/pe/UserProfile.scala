@@ -7,7 +7,7 @@ import java.util.UUID
  * @param id the underlying id
  */
 case class UserId(id: UUID) extends AnyVal {
-  override lazy val toString = id.toString
+  override def toString() = id.toString
 }
 object UserId {
   def apply(s: String): UserId = UserId(UUID.fromString(s))

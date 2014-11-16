@@ -68,7 +68,7 @@ object UserExercises {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseDataEvt(userId, data) ⇒ (userId.toString, data)
+    case UserExerciseDataEvt(userId, sessionId, data) ⇒ (userId.toString, data)
     case UserGetAllExercises(userId) ⇒ (userId.toString, GetExercises)
   }
 
@@ -77,7 +77,7 @@ object UserExercises {
    */
   val shardResolver: ShardRegion.ShardResolver = {
     case UserGetAllExercises(userId) ⇒ "global"
-    case UserExerciseDataEvt(userId, _) ⇒ "global"
+    case UserExerciseDataEvt(userId, _, _) ⇒ "global"
   }
 
 }
@@ -129,7 +129,7 @@ import scala.concurrent.duration._
       persist(evt)(ExerciseClassifiers.lookup !)
 
     // classification results received
-    case e@ClassifiedExercise(confidence, exercise) ⇒
+    case e@ClassifiedExercise(confidence, name, intensity) ⇒
       log.debug(s"ClassificationResult in AS ${self.path.toString}")
       if (confidence > 0.0) {
         exercises = e :: exercises
