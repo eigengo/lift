@@ -1,7 +1,6 @@
 package com.eigengo.lift.exercise
 
 import akka.actor._
-import com.eigengo.lift.common.Actors
 import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataProcess
 import com.eigengo.lift.exercise.UserExercises.UserExerciseDataProcessed
 import com.eigengo.lift.profile.UserProfileProtocol.UserId
@@ -13,7 +12,6 @@ import scalaz.\/
 object ExerciseDataProcessor {
   def props(userExercises: ActorRef) = Props(classOf[ExerciseDataProcessor], userExercises)
   val name = "exercise-processor"
-  def lookup(implicit arf: ActorRefFactory) = Actors.local.lookup(arf, name)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed

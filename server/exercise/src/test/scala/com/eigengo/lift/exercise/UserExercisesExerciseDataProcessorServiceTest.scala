@@ -9,9 +9,10 @@ import spray.testkit.ScalatestRouteTest
 class UserExercisesExerciseDataProcessorServiceTest
   extends FlatSpec with ScalatestRouteTest with TestKitBase with Matchers
   with ExerciseService with ExerciseMarshallers with LiftTestMarshallers {
+  val boot = ExerciseBoot(testActor, testActor, testActor)
+  val route = exerciseRoute(boot)
 
   def actorRefFactory: ActorRefFactory = system
-  override val userExerciseProcessor = system.actorSelection(testActor.path)
 
   def getResourceBitVector(resourceName: String): BitVector = {
     val is = getClass.getResourceAsStream(resourceName)
@@ -20,7 +21,7 @@ class UserExercisesExerciseDataProcessorServiceTest
 
   "ExerciseProcessor" should "accept requests" in {
     val bv = getResourceBitVector("/training/arm3.dat")
-    Post("/exercise/C753CD2F-A46E-4C1E-9856-26C78FFAC760", bv) ~> exerciseRoute ~> check {
+    Post("/exercise/C753CD2F-A46E-4C1E-9856-26C78FFAC760", bv) ~> route ~> check {
       responseAs[String] === "OK"
     }
   }

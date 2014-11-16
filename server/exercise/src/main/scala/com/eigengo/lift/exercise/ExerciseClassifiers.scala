@@ -3,7 +3,6 @@ package com.eigengo.lift.exercise
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
 import akka.routing.RoundRobinPool
-import com.eigengo.lift.common.Actors
 
 /**
  * Companion for "all classifiers"
@@ -11,13 +10,6 @@ import com.eigengo.lift.common.Actors
 object ExerciseClassifiers {
   val props = Props[ExerciseClassifiers]
   val name = "exercise-classifiers"
-
-  /**
-   * Lookup selection of all available classifiers
-   * @param arf the ActorContext or ActorSystem
-   * @return the selection of all available ``ExerciseClassifier`` actors
-   */
-  def lookup(implicit arf: ActorRefFactory) = Actors.local.lookup(arf, s"$name/*")
 }
 
 /**
@@ -37,5 +29,7 @@ class ExerciseClassifiers extends Actor {
   }
 
   // this actor handles no messages
-  override def receive: Receive = Actor.emptyBehavior
+  override def receive: Receive = {
+    case x ⇒ context.actorSelection("*").tell(x, sender())
+  }
 }

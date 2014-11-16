@@ -26,7 +26,7 @@ lazy val notificationProtocol = project.in(file("notification-protocol")).depend
 //Main 
 lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
 
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common)
+lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, notificationProtocol, common)
 
 mainClass in run := Some("com.eigengo.lift.LiftMain")
 

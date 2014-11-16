@@ -1,12 +1,10 @@
 package com.eigengo.lift.exercise
 
-import java.util.{UUID, Date}
-
-import akka.actor.{ActorLogging, ActorRefFactory, Props, ReceiveTimeout}
+import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.eigengo.lift.common.{AutoPassivation, Actors}
-import com.eigengo.lift.exercise.ExerciseClassifier.{UnclassifiedExercise, Classify, FullyClassifiedExercise, ClassifiedExercise}
+import com.eigengo.lift.common.AutoPassivation
+import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.profile.UserProfileProtocol.UserId
 
@@ -21,9 +19,7 @@ object UserExercises {
   /** The shard name */
   val shardName = "user-exercises-shard"
   /** The props to create the actor on a node */
-  val props = Props[UserExercises]
-  /** Convenience lookup function */
-  def lookup(implicit arf: ActorRefFactory) = Actors.shard.lookup(arf, shardName)
+  def props(notification: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
 
   /**
    * The event with processed fitness data into ``List[AccelerometerData]``
@@ -128,7 +124,7 @@ object UserExercises {
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercises extends PersistentActor with ActorLogging with AutoPassivation {
+class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) extends PersistentActor with ActorLogging with AutoPassivation {
   import scala.concurrent.duration._
 
   // minimum confidence
@@ -153,7 +149,7 @@ class UserExercises extends PersistentActor with ActorLogging with AutoPassivati
     case ExerciseSessionStart(session) ⇒ exercises = exercises.start(session) 
       
     // reclassify the exercise in AccelerometerData
-    case c@Classify(_, _) ⇒ ExerciseClassifiers.lookup ! c
+    case c@Classify(_, _) ⇒ exerciseClasssifiers ! c
   }
 
   private def exercising(session: Session): Receive = withPassivation {
@@ -163,7 +159,7 @@ class UserExercises extends PersistentActor with ActorLogging with AutoPassivati
     // classify the exercise in AccelerometerData
     case ExerciseSessionData(id, data) if id == session.id ⇒
       log.debug(s"AccelerometerData ${self.path.toString}")
-      persist(Classify(session, data))(ExerciseClassifiers.lookup !)
+      persist(Classify(session, data))(exerciseClasssifiers !)
 
     // classification results received
     case FullyClassifiedExercise(`session`, confidence, name, intensity) ⇒

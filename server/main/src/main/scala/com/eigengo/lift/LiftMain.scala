@@ -1,17 +1,16 @@
 package com.eigengo.lift
 
 import akka.actor._
-import akka.contrib.pattern.ClusterSharding
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
-import spray.routing.HttpServiceActor
+import spray.routing.{HttpServiceActor, Route}
 
-class LiftMain extends HttpServiceActor with ExerciseService {
-  override def receive: Receive = runRoute(exerciseRoute)
+class LiftMain(route: Route) extends HttpServiceActor {
+  override def receive: Receive = runRoute(route)
 }
 
 /**
@@ -39,7 +38,7 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // Start the shards
-      ExerciseBoot.boot(system)
+      ExerciseBoot.boot()
 
       // ClusterSharding(system).start(
       //   typeName = UserExerciseDataProcessor.shardName,
@@ -61,7 +60,8 @@ object LiftMain extends App {
 
     def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
       import akka.pattern.ask
-      import scala.concurrent.duration._
+
+import scala.concurrent.duration._
       
       // Start the shared journal one one node (don't crash this SPOF)
       // This will not be needed with a distributed journal
