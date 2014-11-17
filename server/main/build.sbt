@@ -29,10 +29,6 @@ libraryDependencies ++= Seq(
   spray.testkit % "test"
 )
 
-// val docker = file("../..").getAbsoluteFile.toURI
-// Make docker depend on the package task, which generates a jar file of the application code
-// docker <<= docker.dependsOn(Keys.`package`.in(Compile, packageBin))
-
 dockerSettings
 
 // Define a Dockerfile
