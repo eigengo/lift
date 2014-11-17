@@ -13,10 +13,11 @@ echo ""
 echo "Set iOS device with device token $DEVICE_TOKEN"
 
 SESSION_ID=`uuidgen`
+ST=`date +%FT%T.000%z`
 echo "Starting session $SESSION_ID"
 
 # start the session
-curl --request POST -H "Content-Type:application/json" --data '{"id": "'$SESSION_ID'", "muscleGroups": [], "intendedIntensity": 0.8}' http://localhost:12552/exercise/$USER_ID
+curl --request POST -H "Content-Type:application/json" --data "{\"id\": \"$SESSION_ID\", \"startDate\":\"$ST\", \"muscleGroups\": [], \"intendedIntensity\": 0.7}" http://localhost:12552/exercise/$USER_ID
 
 # post session data
 curl --request PUT --data-binary @../resources/training/arm1.dat http://localhost:12552/exercise/$USER_ID/$SESSION_ID

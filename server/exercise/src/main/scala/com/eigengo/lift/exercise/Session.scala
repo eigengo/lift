@@ -1,6 +1,6 @@
 package com.eigengo.lift.exercise
 
-import java.util.UUID
+import java.util.{Date, UUID}
 
 /**
  * The session identity
@@ -25,6 +25,7 @@ case object Legs extends MuscleGroup
  * @param muscleGroups the planned muscle groups
  * @param intendedIntensity the planned intensity
  */
-case class Session(id: SessionId,
+case class Session(id: SessionId, startDate: Date,
                    muscleGroups: Seq[MuscleGroup],
                    intendedIntensity: ExerciseIntensity)
+

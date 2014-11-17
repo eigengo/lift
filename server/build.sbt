@@ -3,10 +3,6 @@ import Keys._
 
 name := "lift"
 
-//Build settings. TODO: Set up proper resolvers so that one doesn't have to run
-//sbt publish-local in project build
-// lazy val build = project.in(file("build"))
-
 //Common code, but not protocols
 lazy val common = project.in(file("common"))
 
@@ -26,6 +22,7 @@ lazy val notificationProtocol = project.in(file("notification-protocol")).depend
 //Main 
 lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
 
+//The main aggregate
 lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, notificationProtocol, common)
 
 mainClass in run := Some("com.eigengo.lift.LiftMain")

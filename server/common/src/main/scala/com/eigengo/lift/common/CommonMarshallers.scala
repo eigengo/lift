@@ -1,5 +1,6 @@
 package com.eigengo.lift.common
 
+import java.text.SimpleDateFormat
 import java.util.UUID
 
 import org.json4s.JsonAST.{JNull, JString}
@@ -19,6 +20,8 @@ trait CommonMarshallers extends MarshallingDirectives with Json4sSupport {
     }
     )
   )
-  override implicit def json4sFormats: Formats = DefaultFormats + UUIDSerialiser
+  override implicit def json4sFormats: Formats = new DefaultFormats {
+      override def dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    } + UUIDSerialiser
 
 }
