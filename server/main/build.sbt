@@ -39,8 +39,11 @@ dockerfile in docker <<= (artifactPath.in(Compile, packageBin), managedClasspath
     new Dockerfile {
       // Use a base image that contain Java
       from("dockerfile/java")
-      // Expose port 8080
-      expose(8080)
+      // Expose port 1255[1-4]
+      expose(12551)
+      expose(12552)
+      expose(12553)
+      expose(12554)
       // Copy all dependencies to 'libs' in stage dir
       managedClasspath.files.foreach { depFile =>
         val target = file(libs) / depFile.name
