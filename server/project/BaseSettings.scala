@@ -1,5 +1,3 @@
-package com.eigengo.lift.build
-
 import net.virtualvoid.sbt.graph.Plugin._
 import sbt._
 import Keys._

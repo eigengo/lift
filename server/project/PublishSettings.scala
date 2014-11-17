@@ -1,5 +1,3 @@
-package com.eigengo.lift.build
-
 import sbt._
 import Keys._
 import sbtassembly.Plugin

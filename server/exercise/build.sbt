@@ -1,7 +1,6 @@
-import com.eigengo.lift.build.Dependencies._
-import com.eigengo.lift.build.Build._
+import Dependencies._
 
-Settings.project
+Build.Settings.project
 
 name := "lift-exercise"
 

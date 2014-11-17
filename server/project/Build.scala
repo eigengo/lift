@@ -1,9 +1,7 @@
-package com.eigengo.lift.build
-
 import sbt._
 import Keys._
 
-object Build extends AutoPlugin {
+object Build {
 
   object Settings {
 

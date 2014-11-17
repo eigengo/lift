@@ -1,4 +1,3 @@
-package com.eigengo.lift.build
 import sbt._
 import Keys._
 

@@ -1,5 +1,3 @@
-package com.eigengo.lift.build
-
 import sbt._
 
 /**

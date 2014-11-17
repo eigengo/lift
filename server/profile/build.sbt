@@ -1,5 +1,4 @@
-import com.eigengo.lift.build.Dependencies._
-import com.eigengo.lift.build._
+import Dependencies._
 
 Build.Settings.project
 
