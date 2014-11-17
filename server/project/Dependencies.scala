@@ -4,20 +4,20 @@ import Keys._
 object Dependencies {
 
   object akka {
-  	val version = "2.3.6"
-  	// Core Akka
+    val version = "2.3.6"
+    // Core Akka
     val actor       = "com.typesafe.akka"  %% "akka-actor"                    % version
-  	val cluster     = "com.typesafe.akka"  %% "akka-cluster"                  % version
+    val cluster     = "com.typesafe.akka"  %% "akka-cluster"                  % version
     val contrib     = "com.typesafe.akka"  %% "akka-contrib"                  % version
     val persistence = "com.typesafe.akka"  %% "akka-persistence-experimental" % version
-  	
+    
     val testkit     = "com.typesafe.akka"  %% "akka-testkit"                  % version
   }
 
   object spray {
-  	val version = "1.3.2"
+    val version = "1.3.2"
 
-  	val httpx   = "io.spray" %% "spray-httpx"   % version
+    val httpx   = "io.spray" %% "spray-httpx"   % version
     val can     = "io.spray" %% "spray-can"     % version
     val routing = "io.spray" %% "spray-routing" % version
 
@@ -25,7 +25,7 @@ object Dependencies {
   }
 
   object scalaz {
-  	val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
+    val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
   }
 
   object json4s {

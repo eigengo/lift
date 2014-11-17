@@ -16,7 +16,7 @@ object Build {
         BaseSettings.baseSettings ++ BaseSettings.projectSettings ++
         PublishSettings.publishSettings ++
         Classpaths.ivyPublishSettings ++ Classpaths.jvmPublishSettings
-  }  	
+  }
 
   def generateVersion(major: String, minor: String, snapshot: Boolean) = {
     // Include the git version sha in the build version for repeatable historical builds.
