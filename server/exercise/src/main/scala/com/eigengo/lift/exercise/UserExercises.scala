@@ -127,9 +127,9 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case evt@Classify(_, _) ⇒ exerciseClasssifiers ! evt
   }
 
-  // we do not want automatic recovery
+  // TODO: Investigate me! We do not want automatic recovery
   @throws[Exception](classOf[Exception])
-  override def preStart(): Unit = ()
+  override def preStart(): Unit = super.preStart()
 
   private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
     case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
