@@ -2,11 +2,14 @@ package com.eigengo.lift.exercise
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.{PersistentActor, Recover}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
+import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
+import com.eigengo.lift.exercise.UserExercisesView.{Exercise, ExerciseEvt}
 import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
+import scodec.bits.BitVector
 
 import scala.language.postfixOps
 import scalaz.\/
@@ -17,16 +20,25 @@ import scalaz.\/
 object UserExercises {
 
   /** The shard name */
-  val shardName = "user-exercises-shard"
+  val shardName = "user-exercises"
   /** The props to create the actor on a node */
   def props(notification: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
 
   /**
-   * The event with processed fitness data into ``List[AccelerometerData]``
-   * @param data the accelerometer data
+   * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
+   * @param userId the user identity
+   * @param sessionId the session identity
+   * @param bits the submitted bits
    */
-  case class UserExerciseDataProcessed(userId: UserId, sessionId: SessionId, data: AccelerometerData)
-  
+  case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
+
+  /**
+   * Process exercise data for the given session
+   * @param sessionId the session identifier
+   * @param bits the exercise data bits
+   */
+  private case class ExerciseDataProcess(sessionId: SessionId, bits: BitVector)
+
   /**
    * Starts the user exercise session
    * @param userId the user identity
@@ -40,46 +52,6 @@ object UserExercises {
    * @param sessionId the generated session identity
    */
   case class UserExerciseSessionEnd(userId: UserId, sessionId: SessionId)
-
-
-  /**
-   * A single recorded exercise
-   * @param name the name
-   * @param intensity the intensity, if known
-   */
-  case class Exercise(name: ExerciseName, intensity: Option[ExerciseIntensity])
-
-  /**
-   * All user's exercises
-   * @param sessions the list of exercises
-   */
-  case class Exercises(sessions: Map[Session, List[Exercise]]) extends AnyVal {
-    def add(session: Session, exercise: Exercise): Exercises = {
-      sessions.get(session) match {
-        case None ⇒ copy(sessions = sessions + (session → List(exercise)))
-        case Some(exercises) ⇒ copy(sessions = sessions + (session → exercises.+:(exercise)))
-      }
-    }
-    def start(session: Session): Exercises = copy(sessions + (session → List.empty))
-  }
-  
-  object Exercises {
-    val empty: Exercises = Exercises(Map.empty)
-  }
-  
-
-  /**
-   * Query to receive all exercises for the given ``userId``
-   * @param userId the user identity
-   */
-  case class UserGetAllExercises(userId: UserId)
-
-  /**
-   * Query to receive all exercises. The relationship between ``GetUserExercises`` and ``GetExercises`` is that
-   * ``GetUserExercises`` is sent to the shard coordinator, which locates the appropriate (user-specific) shard,
-   * and sends it the ``GetExercises`` message
-   */
-  private case object GetExercises
 
   /**
    * The session has started
@@ -101,21 +73,35 @@ object UserExercises {
   private case class ExerciseSessionData(sessionId: SessionId, data: AccelerometerData)
 
   /**
+   * Reclassify all exercises
+   * @param userId the user identity
+   */
+  case class UserReclassifyExercises(userId: UserId)
+
+  /**
+   * Reclassify all
+   */
+  private case object ReclassifyExercises
+
+  /**
    * Extracts the identity of the shard from the messages sent to the coordinator. We have per-user shard,
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseSessionStart(userId, session) ⇒ (userId.toString, ExerciseSessionStart(session))
-    case UserExerciseSessionEnd(userId, sessionId) ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcessed(userId, sessionId, data) ⇒ (userId.toString, ExerciseSessionData(sessionId, data))
-    case UserGetAllExercises(userId) ⇒ (userId.toString, GetExercises)
+    case UserExerciseSessionStart(userId, session)        ⇒ (userId.toString, ExerciseSessionStart(session))
+    case UserExerciseSessionEnd(userId, sessionId)        ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
+    case UserExerciseDataProcess(userId, sessionId, data) ⇒ (userId.toString, ExerciseDataProcess(sessionId, data))
+    case UserReclassifyExercises(userId)                  ⇒ (userId.toString, ReclassifyExercises)
   }
 
   /**
    * Resolves the shard name from the incoming message.
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case _ ⇒ "global"
+    case UserExerciseSessionStart(userId, _)   ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionEnd(userId, _)     ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcess(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserReclassifyExercises(userId)       ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -135,70 +121,72 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   // our unique persistenceId; the self.path.name is provided by ``UserExercises.idExtractor``,
   // hence, self.path.name is the String representation of the userId UUID.
   override val persistenceId: String = s"user-exercises-${self.path.name}"
-  // our internal state
-  private var exercises = Exercises.empty
 
-  // when this actor recovers (i.e. moving from "not present" to "present"), it is sent messages that
-  // we handle to get to the state that the actor was before it was removed.
+  // when we're recovering, handle the classify events
   override def receiveRecover: Receive = {
-    // restore from snapshot
-    case SnapshotOffer(_, offeredSnapshot: Exercises) ⇒
-      exercises = offeredSnapshot
-      log.info(s"Recovered from snapshot with ${exercises.sessions.size} sessions")
+    case evt@Classify(_, _) ⇒ exerciseClasssifiers ! evt
+  }
 
-    // restart session 
-    case ExerciseSessionStart(session) ⇒ exercises = exercises.start(session) 
-      
-    // reclassify the exercise in AccelerometerData
-    case c@Classify(_, _) ⇒ exerciseClasssifiers ! c
+  // we do not want automatic recovery
+  @throws[Exception](classOf[Exception])
+  override def preStart(): Unit = ()
+
+  private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
+    case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
+    case (BitVector.empty, h :: t) ⇒
+      if (t.forall(_.samplingRate == h.samplingRate)) {
+        \/.right(t.foldLeft(h)((res, ad) ⇒ ad.copy(values = ad.values ++ res.values)))
+      } else {
+        \/.left("Unmatched sampling rates")
+      }
+    case (_, _)                    ⇒ \/.left("Undecoded input")
   }
 
   private def exercising(session: Session): Receive = withPassivation {
-    case ExerciseSessionStart(_) ⇒
-      log.warning("ExerciseSessionStart when session is active")
-      sender() ! \/.left("Session is running")
+    case ExerciseDataProcess(id, bits) if id == session.id ⇒
+      val result = decodeAll(bits, Nil)
+      validateData(result).fold(
+        { err ⇒ sender() ! \/.left(err) },
+        { evt ⇒
+          persist(Classify(session, evt))(exerciseClasssifiers !)
+          sender() ! \/.right("Data accepted")
+        }
+      )
 
-    // classify the exercise in AccelerometerData
-    case ExerciseSessionData(id, data) if id == session.id ⇒
-      persist(Classify(session, data))(exerciseClasssifiers !)
-
-    // classification results received
-    case FullyClassifiedExercise(`session`, confidence, name, intensity) ⇒
-      if (confidence > confidenceThreshold) exercises = exercises.add(session, Exercise(name, intensity))
-      intensity.foreach { i ⇒
-        if (i << session.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-        if (i >> session.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+    case FullyClassifiedExercise(metadata, `session`, confidence, name, intensity) ⇒
+      if (confidence > confidenceThreshold) {
+        persist(ExerciseEvt(metadata, session, Exercise(name, intensity))) { evt ⇒
+          intensity.foreach { i ⇒
+            if (i << session.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+            if (i >> session.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          }
+        }
       }
-      saveSnapshot(exercises)
 
-    case UnclassifiedExercise(`session`) ⇒
+    case UnclassifiedExercise(_, `session`) ⇒
       notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
 
-    case ExerciseSessionEnd(id) if session.id == id ⇒
-      context.become(notExercising)
-      sender() ! \/.right("ended")
-      saveSnapshot(exercises)
-
-    // query for exercises
-    case GetExercises =>
-      sender() ! exercises
+    case cmd@ExerciseSessionEnd(id) if session.id == id ⇒
+      persist(cmd) { evt ⇒
+        context.become(notExercising)
+        sender() ! \/.right("Session ended")
+      }
   }
 
   private def notExercising: Receive = withPassivation {
-    case FullyClassifiedExercise(session, confidence, name, intensity) ⇒
-      if (confidence > confidenceThreshold) exercises = exercises.add(session, Exercise(name, intensity))
+    case ReclassifyExercises ⇒
+      self ! Recover()
+      sender() ! \/.right("Reclassifying")
 
-    case ExerciseSessionEnd(_) ⇒
-      log.warning("ExerciseSessionEnd when no session active")
-      sender() ! \/.left("Session not running")
-
-    case ExerciseSessionStart(session) ⇒
-      exercises = exercises.start(session)
-      context.become(exercising(session))
-      sender() ! \/.right('OK)
-
-    case GetExercises ⇒
-      sender() ! exercises
+    case FullyClassifiedExercise(metadata, session, confidence, name, intensity) ⇒
+      if (confidence > confidenceThreshold) {
+        persist(ExerciseEvt(metadata, session, Exercise(name, intensity)))(_ ⇒ ())
+      }
+    case cmd@ExerciseSessionStart(session) ⇒
+      persist(cmd) { evt ⇒
+        context.become(exercising(session))
+        sender() ! \/.right("Session started")
+      }
   }
 
   // after recovery is complete, we move to processing commands

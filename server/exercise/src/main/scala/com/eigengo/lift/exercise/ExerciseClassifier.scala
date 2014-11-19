@@ -1,7 +1,7 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.Actor
-import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise, ClassifiedExercise}
+import com.eigengo.lift.exercise.ExerciseClassifier._
 
 import scala.util.Random
 
@@ -16,22 +16,25 @@ sealed trait ExerciseModel {
  * Implementation left as an exercise
  */
 case object WaveletModel extends ExerciseModel {
-  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(classify.session)
+  val metadata = ModelMetadata(1)
+  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(metadata, classify.session)
 }
 
 /**
  * Implementation left as an exercise
  */
 case object DynamicTimeWrappingModel extends ExerciseModel {
-  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(classify.session)
+  val metadata = ModelMetadata(1)
+  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(metadata, classify.session)
 }
 
 /**
  * This is the only implementation I can have a go at!
  */
 case object NaiveModel extends ExerciseModel {
+  val metadata = ModelMetadata(2)
   override def apply(classify: Classify): ClassifiedExercise =
-    FullyClassifiedExercise(classify.session, 1.0, "Goku was your spotter", Some(Random.nextDouble()))
+    FullyClassifiedExercise(metadata, classify.session, 1.0, "Goku was your spotter, man!", Some(Random.nextDouble()))
 }
 
 /**
@@ -39,7 +42,18 @@ case object NaiveModel extends ExerciseModel {
  */
 object ExerciseClassifier {
 
+  /**
+   * Classify the given accelerometer data together with session information
+   * @param session the session
+   * @param ad the accelerometer data
+   */
   case class Classify(session: Session, ad: AccelerometerData)
+
+  /**
+   * Model version and other metadata
+   * @param version the model version
+   */
+  case class ModelMetadata(version: Int)
 
   /**
    * ADT holding the classification result
@@ -48,18 +62,20 @@ object ExerciseClassifier {
 
   /**
    * Known exercise with the given confidence, name and optional intensity
+   * @param metadata the model metadata
    * @param session the session
    * @param confidence the confidence
    * @param name the exercise name
    * @param intensity the intensity, if known
    */
-  case class FullyClassifiedExercise(session: Session, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
+  case class FullyClassifiedExercise(metadata: ModelMetadata, session: Session, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
 
   /**
    * Unknown exercise
+   * @param metadata the model
    * @param session the session
    */
-  case class UnclassifiedExercise(session: Session) extends ClassifiedExercise
+  case class UnclassifiedExercise(metadata: ModelMetadata, session: Session) extends ClassifiedExercise
 
 }
 

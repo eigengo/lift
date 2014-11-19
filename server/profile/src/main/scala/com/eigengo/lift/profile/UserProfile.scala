@@ -15,15 +15,16 @@ object UserProfile {
   
   val idExtractor: ShardRegion.IdExtractor = {
     case UserRegistered(userId, account) ⇒ (userId.toString, account)
-
-    case UserGetProfile(userId) ⇒ (userId.toString, GetProfile)
-
-    case UserGetDevices(userId) ⇒ (userId.toString, GetDevices)
-    case UserSetDevice(userId, device) ⇒ (userId.toString, SetDevice(device))
+    case UserGetProfile(userId)          ⇒ (userId.toString, GetProfile)
+    case UserGetDevices(userId)          ⇒ (userId.toString, GetDevices)
+    case UserSetDevice(userId, device)   ⇒ (userId.toString, SetDevice(device))
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
-    case _ ⇒ "global"
+    case UserRegistered(userId, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserGetProfile(userId)    ⇒ s"${userId.hashCode() % 10}"
+    case UserGetDevices(userId)    ⇒ s"${userId.hashCode() % 10}"
+    case UserSetDevice(userId, _)  ⇒ s"${userId.hashCode() % 10}"
   }
 
   /**

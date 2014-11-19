@@ -1,8 +1,8 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.ActorRef
-import com.eigengo.lift.exercise.ExerciseDataProcessor.UserExerciseDataProcess
-import com.eigengo.lift.exercise.UserExercises.{UserExerciseSessionEnd, UserExerciseSessionStart, UserGetAllExercises}
+import com.eigengo.lift.exercise.UserExercises.{UserReclassifyExercises, UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
+import com.eigengo.lift.exercise.UserExercisesView.UserGetAllExercises
 import scodec.bits.BitVector
 import spray.routing.Directives
 
@@ -12,7 +12,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(userExercises: ActorRef, exerciseDataProcessor: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
     path("exercise" / UserIdValue) { userId ⇒
       post {
         handleWith { session: Session ⇒
@@ -21,19 +21,26 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       get {
         complete {
-          (userExercises ? UserGetAllExercises(userId)).map(_.toString)
+          (userExercisesView ? UserGetAllExercises(userId)).map(_.toString)
         }
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue) { (userId, sessionId) ⇒
       put {
         handleWith { bits: BitVector ⇒
-          (exerciseDataProcessor ? UserExerciseDataProcess(userId, sessionId, bits)).map(_.toString)
+          (userExercises ? UserExerciseDataProcess(userId, sessionId, bits)).map(_.toString)
         }
       } ~
       delete {
         complete {
           (userExercises ? UserExerciseSessionEnd(userId, sessionId)).map(_.toString)
+        }
+      }
+    } ~
+    path("exercise" / UserIdValue / "reclassify") { userId ⇒
+      post {
+        complete {
+          (userExercises ? UserReclassifyExercises(userId)).map(_.toString)
         }
       }
     }
