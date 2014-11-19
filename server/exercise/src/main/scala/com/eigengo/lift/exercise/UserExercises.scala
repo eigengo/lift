@@ -169,8 +169,8 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case cmd@ExerciseSessionEnd(id) if session.id == id ⇒
       persist(cmd) { evt ⇒
         context.become(notExercising)
-        sender() ! \/.right("Session ended")
       }
+      sender() ! \/.right("Session ended")
   }
 
   private def notExercising: Receive = withPassivation {
@@ -185,8 +185,8 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case cmd@ExerciseSessionStart(session) ⇒
       persist(cmd) { evt ⇒
         context.become(exercising(session))
-        sender() ! \/.right("Session started")
       }
+      sender() ! \/.right("Session started")
   }
 
   // after recovery is complete, we move to processing commands
