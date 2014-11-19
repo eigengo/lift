@@ -2,7 +2,7 @@ package com.eigengo.lift.exercise
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentActor, Recover}
+import akka.persistence.{SnapshotSelectionCriteria, PersistentActor, Recover}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
@@ -126,10 +126,6 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   override def receiveRecover: Receive = {
     case evt@Classify(_, _) ⇒ exerciseClasssifiers ! evt
   }
-
-  // TODO: Investigate me! We do not want automatic recovery
-  @throws[Exception](classOf[Exception])
-  override def preStart(): Unit = super.preStart()
 
   private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
     case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
