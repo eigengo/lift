@@ -16,6 +16,8 @@ libraryDependencies ++= Seq(
   spray.routing,
   // Json
   json4s.native,
+  // Kafka
+  kafka.kafka,
   // Codec
   scodec_bits,
   scalaz.core,

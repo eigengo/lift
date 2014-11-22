@@ -24,11 +24,17 @@ object Dependencies {
     val testkit = "io.spray" %% "spray-testkit" % version
   }
 
+  object kafka {
+    val version = "0.8.1.1"
+    val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
+  }
+
   object spark {
     val version = "1.3.0-SNAPSHOT"
 
     val core = "org.apache.spark" %% "spark-core" % version
     val streaming = "org.apache.spark" %% "spark-streaming" % version
+    val streaming_kafka = "org.apache.spark" %% "spark-streaming-kafka" % version
     val mllib = "org.apache.spark" %% "spark-mllib" % version
   }
 
