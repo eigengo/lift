@@ -73,17 +73,6 @@ object UserExercises {
   private case class ExerciseSessionData(sessionId: SessionId, data: AccelerometerData)
 
   /**
-   * Reclassify all exercises
-   * @param userId the user identity
-   */
-  case class UserReclassifyExercises(userId: UserId)
-
-  /**
-   * Reclassify all
-   */
-  private case object ReclassifyExercises
-
-  /**
    * Extracts the identity of the shard from the messages sent to the coordinator. We have per-user shard,
    * so our identity is ``userId.toString``
    */
@@ -91,7 +80,6 @@ object UserExercises {
     case UserExerciseSessionStart(userId, session)        ⇒ (userId.toString, ExerciseSessionStart(session))
     case UserExerciseSessionEnd(userId, sessionId)        ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
     case UserExerciseDataProcess(userId, sessionId, data) ⇒ (userId.toString, ExerciseDataProcess(sessionId, data))
-    case UserReclassifyExercises(userId)                  ⇒ (userId.toString, ReclassifyExercises)
   }
 
   /**
@@ -101,7 +89,6 @@ object UserExercises {
     case UserExerciseSessionStart(userId, _)   ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionEnd(userId, _)     ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseDataProcess(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
-    case UserReclassifyExercises(userId)       ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -123,9 +110,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   override val persistenceId: String = s"user-exercises-${self.path.name}"
 
   // when we're recovering, handle the classify events
-  override def receiveRecover: Receive = {
-    case evt@Classify(_, _) ⇒ exerciseClasssifiers ! evt
-  }
+  override def receiveRecover: Receive = Actor.emptyBehavior
 
   private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
     case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
@@ -170,10 +155,6 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   }
 
   private def notExercising: Receive = withPassivation {
-    case ReclassifyExercises ⇒
-      self ! Recover()
-      sender() ! \/.right("Reclassifying")
-
     case FullyClassifiedExercise(metadata, session, confidence, name, intensity) ⇒
       if (confidence > confidenceThreshold) {
         persist(ExerciseEvt(metadata, session, Exercise(name, intensity)))(_ ⇒ ())

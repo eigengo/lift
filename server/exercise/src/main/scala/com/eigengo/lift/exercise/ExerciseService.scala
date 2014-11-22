@@ -1,7 +1,7 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.ActorRef
-import com.eigengo.lift.exercise.UserExercises.{UserReclassifyExercises, UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
+import com.eigengo.lift.exercise.UserExercises.{UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
 import com.eigengo.lift.exercise.UserExercisesView.UserGetAllExercises
 import scodec.bits.BitVector
 import spray.routing.Directives
@@ -34,13 +34,6 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       delete {
         complete {
           (userExercises ? UserExerciseSessionEnd(userId, sessionId)).map(_.toString)
-        }
-      }
-    } ~
-    path("exercise" / UserIdValue / "reclassify") { userId ⇒
-      post {
-        complete {
-          (userExercises ? UserReclassifyExercises(userId)).map(_.toString)
         }
       }
     }

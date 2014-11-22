@@ -62,8 +62,7 @@ object UserProfile {
 class UserProfile extends PersistentActor with AutoPassivation {
   import com.eigengo.lift.profile.UserProfile._
   import com.eigengo.lift.profile.UserProfileProtocol._
-
-import scala.concurrent.duration._
+  import scala.concurrent.duration._
   
   private var profile: Profile = _
 
