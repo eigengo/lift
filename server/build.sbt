@@ -9,6 +9,9 @@ lazy val common = project.in(file("common"))
 //Exercise
 lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common)
 
+//Exercise
+lazy val exerciseAnalysis = project.in(file("exercise-analysis")).dependsOn(notificationProtocol, profileProtocol, common)
+
 //User profiles
 lazy val profile = project.in(file("profile")).dependsOn(profileProtocol, notificationProtocol, common)
 
@@ -23,9 +26,7 @@ lazy val notificationProtocol = project.in(file("notification-protocol")).depend
 lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
 
 //The main aggregate
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, notificationProtocol, common)
-
-mainClass in run := Some("com.eigengo.lift.LiftMain")
+lazy val root = (project in file(".")).aggregate(main, exercise, exerciseAnalysis, profile, notification, notificationProtocol, common)
 
 fork in Test := false
 

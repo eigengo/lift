@@ -24,6 +24,14 @@ object Dependencies {
     val testkit = "io.spray" %% "spray-testkit" % version
   }
 
+  object spark {
+    val version = "1.3.0-SNAPSHOT"
+
+    val core = "org.apache.spark" %% "spark-core" % version
+    val streaming = "org.apache.spark" %% "spark-streaming" % version
+    val mllib = "org.apache.spark" %% "spark-mllib" % version
+  }
+
   object scalaz {
     val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
   }
