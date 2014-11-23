@@ -1,3 +1,17 @@
+zookeeper:
+  image: jplock/zookeeper
+  ports: 
+    - "2181"
+kafka:
+  image: wurstmeister/kafka:0.8.1.1-1
+  ports:
+    - "9092"
+  links: 
+    - zookeeper:zk
+  environment:
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
 main:
   image: com.eigengo/lift-main
   ports:
@@ -7,3 +21,5 @@ main:
     - "12554"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - kafka:kf
