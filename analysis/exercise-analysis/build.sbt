@@ -2,11 +2,9 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "lift-exercise-analysis"
+name := "lift-analysis-exercise"
 
 libraryDependencies ++= Seq(
-  // Core Akka
-  akka.actor,
   akka.cluster,
   // Spark
   spark.core,
@@ -16,7 +14,5 @@ libraryDependencies ++= Seq(
   kafka.kafka,
   // Testing
   scalatest % "test",
-  scalacheck % "test",
-  akka.testkit % "test",
-  spray.testkit % "test"
+  scalacheck % "test"
 )

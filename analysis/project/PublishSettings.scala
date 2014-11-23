@@ -1,5 +1,7 @@
 import sbt._
 import Keys._
+import sbtassembly.Plugin
+import sbtassembly.Plugin.AssemblyKeys
 
 /**
  * This object includes the publishing mechanism. We simply publish to the ``artifacts`` directory,

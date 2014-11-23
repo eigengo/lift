@@ -25,7 +25,7 @@ object Dependencies {
   }
 
   object kafka {
-    val version = "0.8.1.1"
+    val version = "0.8.2-beta"
     val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
   }
 

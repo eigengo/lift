@@ -18,7 +18,7 @@ object BaseSettings {
     graphSettings ++
     Seq(
       organization := "com.eigengo",
-      scalaVersion := "2.11.4",
+      scalaVersion := "2.10.4",
       version := "1.0.0-SNAPSHOT",
       scalacOptions in Compile ++= Seq("-encoding", "UTF-8", "-target:jvm-1.7", "-deprecation", "-unchecked", "-Ywarn-dead-code", "-feature"),
       scalacOptions in (Compile, doc) <++= (name in (Compile, doc), version in (Compile, doc)) map DefaultOptions.scaladoc,
