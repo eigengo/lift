@@ -9,6 +9,9 @@ import java.util.{Date, UUID}
 case class SessionId(id: UUID) extends AnyVal {
   override def toString = id.toString
 }
+object SessionId {
+  def apply(s: String): SessionId = SessionId(UUID.fromString(s))
+}
 
 /**
  * Muscle groups enum

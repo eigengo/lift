@@ -1,8 +1,4 @@
-import java.io.File
-
 import Dependencies._
-import DockerKeys._
-import sbtdocker.mutable.Dockerfile
 
 Build.Settings.project
 
@@ -31,6 +27,10 @@ libraryDependencies ++= Seq(
   spray.testkit % "test"
 )
 
+/*
+import DockerKeys._
+import sbtdocker.mutable.Dockerfile
+
 dockerSettings
 
 // Define a Dockerfile
@@ -47,3 +47,4 @@ dockerfile in docker := {
     entryPoint("java", "-jar", artifactTargetPath)
   }
 }
+*/

@@ -1,0 +1,44 @@
+cassandra:
+  image: spotify/cassandra
+  ports:
+    - "7199"
+    - "7000" 
+    - "7001" 
+    - "9160" 
+    - "9042" 
+    - "22" 
+    - "8012" 
+    - "61621"
+exercise:
+  image: com.eigengo/lift-exercise
+  ports:
+    - "2551"
+    - "12551"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - profile:p
+    - notification:n
+    - cassandra:cs
+profile:
+  image: com.eigengo/lift-profile
+  ports:
+    - "2552"
+    - "12552"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - exercise:ex
+    - notification:n
+    - cassandra:cs
+notification:
+  image: com.eigengo/lift-notification
+  ports:
+    - "2553"
+    - "12553"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - profile:p
+    - notification:n
+    - cassandra:cs
