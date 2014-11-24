@@ -5,7 +5,6 @@ Build.Settings.project
 name := "lift-analysis-exercise"
 
 libraryDependencies ++= Seq(
-  akka.cluster,
   // Spark
   spark.core,
   spark.streaming,
