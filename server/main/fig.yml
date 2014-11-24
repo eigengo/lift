@@ -1,3 +1,14 @@
+cassandra:
+  image: spotify/cassandra
+  ports:
+    - "7199"
+    - "7000" 
+    - "7001" 
+    - "9160" 
+    - "9042" 
+    - "22" 
+    - "8012" 
+    - "61621"
 zookeeper:
   image: jplock/zookeeper
   ports: 
@@ -23,3 +34,4 @@ main:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
     - kafka:kf
+    - cassandra:cs
