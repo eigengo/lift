@@ -20,21 +20,20 @@ profile:
   links:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
-    # - notification:cluster.lift.eigengo.com
-  net: "bridge"
-notification:
-  image: com.eigengo/lift-notification
-  ports:
-    - "8080"
-  expose:
-    - "2552"
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-  links:
-    - cassandra:journal.lift.eigengo.com
-    - cassandra:snapshot.lift.eigengo.com
-    - profile:cluster.lift.eigengo.com
-  net: "bridge"
+
+# notification:
+#   image: com.eigengo/lift-notification
+#   ports:
+#     - "8080"
+#   expose:
+#     - "2552"
+#   volumes:
+#     - /var/run/docker.sock:/var/run/docker.sock
+#   links:
+#     - cassandra:journal.lift.eigengo.com
+#     - cassandra:snapshot.lift.eigengo.com
+#     - profile:lift.eigengo.com
+
 # exercise:
 #   image: com.eigengo/lift-exercise
 #   ports:
