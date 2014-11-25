@@ -42,10 +42,10 @@ object LiftMain extends App {
 
       // boot the microservices
       val profile = UserProfileBoot.boot(system)
-      val notificaiton = NotificaitonBoot.boot(profile.userProfile)
-      val exercise = ExerciseBoot.boot(notificaiton.notification)
+      val notificaiton = NotificaitonBoot.bootResolved(profile.userProfile)
+      val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
 
-      startupHttpService(system, port, exercise.route, profile.route(system.dispatcher))
+      startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }
 
     def startupHttpService(system: ActorSystem, port: Int, routes: Route*): Unit = {

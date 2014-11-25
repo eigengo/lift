@@ -11,12 +11,12 @@ lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol,
 lazy val exerciseLink = project.in(file("exercise-link")).dependsOn(common)
 
 //User profiles
-lazy val profile = project.in(file("profile")).dependsOn(profileProtocol, profileLink, notificationLink, notificationProtocol, common)
+lazy val profile = project.in(file("profile")).dependsOn(profileProtocol, profileLink, common)
 lazy val profileProtocol = project.in(file("profile-protocol")).dependsOn(common)
 lazy val profileLink = project.in(file("profile-link")).dependsOn(common)
 
 //Notifications
-lazy val notification = project.in(file("notification")).dependsOn(common, notificationLink, notificationProtocol, profileProtocol)
+lazy val notification = project.in(file("notification")).dependsOn(common, notificationLink, profileLink, notificationProtocol, profileProtocol)
 lazy val notificationProtocol = project.in(file("notification-protocol")).dependsOn(common)
 lazy val notificationLink = project.in(file("notification-link")).dependsOn(common)
 

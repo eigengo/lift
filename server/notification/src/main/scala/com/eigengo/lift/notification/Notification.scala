@@ -7,7 +7,6 @@ import com.eigengo.lift.profile.UserProfileProtocol.{AndroidUserDevice, IOSUserD
 
 object Notification {
   def props(userProfile: ActorRef) = Props(classOf[Notification], userProfile).withRouter(RoundRobinPool(nrOfInstances = 15))
-  val name = "notification"
 }
 
 class Notification(userProfile: ActorRef) extends Actor with ActorLogging {
