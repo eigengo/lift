@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 case class UserProfileBoot(userProfile: ActorRef, private val userProfileProcessor: ActorRef)
   extends UserProfileService with BootedNode {
   def route(ec: ExecutionContext) = userProfileRoute(userProfile, userProfileProcessor)(ec)
-  lazy val api = Some(route(_))
+  override lazy val api = Some(route(_))
 }
 
 object UserProfileBoot {

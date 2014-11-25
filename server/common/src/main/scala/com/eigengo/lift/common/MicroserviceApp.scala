@@ -8,7 +8,7 @@ import spray.routing.Route
 import scala.concurrent.ExecutionContext
 
 trait BootedNode {
-  def api: Option[ExecutionContext ⇒ Route]
+  def api: Option[ExecutionContext ⇒ Route] = None
 }
 
 abstract class MicroserviceApp(port: Int)(f: ActorSystem ⇒ BootedNode) extends App {
