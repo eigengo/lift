@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   akka.cluster,
   akka.contrib,
   akka.persistence,
+  akka.persistence_cassandra,
   // For REST API
   spray.httpx,
   spray.can,

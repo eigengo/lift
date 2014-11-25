@@ -6,13 +6,16 @@ object Dependencies {
   object akka {
     val version = "2.3.6"
     // Core Akka
-    val actor       = "com.typesafe.akka"  %% "akka-actor"                    % version
-    val cluster     = "com.typesafe.akka"  %% "akka-cluster"                  % version
-    val contrib     = "com.typesafe.akka"  %% "akka-contrib"                  % version
-    val persistence = "com.typesafe.akka"  %% "akka-persistence-experimental" % version
+    val actor                 = "com.typesafe.akka"      %% "akka-actor"                    % version
+    val cluster               = "com.typesafe.akka"      %% "akka-cluster"                  % version
+    val contrib               = "com.typesafe.akka"      %% "akka-contrib"                  % version
+    val persistence           = "com.typesafe.akka"      %% "akka-persistence-experimental" % version
+    val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4"
     
-    val testkit     = "com.typesafe.akka"  %% "akka-testkit"                  % version
+    val testkit               = "com.typesafe.akka"      %% "akka-testkit"                  % version
   }
+
+  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
 
   object spray {
     val version = "1.3.2"

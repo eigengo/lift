@@ -41,11 +41,11 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      val profile = UserProfileBoot.boot
+      val profile = UserProfileBoot.boot(system)
       val notificaiton = NotificaitonBoot.boot(profile.userProfile)
       val exercise = ExerciseBoot.boot(notificaiton.notification)
 
-      startupHttpService(system, port, exercise.route, profile.route)
+      startupHttpService(system, port, exercise.route, profile.route(system.dispatcher))
     }
 
     def startupHttpService(system: ActorSystem, port: Int, routes: Route*): Unit = {
