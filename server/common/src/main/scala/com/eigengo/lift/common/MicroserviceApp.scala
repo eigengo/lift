@@ -85,9 +85,9 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
         case Success(response: EtcdListResponse) ⇒
           log.debug(s"Using etcd response: $response")
           response.node.nodes match {
-            case Some(seedNodes) ⇒
+            case Some(seedNodes) if seedNodes.size > 1 ⇒
               // At least one seed node has been retrieved from etcd
-              val nodes = seedNodes.flatMap(_.value.map(AddressFromURIString.apply))
+              val nodes = seedNodes.flatMap(_.value.map(AddressFromURIString.apply)).take(2)
               log.info(s"Seeding cluster using: $nodes")
               // join the nodes
               cluster.joinSeedNodes(nodes)
