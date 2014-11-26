@@ -1,9 +1,19 @@
 package com.eigengo.lift.common
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.contrib.pattern.ClusterSharding
+import akka.actor.{Props, Actor, ActorRef, ActorSystem}
+import akka.contrib.pattern.{ClusterClient, ClusterSharding}
 
 import scala.util.Try
+
+object MicroserviceLink {
+  
+  private class SendToActor(path: String, client: ActorRef) extends Actor {
+    override def receive: Receive = {
+      case x ⇒ client.tell(ClusterClient.Send(s"/user/$path", x, localAffinity = true), sender())
+    }
+  }
+  
+}
 
 trait MicroserviceLink {
 
@@ -19,6 +29,12 @@ trait MicroserviceLink {
     }
     
     resolve(0)
+  }
+
+  def clusterClientLink(path: String)(implicit system: ActorSystem): ActorRef = {
+    import MicroserviceLink._
+    val client = system.actorOf(ClusterClient.props(Set.empty))
+    system.actorOf(Props(classOf[SendToActor], path, client))
   }
 
 }

@@ -29,7 +29,6 @@ dockerfile in docker := {
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("dockerfile/java")
-    expose(12553)
     add(artifact, artifactTargetPath)
     entryPoint("java", "-jar", artifactTargetPath)
   }

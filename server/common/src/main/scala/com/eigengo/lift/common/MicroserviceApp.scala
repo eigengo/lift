@@ -43,7 +43,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
   Thread.sleep(10000)
 
   def startup(): Unit = {
-    val hostname = InetAddress.getLocalHost.getHostName
+    val hostname = InetAddress.getLocalHost.getHostAddress
     log.info(s"Starting up microservice $microserviceName at $hostname")
 
     import scala.concurrent.duration._
@@ -58,7 +58,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     val system = ActorSystem(name, config)
     val cluster = Cluster(system)
 
-    joinCluster()
+    joinCluster(false)
 
     def startupApi(api: ExecutionContext ⇒ Route): Unit = {
       val route: Route = api(system.dispatcher)
@@ -66,46 +66,53 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
       IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 8080)
     }
 
-    def run(): Unit = {
-      // register the fact that we've joined
-      etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
-      // register shutdown callback
-      system.registerOnTermination(shutdown)
-      // boot the microservice code
-      val bootedNode = f(system)
-      bootedNode.api.foreach(startupApi)
-      // logme!
-      log.info(s"Node ${cluster.selfAddress} up")
-    }
-
-    def joinCluster(): Unit = {
+    def joinCluster(retrying: Boolean): Unit = {
       import system.dispatcher
       log.info("Joining the cluster")
       etcd.listDir(EtcdKeys.ClusterNodes, false).onComplete {
         case Success(response: EtcdListResponse) ⇒
           log.debug(s"Using etcd response: $response")
           response.node.nodes match {
-            case Some(seedNodes) if seedNodes.size > 1 ⇒
+            case Some(seedNodes) if seedNodes.size > 2 ⇒
               // At least one seed node has been retrieved from etcd
-              val nodes = seedNodes.flatMap(_.value.map(AddressFromURIString.apply)).take(2)
+              val nodes = seedNodes.flatMap(_.value).filter(cluster.selfAddress.toString.!=).map(AddressFromURIString.apply).take(2)
               log.info(s"Seeding cluster using: $nodes")
+              // register the fact that we've joined
+              etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
+              // register shutdown callback
+              if (!retrying) system.registerOnTermination(shutdown())
               // join the nodes
               cluster.joinSeedNodes(nodes)
-              // run
-              run()
+              // boot the microservice code
+              val bootedNode = f(system)
+              bootedNode.api.foreach(startupApi)
+              // logme!
+              log.info(s"Node ${cluster.selfAddress} up")
 
             case Some(_) ⇒
-              log.error(s"Failed to retrieve any viable seed nodes - retrying in $retry seconds")
-              system.scheduler.scheduleOnce(retry)(joinCluster())
+              log.warning(s"Not enough seed nodes found. Retrying in $retry")
+              // register the fact that we've joined
+              etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
+              // register shutdown callback
+              system.registerOnTermination(shutdown())
+              system.scheduler.scheduleOnce(retry)(joinCluster(true))
 
             case None ⇒
-              log.error(s"Failed to retrieve any keys for directory ${EtcdKeys.ClusterNodes} - retrying in $retry seconds")
-              system.scheduler.scheduleOnce(retry)(joinCluster())
+              log.warning(s"Failed to retrieve any keys for directory ${EtcdKeys.ClusterNodes} - retrying in $retry seconds")
+              // register the fact that we've joined
+              etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
+              // register shutdown callback
+              system.registerOnTermination(shutdown())
+              system.scheduler.scheduleOnce(retry)(joinCluster(true))
           }
 
         case Failure(_: KeyNotFoundException) ⇒
           log.info(s"Node ${cluster.selfAddress} is the first node in the cluster")
-          run()
+          // register the fact that we've joined
+          etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
+          // register shutdown callback
+          system.registerOnTermination(shutdown())
+          system.scheduler.scheduleOnce(retry)(joinCluster(true))
 
         case Failure(ex) ⇒
           log.error(s"$ex")

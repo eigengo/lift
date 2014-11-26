@@ -1,11 +1,11 @@
 package com.eigengo.lift.notification
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.contrib.pattern.ClusterClient
+import com.eigengo.lift.common.MicroserviceLink
 
-object NotificationLink {
+object NotificationLink extends MicroserviceLink {
   private[notification] val notificationName = "notification"
 
-  def notification(implicit system: ActorSystem): ActorRef = system.actorOf(ClusterClient.props(Set.empty))
+  def notification(implicit system: ActorSystem): ActorRef = clusterClientLink(notificationName)
 
 }

@@ -19,36 +19,32 @@ profile:
   image: com.eigengo/lift-profile
   ports:
     - "8080"
-  expose:
-    - "2551"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
-
-# notification:
-#   image: com.eigengo/lift-notification
-#   ports:
-#     - "8080"
-#   expose:
-#     - "2552"
-#   volumes:
-#     - /var/run/docker.sock:/var/run/docker.sock
-#   links:
-#     - cassandra:journal.lift.eigengo.com
-#     - cassandra:snapshot.lift.eigengo.com
-#     - profile:lift.eigengo.com
-
-# exercise:
-#   image: com.eigengo/lift-exercise
-#   ports:
-#     - "2551"
-#     - "12551"
-#   volumes:
-#     - /var/run/docker.sock:/var/run/docker.sock
-#   links:
-#     - profile:p
-#     - notification:n
-#     - cassandra:cs
+notification:
+  image: com.eigengo/lift-notification
+  ports:
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+    - profile:profile.cluster.lift.eigengo.com
+exercise:
+  image: com.eigengo/lift-exercise
+  ports:
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+    - profile:profile.cluster.lift.eigengo.com
+    - notification:notification.cluster.lift.eigengo.com

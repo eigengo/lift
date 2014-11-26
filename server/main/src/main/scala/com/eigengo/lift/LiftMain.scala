@@ -27,7 +27,7 @@ object LiftMain extends App {
     ports.foreach { port ⇒
       import scala.collection.JavaConverters._
       // Override the configuration of the port
-      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load())
+      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load("main.conf"))
       val firstSeedNodePort = (for {
         seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
         port ← ActorPath.fromString(seedNode).address.port
