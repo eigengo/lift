@@ -18,7 +18,7 @@ etcd:
 profile:
   image: com.eigengo/lift-profile
   ports:
-    - "8080"
+    - "8081:8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
@@ -27,8 +27,6 @@ profile:
     - etcd:etcd.lift.eigengo.com
 notification:
   image: com.eigengo/lift-notification
-  ports:
-    - "8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
@@ -39,7 +37,7 @@ notification:
 exercise:
   image: com.eigengo/lift-exercise
   ports:
-    - "8080"
+    - "8082:8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:

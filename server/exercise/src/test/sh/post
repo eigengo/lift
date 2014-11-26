@@ -1,7 +1,7 @@
 #!/bin/sh
 # register user
-PROFILE_URL="http://192.168.59.103:49255/user"
-EXERCISE_URL="http://192.168.59.103:49257/exercise"
+PROFILE_URL="http://192.168.59.103:49259/user"
+EXERCISE_URL="http://192.168.59.103:49261/exercise"
 #PROFILE_URL="http://localhost:12553/user"
 #EXERCISE_URL="http://localhost:12553/exercise"
 
