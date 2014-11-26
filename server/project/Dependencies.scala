@@ -15,8 +15,6 @@ object Dependencies {
     val testkit               = "com.typesafe.akka"      %% "akka-testkit"                  % version
   }
 
-  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
-
   object spray {
     val version = "1.3.2"
 
@@ -55,6 +53,12 @@ object Dependencies {
   // Apple push notifications
   val apns         = "com.notnoop.apns"  % "apns"         % "0.1.6"
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
+ 
+  // Datastax Cassandra Client
+  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
+
+  // Etcd Client
+  val etcd_client           = "net.nikore.etcd"    %% "scala-etcd"      % "0.7"
 
   // Testing
   val scalatest    = "org.scalatest"    %% "scalatest"    % "2.2.1"

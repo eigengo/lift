@@ -2,4 +2,4 @@ package com.eigengo.lift.exercise
 
 import com.eigengo.lift.common.MicroserviceApp
 
-object ExerciseMicroservice extends MicroserviceApp(2553)(ExerciseBoot.boot)
+object ExerciseMicroservice extends MicroserviceApp("exercise")(ExerciseBoot.boot)
