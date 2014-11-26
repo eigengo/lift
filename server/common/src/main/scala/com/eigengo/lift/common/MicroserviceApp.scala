@@ -57,6 +57,14 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // Create an Akka system
     val system = ActorSystem(name, config)
     val cluster = Cluster(system)
+    cluster.registerOnMemberUp {
+      log.info(s"*********** Node ${cluster.selfAddress} booting up")
+      // boot the microservice code
+      val bootedNode = f(system)
+      bootedNode.api.foreach(startupApi)
+      // logme!
+      log.info(s"*********** Node ${cluster.selfAddress} up")
+    }
 
     joinCluster(false)
 
@@ -75,19 +83,14 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
           response.node.nodes match {
             case Some(seedNodes) if seedNodes.size > 2 ⇒
               // At least one seed node has been retrieved from etcd
-              val nodes = seedNodes.flatMap(_.value).filter(cluster.selfAddress.toString.!=).map(AddressFromURIString.apply).take(2)
-              log.info(s"Seeding cluster using: $nodes")
+              val nodes = seedNodes.flatMap(_.value).sorted.map(AddressFromURIString.apply).take(2)
+              log.info(s"Seeding cluster using: $nodes (self ${cluster.selfAddress.toString})")
               // register the fact that we've joined
               etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
               // register shutdown callback
               if (!retrying) system.registerOnTermination(shutdown())
               // join the nodes
               cluster.joinSeedNodes(nodes)
-              // boot the microservice code
-              val bootedNode = f(system)
-              bootedNode.api.foreach(startupApi)
-              // logme!
-              log.info(s"Node ${cluster.selfAddress} up")
 
             case Some(_) ⇒
               log.warning(s"Not enough seed nodes found. Retrying in $retry")

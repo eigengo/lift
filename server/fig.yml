@@ -14,7 +14,7 @@ etcd:
   expose:
     - "4001"
   ports:
-    - "7001"
+    - "7001:7001"
 profile:
   image: com.eigengo/lift-profile
   ports:
@@ -33,7 +33,7 @@ notification:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
-    - profile:profile.cluster.lift.eigengo.com
+    - profile
 exercise:
   image: com.eigengo/lift-exercise
   ports:
@@ -44,5 +44,5 @@ exercise:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
-    - profile:profile.cluster.lift.eigengo.com
-    - notification:notification.cluster.lift.eigengo.com
+    - profile
+    - notification
