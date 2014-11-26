@@ -9,17 +9,18 @@ import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp.BootedNode
 import com.typesafe.config.ConfigFactory
 import net.nikore.etcd.EtcdClient
+import net.nikore.etcd.EtcdExceptions.KeyNotFoundException
 import net.nikore.etcd.EtcdJsonProtocol.EtcdListResponse
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route}
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Random, Success}
+import scala.util.{Failure, Success}
 
 object MicroserviceApp {
 
-  class Api(routes: Route*) extends HttpServiceActor {
-    override def receive: Receive = runRoute(routes.reduce(_ ~ _))
+  class Api(route: Route) extends HttpServiceActor {
+    override def receive: Receive = runRoute(route)
   }
 
   trait BootedNode {
@@ -34,7 +35,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     val ClusterNodes = "akka.cluster.nodes"
   }
 
-  import MicroserviceApp._
+  import com.eigengo.lift.common.MicroserviceApp._
   private val name = "Lift"
   private val log = Logger(getClass)
 
@@ -55,21 +56,31 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     log.info("Creating the microservice's ActorSystem")
     // Create an Akka system
     val system = ActorSystem(name, config)
-    import system.dispatcher
     val cluster = Cluster(system)
 
     joinCluster()
 
     def startupApi(api: ExecutionContext ⇒ Route): Unit = {
-      val restService = system.actorOf(Props(classOf[Api], api(system.dispatcher)))
+      val route: Route = api(system.dispatcher)
+      val restService = system.actorOf(Props(classOf[Api], route))
       IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 8080)
     }
 
+    def run(): Unit = {
+      // register the fact that we've joined
+      etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
+      // register shutdown callback
+      system.registerOnTermination(shutdown)
+      // boot the microservice code
+      val bootedNode = f(system)
+      bootedNode.api.foreach(startupApi)
+      // logme!
+      log.info(s"Node ${cluster.selfAddress} up")
+    }
+
     def joinCluster(): Unit = {
+      import system.dispatcher
       log.info("Joining the cluster")
-      etcd.getKey(EtcdKeys.ClusterNodes).onFailure {
-        case _ ⇒ etcd.setKey(EtcdKeys.ClusterNodes, "")
-      }
       etcd.listDir(EtcdKeys.ClusterNodes, false).onComplete {
         case Success(response: EtcdListResponse) ⇒
           log.debug(s"Using etcd response: $response")
@@ -80,15 +91,8 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
               log.info(s"Seeding cluster using: $nodes")
               // join the nodes
               cluster.joinSeedNodes(nodes)
-              // register the fact that we've joined
-              etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname", cluster.selfAddress.toString)
-              // register shutdown callback
-              system.registerOnTermination(shutdown)
-              // boot the microservice code
-              val bootedNode = f(system)
-              bootedNode.api.foreach(startupApi)
-              // logme!
-              log.info(s"Node ${cluster.selfAddress} fully up")
+              // run
+              run()
 
             case Some(_) ⇒
               log.error(s"Failed to retrieve any viable seed nodes - retrying in $retry seconds")
@@ -99,8 +103,12 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
               system.scheduler.scheduleOnce(retry)(joinCluster())
           }
 
-        case Failure(exn) ⇒
-          log.error(s"Failed to contact etcd: ${exn}")
+        case Failure(_: KeyNotFoundException) ⇒
+          log.info(s"Node ${cluster.selfAddress} is the first node in the cluster")
+          run()
+
+        case Failure(ex) ⇒
+          log.error(s"$ex")
           shutdown()
       }
     }
