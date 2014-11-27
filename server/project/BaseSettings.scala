@@ -9,8 +9,9 @@ import Keys._
  * - Scalac, Javac: warnings as errors, target JDK 1.7
  * - Fork for run
  */
-object BaseSettings {
- 
+object BaseSettings extends sbtassembly.AssemblyKeys {
+  import sbtassembly.MergeStrategy
+  
   /**
    * Common project settings
    */
@@ -32,7 +33,13 @@ object BaseSettings {
       fork := true,
       fork in test := true,
       sbtPlugin := false,
-      resolvers := ResolverSettings.resolvers
+      resolvers := ResolverSettings.resolvers,
+      assemblyMergeStrategy in assembly := {
+        case "application.conf" => MergeStrategy.concat
+        case x =>
+          val oldStrategy = (assemblyMergeStrategy in assembly).value
+          oldStrategy(x)
+      }
     ) 
 
   val projectSettings: Seq[Def.Setting[_]] =

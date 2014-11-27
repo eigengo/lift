@@ -53,10 +53,10 @@ class SessionViewController: UITableViewController, UITableViewDelegate, UITable
         
         switch(data) {
         case .ActiveCell(let tag, let bytesReceived, let bytesPerSecond):
-            cell.textLabel.text = String(format: "%0x", tag)
+            cell.textLabel!.text = String(format: "%0x", tag)
             cell.detailTextLabel!.text = String(format: "Received %d, bps: %f", bytesReceived, bytesPerSecond)
         case .EndedCell(let tag, let bytesReceived):
-            cell.textLabel.text = String(format: "%0x", tag)
+            cell.textLabel!.text = String(format: "%0x", tag)
             cell.detailTextLabel!.text = String(format: "Received %d", bytesReceived)
         }
         

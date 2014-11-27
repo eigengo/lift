@@ -1,1 +1,0 @@
-addSbtPlugin("com.eigengo" % "lift-build" % "1.0.0-SNAPSHOT")
