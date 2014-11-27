@@ -31,6 +31,17 @@
 		54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */; };
 		54D320811A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D320821A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
+		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
+		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
+		54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
+		54F780BC1A27936000E4F3C5 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BB1A27936000E4F3C5 /* Box.swift */; };
+		54F780BD1A27936000E4F3C5 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BB1A27936000E4F3C5 /* Box.swift */; };
+		54F780BF1A27937A00E4F3C5 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BE1A27937A00E4F3C5 /* Either.swift */; };
+		54F780C01A27937A00E4F3C5 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BE1A27937A00E4F3C5 /* Either.swift */; };
+		54F780C21A27938F00E4F3C5 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C11A27938F00E4F3C5 /* Result.swift */; };
+		54F780C31A27938F00E4F3C5 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C11A27938F00E4F3C5 /* Result.swift */; };
+		54F780C51A2793C300E4F3C5 /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C41A2793C300E4F3C5 /* Operators.swift */; };
+		54F780C61A2793C300E4F3C5 /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C41A2793C300E4F3C5 /* Operators.swift */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -108,6 +119,12 @@
 		54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		54D3207F1A276747002527C8 /* Alamofire.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Alamofire.h; sourceTree = "<group>"; };
 		54D320801A276747002527C8 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
+		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
+		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
+		54F780BB1A27936000E4F3C5 /* Box.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
+		54F780BE1A27937A00E4F3C5 /* Either.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
+		54F780C11A27938F00E4F3C5 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		54F780C41A2793C300E4F3C5 /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		604C4FB0BC879EB56AD28A81 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -250,8 +267,10 @@
 				547C5E1019EFBCAB00E0010B /* Pebble */,
 				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
 				543F0C761A11727000EC8BE6 /* Transport */,
+				54F780B71A278EFC00E4F3C5 /* LiftServer */,
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
+				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
 				54CC699E19C4AD8E00B29EC8 /* SessionViewController.swift */,
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
@@ -293,6 +312,18 @@
 				54D320801A276747002527C8 /* Alamofire.swift */,
 			);
 			path = Alamofire;
+			sourceTree = "<group>";
+		};
+		54F780B71A278EFC00E4F3C5 /* LiftServer */ = {
+			isa = PBXGroup;
+			children = (
+				54F780B81A278EFC00E4F3C5 /* LiftServer.swift */,
+				54F780BB1A27936000E4F3C5 /* Box.swift */,
+				54F780BE1A27937A00E4F3C5 /* Either.swift */,
+				54F780C11A27938F00E4F3C5 /* Result.swift */,
+				54F780C41A2793C300E4F3C5 /* Operators.swift */,
+			);
+			path = LiftServer;
 			sourceTree = "<group>";
 		};
 		8D64789A58A65961D3659708 /* Frameworks */ = {
@@ -510,10 +541,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54F780C01A27937A00E4F3C5 /* Either.swift in Sources */,
 				54960F111A20C03E00E980AB /* NotificationController.swift in Sources */,
+				54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */,
+				54F780BD1A27936000E4F3C5 /* Box.swift in Sources */,
 				54D320821A276747002527C8 /* Alamofire.swift in Sources */,
+				54F780C31A27938F00E4F3C5 /* Result.swift in Sources */,
 				54960F131A20C03E00E980AB /* GlanceController.swift in Sources */,
+				54F780C61A2793C300E4F3C5 /* Operators.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -522,13 +558,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */,
+				54F780C21A27938F00E4F3C5 /* Result.swift in Sources */,
+				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* SessionViewController.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
+				54F780BF1A27937A00E4F3C5 /* Either.swift in Sources */,
 				543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */,
+				54F780BC1A27936000E4F3C5 /* Box.swift in Sources */,
 				543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */,
+				54F780C51A2793C300E4F3C5 /* Operators.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */,
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
+				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
