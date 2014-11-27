@@ -18,7 +18,17 @@ etcd:
 profile:
   image: com.eigengo/lift-profile
   ports:
-    - "8081:8080"
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+profile2:
+  image: com.eigengo/lift-profile
+  ports:
+    - "8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
@@ -34,10 +44,12 @@ notification:
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
     - profile
+    - profile2
 exercise:
   image: com.eigengo/lift-exercise
   ports:
-    - "8082:8080"
+    # - "8082:8080"
+    - "8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
@@ -45,4 +57,5 @@ exercise:
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
     - profile
+    - profile2
     - notification
