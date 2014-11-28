@@ -1,5 +1,4 @@
 import Dependencies._
-import sbtdocker.ImageName
 
 Build.Settings.project
 
@@ -48,11 +47,4 @@ dockerfile in docker := {
     add(artifact, artifactTargetPath)
     entryPoint("java", "-jar", artifactTargetPath)
   }
-}
-
-imageName in docker := {
-  ImageName(
-    namespace = Some("carlpulley"),
-    repository = name.value,
-    tag = Some("v" + version.value))
 }
