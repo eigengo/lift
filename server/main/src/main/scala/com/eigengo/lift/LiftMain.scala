@@ -5,7 +5,7 @@ import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.notification.NotificaitonBoot
+import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.UserProfileBoot
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
@@ -42,7 +42,7 @@ object LiftMain extends App {
 
       // boot the microservices
       val profile = UserProfileBoot.boot(system)
-      val notificaiton = NotificaitonBoot.bootResolved(profile.userProfile)
+      val notificaiton = NotificationBoot.bootResolved(profile.userProfile)
       val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
 
       startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
