@@ -5,7 +5,7 @@ class AccountViewController : UIViewController {
     @IBOutlet var password: UITextField!
     
     private func showError(error: NSError) {
-        
+        LiftAlertController.error("Could not log in", error: error).present(self)
     }
     
     private func showAccount(user: User) {
