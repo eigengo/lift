@@ -59,7 +59,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // Register cluster MemberUp callback
     cluster.registerOnMemberUp {
       log.info(s"*********** Node ${cluster.selfAddress} booting up")
-      etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname.state", "MemberUp")
+      etcd.setKey(s"${EtcdKeys.ClusterNodes}/${cluster.selfAddress}", "MemberUp")
       // boot the microservice code
       val bootedNode = f(system)
       bootedNode.api.foreach(startupApi)
@@ -69,7 +69,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // register shutdown callback
     system.registerOnTermination(shutdown())
     // register this (cluster) actor system with etcd
-    etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname.address", cluster.selfAddress.toString)
+    etcd.setKey(s"${EtcdKeys.ClusterNodes}/${cluster.selfAddress}", "Joining")
 
     joinCluster()
 
@@ -89,36 +89,23 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
         cluster.join(cluster.selfAddress)
       } else {
         // We are not an initial seed node, so we need to fetch cluster nodes for seeding
-        etcd.listDir(EtcdKeys.ClusterNodes, recursive = true).onComplete {
+        etcd.listDir(EtcdKeys.ClusterNodes, recursive = false).onComplete {
           case Success(response: EtcdListResponse) ⇒
             log.debug(s"Using etcd response: $response")
             response.node.nodes match {
               // We are only interested in actor systems which have registered and recorded themselves as up
               case Some(systemNodes)
-                if systemNodes.filter(_.key.endsWith(".state")).filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/$hostname.state").filter(_.value == Some("MemberUp")).nonEmpty => {
+                if systemNodes.filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${cluster.selfAddress}").filter(_.value == Some("MemberUp")).nonEmpty => {
 
-                // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate cluster seed nodes
-                val nodes: Map[String, Address] =
+                // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate up cluster seed nodes
+                val seedNodes =
                   systemNodes
-                    .filter(_.key.endsWith(".address"))
-                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/$hostname.address")
-                    .flatMap(n => n.value.map(addr => (n.key.stripSuffix(".address"), AddressFromURIString(addr))))
-                    .toMap
-                val upNodes: List[String] =
-                  systemNodes
-                    .filter(_.key.endsWith(".state"))
-                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/$hostname.state")
+                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${cluster.selfAddress}")
                     .filter(_.value == Some("MemberUp"))
-                    .map(_.key.stripSuffix(".state"))
+                    .map(n => AddressFromURIString(n.key.stripPrefix(s"/${EtcdKeys.ClusterNodes}/")))
 
-                if (nodes.filterKeys(upNodes.contains).nonEmpty) {
-                  val seedNodes = nodes.filterKeys(upNodes.contains).values.toList
-                  log.info(s"Joining our cluster using the seed nodes: $seedNodes")
-                  cluster.joinSeedNodes(seedNodes)
-                } else {
-                  log.info(s"Failed to retrieve any viable seed nodes - retrying in $retry seconds")
-                  system.scheduler.scheduleOnce(retry)(joinCluster())
-                }
+                log.info(s"Joining our cluster using the seed nodes: $seedNodes")
+                cluster.joinSeedNodes(seedNodes)
               }
 
               case Some(_) ⇒
@@ -139,8 +126,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
 
     def shutdown(): Unit = {
       // We first ensure that we de-register and leave the cluster!
-      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/$hostname.address")
-      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/$hostname.state")
+      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/${cluster.selfAddress}")
       cluster.leave(cluster.selfAddress)
       system.shutdown()
     }
