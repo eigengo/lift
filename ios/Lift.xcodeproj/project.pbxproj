@@ -10,6 +10,7 @@
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
 		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
+		54306B701A2A2AD6005D6BC9 /* NewSessionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionViewController.swift */; };
 		543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C771A11727000EC8BE6 /* LocalRecorder.swift */; };
 		543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C781A11727000EC8BE6 /* PERecorder.swift */; };
 		543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */; };
@@ -94,6 +95,7 @@
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
 		54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftViewController.swift; sourceTree = "<group>"; };
+		54306B6F1A2A2AD6005D6BC9 /* NewSessionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionViewController.swift; sourceTree = "<group>"; };
 		543F0C771A11727000EC8BE6 /* LocalRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalRecorder.swift; sourceTree = "<group>"; };
 		543F0C781A11727000EC8BE6 /* PERecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PERecorder.swift; sourceTree = "<group>"; };
 		543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedRecorder.swift; sourceTree = "<group>"; };
@@ -286,6 +288,7 @@
 				54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */,
 				54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */,
 				54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */,
+				54306B6F1A2A2AD6005D6BC9 /* NewSessionViewController.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -585,6 +588,7 @@
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
+				54306B701A2A2AD6005D6BC9 /* NewSessionViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
