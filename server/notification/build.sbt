@@ -1,5 +1,4 @@
 import Dependencies._
-import sbtdocker.ImageName
 
 Build.Settings.project
 
@@ -28,15 +27,8 @@ dockerfile in docker := {
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("dockerfile/java")
-    //add(new File(s"${Path.userHome.absolutePath}/.ios"), "/root/.ios")
+    add(new File(s"${Path.userHome.absolutePath}/.ios"), "/root/.ios")
     add(artifact, artifactTargetPath)
     entryPoint("java", "-jar", artifactTargetPath)
   }
-}
-
-imageName in docker := {
-  ImageName(
-    namespace = Some("carlpulley"),
-    repository = name.value,
-    tag = Some("v" + version.value))
 }
