@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
+		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
 		543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C771A11727000EC8BE6 /* LocalRecorder.swift */; };
 		543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C781A11727000EC8BE6 /* PERecorder.swift */; };
 		543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */; };
@@ -43,7 +44,6 @@
 		54F780C51A2793C300E4F3C5 /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C41A2793C300E4F3C5 /* Operators.swift */; };
 		54F780C61A2793C300E4F3C5 /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C41A2793C300E4F3C5 /* Operators.swift */; };
 		54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
-		54F780D41A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
 		54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
 		54F780DA1A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
@@ -93,6 +93,7 @@
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
+		54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftViewController.swift; sourceTree = "<group>"; };
 		543F0C771A11727000EC8BE6 /* LocalRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalRecorder.swift; sourceTree = "<group>"; };
 		543F0C781A11727000EC8BE6 /* PERecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PERecorder.swift; sourceTree = "<group>"; };
 		543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedRecorder.swift; sourceTree = "<group>"; };
@@ -284,6 +285,7 @@
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
 				54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */,
 				54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */,
+				54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -556,7 +558,6 @@
 				54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */,
 				54F780BD1A27936000E4F3C5 /* Box.swift in Sources */,
-				54F780D41A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */,
 				54D320821A276747002527C8 /* Alamofire.swift in Sources */,
 				54F780C31A27938F00E4F3C5 /* Result.swift in Sources */,
 				54960F131A20C03E00E980AB /* GlanceController.swift in Sources */,
@@ -582,6 +583,7 @@
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */,
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
+				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -14,11 +14,11 @@
 		<string>github.com:eigengo/lift.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>Lift.xcodeproj</string>
+	<string>ios/Lift.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>E167262D3C2F7F4C8100F9CF636732E23A033DB9</key>
-		<string>../..</string>
+		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>github.com:eigengo/lift.git</string>
