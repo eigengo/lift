@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		54155B461A2A37D1002222E3 /* PebbleConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54155B451A2A37D1002222E3 /* PebbleConnector.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
 		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
@@ -90,6 +91,7 @@
 
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		54155B451A2A37D1002222E3 /* PebbleConnector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleConnector.swift; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 			isa = PBXGroup;
 			children = (
 				5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */,
+				54155B451A2A37D1002222E3 /* PebbleConnector.swift */,
 			);
 			name = Pebble;
 			sourceTree = "<group>";
@@ -573,6 +576,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */,
+				54155B461A2A37D1002222E3 /* PebbleConnector.swift in Sources */,
 				543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */,
 				54F780C21A27938F00E4F3C5 /* Result.swift in Sources */,
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,

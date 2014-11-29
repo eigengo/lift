@@ -17,6 +17,8 @@ public class LiftServer {
         return Singleton.instance
     }
     
+    var deviceToken: NSData?
+    
     func login(username: String, password: String) -> Result<User> {
         return Result.value(User(uuid: NSUUID()))
     }

@@ -33,10 +33,6 @@ class SessionViewController: UITableViewController, UITableViewDelegate, UITable
         receiver.delegate = self
     }
     
-    @IBAction func poll(AnyObject) {
-        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
-    }
-
     // #pragma mark - UITableViewDataSource
     
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
