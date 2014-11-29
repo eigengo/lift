@@ -56,22 +56,31 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // Create an Akka system
     val system = ActorSystem(name, config)
     val cluster = Cluster(system)
-    // Register cluster MemberUp callback
-    cluster.registerOnMemberUp {
-      log.info(s"*********** Node ${cluster.selfAddress} booting up")
-      etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "MemberUp")
-      // boot the microservice code
-      val bootedNode = f(system)
-      bootedNode.api.foreach(startupApi)
-      // logme!
-      log.info(s"*********** Node ${cluster.selfAddress} up")
-    }
+
+    import system.dispatcher
+
     // register shutdown callback
     system.registerOnTermination(shutdown())
-    // register this (cluster) actor system with etcd
-    etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "Joining")
 
-    joinCluster()
+    // register this (cluster) actor system with etcd
+    etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "Joining").onComplete {
+      case Success(_) =>
+        // Register cluster MemberUp callback
+        cluster.registerOnMemberUp {
+          log.info(s"*********** Node ${cluster.selfAddress} booting up")
+          etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "MemberUp")
+          // boot the microservice code
+          val bootedNode = f(system)
+          bootedNode.api.foreach(startupApi)
+          // logme!
+          log.info(s"*********** Node ${cluster.selfAddress} up")
+        }
+        joinCluster()
+
+      case Failure(exn) =>
+        log.error(s"Failed to set state to 'Joining' with etcd: $exn")
+        shutdown()
+    }
 
     def startupApi(api: ExecutionContext ⇒ Route): Unit = {
       val route: Route = api(system.dispatcher)
@@ -80,8 +89,6 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     }
 
     def joinCluster(): Unit = {
-      import system.dispatcher
-
       log.info("Joining the cluster")
 
       if (cluster.selfRoles.contains("initial-seed")) {
