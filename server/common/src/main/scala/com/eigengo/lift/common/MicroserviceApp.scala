@@ -59,7 +59,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // Register cluster MemberUp callback
     cluster.registerOnMemberUp {
       log.info(s"*********** Node ${cluster.selfAddress} booting up")
-      etcd.setKey(s"${EtcdKeys.ClusterNodes}/${cluster.selfAddress}", "MemberUp")
+      etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "MemberUp")
       // boot the microservice code
       val bootedNode = f(system)
       bootedNode.api.foreach(startupApi)
@@ -69,7 +69,7 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // register shutdown callback
     system.registerOnTermination(shutdown())
     // register this (cluster) actor system with etcd
-    etcd.setKey(s"${EtcdKeys.ClusterNodes}/${cluster.selfAddress}", "Joining")
+    etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "Joining")
 
     joinCluster()
 
@@ -95,14 +95,14 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
             response.node.nodes match {
               // We are only interested in actor systems which have registered and recorded themselves as up
               case Some(systemNodes)
-                if systemNodes.filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${cluster.selfAddress}").filter(_.value == Some("MemberUp")).nonEmpty => {
+                if systemNodes.filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${clusterAddressKey()}").filter(_.value == Some("MemberUp")).nonEmpty => {
 
                 // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate up cluster seed nodes
                 val seedNodes =
                   systemNodes
-                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${cluster.selfAddress}")
+                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${clusterAddressKey()}")
                     .filter(_.value == Some("MemberUp"))
-                    .map(n => AddressFromURIString(n.key.stripPrefix(s"/${EtcdKeys.ClusterNodes}/")))
+                    .map(n => clusterAddress(n.key.stripPrefix(s"/${EtcdKeys.ClusterNodes}/")))
 
                 log.info(s"Joining our cluster using the seed nodes: $seedNodes")
                 cluster.joinSeedNodes(seedNodes)
@@ -124,9 +124,17 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
       }
     }
 
+    def clusterAddressKey(): String = {
+      s"${cluster.selfAddress.host.getOrElse("")}:${cluster.selfAddress.port.getOrElse(0)}"
+    }
+
+    def clusterAddress(key: String): Address = {
+      AddressFromURIString(s"akka.tcp://$name@$key")
+    }
+
     def shutdown(): Unit = {
       // We first ensure that we de-register and leave the cluster!
-      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/${cluster.selfAddress}")
+      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}")
       cluster.leave(cluster.selfAddress)
       system.shutdown()
     }
