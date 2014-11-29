@@ -2,15 +2,19 @@ import UIKit
 
 class LiftAlertController: UIViewController {
     var messageText: String?
+    var imageNames: [String]?
 
     class func error(message: String, error: NSError) -> LiftAlertController {
         let ctrl = LiftAlertController(nibName: "LiftAlertController", bundle: nil)
         ctrl.messageText = message
-        ctrl.setBackgroundImage("Error")
+        ctrl.imageNames = ["Error"]
         return ctrl
     }
     
-    override func viewDidLoad() {
+    override func viewDidLayoutSubviews() {
+        if (imageNames != nil) {
+            setBackgroundImage(imageNames!)
+        }
         self.message.text = messageText
     }
     
