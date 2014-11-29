@@ -38,9 +38,6 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
   private val name = "Lift"
   private val log = Logger(getClass)
 
-  // HACK: Wait for Cassandra startup.
-  Thread.sleep(10000)
-
   def startup(): Unit = {
     val hostname = InetAddress.getLocalHost.getHostAddress
     log.info(s"Starting up microservice $microserviceName at $hostname")
@@ -56,22 +53,31 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     // Create an Akka system
     val system = ActorSystem(name, config)
     val cluster = Cluster(system)
-    // Register cluster MemberUp callback
-    cluster.registerOnMemberUp {
-      log.info(s"*********** Node ${cluster.selfAddress} booting up")
-      etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname.state", "MemberUp")
-      // boot the microservice code
-      val bootedNode = f(system)
-      bootedNode.api.foreach(startupApi)
-      // logme!
-      log.info(s"*********** Node ${cluster.selfAddress} up")
-    }
+
+    import system.dispatcher
+
     // register shutdown callback
     system.registerOnTermination(shutdown())
-    // register this (cluster) actor system with etcd
-    etcd.setKey(s"${EtcdKeys.ClusterNodes}/$hostname.address", cluster.selfAddress.toString)
 
-    joinCluster()
+    // register this (cluster) actor system with etcd
+    etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "Joining").onComplete {
+      case Success(_) =>
+        // Register cluster MemberUp callback
+        cluster.registerOnMemberUp {
+          log.info(s"*********** Node ${cluster.selfAddress} booting up")
+          etcd.setKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}", "MemberUp")
+          // boot the microservice code
+          val bootedNode = f(system)
+          bootedNode.api.foreach(startupApi)
+          // logme!
+          log.info(s"*********** Node ${cluster.selfAddress} up")
+        }
+        joinCluster()
+
+      case Failure(exn) =>
+        log.error(s"Failed to set state to 'Joining' with etcd: $exn")
+        shutdown()
+    }
 
     def startupApi(api: ExecutionContext ⇒ Route): Unit = {
       val route: Route = api(system.dispatcher)
@@ -80,8 +86,6 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     }
 
     def joinCluster(): Unit = {
-      import system.dispatcher
-
       log.info("Joining the cluster")
 
       if (cluster.selfRoles.contains("initial-seed")) {
@@ -89,36 +93,23 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
         cluster.join(cluster.selfAddress)
       } else {
         // We are not an initial seed node, so we need to fetch cluster nodes for seeding
-        etcd.listDir(EtcdKeys.ClusterNodes, recursive = true).onComplete {
+        etcd.listDir(EtcdKeys.ClusterNodes, recursive = false).onComplete {
           case Success(response: EtcdListResponse) ⇒
             log.debug(s"Using etcd response: $response")
             response.node.nodes match {
               // We are only interested in actor systems which have registered and recorded themselves as up
               case Some(systemNodes)
-                if systemNodes.filter(_.key.endsWith(".state")).filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/$hostname.state").filter(_.value == Some("MemberUp")).nonEmpty => {
+                if systemNodes.filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${clusterAddressKey()}").filter(_.value == Some("MemberUp")).nonEmpty => {
 
-                // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate cluster seed nodes
-                val nodes: Map[String, Address] =
+                // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate up cluster seed nodes
+                val seedNodes =
                   systemNodes
-                    .filter(_.key.endsWith(".address"))
-                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/$hostname.address")
-                    .flatMap(n => n.value.map(addr => (n.key.stripSuffix(".address"), AddressFromURIString(addr))))
-                    .toMap
-                val upNodes: List[String] =
-                  systemNodes
-                    .filter(_.key.endsWith(".state"))
-                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/$hostname.state")
+                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${clusterAddressKey()}")
                     .filter(_.value == Some("MemberUp"))
-                    .map(_.key.stripSuffix(".state"))
+                    .map(n => clusterAddress(n.key.stripPrefix(s"/${EtcdKeys.ClusterNodes}/")))
 
-                if (nodes.filterKeys(upNodes.contains).nonEmpty) {
-                  val seedNodes = nodes.filterKeys(upNodes.contains).values.toList
-                  log.info(s"Joining our cluster using the seed nodes: $seedNodes")
-                  cluster.joinSeedNodes(seedNodes)
-                } else {
-                  log.info(s"Failed to retrieve any viable seed nodes - retrying in $retry seconds")
-                  system.scheduler.scheduleOnce(retry)(joinCluster())
-                }
+                log.info(s"Joining our cluster using the seed nodes: $seedNodes")
+                cluster.joinSeedNodes(seedNodes)
               }
 
               case Some(_) ⇒
@@ -137,10 +128,17 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
       }
     }
 
+    def clusterAddressKey(): String = {
+      s"${cluster.selfAddress.host.getOrElse("")}:${cluster.selfAddress.port.getOrElse(0)}"
+    }
+
+    def clusterAddress(key: String): Address = {
+      AddressFromURIString(s"akka.tcp://$name@$key")
+    }
+
     def shutdown(): Unit = {
       // We first ensure that we de-register and leave the cluster!
-      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/$hostname.address")
-      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/$hostname.state")
+      etcd.deleteKey(s"${EtcdKeys.ClusterNodes}/${clusterAddressKey()}")
       cluster.leave(cluster.selfAddress)
       system.shutdown()
     }
