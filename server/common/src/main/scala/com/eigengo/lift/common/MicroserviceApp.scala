@@ -38,9 +38,6 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
   private val name = "Lift"
   private val log = Logger(getClass)
 
-  // HACK: Wait for Cassandra startup.
-  Thread.sleep(10000)
-
   def startup(): Unit = {
     val hostname = InetAddress.getLocalHost.getHostAddress
     log.info(s"Starting up microservice $microserviceName at $hostname")
