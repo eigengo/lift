@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate, 
         
         return true
     }
-
+    
     func launchLiftPebbleApp(watch: PBWatch!) {
         watch.appMessagesLaunch({ (watch: PBWatch!, error: NSError!) -> Void in
             if (error != nil) {

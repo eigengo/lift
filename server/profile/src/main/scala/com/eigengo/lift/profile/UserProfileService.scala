@@ -3,7 +3,7 @@ package com.eigengo.lift.profile
 import akka.actor.ActorRef
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
 import com.eigengo.lift.profile.UserProfileProcessor.UserRegister
-import com.eigengo.lift.profile.UserProfileProtocol.{AndroidUserDevice, IOSUserDevice, UserSetDevice, UserDevice}
+import com.eigengo.lift.profile.UserProfileProtocol._
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -17,6 +17,13 @@ trait UserProfileService extends Directives with CommonMarshallers with CommonPa
       post {
         handleWith { register: UserRegister ⇒
           (userProfileProcessor ? register).map(_.toString)
+        }
+      }
+    } ~
+    path("user" / UserIdValue) { userId ⇒
+      get {
+        complete {
+          (userProfile ? UserGetProfile(userId)).map(_.toString)
         }
       }
     } ~

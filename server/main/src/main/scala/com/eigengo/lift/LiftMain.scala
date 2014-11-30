@@ -5,7 +5,7 @@ import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.notification.NotificaitonBoot
+import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.UserProfileBoot
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
@@ -27,7 +27,7 @@ object LiftMain extends App {
     ports.foreach { port ⇒
       import scala.collection.JavaConverters._
       // Override the configuration of the port
-      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load())
+      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load("main.conf"))
       val firstSeedNodePort = (for {
         seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
         port ← ActorPath.fromString(seedNode).address.port
@@ -41,11 +41,11 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      val profile = UserProfileBoot.boot
-      val notificaiton = NotificaitonBoot.boot(profile.userProfile)
-      val exercise = ExerciseBoot.boot(notificaiton.notification)
+      val profile = UserProfileBoot.boot(system)
+      val notificaiton = NotificationBoot.bootResolved(profile.userProfile)
+      val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
 
-      startupHttpService(system, port, exercise.route, profile.route)
+      startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }
 
     def startupHttpService(system: ActorSystem, port: Int, routes: Route*): Unit = {
