@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
 )
 
 import DockerKeys._
+import sbtdocker.ImageName
 import sbtdocker.mutable.Dockerfile
 
 dockerSettings
@@ -31,4 +32,11 @@ dockerfile in docker := {
     add(artifact, artifactTargetPath)
     entryPoint("java", "-jar", artifactTargetPath)
   }
+}
+
+imageName in docker := {
+  ImageName(
+    namespace = Some("janm399"),
+    repository = "lift",
+    tag = Some(name.value))
 }

@@ -14,7 +14,7 @@ object Build {
     
     val project = Defaults.defaultConfigs ++ Defaults.itSettings ++
         BaseSettings.baseSettings ++ BaseSettings.projectSettings ++
-        PublishSettings.publishSettings ++
+        PublishSettings.publishSettings ++ 
         Classpaths.ivyPublishSettings ++ Classpaths.jvmPublishSettings
   }
 

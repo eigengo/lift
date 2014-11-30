@@ -1,0 +1,46 @@
+[Unit]
+After=install-lift-%p.service
+After=akka-cluster-nodes.service
+After=docker.service
+After=weave.service
+Description=<%= @description %>
+Requires=install-lift-%p.service
+Requires=akka-cluster-nodes.service
+Requires=docker.service
+Requires=weave.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+KillMode=none
+
+# Read the local environment (needed to to get COREOS_PRIVATE_IPV4)
+EnvironmentFile=/etc/environment
+Environment="ROLES="
+EnvironmentFile=-/etc/%p-%i.env
+
+# Ensure our etcd registry is present
+ExecStartPre=-/usr/bin/etcdctl mkdir /akka.cluster.nodes
+
+# Remove old docker containers with the same name if they exist
+ExecStartPre=-/usr/bin/docker kill %p-%i
+ExecStartPre=-/usr/bin/docker rm %p-%i
+
+# Start the docker container with weave networking (we pass in the etcd URL via the environment)
+# NOTE: we need to use an IP address here as Akka will otherwise map the DNS name to the wrong NIC address!
+ExecStartPre=/bin/sh -c '\
+  CASSANDRA=`/usr/bin/etcdctl ls /cassandra`; \
+  /usr/bin/sudo /opt/bin/weave run <%= @ip_address %>/16 --name %p-%i -h %p-%i.weave.local \
+    -e "APP_ADDR=<%= @ip_address %>" \
+    -e "ETCD_URL=http://${COREOS_PRIVATE_IPV4}:4001" \
+    -e "JOURNAL=${CASSANDRA}" \
+    -e "ROLES=${ROLES}" \
+    -e "SNAPSHOT=${CASSANDRA}" \
+    <%= @image %> '
+ExecStart=/usr/bin/docker attach %p-%i
+
+# When stopped, stop the docker container
+ExecStop=/usr/bin/docker stop %p-%i
+
+[X-Fleet]
+<%= @affinity_rules %>

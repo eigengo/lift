@@ -1,0 +1,5 @@
+#!/bin/sh
+
+INSTANCE=1,2 CLOUD_CONFIG=lift-cluster METADATA="type=lift" vagrant up
+INSTANCE=3 CLOUD_CONFIG=cassandra METADATA="type=cassandra" vagrant up
+

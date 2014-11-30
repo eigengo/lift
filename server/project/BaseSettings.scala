@@ -1,4 +1,3 @@
-import net.virtualvoid.sbt.graph.Plugin._
 import sbt._
 import Keys._
 
@@ -11,12 +10,15 @@ import Keys._
  */
 object BaseSettings extends sbtassembly.AssemblyKeys {
   import sbtassembly.MergeStrategy
-  
+  import sbtdocker._
+  import net.virtualvoid.sbt.graph.Plugin._
+  import sbtdocker.Plugin.DockerKeys._
+
   /**
    * Common project settings
    */
   val baseSettings: Seq[Def.Setting[_]] =
-    graphSettings ++
+    graphSettings ++ 
     Seq(
       organization := "com.eigengo",
       scalaVersion := "2.11.4",

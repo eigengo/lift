@@ -1,0 +1,31 @@
+<%= ERB.new(File.read("cloud-config/default.erb"), 0, "<>", '_default').result(binding) %>
+
+# Cloud config data for creating Akka compute nodes (no Weave DNS service is launched here!)
+#   - downloads application Docker image
+#   - tags compute node with metadata
+#   - associates host ID with initial cluster seed node
+
+coreos:
+  units:
+    - name: install-app.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Hello World Docker image
+        Requires=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        EnvironmentFile=/etc/docker.login
+        
+        # Login and download our Akka container image from the Docker repository
+        ExecStartPre=/usr/bin/docker login -u "${USERNAME}" -p "${PASSWORD}" -e "${EMAIL}"
+        ExecStartPre=/usr/bin/docker pull carlpulley/coreos-application
+        ExecStart=/bin/echo Docker Image Installed
+        
+        [X-Fleet]
+        # Only download on akka deployment nodes
+        MachineMetadata=type=akka

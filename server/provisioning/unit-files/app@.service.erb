@@ -1,0 +1,40 @@
+[Unit]
+After=install-%p.service
+After=akka-cluster-nodes.service
+After=docker.service
+After=weave.service
+Description=CoreOS Akka Cluster Application
+Requires=install-%p.service
+Requires=akka-cluster-nodes.service
+Requires=docker.service
+Requires=weave.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+KillMode=none
+
+# Read the local environment (needed to to get COREOS_PRIVATE_IPV4)
+EnvironmentFile=/etc/environment
+EnvironmentFile=-/etc/%p-%i.env
+
+# Remove old docker containers with the same name if they exist
+ExecStartPre=-/usr/bin/docker kill %p-%i
+ExecStartPre=-/usr/bin/docker rm %p-%i
+
+# Start the docker container with weave networking (we pass in the etcd URL via the environment)
+# NOTE: we need to use an IP address here as Akka will otherwise map the DNS name to the wrong NIC address!
+ExecStartPre=/usr/bin/sudo /opt/bin/weave run 10.42.42.%i/16 --name %p-%i -h %p-%i.weave.local \
+  -e "ROLES=${ROLES}" \
+  -e "APP_ADDR=10.42.42.%i" \
+  -e "ETCD_URL=http://${COREOS_PRIVATE_IPV4}:4001" \
+  carlpulley/coreos-application:v0.1.0-SNAPSHOT
+ExecStart=/usr/bin/docker attach %p-%i
+
+# When stopped, stop the docker container
+ExecStop=/usr/bin/docker stop %p-%i
+
+[X-Fleet]
+# Don't run two Akka cluster applications on the same host
+MachineMetadata=type=akka
+Conflicts=%p@*.service
