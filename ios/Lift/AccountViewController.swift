@@ -14,11 +14,11 @@ class AccountViewController : UIViewController {
     
     @IBAction
     func login(sender: UIButton) {
-        LiftServer.sharedInstance.login(username.text, password: password.text).cata(showError, showAccount)
+        LiftServer.sharedInstance.login(username.text, password: password.text) { $0.cata(self.showError, self.showAccount) }
     }
     
     @IBAction
     func register(sender: UIButton) {
-        LiftServer.sharedInstance.register(username.text, password: password.text) { r in r.cata(self.showError, self.showAccount) }
+        LiftServer.sharedInstance.register(username.text, password: password.text) { $0.cata(self.showError, self.showAccount) }
     }
 }
