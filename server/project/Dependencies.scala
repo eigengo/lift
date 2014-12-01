@@ -8,9 +8,11 @@ object Dependencies {
     // Core Akka
     val actor                 = "com.typesafe.akka"      %% "akka-actor"                    % version
     val cluster               = "com.typesafe.akka"      %% "akka-cluster"                  % version
-    val contrib               = "com.typesafe.akka"      %% "akka-contrib"                  % version
-    val persistence           = "com.typesafe.akka"      %% "akka-persistence-experimental" % version
-    val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4"
+    val contrib               = "com.typesafe.akka"      %% "akka-contrib"                  % version intransitive()
+    val persistence           = "com.typesafe.akka"      %% "akka-persistence-experimental" % version intransitive()
+    val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4" intransitive()
+
+    val leveldb               = "org.iq80.leveldb"        % "leveldb"                       % "0.7"
     
     val testkit               = "com.typesafe.akka"      %% "akka-testkit"                  % version
   }
@@ -30,15 +32,6 @@ object Dependencies {
     val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
   }
 
-  object spark {
-    val version = "1.3.0-SNAPSHOT"
-
-    val core = "org.apache.spark" %% "spark-core" % version
-    val streaming = "org.apache.spark" %% "spark-streaming" % version
-    val streaming_kafka = "org.apache.spark" %% "spark-streaming-kafka" % version
-    val mllib = "org.apache.spark" %% "spark-mllib" % version
-  }
-
   object scalaz {
     val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
   }
@@ -55,7 +48,7 @@ object Dependencies {
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
  
   // Datastax Cassandra Client
-  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
+  // val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
 
   // Etcd Client
   val etcd_client           = "net.nikore.etcd"    %% "scala-etcd"      % "0.7"

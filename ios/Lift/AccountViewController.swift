@@ -19,6 +19,6 @@ class AccountViewController : UIViewController {
     
     @IBAction
     func register(sender: UIButton) {
-        LiftServer.sharedInstance.register(username.text, password: password.text).cata(showError, showAccount)
+        LiftServer.sharedInstance.register(username.text, password: password.text) { r in r.cata(self.showError, self.showAccount) }
     }
 }

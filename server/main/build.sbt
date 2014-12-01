@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   akka.contrib,
   akka.persistence,
   akka.persistence_cassandra,
+  akka.leveldb,
   // For REST API
   spray.httpx,
   spray.can,

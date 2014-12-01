@@ -11,7 +11,6 @@ libraryDependencies ++= Seq(
   spray.routing,
   scalaz.core,
   akka.persistence_cassandra,
-  cassandra_driver,
   akka.testkit % "test",
   spray.testkit % "test"
 )
