@@ -52,11 +52,6 @@ object UserProfile {
   private case object GetProfile
 
   /**
-   * Moves self to registered
-   */
-  private case object Registered
-
-  /**
    * Get all devices
    */
   private case object GetDevices
@@ -74,12 +69,12 @@ class UserProfile extends PersistentActor with AutoPassivation {
 
   override def persistenceId: String = s"user-profile-${self.path.name}"
 
-  override val passivationTimeout: Duration = 600.seconds
+  override val passivationTimeout: Duration = 10.seconds
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Profile) ⇒
       profile = offeredSnapshot
-      self ! Registered
+      context.become(registered)
   }
 
   override def receiveCommand: Receive = notRegistered
@@ -87,8 +82,6 @@ class UserProfile extends PersistentActor with AutoPassivation {
   private def notRegistered: Receive = withPassivation {
     case a: Account ⇒
       profile = Profile(a, UserDevices.empty)
-      self ! Registered
-    case Registered ⇒
       context.become(registered)
   }
 

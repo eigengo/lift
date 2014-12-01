@@ -42,7 +42,6 @@ object UserProfileProcessor {
 }
 
 class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
-
   private var knownAccounts: Map[String, UserId] = Map.empty
 
   private def digestPassword(password: String, salt: String): Array[Byte] = {
