@@ -88,43 +88,37 @@ abstract class MicroserviceApp(microserviceName: String)(f: ActorSystem ⇒ Boot
     def joinCluster(): Unit = {
       log.info("Joining the cluster")
 
-      if (cluster.selfRoles.contains("initial-seed")) {
-        // We are an initial seed node, so we only need to join our own cluster
-        cluster.join(cluster.selfAddress)
-      } else {
-        // We are not an initial seed node, so we need to fetch cluster nodes for seeding
-        etcd.listDir(EtcdKeys.ClusterNodes, recursive = false).onComplete {
-          case Success(response: EtcdListResponse) ⇒
-            log.debug(s"Using etcd response: $response")
-            response.node.nodes match {
-              // We are only interested in actor systems which have registered and recorded themselves as up
-              case Some(systemNodes)
-                if systemNodes.filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${clusterAddressKey()}").filter(_.value == Some("MemberUp")).nonEmpty => {
+      // Fetch, from etcd, cluster nodes for seeding
+      etcd.listDir(EtcdKeys.ClusterNodes, recursive = false).onComplete {
+        case Success(response: EtcdListResponse) ⇒
+          log.debug(s"Using etcd response: $response")
+          response.node.nodes match {
+            // Have any actor systems registered and recorded themselves as up?
+            case Some(systemNodes)
+              if systemNodes.filter(_.value == Some("MemberUp")).nonEmpty => {
 
-                // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate up cluster seed nodes
-                val seedNodes =
-                  systemNodes
-                    .filterNot(_.key == s"/${EtcdKeys.ClusterNodes}/${clusterAddressKey()}")
-                    .filter(_.value == Some("MemberUp"))
-                    .map(n => clusterAddress(n.key.stripPrefix(s"/${EtcdKeys.ClusterNodes}/")))
+              // At least one actor system address has been retrieved from etcd - we now need to check their respective etcd states and locate up cluster seed nodes
+              val seedNodes =
+                systemNodes
+                  .filter(_.value == Some("MemberUp"))
+                  .map(n => clusterAddress(n.key.stripPrefix(s"/${EtcdKeys.ClusterNodes}/")))
 
-                log.info(s"Joining our cluster using the seed nodes: $seedNodes")
-                cluster.joinSeedNodes(seedNodes)
-              }
-
-              case Some(_) ⇒
-                log.warning(s"Not enough seed nodes found. Retrying in $retry")
-                system.scheduler.scheduleOnce(retry)(joinCluster())
-
-              case None ⇒
-                log.warning(s"Failed to retrieve any keys for directory ${EtcdKeys.ClusterNodes} - retrying in $retry seconds")
-                system.scheduler.scheduleOnce(retry)(joinCluster())
+              log.info(s"Joining our cluster using the seed nodes: $seedNodes")
+              cluster.joinSeedNodes(seedNodes)
             }
 
-          case Failure(ex) ⇒
-            log.error(s"$ex")
-            shutdown()
-        }
+            case Some(_) ⇒
+              log.warning(s"Not enough seed nodes found. Retrying in $retry")
+              system.scheduler.scheduleOnce(retry)(joinCluster())
+
+            case None ⇒
+              log.warning(s"Failed to retrieve any keys for directory ${EtcdKeys.ClusterNodes} - retrying in $retry seconds")
+              system.scheduler.scheduleOnce(retry)(joinCluster())
+          }
+
+        case Failure(ex) ⇒
+          log.error(s"$ex")
+          shutdown()
       }
     }
 
