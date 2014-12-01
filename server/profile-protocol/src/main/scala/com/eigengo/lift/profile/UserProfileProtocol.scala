@@ -53,13 +53,6 @@ object UserProfileProtocol {
   case class UserGetProfile(userId: UserId)
 
   /**
-   * Add or update a device in the user's profile
-   * @param userId the user identity
-   * @param device the device to be added
-   */
-  case class UserSetDevice(userId: UserId, device: UserDevice)
-
-  /**
    * Gets the user's devices
    * @param userId the user identity
    */

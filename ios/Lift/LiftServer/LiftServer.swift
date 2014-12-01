@@ -1,7 +1,7 @@
 import Foundation
 
 struct User {
-    var uuid: NSUUID
+    var id: NSUUID
 }
 
 ///
@@ -95,7 +95,31 @@ enum LiftServerURLs : LiftServerRequestConvertible {
 }
 
 ///
-/// Lift server connection 
+/// Adds the response negotiation
+///
+extension Request {
+    
+    public func responseAsResutlt<A, U>(f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
+        responseSwiftyJSON { (_, response, json, error) -> Void in
+            if error != nil {
+                f(Result.error(error!))
+            } else if response != nil {
+                if response!.statusCode != 200 {
+                    let userInfo = [NSLocalizedDescriptionKey : json.stringValue]
+                    let err = NSError(domain: "com.eigengo.lift", code: response!.statusCode, userInfo: userInfo)
+                    f(Result.error(err))
+                } else {
+                    let val = completionHandler(json)
+                    f(Result.value(val))
+                }
+            }
+        }
+    }
+    
+}
+
+///
+/// Lift server connection
 ///
 public class LiftServer {
     
@@ -139,13 +163,8 @@ public class LiftServer {
         return configuration
         }()
     )
-    private let baseURLString = "http://192.168.101.102:12552"
+    private let baseURLString = "http://192.168.0.6:12552"
     
-    private func error(code: Int) -> NSError {
-        return NSError(domain: "com.eigengo.lift", code: code, userInfo: nil)
-    }
-    
-
     ///
     /// Body is either JSON structure or NSData
     ///
@@ -157,38 +176,35 @@ public class LiftServer {
     ///
     /// Make a request to the Lift server
     ///
-    private func liftRequest(req: LiftServerRequestConvertible, body: Body? = nil) -> Request {
+    private func request(req: LiftServerRequestConvertible, body: Body? = nil) -> Request {
         let lsr = req.Request
         switch body {
-        case let .Some(Body.Json(params)): return request(lsr.method, baseURLString + lsr.path, parameters: params, encoding: ParameterEncoding.JSON)
+        case let .Some(Body.Json(params)): return manager.request(lsr.method, baseURLString + lsr.path, parameters: params, encoding: ParameterEncoding.JSON)
         case let .Some(Body.Data(data)): return upload(lsr.method, baseURLString + lsr.path, data)
-        case .None: return request(lsr.method, baseURLString + lsr.path, parameters: nil, encoding: ParameterEncoding.URL)
+        case .None: return manager.request(lsr.method, baseURLString + lsr.path, parameters: nil, encoding: ParameterEncoding.URL)
         }
     }
     
-    func login<U>(email: String, password: String, f: Result<User> -> U) -> Void {
-        liftRequest(LiftServerURLs.UserLogin(), body: .Json(params: [ "email": email, "password": password ]))
-            .responseString { (_, _, body, error) in
-                if error != nil {
-                    f(Result.error(error!))
-                } else {
-                    let userId = NSUUID(UUIDString: body!)
-                    f(Result.value(User(uuid: userId!)))
-                }
+    func registerDeviceToken(userId: NSUUID, deviceToken: NSData) -> Void {
+        request(LiftServerURLs.UserRegisterDevice(userId: userId), body: .Json(params: [ "deviceToken": "\(deviceToken)"]))
+            .responseAsResutlt({r in Result.value(()) }) { json -> Void in }
+        
+    }
+    
+    func login(email: String, password: String, f: Result<User> -> Void) -> Void {
+        request(LiftServerURLs.UserLogin(), body: .Json(params: [ "email": email, "password": password ]))
+            .responseAsResutlt(f) { json -> User in
+                let userId = NSUUID(UUIDString: json["id"].stringValue)
+                return User(id: userId!)
             }
     }
     
-    func register<U>(email: String, password: String, f: Result<User> -> U) -> Void {
-        liftRequest(LiftServerURLs.UserRegister(), body: .Json(params: [ "email": email, "password": password ]))
-            .responseString { (_, _, body, error) -> Void in
-                if error != nil {
-                    f(Result.error(error!))
-                } else {
-                    let userId = NSUUID(UUIDString: body!)
-                    f(Result.value(User(uuid: userId!)))
-                }
-        }
-
+    func register(email: String, password: String, f: Result<User> -> Void) -> Void {
+        request(LiftServerURLs.UserRegister(), body: .Json(params: [ "email": email, "password": password ]))
+            .responseAsResutlt(f) { json -> User in
+                let userId = NSUUID(UUIDString: json["id"].stringValue)
+                return User(id: userId!)
+            }
         
     }
     

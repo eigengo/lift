@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   akka.cluster,
   akka.contrib,
   akka.persistence,
+  scalaz.core,
   // Spray + Json
   spray.routing,
   spray.can,

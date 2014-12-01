@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		54155B461A2A37D1002222E3 /* PebbleConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54155B451A2A37D1002222E3 /* PebbleConnector.swift */; };
+		54273A8D1A2D03BF00686FF1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54273A8C1A2D03BF00686FF1 /* Localizable.strings */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
 		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
@@ -96,6 +97,7 @@
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		54155B451A2A37D1002222E3 /* PebbleConnector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleConnector.swift; sourceTree = "<group>"; };
+		54273A8C1A2D03BF00686FF1 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
@@ -300,6 +302,7 @@
 				54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */,
 				54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionViewController.swift */,
+				54273A8C1A2D03BF00686FF1 /* Localizable.strings */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -517,6 +520,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54273A8D1A2D03BF00686FF1 /* Localizable.strings in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
 				54CC69A719C4AD8E00B29EC8 /* LaunchScreen.xib in Resources */,
 				54CC69A419C4AD8E00B29EC8 /* Images.xcassets in Resources */,

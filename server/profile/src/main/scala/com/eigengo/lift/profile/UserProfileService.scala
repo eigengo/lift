@@ -1,8 +1,10 @@
 package com.eigengo.lift.profile
 
+import java.util.UUID
+
 import akka.actor.ActorRef
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
-import com.eigengo.lift.profile.UserProfileProcessor.UserRegister
+import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice}
 import com.eigengo.lift.profile.UserProfileProtocol._
 import spray.routing.Directives
 
@@ -16,28 +18,33 @@ trait UserProfileService extends Directives with CommonMarshallers with CommonPa
     path("user") {
       post {
         handleWith { register: UserRegister ⇒
-          (userProfileProcessor ? register).map(_.toString)
+          (userProfileProcessor ? register).mapRight[UUID]
+        }
+      }
+      put {
+        handleWith { login: UserLogin ⇒
+          (userProfileProcessor ? login).mapRight[UUID]
         }
       }
     } ~
     path("user" / UserIdValue) { userId ⇒
       get {
         complete {
-          (userProfile ? UserGetProfile(userId)).map(_.toString)
+          (userProfile ? UserGetProfile(userId)).mapRight[Profile]
         }
       }
     } ~
     path("user" / UserIdValue / "device" / "ios") { userId ⇒
       post {
         handleWith { device: IOSUserDevice ⇒
-          (userProfile ? UserSetDevice(userId, device)).map(_.toString)
+          (userProfileProcessor ? UserSetDevice(userId, device)).mapRight[Unit]
         }
       }
     } ~
     path("user" / UserIdValue / "device" / "android") { userId ⇒
       post {
         handleWith { device: AndroidUserDevice ⇒
-          (userProfile ? UserSetDevice(userId, device)).map(_.toString)
+          (userProfileProcessor ? UserSetDevice(userId, device)).mapRight[Unit]
         }
       }
     }

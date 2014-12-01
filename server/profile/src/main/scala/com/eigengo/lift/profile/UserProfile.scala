@@ -16,14 +16,14 @@ object UserProfile {
     case UserRegistered(userId, account) ⇒ (userId.toString, account)
     case UserGetProfile(userId)          ⇒ (userId.toString, GetProfile)
     case UserGetDevices(userId)          ⇒ (userId.toString, GetDevices)
-    case UserSetDevice(userId, device)   ⇒ (userId.toString, SetDevice(device))
+    case UserDeviceSet(userId, device)   ⇒ (userId.toString, SetDevice(device))
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
     case UserRegistered(userId, _) ⇒ s"${userId.hashCode() % 10}"
     case UserGetProfile(userId)    ⇒ s"${userId.hashCode() % 10}"
     case UserGetDevices(userId)    ⇒ s"${userId.hashCode() % 10}"
-    case UserSetDevice(userId, _)  ⇒ s"${userId.hashCode() % 10}"
+    case UserDeviceSet(userId, _)  ⇒ s"${userId.hashCode() % 10}"
   }
 
   /**
@@ -38,6 +38,13 @@ object UserProfile {
    * @param account the user account
    */
   case class UserRegistered(userId: UserId, account: Account)
+
+  /**
+   * Device has been set
+   * @param userId the user for the device
+   * @param device the device that has just been set
+   */
+  case class UserDeviceSet(userId: UserId, device: UserDevice)
 
   /**
    * Get profile
@@ -80,7 +87,6 @@ class UserProfile extends PersistentActor with AutoPassivation {
   private def notRegistered: Receive = withPassivation {
     case a: Account ⇒
       profile = Profile(a, UserDevices.empty)
-      saveSnapshot(profile)
       self ! Registered
     case Registered ⇒
       context.become(registered)
@@ -89,9 +95,6 @@ class UserProfile extends PersistentActor with AutoPassivation {
   private def registered: Receive = withPassivation {
     case SetDevice(device) ⇒
       profile = profile.addDevice(device)
-      saveSnapshot(profile)
-      sender() ! \/.right('OK)
-
     case GetProfile ⇒
       sender() ! profile
     case GetDevices ⇒

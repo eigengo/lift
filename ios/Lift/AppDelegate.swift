@@ -3,6 +3,8 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    var deviceToken: NSData?
+    
     var window: UIWindow?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
@@ -17,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
         
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
-        LiftServer.sharedInstance.deviceToken = deviceToken
+        self.deviceToken = deviceToken
         NSLog("Token \(deviceToken)")
     }
     
