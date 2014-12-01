@@ -6,7 +6,7 @@ class LiftAlertController: UIViewController {
 
     class func error(message: String, error: NSError) -> LiftAlertController {
         let ctrl = LiftAlertController(nibName: "LiftAlertController", bundle: nil)
-        ctrl.messageText = message + "\n" + error.localizedDescription
+        ctrl.messageText = message + " " + error.localizedDescription
         ctrl.imageNames = ["Error"]
         return ctrl
     }

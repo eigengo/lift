@@ -20,7 +20,7 @@ trait UserProfileService extends Directives with CommonMarshallers with CommonPa
         handleWith { register: UserRegister ⇒
           (userProfileProcessor ? register).mapRight[UUID]
         }
-      }
+      } ~
       put {
         handleWith { login: UserLogin ⇒
           (userProfileProcessor ? login).mapRight[UUID]

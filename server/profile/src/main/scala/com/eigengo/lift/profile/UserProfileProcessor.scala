@@ -1,6 +1,7 @@
 package com.eigengo.lift.profile
 
 import java.security.MessageDigest
+import java.util
 import java.util.UUID
 
 import akka.actor.{Props, ActorRef}
@@ -8,7 +9,7 @@ import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.UserId
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
 import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserSetDevice, UserRegister}
-import com.eigengo.lift.profile.UserProfileProtocol.{UserDevice, Account}
+import com.eigengo.lift.profile.UserProfileProtocol.{Profile, UserGetProfile, UserDevice, Account}
 
 import scala.collection.immutable.HashSet
 import scala.util.Random
@@ -42,27 +43,50 @@ object UserProfileProcessor {
 
 class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
 
-  private var knownEmails: Set[String] = HashSet.empty
+  private var knownAccounts: Map[String, UserId] = Map.empty
+
+  private def digestPassword(password: String, salt: String): Array[Byte] = {
+    val sha256 = MessageDigest.getInstance("SHA-256")
+    sha256.digest((password + salt).getBytes)
+  }
 
   override def receiveRecover: Receive = {
-    case SnapshotOffer(_, offeredSnapshot: Set[String @unchecked]) ⇒
-      knownEmails = offeredSnapshot
+    case SnapshotOffer(_, offeredSnapshot: Map[String, UserId @unchecked]) ⇒
+      knownAccounts = offeredSnapshot
   }
 
   override def receiveCommand: Receive = {
-    case UserRegister(email, password) if !knownEmails.contains(email) ⇒
-      val sha256 = MessageDigest.getInstance("SHA-256")
+    case UserRegister(email, password) if !knownAccounts.contains(email) ⇒
       val salt = Random.nextString(100)
       val userId = UserId.randomId()
-      userProfile ! UserRegistered(userId, Account(email, sha256.digest((password + salt).getBytes), salt))
-      knownEmails = knownEmails + email
+      userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
+      knownAccounts = knownAccounts + (email → userId)
+      saveSnapshot(knownAccounts)
 
       sender() ! \/.right(userId)
-    case UserRegister(email, _) /* if knownEmails.contains(email) */ ⇒
+    case UserRegister(email, _) if knownAccounts.contains(email) ⇒
       sender() ! \/.left("Username already taken")
 
     case UserLogin(email, password) ⇒
-      sender() ! \/.right(UserId.randomId())
+      import akka.pattern.ask
+      import com.eigengo.lift.common.Timeouts.defaults._
+      import context.dispatcher
+
+      knownAccounts.get(email).fold
+        { sender() ! \/.left("Login failed 1") }
+        { userId ⇒
+          val sndr = sender()
+          (userProfile ? UserGetProfile(userId)).mapTo[Profile].onSuccess {
+            case profile ⇒
+              if (util.Arrays.equals(
+                digestPassword(password, profile.account.salt),
+                profile.account.password)) {
+                sndr ! \/.right(userId)
+              } else {
+                sndr ! \/.left("Login failed 2")
+              }
+          }
+        }
 
     case UserSetDevice(userId, device) ⇒
       userProfile ! UserDeviceSet(userId, device)
