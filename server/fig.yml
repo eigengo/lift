@@ -15,6 +15,7 @@ etcd:
     - "4001"
   ports:
     - "7001:7001"
+    - "4001:4001"
 profile:
   image: janm399/lift:lift-profile
   environment:

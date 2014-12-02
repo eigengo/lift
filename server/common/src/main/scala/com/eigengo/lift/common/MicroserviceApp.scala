@@ -54,12 +54,11 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
   private object EtcdKeys {
 
     object ClusterNodes {
-      val All = "system/akka.cluster.nodes"
+      val All = "system/frontend.cluster.nodes"
       val Joining = "Joining"
 
       def apply(cluster: Cluster): String = {
-        s"$All/${cluster.selfAddress}"
-        // s"$All/${cluster.selfAddress.host.getOrElse("")}:${cluster.selfAddress.port.getOrElse(0)}"
+        s"$All/${cluster.selfAddress.host.getOrElse("")}:${cluster.selfAddress.port.getOrElse(0)}"
       }
 
     }
@@ -130,13 +129,14 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
           response.node.nodes match {
             // Have any actor systems registered and recorded themselves as Up?
             case Some(systemNodes) ⇒
+              log.info(s"Found $systemNodes")
               // At least one actor system address has been retrieved from etcd
               // We now need to check their respective etcd states and locate Up cluster seed nodes
               val seedNodes = for {
                 systemNode ← systemNodes
                 value ← systemNode.value
                 if value != EtcdKeys.ClusterNodes.Joining
-              } yield AddressFromURIString(value)
+              } yield AddressFromURIString(s"akka.tcp://$name@$value")
 
               if (seedNodes.size >= minNrMembers) {
                 log.info(s"Joining our cluster using the seed nodes: $seedNodes")
@@ -161,6 +161,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
       // We first ensure that we de-register and leave the cluster!
       etcd.deleteKey(EtcdKeys.ClusterNodes(cluster))
       cluster.leave(cluster.selfAddress)
+      log.info(s"Shut down ActorSystem ${system}")
       system.shutdown()
     }
   }
