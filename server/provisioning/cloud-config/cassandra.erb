@@ -1,0 +1,26 @@
+<%= ERB.new(File.read("cloud-config/default.erb"), 0, "<>", '_default').result(binding) %>
+
+# Cloud config data for creating Cassandra compute nodes
+
+coreos:
+  units:
+    - name: install-cassandra.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Cassandra Docker image
+        Requires=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        
+        # Download our Akka container image from the Docker repository
+        ExecStartPre=/usr/bin/docker pull <%= @docker[:cassandra] %>
+        ExecStart=/bin/echo Docker Cassandra Image Installed
+        
+        [X-Fleet]
+        # Only download on Cassandra deployment nodes
+        MachineMetadata=type=cassandra

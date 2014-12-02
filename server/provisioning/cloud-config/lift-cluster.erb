@@ -1,0 +1,80 @@
+<%= ERB.new(File.read("cloud-config/default.erb"), 0, "<>", '_default').result(binding) %>
+
+# Cloud config data for Lift clustering. Downloads the following Docker images:
+#   - Exercise
+#   - Kafka
+#   - Main (FIXME: do we need to do this???)
+#   - Notification
+#   - Profile
+#   - Zookeeper
+
+coreos:
+  units:
+    - name: install-lift-profile.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Lift Profile Docker image
+        Requires=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        EnvironmentFile=/etc/docker.login
+        
+        # Login and download our Lift Profile container image from the Docker repository
+        ExecStartPre=/usr/bin/docker login -u "${USERNAME}" -p "${PASSWORD}" -e "${EMAIL}"
+        ExecStartPre=/usr/bin/docker pull <%= @docker[:profile] %>
+        ExecStart=/bin/echo Lift Profile Docker Image Installed
+        
+        [X-Fleet]
+        # Only download on Lift deployment nodes
+        MachineMetadata=type=lift
+
+    - name: install-lift-exercise.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Lift Exercise Docker image
+        Requires=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        EnvironmentFile=/etc/docker.login
+        
+        # Login and download our Lift Exercise container image from the Docker repository
+        ExecStartPre=/usr/bin/docker login -u "${USERNAME}" -p "${PASSWORD}" -e "${EMAIL}"
+        ExecStartPre=/usr/bin/docker pull <%= @docker[:exercise] %>
+        ExecStart=/bin/echo Lift Exercise Docker Image Installed
+        
+        [X-Fleet]
+        # Only download on Lift deployment nodes
+        MachineMetadata=type=lift
+
+    - name: install-lift-notification.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Lift Notification Docker image
+        Requires=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        EnvironmentFile=/etc/docker.login
+        
+        # Login and download our Lift Notification container image from the Docker repository
+        ExecStartPre=/usr/bin/docker login -u "${USERNAME}" -p "${PASSWORD}" -e "${EMAIL}"
+        ExecStartPre=/usr/bin/docker pull <%= @docker[:notification] %>
+        ExecStart=/bin/echo Lift Notification Docker Image Installed
+        
+        [X-Fleet]
+        # Only download on Lift deployment nodes
+        MachineMetadata=type=lift

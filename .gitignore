@@ -23,6 +23,8 @@
 
 pebble/build
 
+.vagrant
+
 ####
 # Xcode temporary files that should never be committed
 # 

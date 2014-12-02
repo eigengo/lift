@@ -8,7 +8,9 @@ libraryDependencies ++= Seq(
   akka.actor,
   akka.cluster,
   akka.contrib,
+  akka.persistence_cassandra,
   apns,
   akka.testkit % "test",
   spray.testkit % "test"
 )
+

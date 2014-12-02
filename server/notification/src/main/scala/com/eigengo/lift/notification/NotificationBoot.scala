@@ -1,14 +1,15 @@
 package com.eigengo.lift.notification
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.{ActorRef, ActorSystem}
+import com.eigengo.lift.common.MicroserviceApp.BootedNode
 
-case class NotificaitonBoot(notification: ActorRef)
+case class NotificationBoot(notification: ActorRef) extends BootedNode
 
-object NotificaitonBoot {
+object NotificationBoot {
 
-  def boot(userProfile: ActorRef)(implicit system: ActorSystem): NotificaitonBoot = {
+  def boot(userProfile: ActorRef)(implicit system: ActorSystem): NotificationBoot = {
     val notification = system.actorOf(Notification.props(userProfile), Notification.name)
-    NotificaitonBoot(notification)
+    NotificationBoot(notification)
   }
 
 }

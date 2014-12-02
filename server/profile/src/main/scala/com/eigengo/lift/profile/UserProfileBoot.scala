@@ -2,11 +2,14 @@ package com.eigengo.lift.profile
 
 import akka.actor.{ActorSystem, ActorRef}
 import akka.contrib.pattern.ClusterSharding
+import com.eigengo.lift.common.MicroserviceApp.BootedNode
 
 import scala.concurrent.ExecutionContext
 
-case class UserProfileBoot(userProfile: ActorRef, private val userProfileProcessor: ActorRef) extends UserProfileService {
-  def route(implicit ec: ExecutionContext) = userProfileRoute(userProfile, userProfileProcessor)
+case class UserProfileBoot(userProfile: ActorRef, private val userProfileProcessor: ActorRef)
+  extends UserProfileService with BootedNode {
+  def route(ec: ExecutionContext) = userProfileRoute(userProfile, userProfileProcessor)(ec)
+  override def api = Some(route)
 }
 
 object UserProfileBoot {

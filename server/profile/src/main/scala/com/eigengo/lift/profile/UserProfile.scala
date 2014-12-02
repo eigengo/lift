@@ -1,6 +1,6 @@
 package com.eigengo.lift.profile
 
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
@@ -9,7 +9,6 @@ import scalaz.\/
 
 object UserProfile {
   import com.eigengo.lift.profile.UserProfileProtocol._
-
   val shardName = "user-profile"
   val props = Props[UserProfile]
   
@@ -17,14 +16,14 @@ object UserProfile {
     case UserRegistered(userId, account) ⇒ (userId.toString, account)
     case UserGetProfile(userId)          ⇒ (userId.toString, GetProfile)
     case UserGetDevices(userId)          ⇒ (userId.toString, GetDevices)
-    case UserSetDevice(userId, device)   ⇒ (userId.toString, SetDevice(device))
+    case UserDeviceSet(userId, device)   ⇒ (userId.toString, SetDevice(device))
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
     case UserRegistered(userId, _) ⇒ s"${userId.hashCode() % 10}"
     case UserGetProfile(userId)    ⇒ s"${userId.hashCode() % 10}"
     case UserGetDevices(userId)    ⇒ s"${userId.hashCode() % 10}"
-    case UserSetDevice(userId, _)  ⇒ s"${userId.hashCode() % 10}"
+    case UserDeviceSet(userId, _)  ⇒ s"${userId.hashCode() % 10}"
   }
 
   /**
@@ -41,14 +40,16 @@ object UserProfile {
   case class UserRegistered(userId: UserId, account: Account)
 
   /**
+   * Device has been set
+   * @param userId the user for the device
+   * @param device the device that has just been set
+   */
+  case class UserDeviceSet(userId: UserId, device: UserDevice)
+
+  /**
    * Get profile
    */
   private case object GetProfile
-
-  /**
-   * Moves self to registered
-   */
-  private case object Registered
 
   /**
    * Get all devices
@@ -59,39 +60,38 @@ object UserProfile {
 /**
  * User profile domain
  */
-class UserProfile extends PersistentActor with AutoPassivation {
+class UserProfile extends PersistentActor with ActorLogging with AutoPassivation {
   import com.eigengo.lift.profile.UserProfile._
   import com.eigengo.lift.profile.UserProfileProtocol._
   import scala.concurrent.duration._
-  
+
   private var profile: Profile = _
 
   override def persistenceId: String = s"user-profile-${self.path.name}"
 
-  override val passivationTimeout: Duration = 600.seconds
+  override val passivationTimeout: Duration = 10.seconds
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Profile) ⇒
       profile = offeredSnapshot
-      self ! Registered
+      context.become(registered)
   }
 
   override def receiveCommand: Receive = notRegistered
 
   private def notRegistered: Receive = withPassivation {
-    case a: Account ⇒
-      profile = Profile(a, UserDevices.empty)
-      saveSnapshot(profile)
-      self ! Registered
-    case Registered ⇒
-      context.become(registered)
+    case cmd: Account ⇒
+      persist(cmd) { acc ⇒
+        profile = Profile(acc, UserDevices.empty)
+        saveSnapshot(profile)
+        context.become(registered)
+      }
   }
 
   private def registered: Receive = withPassivation {
-    case SetDevice(device) ⇒
-      profile = profile.addDevice(device)
+    case cmd@SetDevice(device) ⇒
+      persist(cmd) { evt ⇒ profile = profile.addDevice(evt.device) }
       saveSnapshot(profile)
-      sender() ! \/.right('OK)
 
     case GetProfile ⇒
       sender() ! profile

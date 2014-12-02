@@ -6,12 +6,15 @@ object Dependencies {
   object akka {
     val version = "2.3.6"
     // Core Akka
-    val actor       = "com.typesafe.akka"  %% "akka-actor"                    % version
-    val cluster     = "com.typesafe.akka"  %% "akka-cluster"                  % version
-    val contrib     = "com.typesafe.akka"  %% "akka-contrib"                  % version
-    val persistence = "com.typesafe.akka"  %% "akka-persistence-experimental" % version
+    val actor                 = "com.typesafe.akka"      %% "akka-actor"                    % version
+    val cluster               = "com.typesafe.akka"      %% "akka-cluster"                  % version
+    val contrib               = "com.typesafe.akka"      %% "akka-contrib"                  % version intransitive()
+    val persistence           = "com.typesafe.akka"      %% "akka-persistence-experimental" % version intransitive()
+    val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4" intransitive()
+
+    val leveldb               = "org.iq80.leveldb"        % "leveldb"                       % "0.7"
     
-    val testkit     = "com.typesafe.akka"  %% "akka-testkit"                  % version
+    val testkit               = "com.typesafe.akka"      %% "akka-testkit"                  % version
   }
 
   object spray {
@@ -22,6 +25,11 @@ object Dependencies {
     val routing = "io.spray" %% "spray-routing" % version
 
     val testkit = "io.spray" %% "spray-testkit" % version
+  }
+
+  object kafka {
+    val version = "0.8.2-beta"
+    val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
   }
 
   object scalaz {
@@ -38,6 +46,12 @@ object Dependencies {
   // Apple push notifications
   val apns         = "com.notnoop.apns"  % "apns"         % "0.1.6"
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
+ 
+  // Datastax Cassandra Client
+  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
+
+  // Etcd Client
+  val etcd_client           = "net.nikore.etcd"    %% "scala-etcd"      % "0.7"
 
   // Testing
   val scalatest    = "org.scalatest"    %% "scalatest"    % "2.2.1"

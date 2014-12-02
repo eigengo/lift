@@ -1,4 +1,3 @@
-import net.virtualvoid.sbt.graph.Plugin._
 import sbt._
 import Keys._
 
@@ -9,13 +8,17 @@ import Keys._
  * - Scalac, Javac: warnings as errors, target JDK 1.7
  * - Fork for run
  */
-object BaseSettings {
- 
+object BaseSettings extends sbtassembly.AssemblyKeys {
+  import sbtassembly.MergeStrategy
+  import sbtdocker._
+  import net.virtualvoid.sbt.graph.Plugin._
+  import sbtdocker.Plugin.DockerKeys._
+
   /**
    * Common project settings
    */
   val baseSettings: Seq[Def.Setting[_]] =
-    graphSettings ++
+    graphSettings ++ 
     Seq(
       organization := "com.eigengo",
       scalaVersion := "2.11.4",
@@ -32,7 +35,13 @@ object BaseSettings {
       fork := true,
       fork in test := true,
       sbtPlugin := false,
-      resolvers := ResolverSettings.resolvers
+      resolvers := ResolverSettings.resolvers,
+      assemblyMergeStrategy in assembly := {
+        case "application.conf" => MergeStrategy.concat
+        case x =>
+          val oldStrategy = (assemblyMergeStrategy in assembly).value
+          oldStrategy(x)
+      }
     ) 
 
   val projectSettings: Seq[Def.Setting[_]] =

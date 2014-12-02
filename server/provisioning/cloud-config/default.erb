@@ -1,0 +1,181 @@
+#cloud-config
+
+coreos:
+  etcd:
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new
+    # WARNING: replace each time you 'vagrant destroy'
+    discovery: https://discovery.etcd.io/<%= @token %>
+    addr: $public_ipv4:4001
+    peer-addr: $public_ipv4:7001
+  fleet:
+    public-ip: $public_ipv4
+    # Metadata identifies the resources that are available on any given compute node
+    metadata: <%= @metadata %>
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        Service=docker.service
+        BindIPv6Only=both
+
+        [Install]
+        WantedBy=sockets.target
+    - name: 10-weave.network
+      runtime: false
+      content: |
+        [Match]
+        Type=bridge
+        Name=weave*
+
+        [Network]
+    - name: install-weave.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=network-online.target
+        After=docker.service
+        Before=weave.service
+        Description=Install Weave
+        Documentation=http://zettio.github.io/weave/
+        Requires=network-online.target
+        Requires=docker.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStartPre=/usr/bin/wget -N -P /opt/bin https://raw.github.com/zettio/weave/master/weave
+        ExecStartPre=/usr/bin/chmod +x /opt/bin/weave
+        ExecStartPre=/usr/bin/docker pull zettio/weave:latest
+        ExecStart=/bin/echo Weave Installed
+    - name: weave.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        After=install-weave.service
+        Description=Weave Network
+        Documentation=http://zettio.github.io/weave/
+        Requires=docker.service
+        Requires=install-weave.service
+
+        [Service]
+        EnvironmentFile=/etc/weave.%H.env
+        ExecStartPre=/opt/bin/weave launch $WEAVE_LAUNCH_ARGS
+        ExecStart=/usr/bin/docker logs -f weave
+        SuccessExitStatus=2
+
+        ExecStop=/opt/bin/weave stop
+    - name: install-weave-dns.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=network-online.target
+        After=docker.service
+        Before=weave-dns.service
+        Description=Install Weave DNS
+        Documentation=http://zettio.github.io/weave/
+        Requires=network-online.target
+        Requires=docker.service
+ 
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStartPre=/usr/bin/docker pull zettio/weavedns:latest
+        ExecStart=/bin/echo Weave DNS Installed
+    - name: weave-dns.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=install-weave-dns.service
+        Description=Weave DNS
+        Documentation=http://zettio.github.io/weave/
+        Requires=docker.service
+        Requires=weave.service
+        Requires=install-weave-dns.service
+ 
+        [Service]
+        ExecStartPre=/opt/bin/weave launch-dns 10.42.254.254/16
+        ExecStart=/usr/bin/docker logs -f weavedns
+    - name: unit-file.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=network-online.target
+        After=fleet.service
+        Description=Submits Systemd Unit Files to Fleet
+        Requires=network-online.target
+        Requires=fleet.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/bin/sh -c "for unit in <%= @service_templates.join(" ") %>; do /usr/bin/fleetctl submit /etc/systemd/unit-files/$unit; done"
+    - name: akka-cluster-nodes.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=network-online.target
+        After=etcd.service
+        Description=Creates Akka Cluster Configuration Directory
+        Requires=network-online.target
+        Requires=etcd.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStartPre=-/usr/bin/etcdctl mkdir /akka.cluster.nodes
+        ExecStart=/bin/echo Created /akka.cluster.nodes etcd directory
+
+write_files:
+  # File holding Docker login information
+  - path: /etc/docker.login
+    permissions: 0644
+    owner: root
+    content: |
+      USERNAME=<%= @username %>
+      PASSWORD=<%= @password %>
+      EMAIL=<%= @email %>
+  
+  # Used to specify specialised application cluster node configuration
+  - path: /etc/<%= @initialSeed %>.env
+    permissions: 0644
+    owner: root
+    content: |
+      ROLES="initial-seed"
+
+  # We set core-01 as our Weave networking peer - FIXME: are there any more resilient strategies here?
+  # Note: no DNS is running, so IP addresses are essential here for interacting with Weave DNS
+<% @instances.map { |n| n.to_i }.each do |i| %>
+  - path: /etc/weave.<%= "core-%02d" % i %>.env
+    permissions: 0644
+    owner: root
+    content: |
+      WEAVE_LAUNCH_ARGS="<%= i == 1 ? "" : "172.17.8.101" %>"
+<% end %>
+
+  # Save service templates
+<% @service_templates.each do |name| %>
+  - path: /etc/systemd/unit-files/<%= name %>
+    permissions: 0644
+    owner: root
+    content: |
+<% ERB.new(File.read("unit-files/#{name}.erb"), 0, "<>", '_service').result(binding).split("\n").select { |l| !l.empty? }.each do |line| %>
+      <%= line %>
+<% end %>
+<% end %>

@@ -1,0 +1,8 @@
+<%
+  @image          = @docker[:notification]
+  @description    = "Lift Microservice: Notification"
+  @ip_address     = "10.42.4.%i"
+  @affinity_rules = "MachineMetadata=type=lift"
+%>
+
+<%= ERB.new(File.read("unit-files/lift/default-akka.erb"), 0, "<>", '_unit').result(binding) %>

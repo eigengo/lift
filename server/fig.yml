@@ -1,0 +1,66 @@
+cassandra:
+  image: spotify/cassandra
+  expose:
+    - "7199"
+    - "7000" 
+    - "7001" 
+    - "9160" 
+    - "9042" 
+    - "22" 
+    - "8012" 
+    - "61621"
+etcd:
+  image: coreos/etcd
+  expose:
+    - "4001"
+  ports:
+    - "7001:7001"
+    - "4001:4001"
+main1:
+  image: janm399/lift:lift-main
+  environment:
+    APP_ADDR:
+    JOURNAL: journal.lift.eigengo.com
+    SNAPSHOT: snapshot.lift.eigengo.com
+    ETCD_URL: http://etcd.lift.eigengo.com:4001
+  ports:
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+main2:
+  image: janm399/lift:lift-main
+  environment:
+    APP_ADDR:
+    JOURNAL: journal.lift.eigengo.com
+    SNAPSHOT: snapshot.lift.eigengo.com
+    ETCD_URL: http://etcd.lift.eigengo.com:4001
+  ports:
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+    - main1
+main3:
+  image: janm399/lift:lift-main
+  environment:
+    APP_ADDR:
+    JOURNAL: journal.lift.eigengo.com
+    SNAPSHOT: snapshot.lift.eigengo.com
+    ETCD_URL: http://etcd.lift.eigengo.com:4001
+  ports:
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+    - main1
+    - main2

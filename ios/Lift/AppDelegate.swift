@@ -1,8 +1,10 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate, PBWatchDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    var deviceToken: NSData?
+    
     var window: UIWindow?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
@@ -12,45 +14,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PBPebbleCentralDelegate, 
         } else {
             UIApplication.sharedApplication().registerForRemoteNotificationTypes(UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound)
         }
-        
-        let uuid = NSMutableData(length: 16)!
-        NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC")!.getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
-        PBPebbleCentral.setDebugLogsEnabled(true)
-        let central = PBPebbleCentral.defaultCentral()
-        central.appUUID = uuid
-        central.delegate = self
-        for w in central.connectedWatches {
-            launchLiftPebbleApp(w as PBWatch)
-        }
-        
+                
         return true
     }
-
-    func launchLiftPebbleApp(watch: PBWatch!) {
-        watch.appMessagesLaunch({ (watch: PBWatch!, error: NSError!) -> Void in
-            if (error != nil) {
-                NSLog(":(")
-            } else {
-                NSLog(":)")
-            }
-        }, withUUID: PBPebbleCentral.defaultCentral()!.appUUID)
-    }
-    
-    func pebbleCentral(central: PBPebbleCentral!, watchDidConnect watch: PBWatch!, isNew: Bool) {
-        NSLog("Connected %@", watch)
-        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
-    }
-    
-    func pebbleCentral(central: PBPebbleCentral!, watchDidDisconnect watch: PBWatch!) {
-        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
-        NSLog("Gone %@", watch)
-    }
-    
+        
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
+        self.deviceToken = deviceToken
         NSLog("Token \(deviceToken)")
     }
     
     func application(application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: NSError) {
+        self.deviceToken = "5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8".dataUsingEncoding(NSASCIIStringEncoding, allowLossyConversion: false)
         NSLog("Not registered \(error)")
     }
     
