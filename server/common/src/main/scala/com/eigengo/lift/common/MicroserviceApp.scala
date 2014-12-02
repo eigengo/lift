@@ -25,7 +25,9 @@ object MicroserviceApp {
    * The microservice props
    * @param name the microservice name
    */
-  case class MicroserviceProps(name: String)
+  case class MicroserviceProps(name: String) {
+    val role = name
+  }
 
   /**
    * The REST API actor
@@ -76,7 +78,9 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
 
     // load config and set Up etcd client
     import scala.concurrent.duration._
-    val config = ConfigFactory.load()
+    val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
+    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=['${microserviceProps.role}']")
+    val config = clusterShardingConfig.withFallback(clusterRoleConfig).withFallback(ConfigFactory.load())
     val etcd = new EtcdClient(config.getString("etcd.url"))
     log.info(s"Config loaded; etcd expected at $etcd")
 
@@ -99,12 +103,12 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
       case Success(_) =>
         // Register cluster MemberUp callback
         cluster.registerOnMemberUp {
-          log.info(s"*********** Node ${cluster.selfAddress} booting Up")
+          log.info(s"Node ${cluster.selfAddress} booting Up")
           // boot the microservice code
           val bootedNode = boot(system)
           bootedNode.api.foreach(startupApi)
           // logme!
-          log.info(s"*********** Node ${cluster.selfAddress} Up")
+          log.info(s"Node ${cluster.selfAddress} Up")
         }
         joinCluster()
 

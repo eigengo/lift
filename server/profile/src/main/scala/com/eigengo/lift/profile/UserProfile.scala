@@ -86,6 +86,7 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
         saveSnapshot(profile)
         context.become(registered)
       }
+    case x ⇒ log.error(s"***** Unhandled $x")
   }
 
   private def registered: Receive = withPassivation {

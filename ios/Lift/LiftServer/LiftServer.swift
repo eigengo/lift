@@ -43,32 +43,32 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     ///
     /// Adds an iOS device for the user identified by ``userId``
     ///
-    case UserRegisterDevice(userId: NSUUID)
+    case UserRegisterDevice(/*userId: */NSUUID)
     
     ///
     /// Retrieves the user's profile for the ``userId``
     ///
-    case UserGetProfile(userId: NSUUID)
+    case UserGetProfile(/*userId: */NSUUID)
 
     ///
     /// Retrieves all the exercises for the given ``userId``
     ///
-    case ExerciseGetAllExercises(userId: NSUUID)
+    case ExerciseGetAllExercises(/*userId: */NSUUID)
     
     ///
     /// Starts an exercise session for the given ``userId``
     ///
-    case ExerciseSessionStart(userId: NSUUID)
+    case ExerciseSessionStart(/*userId: */NSUUID)
     
     ///
     /// Submits the data (received from the smartwatch) for the given ``userId``, ``sessionId``
     ///
-    case ExerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID)
+    case ExerciseSessionSubmitData(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
     /// Ends the session for the given ``userId`` and ``sessionId``
     ///
-    case ExerciseSessionEnd(userId: NSUUID, sessionId: NSUUID)
+    case ExerciseSessionEnd(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     // MARK: URLStringConvertible
     var Request: LiftServerRequest {
@@ -78,14 +78,14 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case let .UserRegister: return LiftServerRequest(path: "/user", method: Method.POST)
                 case let .UserLogin: return LiftServerRequest(path: "/user", method: Method.PUT)
                     
-                case let .UserRegisterDevice(userId): return LiftServerRequest(path: "/user/\(userId)/device/ios", method: Method.POST)
-                case let .UserGetProfile(userId): return LiftServerRequest(path: "/user/\(userId)", method: Method.GET)
+                case .UserRegisterDevice(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)/device/ios", method: Method.POST)
+                case .UserGetProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.GET)
                     
-                case let .ExerciseGetAllExercises(userId): return LiftServerRequest(path: "/exercise/\(userId)", method: Method.GET)
+                case .ExerciseGetAllExercises(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
                 
-                case let .ExerciseSessionStart(userId): return LiftServerRequest(path: "/exercise/\(userId)", method: Method.POST)
-                case let .ExerciseSessionSubmitData(userId, sessionId): return LiftServerRequest(path: "/exercise/\(userId)/\(sessionId)", method: Method.PUT)
-                case let .ExerciseSessionEnd(userId, sessionId): return LiftServerRequest(path: "/exercise/\(userId)/\(sessionId)", method: Method.DELETE)
+                case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.POST)
+                case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
+                case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.DELETE)
                 }
             }()
             
@@ -196,8 +196,11 @@ public class LiftServer {
     /// Register the iOS push device token for the given user
     ///
     func registerDeviceToken(userId: NSUUID, deviceToken: NSData) -> Void {
-        request(LiftServerURLs.UserRegisterDevice(userId: userId), body: .Json(params: [ "deviceToken": "\(deviceToken)"]))
-            .responseAsResutlt({r in Result.value(()) }) { json -> Void in }
+        let tokenString = NSString(data: deviceToken, encoding: NSASCIIStringEncoding)!
+        request(LiftServerURLs.UserRegisterDevice(userId), body: .Json(params: [ "deviceToken": tokenString ]))
+            .responseString { (_, _, body, error) -> Void in
+                println(body)
+            }
         
     }
     

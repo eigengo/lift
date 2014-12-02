@@ -50,7 +50,7 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
   }
 
   override def receiveRecover: Receive = {
-    case SnapshotOffer(_, offeredSnapshot: Map[String, UserId @unchecked]) ⇒
+    case SnapshotOffer(_, offeredSnapshot: Map[String @unchecked, UserId @unchecked]) ⇒
       knownAccounts = offeredSnapshot
   }
 
