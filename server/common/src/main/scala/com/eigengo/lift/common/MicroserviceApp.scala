@@ -75,6 +75,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
     // resolve the local host name
     val hostname = InetAddress.getLocalHost.getHostAddress
     log.info(s"Starting Up microservice $microserviceProps at $hostname")
+    Thread.sleep(10000)
 
     // load config and set Up etcd client
     import scala.concurrent.duration._
