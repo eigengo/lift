@@ -170,7 +170,7 @@ public class LiftServer {
         return configuration
         }()
     )
-    private let baseURLString = "http://192.168.0.8:8081"
+    private let baseURLString = "http://192.168.59.103:8081"
     
     ///
     /// Body is either JSON structure or NSData
