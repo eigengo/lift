@@ -104,7 +104,7 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
 
       sender() ! \/.right(userId)
 
-    case ka: KnownAccounts ⇒
+    case ka: KnownAccounts if sender() != self ⇒
       if (ka.version == knownAccounts.version + 1) {
         knownAccounts = ka
         log.info(s"Received new knownAccounts. Now ${ka.accounts}")
