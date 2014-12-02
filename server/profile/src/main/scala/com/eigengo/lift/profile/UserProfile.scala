@@ -1,6 +1,6 @@
 package com.eigengo.lift.profile
 
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
@@ -60,11 +60,11 @@ object UserProfile {
 /**
  * User profile domain
  */
-class UserProfile extends PersistentActor with AutoPassivation {
+class UserProfile extends PersistentActor with ActorLogging with AutoPassivation {
   import com.eigengo.lift.profile.UserProfile._
   import com.eigengo.lift.profile.UserProfileProtocol._
   import scala.concurrent.duration._
-  
+
   private var profile: Profile = _
 
   override def persistenceId: String = s"user-profile-${self.path.name}"
@@ -80,14 +80,19 @@ class UserProfile extends PersistentActor with AutoPassivation {
   override def receiveCommand: Receive = notRegistered
 
   private def notRegistered: Receive = withPassivation {
-    case a: Account ⇒
-      profile = Profile(a, UserDevices.empty)
-      context.become(registered)
+    case cmd: Account ⇒
+      persist(cmd) { acc ⇒
+        profile = Profile(acc, UserDevices.empty)
+        saveSnapshot(profile)
+        context.become(registered)
+      }
   }
 
   private def registered: Receive = withPassivation {
-    case SetDevice(device) ⇒
-      profile = profile.addDevice(device)
+    case cmd@SetDevice(device) ⇒
+      persist(cmd) { evt ⇒ profile = profile.addDevice(evt.device) }
+      saveSnapshot(profile)
+
     case GetProfile ⇒
       sender() ! profile
     case GetDevices ⇒
