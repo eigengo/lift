@@ -7,6 +7,9 @@ import com.eigengo.lift.exercise.ExerciseBoot
 import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.UserProfileBoot
 
+/**
+ * This is the dockerified Microservice app main.
+ */
 object LiftServiceApp extends MicroserviceApp(MicroserviceProps("Lift")) {
   override def boot(implicit system: ActorSystem): BootedNode = {
     val profile = UserProfileBoot.boot(system)

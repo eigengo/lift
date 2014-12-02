@@ -30,7 +30,7 @@ trait UserProfileService extends Directives with CommonMarshallers with CommonPa
     path("user" / UserIdValue) { userId ⇒
       get {
         complete {
-          (userProfile ? UserGetProfile(userId)).mapRight[Profile]
+          (userProfile ? UserGetAccount(userId)).mapRight[Profile]
         }
       }
     } ~

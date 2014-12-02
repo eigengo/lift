@@ -21,8 +21,9 @@ object UserProfileProtocol {
    * The user profile includes the user's account and registered / known devices
    * @param account the account
    * @param devices the known devices
+   * @param publicProfile the public profile
    */
-  case class Profile(account: Account, devices: UserDevices) {
+  case class Profile(account: Account, devices: UserDevices, publicProfile: Option[PublicProfile]) {
     /**
      * Adds a device to the profile
      * @param device the device
@@ -40,6 +41,15 @@ object UserProfileProtocol {
   case class Account(email: String, password: Array[Byte], salt: String)
 
   /**
+   * User's public profile
+   * @param firstName first name
+   * @param lastName last name
+   * @param weight weight
+   * @param age age
+   */
+  case class PublicProfile(firstName: String, lastName: String, weight: Option[Int], age: Option[Int])
+  
+  /**
    * The user's devices
    */
   sealed trait UserDevice
@@ -50,7 +60,20 @@ object UserProfileProtocol {
    * Get profile query for the given ``userId``
    * @param userId the user identity
    */
-  case class UserGetProfile(userId: UserId)
+  case class UserGetAccount(userId: UserId)
+
+  /**
+   * Get the public account for the given ``userId``
+   * @param userId the user identity
+   */
+  case class UserGetPublicProfile(userId: UserId)
+
+  /**
+   * Sets the public profile for the given ``userId``
+   * @param userId the user identity
+   * @param publicProfile the new public profile
+   */
+  case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
 
   /**
    * Gets the user's devices

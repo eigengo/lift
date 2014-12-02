@@ -14,23 +14,25 @@ object UserProfile {
   
   val idExtractor: ShardRegion.IdExtractor = {
     case UserRegistered(userId, account) ⇒ (userId.toString, account)
-    case UserGetProfile(userId)          ⇒ (userId.toString, GetProfile)
+    case UserGetAccount(userId)          ⇒ (userId.toString, GetAccount)
+    case UserGetPublicProfile(userId)    ⇒ (userId.toString, GetPublicProfile)
     case UserGetDevices(userId)          ⇒ (userId.toString, GetDevices)
-    case UserDeviceSet(userId, device)   ⇒ (userId.toString, SetDevice(device))
+    case UserDeviceSet(userId, device)   ⇒ (userId.toString, DeviceSet(device))
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserRegistered(userId, _) ⇒ s"${userId.hashCode() % 10}"
-    case UserGetProfile(userId)    ⇒ s"${userId.hashCode() % 10}"
-    case UserGetDevices(userId)    ⇒ s"${userId.hashCode() % 10}"
-    case UserDeviceSet(userId, _)  ⇒ s"${userId.hashCode() % 10}"
+    case UserRegistered(userId, _)     ⇒ s"${userId.hashCode() % 10}"
+    case UserGetAccount(userId)        ⇒ s"${userId.hashCode() % 10}"
+    case UserGetDevices(userId)        ⇒ s"${userId.hashCode() % 10}"
+    case UserDeviceSet(userId, _)      ⇒ s"${userId.hashCode() % 10}"
+    case UserGetPublicProfile(userId)  ⇒ s"${userId.hashCode() % 10}"
   }
 
   /**
    * Sets the user's device
    * @param device the device
    */
-  case class SetDevice(device: UserDevice)
+  case class DeviceSet(device: UserDevice)
 
   /**
    * Registers a user
@@ -47,9 +49,14 @@ object UserProfile {
   case class UserDeviceSet(userId: UserId, device: UserDevice)
 
   /**
-   * Get profile
+   * Get account
    */
-  private case object GetProfile
+  private case object GetAccount
+
+  /**
+   * Get public profile
+   */
+  private case object GetPublicProfile
 
   /**
    * Get all devices
@@ -82,19 +89,21 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
   private def notRegistered: Receive = withPassivation {
     case cmd: Account ⇒
       persist(cmd) { acc ⇒
-        profile = Profile(acc, UserDevices.empty)
+        profile = Profile(acc, UserDevices.empty, None)
         saveSnapshot(profile)
         context.become(registered)
       }
   }
 
   private def registered: Receive = withPassivation {
-    case cmd@SetDevice(device) ⇒
+    case cmd@DeviceSet(device) ⇒
       persist(cmd) { evt ⇒ profile = profile.addDevice(evt.device) }
       saveSnapshot(profile)
 
-    case GetProfile ⇒
-      sender() ! profile
+    case GetPublicProfile ⇒
+      sender() ! profile.publicProfile
+    case GetAccount ⇒
+      sender() ! profile.account
     case GetDevices ⇒
       sender() ! profile.devices
   }

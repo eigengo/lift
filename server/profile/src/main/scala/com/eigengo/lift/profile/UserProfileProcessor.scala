@@ -4,12 +4,15 @@ import java.security.MessageDigest
 import java.util
 import java.util.UUID
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ActorLogging, Props, ActorRef}
+import akka.cluster.Cluster
+import akka.contrib.pattern.DistributedPubSubExtension
+import akka.contrib.pattern.DistributedPubSubMediator.{Publish, Subscribe}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.UserId
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
 import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserSetDevice, UserRegister}
-import com.eigengo.lift.profile.UserProfileProtocol.{Profile, UserGetProfile, UserDevice, Account}
+import com.eigengo.lift.profile.UserProfileProtocol.{Profile, UserGetAccount, UserDevice, Account}
 
 import scala.collection.immutable.HashSet
 import scala.util.Random
@@ -39,10 +42,23 @@ object UserProfileProcessor {
    * @param device the device to be added
    */
   case class UserSetDevice(userId: UserId, device: UserDevice)
+
+  private case class KnownAccounts(accounts: Map[String, UserId], version: Int) {
+    def contains(email: String): Boolean = accounts.contains(email)
+    def get(email: String): Option[UserId] = accounts.get(email)
+    def +(kv: (String, UserId)): KnownAccounts = copy(accounts = accounts + kv, version = version + 1)
+  }
+  private object KnownAccounts {
+    def empty: KnownAccounts = KnownAccounts(Map.empty, 0)
+  }
 }
 
-class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
-  private var knownAccounts: Map[String, UserId] = Map.empty
+class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with ActorLogging {
+  import UserProfileProcessor._
+  private var knownAccounts: KnownAccounts = KnownAccounts.empty
+  private val mediator = DistributedPubSubExtension(context.system).mediator
+  private val topic = "UserProfileProcessor.knownAccounts"
+  mediator ! Subscribe(topic, self)
 
   private def digestPassword(password: String, salt: String): Array[Byte] = {
     val sha256 = MessageDigest.getInstance("SHA-256")
@@ -50,7 +66,7 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
   }
 
   override def receiveRecover: Receive = {
-    case SnapshotOffer(_, offeredSnapshot: Map[String @unchecked, UserId @unchecked]) ⇒
+    case SnapshotOffer(_, offeredSnapshot: KnownAccounts) ⇒
       knownAccounts = offeredSnapshot
   }
 
@@ -61,8 +77,18 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
       userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
       knownAccounts = knownAccounts + (email → userId)
       saveSnapshot(knownAccounts)
+      mediator ! Publish(topic, knownAccounts)
 
       sender() ! \/.right(userId)
+
+    case ka: KnownAccounts ⇒
+      if (ka.version == knownAccounts.version + 1) {
+        knownAccounts = ka
+        log.info(s"Received new knownAccounts. Now ${ka.accounts}")
+      } else {
+        log.warning(s"Merging knownAccounts. Not really, actually.")
+      }
+
     case UserRegister(email, _) if knownAccounts.contains(email) ⇒
       sender() ! \/.left("Username already taken")
 
@@ -75,11 +101,9 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor {
         { sender() ! \/.left("Login failed 1") }
         { userId ⇒
           val sndr = sender()
-          (userProfile ? UserGetProfile(userId)).mapTo[Profile].onSuccess {
-            case profile ⇒
-              if (util.Arrays.equals(
-                digestPassword(password, profile.account.salt),
-                profile.account.password)) {
+          (userProfile ? UserGetAccount(userId)).mapTo[Account].onSuccess {
+            case account ⇒
+              if (util.Arrays.equals(digestPassword(password, account.salt), account.password)) {
                 sndr ! \/.right(userId)
               } else {
                 sndr ! \/.left("Login failed 2")
