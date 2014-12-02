@@ -11,6 +11,10 @@ class LiftAlertController: UIViewController {
         return ctrl
     }
     
+    class func showError(key: String, parent: UIViewController) -> (NSError) -> Void {
+        return { error in LiftAlertController.error(NSLocalizedString(key, comment: ""), error: error).present(parent) }
+    }
+    
     override func viewDidLayoutSubviews() {
         if (imageNames != nil) {
             setBackgroundImage(imageNames!)

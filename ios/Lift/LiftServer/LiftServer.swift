@@ -123,6 +123,10 @@ extension Request {
 ///
 public class LiftServer {
     
+    ///
+    /// Singleton instance of the LiftServer. The instances are stateless, so it is generally a 
+    /// good idea to take advantage of the singleton
+    ///
     public class var sharedInstance: LiftServer {
         struct Singleton {
             static let instance = LiftServer()
@@ -131,6 +135,9 @@ public class LiftServer {
         return Singleton.instance
     }
 
+    ///
+    /// The connection manager's configuration
+    ///
     private let manager = Manager(configuration: {
         var configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
         
@@ -163,7 +170,7 @@ public class LiftServer {
         return configuration
         }()
     )
-    private let baseURLString = "http://192.168.0.6:12554"
+    private let baseURLString = "http://192.168.0.8:8081"
     
     ///
     /// Body is either JSON structure or NSData
@@ -185,12 +192,18 @@ public class LiftServer {
         }
     }
     
+    ///
+    /// Register the iOS push device token for the given user
+    ///
     func registerDeviceToken(userId: NSUUID, deviceToken: NSData) -> Void {
         request(LiftServerURLs.UserRegisterDevice(userId: userId), body: .Json(params: [ "deviceToken": "\(deviceToken)"]))
             .responseAsResutlt({r in Result.value(()) }) { json -> Void in }
         
     }
     
+    ///
+    /// Login the user given the username and password
+    ///
     func login(email: String, password: String, f: Result<User> -> Void) -> Void {
         request(LiftServerURLs.UserLogin(), body: .Json(params: [ "email": email, "password": password ]))
             .responseAsResutlt(f) { json -> User in
@@ -199,6 +212,9 @@ public class LiftServer {
             }
     }
     
+    ///
+    /// Register the user given the username and password
+    ///
     func register(email: String, password: String, f: Result<User> -> Void) -> Void {
         request(LiftServerURLs.UserRegister(), body: .Json(params: [ "email": email, "password": password ]))
             .responseAsResutlt(f) { json -> User in
