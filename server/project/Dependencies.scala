@@ -48,7 +48,7 @@ object Dependencies {
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
  
   // Datastax Cassandra Client
-  // val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
+  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
 
   // Etcd Client
   val etcd_client           = "net.nikore.etcd"    %% "scala-etcd"      % "0.7"

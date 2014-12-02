@@ -95,12 +95,11 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
     system.registerOnTermination(shutdown())
 
     // register this (cluster) actor system with etcd
-    etcd.setKey(EtcdKeys.ClusterNodes(cluster), EtcdKeys.ClusterNodes.Joining).onComplete {
+    etcd.setKey(EtcdKeys.ClusterNodes(cluster), cluster.selfAddress.toString).onComplete {
       case Success(_) =>
         // Register cluster MemberUp callback
         cluster.registerOnMemberUp {
           log.info(s"*********** Node ${cluster.selfAddress} booting Up")
-          etcd.setKey(EtcdKeys.ClusterNodes(cluster), cluster.selfAddress.toString)
           // boot the microservice code
           val bootedNode = boot(system)
           bootedNode.api.foreach(startupApi)
@@ -132,11 +131,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
               log.info(s"Found $systemNodes")
               // At least one actor system address has been retrieved from etcd
               // We now need to check their respective etcd states and locate Up cluster seed nodes
-              val seedNodes = for {
-                systemNode ← systemNodes
-                value ← systemNode.value
-                if value != EtcdKeys.ClusterNodes.Joining
-              } yield AddressFromURIString(s"akka.tcp://$name@$value")
+              val seedNodes = systemNodes.flatMap(_.value).map(AddressFromURIString.apply).take(minNrMembers)
 
               if (seedNodes.size >= minNrMembers) {
                 log.info(s"Joining our cluster using the seed nodes: $seedNodes")
