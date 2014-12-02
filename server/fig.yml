@@ -31,20 +31,6 @@ profile:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
-notification:
-  image: janm399/lift:lift-notification
-  environment:
-    APP_ADDR:
-    JOURNAL: journal.lift.eigengo.com
-    SNAPSHOT: snapshot.lift.eigengo.com
-    ETCD_URL: http://etcd.lift.eigengo.com:4001
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-  links:
-    - cassandra:journal.lift.eigengo.com
-    - cassandra:snapshot.lift.eigengo.com
-    - etcd:etcd.lift.eigengo.com
-    - profile
 exercise:
   image: janm399/lift:lift-exercise
   environment:
@@ -61,4 +47,3 @@ exercise:
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
     - profile
-    - notification

@@ -18,8 +18,8 @@ object UserProfileBoot {
     val userProfile = ClusterSharding(system).start(
       typeName = UserProfileLink.userProfileShardName,
       entryProps = Some(UserProfile.props),
-      idExtractor = UserProfile.idExtractor,
-      shardResolver = UserProfile.shardResolver)
+      idExtractor = UserProfileProtocol.idExtractor,
+      shardResolver = UserProfileProtocol.shardResolver)
     val userProfileProcessor = system.actorOf(UserProfileProcessor.props(userProfile), UserProfileProcessor.name)
 
     UserProfileBoot(userProfile, userProfileProcessor)

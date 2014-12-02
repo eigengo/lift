@@ -2,16 +2,13 @@ package com.eigengo.lift.profile
 
 import java.security.MessageDigest
 import java.util
-import java.util.UUID
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ActorRef, Props}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
-import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserSetDevice, UserRegister}
-import com.eigengo.lift.profile.UserProfileProtocol.{Profile, UserGetProfile, UserDevice, Account}
+import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice}
+import com.eigengo.lift.profile.UserProfileProtocol._
 
-import scala.collection.immutable.HashSet
 import scala.util.Random
 import scalaz.\/
 

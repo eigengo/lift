@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   akka.contrib,
   spray.routing,
   scalaz.core,
+  apns,
   akka.persistence_cassandra,
   akka.testkit % "test",
   spray.testkit % "test"

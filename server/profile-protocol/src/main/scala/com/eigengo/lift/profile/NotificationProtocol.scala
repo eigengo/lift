@@ -1,4 +1,4 @@
-package com.eigengo.lift.notification
+package com.eigengo.lift.profile
 
 import com.eigengo.lift.common.UserId
 

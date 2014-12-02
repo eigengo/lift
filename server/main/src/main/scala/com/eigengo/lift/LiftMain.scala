@@ -5,13 +5,16 @@ import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.UserProfileBoot
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route}
 
-class LiftMain(routes: Route*) extends HttpServiceActor {
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext
+import scala.language.postfixOps
+
+class LiftMain(routes: Seq[Route]) extends HttpServiceActor {
   override def receive: Receive = runRoute(routes.reduce(_ ~ _))
 }
 
@@ -21,7 +24,7 @@ class LiftMain(routes: Route*) extends HttpServiceActor {
 object LiftMain extends App {
   val LiftActorSystem = "Lift"
 
-  singleJvmStartup(Seq(2551 → "exercise", 2552 → "exercise", 2553 → "profile", 2554 → "profile", 2556 → "notification"))
+  singleJvmStartup(Seq(2551 → "exercise", 2552 → "exercise", 2553 → "exercise", 2554 → "profile", 2556 → "profile"))
 
   def singleJvmStartup(ports: Seq[(Int, String)]): Unit = {
     ports.par.foreach { portAndRole ⇒
@@ -45,17 +48,20 @@ object LiftMain extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
+      val routes = ListBuffer[(ExecutionContext ⇒ Route)]()
       if (role.contains("profile")) {
         val profile = UserProfileBoot.boot(system)
+        profile.api.foreach(routes +=)
       }
       if (role.contains("exercise")) {
-        val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
+        val exercise = ExerciseBoot.bootCluster(system)
+        exercise.api.foreach(routes +=)
       }
 
-      startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
+      startupHttpService(system, port, routes.map(_.apply(system.dispatcher)))
     }
 
-    def startupHttpService(system: ActorSystem, port: Int, routes: Route*): Unit = {
+    def startupHttpService(system: ActorSystem, port: Int, routes: Seq[Route]): Unit = {
       val restService = system.actorOf(Props(classOf[LiftMain], routes))
       IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 10000 + port)
     }

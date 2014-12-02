@@ -8,7 +8,8 @@ import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView.{Exercise, ExerciseEvt}
-import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
+import com.eigengo.lift.profile.NotificationProtocol
+import NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
@@ -22,7 +23,7 @@ object UserExercises {
   /** The shard name */
   val shardName = "user-exercises"
   /** The props to create the actor on a node */
-  def props(profile: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
+  def props(profile: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], profile, exerciseClassifiers)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
@@ -138,14 +139,14 @@ class UserExercises(profile: ActorRef, exerciseClasssifiers: ActorRef) extends P
       if (confidence > confidenceThreshold) {
         persist(ExerciseEvt(metadata, session, Exercise(name, intensity))) { evt ⇒
           intensity.foreach { i ⇒
-            if (i << session.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-            if (i >> session.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+            if (i << session.intendedIntensity) profile ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+            if (i >> session.intendedIntensity) profile ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
           }
         }
       }
 
     case UnclassifiedExercise(_, `session`) ⇒
-      notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
+      profile ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
 
     case cmd@ExerciseSessionEnd(id) if session.id == id ⇒
       persist(cmd) { evt ⇒

@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.contrib.pattern.ClusterSharding
 import com.eigengo.lift.common.MicroserviceApp.BootedNode
 import com.eigengo.lift.exercise.ExerciseBoot._
-import com.eigengo.lift.notification.NotificationLink
+import com.eigengo.lift.profile.UserProfileLink
 import spray.routing.Route
 
 import scala.concurrent.ExecutionContext
@@ -24,6 +24,11 @@ case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef, ex
  * Starts the actors in this microservice
  */
 object ExerciseBoot extends ExerciseService {
+
+  def bootCluster(system: ActorSystem): ExerciseBoot = {
+    val profile = UserProfileLink.userProfile(system)
+    boot(profile)(system)
+  }
 
   /**
    * Boot the exercise microservice

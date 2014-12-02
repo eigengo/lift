@@ -1,8 +1,53 @@
 package com.eigengo.lift.profile
 
+import akka.contrib.pattern.ShardRegion
 import com.eigengo.lift.common.UserId
 
 object UserProfileProtocol {
+
+  val idExtractor: ShardRegion.IdExtractor = {
+    case UserRegistered(userId, account) ⇒ (userId.toString, account)
+    case UserGetProfile(userId)          ⇒ (userId.toString, GetProfile)
+    case UserGetDevices(userId)          ⇒ (userId.toString, GetDevices)
+    case UserDeviceSet(userId, device)   ⇒ (userId.toString, SetDevice(device))
+  }
+
+  val shardResolver: ShardRegion.ShardResolver = {
+    case UserRegistered(userId, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserGetProfile(userId)    ⇒ s"${userId.hashCode() % 10}"
+    case UserGetDevices(userId)    ⇒ s"${userId.hashCode() % 10}"
+    case UserDeviceSet(userId, _)  ⇒ s"${userId.hashCode() % 10}"
+  }
+
+  /**
+   * Sets the user's device
+   * @param device the device
+   */
+  case class SetDevice(device: UserDevice)
+
+  /**
+   * Registers a user
+   * @param userId the user to be added
+   * @param account the user account
+   */
+  case class UserRegistered(userId: UserId, account: Account)
+
+  /**
+   * Device has been set
+   * @param userId the user for the device
+   * @param device the device that has just been set
+   */
+  case class UserDeviceSet(userId: UserId, device: UserDevice)
+
+  /**
+   * Get profile
+   */
+  case object GetProfile
+
+  /**
+   * Get all devices
+   */
+  case object GetDevices
 
   /**
    * All user devices

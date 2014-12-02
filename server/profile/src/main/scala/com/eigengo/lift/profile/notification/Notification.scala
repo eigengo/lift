@@ -1,8 +1,8 @@
-package com.eigengo.lift.notification
+package com.eigengo.lift.profile.notification
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.routing.RoundRobinPool
-import com.eigengo.lift.notification.NotificationProtocol.{WatchDestination, MobileDestination, PushMessage}
+import com.eigengo.lift.profile.NotificationProtocol.{WatchDestination, MobileDestination, PushMessage}
 import com.eigengo.lift.profile.UserProfileProtocol.{AndroidUserDevice, IOSUserDevice, UserDevices, UserGetDevices}
 
 object Notification {
