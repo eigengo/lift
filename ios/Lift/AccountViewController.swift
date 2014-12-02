@@ -9,16 +9,21 @@ class AccountViewController : UIViewController {
         if deviceToken != nil {
             LiftServer.sharedInstance.registerDeviceToken(user.id, deviceToken: deviceToken!)
         }
+        CurrentLiftUser.userId = user.id
         performSegueWithIdentifier("account_account", sender: nil)
     }
     
     @IBAction
     func login(sender: UIButton) {
-        LiftServer.sharedInstance.login(username.text, password: password.text) { $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount) }
+        LiftServer.sharedInstance.login(username.text, password: password.text) {
+            $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
+        }
     }
     
     @IBAction
     func register(sender: UIButton) {
-        LiftServer.sharedInstance.register(username.text, password: password.text) { $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount) }
+        LiftServer.sharedInstance.register(username.text, password: password.text) {
+            $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
+        }
     }
 }

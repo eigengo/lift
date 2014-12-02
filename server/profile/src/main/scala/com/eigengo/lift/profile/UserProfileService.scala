@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.ActorRef
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
-import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice}
+import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice, UserSetPublicProfile}
 import com.eigengo.lift.profile.UserProfileProtocol._
 import spray.routing.Directives
 
@@ -30,7 +30,12 @@ trait UserProfileService extends Directives with CommonMarshallers with CommonPa
     path("user" / UserIdValue) { userId ⇒
       get {
         complete {
-          (userProfile ? UserGetAccount(userId)).mapRight[Profile]
+          (userProfile ? UserGetPublicProfile(userId)).mapTo[Option[PublicProfile]]
+        }
+      } ~
+      post {
+        handleWith { publicProfile: PublicProfile ⇒
+          (userProfileProcessor ? UserSetPublicProfile(userId, publicProfile)).mapRight[Unit]
         }
       }
     } ~

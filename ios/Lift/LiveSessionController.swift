@@ -23,7 +23,7 @@ enum CellData {
     }
 }
 
-class SessionViewController: UITableViewController, UITableViewDelegate, UITableViewDataSource, AccelerometerReceiverDelegate {
+class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, AccelerometerReceiverDelegate, MuscleGroupsSettable {
     private let receiver = PebbleAccelerometerReceiver()
     private let recorder = CombinedAccelerometerRecorder(recorders: [LocalAccelerometerRecorder(), PEAccelerometerRecorder()])
     private var sessionCells: [CellData] = []
@@ -31,6 +31,10 @@ class SessionViewController: UITableViewController, UITableViewDelegate, UITable
     override func viewDidLoad() {
         super.viewDidLoad()
         receiver.delegate = self
+    }
+    
+    func setMuscleGroups(muscleGroups: [String]) {
+        NSLog("Starting with %@", muscleGroups)
     }
     
     // #pragma mark - UITableViewDataSource

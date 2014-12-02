@@ -29,7 +29,14 @@ object UserProfileProtocol {
      * @param device the device
      * @return the updated profile
      */
-    def addDevice(device: UserDevice) = copy(devices = device :: devices)
+    def withDevice(device: UserDevice) = copy(devices = device :: devices)
+
+    /**
+     * Sets the public profile
+     * @param publicProfile the profile
+     * @return the updated profile
+     */
+    def withPublicProfile(publicProfile: PublicProfile) = copy(publicProfile = Some(publicProfile))
   }
 
   /**
@@ -73,7 +80,7 @@ object UserProfileProtocol {
    * @param userId the user identity
    * @param publicProfile the new public profile
    */
-  case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
+  case class UserPublicProfileSet(userId: UserId, publicProfile: PublicProfile)
 
   /**
    * Gets the user's devices

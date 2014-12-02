@@ -12,7 +12,7 @@ import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.UserId
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
 import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserSetDevice, UserRegister}
-import com.eigengo.lift.profile.UserProfileProtocol.{Profile, UserGetAccount, UserDevice, Account}
+import com.eigengo.lift.profile.UserProfileProtocol._
 
 import scala.collection.immutable.HashSet
 import scala.util.Random
@@ -43,6 +43,13 @@ object UserProfileProcessor {
    */
   case class UserSetDevice(userId: UserId, device: UserDevice)
 
+  /**
+   * Sets the users' public profile
+   * @param userId the user identity
+   * @param publicProfile the public profile
+   */
+  case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
+
   private case class KnownAccounts(accounts: Map[String, UserId], version: Int) {
     def contains(email: String): Boolean = accounts.contains(email)
     def get(email: String): Option[UserId] = accounts.get(email)
@@ -70,6 +77,22 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       knownAccounts = offeredSnapshot
   }
 
+  private def loginFailed(sender: ActorRef): Unit = sender ! \/.left("Login failed 1")
+
+  private def loginTry(sender: ActorRef, password: String)(userId: UserId): Unit = {
+    import akka.pattern.ask
+    import com.eigengo.lift.common.Timeouts.defaults._
+    import context.dispatcher
+
+    (userProfile ? UserGetAccount(userId)).mapTo[Account].foreach { account ⇒
+      if (util.Arrays.equals(digestPassword(password, account.salt), account.password)) {
+        sender ! \/.right(userId)
+      } else {
+        sender ! \/.left("Login failed 2")
+      }
+    }
+  }
+
   override def receiveCommand: Receive = {
     case UserRegister(email, password) if !knownAccounts.contains(email) ⇒
       val salt = Random.nextString(100)
@@ -93,26 +116,14 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       sender() ! \/.left("Username already taken")
 
     case UserLogin(email, password) ⇒
-      import akka.pattern.ask
-      import com.eigengo.lift.common.Timeouts.defaults._
-      import context.dispatcher
-
-      knownAccounts.get(email).fold
-        { sender() ! \/.left("Login failed 1") }
-        { userId ⇒
-          val sndr = sender()
-          (userProfile ? UserGetAccount(userId)).mapTo[Account].onSuccess {
-            case account ⇒
-              if (util.Arrays.equals(digestPassword(password, account.salt), account.password)) {
-                sndr ! \/.right(userId)
-              } else {
-                sndr ! \/.left("Login failed 2")
-              }
-          }
-        }
+      knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
 
     case UserSetDevice(userId, device) ⇒
       userProfile ! UserDeviceSet(userId, device)
+      sender() ! \/.right(())
+
+    case UserSetPublicProfile(userId, publicProfile) ⇒
+      userProfile ! UserPublicProfileSet(userId, publicProfile)
       sender() ! \/.right(())
   }
 

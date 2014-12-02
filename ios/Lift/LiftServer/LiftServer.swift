@@ -2,6 +2,13 @@ import Foundation
 
 struct User {
     var id: NSUUID
+
+    struct PublicProfile {
+        var firstName: String
+        var lastName: String
+        var weight: Int?
+        var age: Int?
+    }
 }
 
 ///
@@ -48,7 +55,12 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     ///
     /// Retrieves the user's profile for the ``userId``
     ///
-    case UserGetProfile(/*userId: */NSUUID)
+    case UserGetPublicProfile(/*userId: */NSUUID)
+    
+    ///
+    /// Sets the user's profile for the ``userId``
+    ///
+    case UserSetPublicProfile(/*userId: */NSUUID)
 
     ///
     /// Retrieves all the exercises for the given ``userId``
@@ -79,7 +91,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case let .UserLogin: return LiftServerRequest(path: "/user", method: Method.PUT)
                     
                 case .UserRegisterDevice(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)/device/ios", method: Method.POST)
-                case .UserGetProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.GET)
+                case .UserGetPublicProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.GET)
+                case .UserSetPublicProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.POST)
                     
                 case .ExerciseGetAllExercises(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
                 
@@ -172,7 +185,7 @@ public class LiftServer {
     )
     
     //private let baseURLString = "http://192.168.59.103:49170"
-    private let baseURLString = "http://192.168.101.102:12551"
+    private let baseURLString = "http://192.168.0.6:12551"
     
     ///
     /// Body is either JSON structure or NSData
@@ -227,6 +240,39 @@ public class LiftServer {
                 return User(id: userId!)
             }
         
+    }
+
+    ///
+    /// Get the public profile for the given ``userId``
+    ///
+    func getPublicProfile(userId: NSUUID, f: Result<User.PublicProfile?> -> Void) -> Void {
+        request(LiftServerURLs.UserGetPublicProfile(userId))
+            .responseAsResutlt(f) { json -> User.PublicProfile? in
+                if json.isEmpty {
+                    return nil
+                } else {
+                    return User.PublicProfile(firstName: json["firstName"].stringValue,
+                        lastName: json["lastName"].stringValue,
+                        weight: json["weight"].int,
+                        age: json["age"].int)
+                }
+            }
+    }
+    
+    ///
+    /// Sets the public profile for the given ``userId``
+    ///
+    func setPublicProfile(userId: NSUUID, publicProfile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
+        var params: [String : AnyObject] = ["firstName": publicProfile.firstName, "lastName": publicProfile.lastName]
+        if publicProfile.age != nil {
+            params["age"] = publicProfile.age!
+        }
+        if publicProfile.weight != nil {
+            params["weight"] = publicProfile.weight!
+        }
+        
+        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: params))
+            .responseAsResutlt(f) { json -> Void in return }
     }
     
 }
