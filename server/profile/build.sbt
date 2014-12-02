@@ -14,29 +14,3 @@ libraryDependencies ++= Seq(
   akka.testkit % "test",
   spray.testkit % "test"
 )
-
-import DockerKeys._
-import sbtdocker.ImageName
-import sbtdocker.mutable.Dockerfile
-
-dockerSettings
-
-// Define a Dockerfile
-docker <<= (docker dependsOn assembly)
-
-dockerfile in docker := {
-  val artifact = (outputPath in assembly).value
-  val artifactTargetPath = s"/app/${artifact.name}"
-  new Dockerfile {
-    from("dockerfile/java")
-    add(artifact, artifactTargetPath)
-    entryPoint("java", "-jar", artifactTargetPath)
-  }
-}
-
-imageName in docker := {
-  ImageName(
-    namespace = Some("janm399"),
-    repository = "lift",
-    tag = Some(name.value))
-}

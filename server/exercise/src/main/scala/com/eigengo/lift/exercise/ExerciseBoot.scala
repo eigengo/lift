@@ -4,7 +4,6 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.contrib.pattern.ClusterSharding
 import com.eigengo.lift.common.MicroserviceApp.BootedNode
 import com.eigengo.lift.exercise.ExerciseBoot._
-import com.eigengo.lift.notification.NotificationLink
 import spray.routing.Route
 
 import scala.concurrent.ExecutionContext

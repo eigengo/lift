@@ -22,7 +22,7 @@ object UserExercises {
   /** The shard name */
   val shardName = "user-exercises"
   /** The props to create the actor on a node */
-  def props(profile: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
+  def props(notification: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
@@ -97,7 +97,7 @@ object UserExercises {
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercises(profile: ActorRef, exerciseClasssifiers: ActorRef) extends PersistentActor with ActorLogging with AutoPassivation {
+class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) extends PersistentActor with ActorLogging with AutoPassivation {
   import scala.concurrent.duration._
 
   private val userId = UserId(self.path.name)

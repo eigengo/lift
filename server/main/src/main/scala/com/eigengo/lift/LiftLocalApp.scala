@@ -11,27 +11,23 @@ import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route}
 
-class LiftMain(routes: Route*) extends HttpServiceActor {
+class LiftLocalApp(routes: Route*) extends HttpServiceActor {
   override def receive: Receive = runRoute(routes.reduce(_ ~ _))
 }
 
 /**
  * CLI application for the exercise app
  */
-object LiftMain extends App {
+object LiftLocalApp extends App {
   val LiftActorSystem = "Lift"
 
-  singleJvmStartup(Seq(2551 → "exercise", 2552 → "exercise", 2553 → "profile", 2554 → "profile", 2556 → "notification"))
+  singleJvmStartup(Seq(2551, 2552, 2553, 2554))
 
-  def singleJvmStartup(ports: Seq[(Int, String)]): Unit = {
-    ports.par.foreach { portAndRole ⇒
-      val (port, role) = portAndRole
+  def singleJvmStartup(ports: Seq[Int]): Unit = {
+    ports.par.foreach { port ⇒
       import scala.collection.JavaConverters._
       // Override the configuration of the port
-      val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=$role")
-      val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[$role]")
-      val remotingConfig = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port")
-      val config = remotingConfig.withFallback(clusterShardingConfig).withFallback(clusterRoleConfig).withFallback(ConfigFactory.load("main.conf"))
+      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load("main.conf"))
       val firstSeedNodePort = (for {
         seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
         port ← ActorPath.fromString(seedNode).address.port
@@ -39,24 +35,20 @@ object LiftMain extends App {
 
       // Create an Akka system
       implicit val system = ActorSystem(LiftActorSystem, config)
-      Thread.sleep(2000)
 
       // Startup the journal
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      if (role.contains("profile")) {
-        val profile = UserProfileBoot.boot(system)
-      }
-      if (role.contains("exercise")) {
-        val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
-      }
+      val profile = UserProfileBoot.boot(system)
+      val notificaiton = NotificationBoot.boot(profile.userProfile)
+      val exercise = ExerciseBoot.boot(notificaiton.notification)
 
       startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }
 
     def startupHttpService(system: ActorSystem, port: Int, routes: Route*): Unit = {
-      val restService = system.actorOf(Props(classOf[LiftMain], routes))
+      val restService = system.actorOf(Props(classOf[LiftLocalApp], routes))
       IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 10000 + port)
     }
 

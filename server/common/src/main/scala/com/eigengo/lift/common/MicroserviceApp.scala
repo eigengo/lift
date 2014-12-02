@@ -11,7 +11,7 @@ import com.typesafe.config.ConfigFactory
 import net.nikore.etcd.EtcdClient
 import net.nikore.etcd.EtcdJsonProtocol.EtcdListResponse
 import spray.can.Http
-import spray.routing.{HttpServiceActor, Route}
+import spray.routing.{RouteConcatenation, HttpServiceActor, Route}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
@@ -41,7 +41,22 @@ object MicroserviceApp {
    * Booted node that defines the rest API
    */
   trait BootedNode {
-    def api: Option[ExecutionContext ⇒ Route] = None
+    import BootedNode._
+    def api: Option[RestApi] = None
+
+    def +(that: BootedNode): BootedNode = (this.api, that.api) match {
+      case (Some(r1), Some(r2)) ⇒ Default(r1, r2)
+      case (Some(r1), None) ⇒ this
+      case (None, Some(r2)) ⇒ that
+      case _ ⇒ this
+    }
+  }
+
+  object BootedNode {
+    type RestApi = ExecutionContext ⇒ Route
+    case class Default(api1: RestApi, api2: RestApi) extends BootedNode with RouteConcatenation {
+      override lazy val api = Some({ ec: ExecutionContext ⇒ api1(ec) ~ api2(ec) })
+    }
   }
 
 }
@@ -49,9 +64,10 @@ object MicroserviceApp {
 /**
  * All microservice implementations should extend this class, providing the microservice name,
  * @param microserviceProps the microservice properties
- * @param boot the boot function
  */
-abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: ActorSystem ⇒ BootedNode) extends App {
+abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App {
+
+  def boot(implicit system: ActorSystem): BootedNode
 
   private object EtcdKeys {
 
@@ -79,9 +95,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
 
     // load config and set Up etcd client
     import scala.concurrent.duration._
-    val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
-    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=['${microserviceProps.role}']")
-    val config = clusterShardingConfig.withFallback(clusterRoleConfig).withFallback(ConfigFactory.load())
+    val config = ConfigFactory.load()
     val etcd = new EtcdClient(config.getString("etcd.url"))
     log.info(s"Config loaded; etcd expected at $etcd")
 

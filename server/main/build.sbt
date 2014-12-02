@@ -29,13 +29,16 @@ libraryDependencies ++= Seq(
   spray.testkit % "test"
 )
 
-/*
 import DockerKeys._
+import sbtdocker.ImageName
 import sbtdocker.mutable.Dockerfile
 
 dockerSettings
 
 // Define a Dockerfile
+
+mainClass in assembly := Some("com.eigengo.lift.LiftServiceApp")
+
 docker <<= (docker dependsOn assembly)
 
 dockerfile in docker := {
@@ -43,10 +46,16 @@ dockerfile in docker := {
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("dockerfile/java")
-    expose(12551, 12552, 12553, 12554)
-    add(new File("/Users/janmachacek/.ios"), "/root/.ios")
+    val f = new File(s"${Path.userHome.absolutePath}/.ios")
+    if (f.exists) add(f, "/root/.ios")
     add(artifact, artifactTargetPath)
     entryPoint("java", "-jar", artifactTargetPath)
   }
 }
-*/
+
+imageName in docker := {
+  ImageName(
+    namespace = Some("janm399"),
+    repository = "lift",
+    tag = Some(name.value))
+}

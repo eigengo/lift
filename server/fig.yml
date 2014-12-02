@@ -16,8 +16,8 @@ etcd:
   ports:
     - "7001:7001"
     - "4001:4001"
-profile:
-  image: janm399/lift:lift-profile
+main1:
+  image: janm399/lift:lift-main
   environment:
     APP_ADDR:
     JOURNAL: journal.lift.eigengo.com
@@ -31,22 +31,8 @@ profile:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
-notification:
-  image: janm399/lift:lift-notification
-  environment:
-    APP_ADDR:
-    JOURNAL: journal.lift.eigengo.com
-    SNAPSHOT: snapshot.lift.eigengo.com
-    ETCD_URL: http://etcd.lift.eigengo.com:4001
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-  links:
-    - cassandra:journal.lift.eigengo.com
-    - cassandra:snapshot.lift.eigengo.com
-    - etcd:etcd.lift.eigengo.com
-    - profile
-exercise:
-  image: janm399/lift:lift-exercise
+main2:
+  image: janm399/lift:lift-main
   environment:
     APP_ADDR:
     JOURNAL: journal.lift.eigengo.com
@@ -60,5 +46,21 @@ exercise:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
-    - profile
-    - notification
+    - main1
+main3:
+  image: janm399/lift:lift-main
+  environment:
+    APP_ADDR:
+    JOURNAL: journal.lift.eigengo.com
+    SNAPSHOT: snapshot.lift.eigengo.com
+    ETCD_URL: http://etcd.lift.eigengo.com:4001
+  ports:
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
+    - etcd:etcd.lift.eigengo.com
+    - main1
+    - main2

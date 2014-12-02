@@ -170,6 +170,8 @@ public class LiftServer {
         return configuration
         }()
     )
+    
+    //private let baseURLString = "http://192.168.59.103:49170"
     private let baseURLString = "http://192.168.101.102:12551"
     
     ///

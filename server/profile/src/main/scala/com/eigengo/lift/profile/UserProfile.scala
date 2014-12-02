@@ -9,7 +9,7 @@ import scalaz.\/
 
 object UserProfile {
   import com.eigengo.lift.profile.UserProfileProtocol._
-
+  val shardName = "user-profile"
   val props = Props[UserProfile]
   
   val idExtractor: ShardRegion.IdExtractor = {
