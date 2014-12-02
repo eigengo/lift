@@ -25,20 +25,15 @@ case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef, ex
  */
 object ExerciseBoot extends ExerciseService {
 
-  def boot(system: ActorSystem): ExerciseBoot = {
-    val notification = NotificationLink.notification(system)
-    bootResolved(notification)(system)
-  }
-
   /**
    * Boot the exercise microservice
    * @param system the AS to boot the microservice in
    */
-  def bootResolved(notification: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
+  def boot(profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
     val exerciseClassifiers = system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
     val userExercise = ClusterSharding(system).start(
       typeName = UserExercises.shardName,
-      entryProps = Some(UserExercises.props(notification, exerciseClassifiers)),
+      entryProps = Some(UserExercises.props(profile, exerciseClassifiers)),
       idExtractor = UserExercises.idExtractor,
       shardResolver = UserExercises.shardResolver)
     val userExerciseView = ClusterSharding(system).start(

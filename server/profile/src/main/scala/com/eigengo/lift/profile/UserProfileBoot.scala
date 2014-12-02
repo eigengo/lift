@@ -14,7 +14,7 @@ case class UserProfileBoot(userProfile: ActorRef, private val userProfileProcess
 
 object UserProfileBoot {
 
-  def bootResolved(system: ActorSystem): UserProfileBoot = {
+  def boot(system: ActorSystem): UserProfileBoot = {
     val userProfile = ClusterSharding(system).start(
       typeName = UserProfileLink.userProfileShardName,
       entryProps = Some(UserProfile.props),
@@ -24,7 +24,5 @@ object UserProfileBoot {
 
     UserProfileBoot(userProfile, userProfileProcessor)
   }
-
-  def boot(system: ActorSystem): UserProfileBoot = bootResolved(system)
 
 }

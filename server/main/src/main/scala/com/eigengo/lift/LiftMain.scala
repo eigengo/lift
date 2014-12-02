@@ -21,13 +21,17 @@ class LiftMain(routes: Route*) extends HttpServiceActor {
 object LiftMain extends App {
   val LiftActorSystem = "Lift"
 
-  singleJvmStartup(Seq(2551, 2552, 2553, 2554))
+  singleJvmStartup(Seq(2551 → "exercise", 2552 → "exercise", 2553 → "profile", 2554 → "profile", 2556 → "notification"))
 
-  def singleJvmStartup(ports: Seq[Int]): Unit = {
-    ports.foreach { port ⇒
+  def singleJvmStartup(ports: Seq[(Int, String)]): Unit = {
+    ports.par.foreach { portAndRole ⇒
+      val (port, role) = portAndRole
       import scala.collection.JavaConverters._
       // Override the configuration of the port
-      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load("main.conf"))
+      val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=$role")
+      val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[$role]")
+      val remotingConfig = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port")
+      val config = remotingConfig.withFallback(clusterShardingConfig).withFallback(clusterRoleConfig).withFallback(ConfigFactory.load("main.conf"))
       val firstSeedNodePort = (for {
         seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
         port ← ActorPath.fromString(seedNode).address.port
@@ -35,15 +39,18 @@ object LiftMain extends App {
 
       // Create an Akka system
       implicit val system = ActorSystem(LiftActorSystem, config)
-      import system.dispatcher
+      Thread.sleep(2000)
 
       // Startup the journal
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      val profile = UserProfileBoot.boot(system)
-      val notificaiton = NotificationBoot.bootResolved(profile.userProfile)
-      val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
+      if (role.contains("profile")) {
+        val profile = UserProfileBoot.boot(system)
+      }
+      if (role.contains("exercise")) {
+        val exercise = ExerciseBoot.bootResolved(notificaiton.notification)
+      }
 
       startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }
