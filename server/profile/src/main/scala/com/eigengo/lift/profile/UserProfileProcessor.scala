@@ -50,14 +50,17 @@ object UserProfileProcessor {
    */
   case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
 
-  private case class KnownAccounts(accounts: Map[String, UserId], version: Int) {
+  private case class KnownAccounts(accounts: Map[String, UserId]) {
     def contains(email: String): Boolean = accounts.contains(email)
     def get(email: String): Option[UserId] = accounts.get(email)
-    def +(kv: (String, UserId)): KnownAccounts = copy(accounts = accounts + kv, version = version + 1)
+    def withNewAccount(email: String, userId: UserId): KnownAccounts = copy(accounts = accounts + (email → userId))
   }
   private object KnownAccounts {
-    def empty: KnownAccounts = KnownAccounts(Map.empty, 0)
+    def empty: KnownAccounts = KnownAccounts(Map.empty)
   }
+
+  private case class KnownAccountAdded(email: String, userId: UserId)
+
 }
 
 class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with ActorLogging {
@@ -98,19 +101,15 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       val salt = Random.nextString(100)
       val userId = UserId.randomId()
       userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
-      knownAccounts = knownAccounts + (email → userId)
+      knownAccounts = knownAccounts.withNewAccount(email, userId)
       saveSnapshot(knownAccounts)
-      mediator ! Publish(topic, knownAccounts)
+      mediator ! Publish(topic, KnownAccountAdded(email, userId))
 
       sender() ! \/.right(userId)
 
-    case ka: KnownAccounts if sender() != self ⇒
-      if (ka.version == knownAccounts.version + 1) {
-        knownAccounts = ka
-        log.info(s"Received new knownAccounts. Now ${ka.accounts}")
-      } else {
-        log.warning(s"Merging knownAccounts. Not really, actually.")
-      }
+    case KnownAccountAdded(email, userId) if sender() != self ⇒
+        knownAccounts = knownAccounts.withNewAccount(email, userId)
+        log.info(s"Received new knownAccount. Now ${knownAccounts.accounts}")
 
     case UserRegister(email, _) if knownAccounts.contains(email) ⇒
       sender() ! \/.left("Username already taken")

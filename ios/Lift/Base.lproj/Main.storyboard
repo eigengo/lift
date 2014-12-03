@@ -84,7 +84,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tnv-c5-jLc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="457" y="952"/>
+            <point key="canvasLocation" x="654" y="1034"/>
         </scene>
         <!--Public Profile Controller-->
         <scene sceneID="Dfb-qx-PZq">
@@ -182,15 +182,6 @@
                     <view key="view" contentMode="scaleToFill" id="9DM-rf-TOg">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="GET /exercises/:id" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="uXh-09-OnW">
-                                <rect key="frame" x="76" y="48" width="141" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="" systemItem="more" id="9pr-SI-H8Q"/>
@@ -346,9 +337,9 @@
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </tabBar>
                     <connections>
+                        <segue destination="gUb-iZ-245" kind="relationship" relationship="viewControllers" id="1x6-fd-CEi"/>
                         <segue destination="K1Y-y1-1sg" kind="relationship" relationship="viewControllers" id="Vib-HS-bKN"/>
                         <segue destination="ucP-LO-yqW" kind="relationship" relationship="viewControllers" id="sHS-no-tEh"/>
-                        <segue destination="gUb-iZ-245" kind="relationship" relationship="viewControllers" id="1x6-fd-CEi"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="n1a-JG-wxr" userLabel="First Responder" sceneMemberID="firstResponder"/>
