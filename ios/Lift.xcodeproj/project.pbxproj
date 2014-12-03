@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		54155B461A2A37D1002222E3 /* PebbleConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54155B451A2A37D1002222E3 /* PebbleConnector.swift */; };
-		54273A8D1A2D03BF00686FF1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54273A8C1A2D03BF00686FF1 /* Localizable.strings */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
 		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
@@ -28,6 +27,8 @@
 		54960F201A20C03F00E980AB /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54960F1F1A20C03F00E980AB /* Interface.storyboard */; };
 		54960F221A20C03F00E980AB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54960F211A20C03F00E980AB /* Images.xcassets */; };
 		54960F251A20C03F00E980AB /* Lift WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
+		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54B29B211A2C82B700098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
@@ -100,7 +101,6 @@
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		54155B451A2A37D1002222E3 /* PebbleConnector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleConnector.swift; sourceTree = "<group>"; };
-		54273A8C1A2D03BF00686FF1 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEC19C5F296005C9B4E /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Recorder.swift; path = Motion/Recorder.swift; sourceTree = "<group>"; };
@@ -125,6 +125,8 @@
 		54960F1E1A20C03F00E980AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54960F1F1A20C03F00E980AB /* Interface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Interface.storyboard; sourceTree = "<group>"; };
 		54960F211A20C03F00E980AB /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
@@ -309,9 +311,10 @@
 				54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */,
 				54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */,
 				54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */,
-				54273A8C1A2D03BF00686FF1 /* Localizable.strings */,
 				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
 				547F64791A2E4FB400F887EE /* PublicProfileController.swift */,
+				54A53EC21A2EF5EC00EDD092 /* Localizable.strings */,
+				54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -529,8 +532,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54273A8D1A2D03BF00686FF1 /* Localizable.strings in Resources */,
+				54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
+				54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */,
 				54CC69A419C4AD8E00B29EC8 /* Images.xcassets in Resources */,
 				54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */,
 			);
@@ -657,6 +661,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		54A53EC21A2EF5EC00EDD092 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				54A53EC31A2EF5EC00EDD092 /* Base */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
 		54CC69A019C4AD8E00B29EC8 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -720,7 +732,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = 4;
+				TARGETED_DEVICE_FAMILY = 1;
 				"TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]" = "1,4";
 			};
 			name = Debug;
@@ -735,7 +747,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = 4;
+				TARGETED_DEVICE_FAMILY = 1;
 				"TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]" = "1,4";
 			};
 			name = Release;
@@ -774,7 +786,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -810,7 +822,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -831,7 +843,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos",
 				);
 				INFOPLIST_FILE = Lift/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -841,6 +853,7 @@
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Lift/Lift-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -858,7 +871,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos",
 				);
 				INFOPLIST_FILE = Lift/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -867,6 +880,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Lift/Lift-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
 		};
