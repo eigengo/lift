@@ -6,8 +6,8 @@ import com.eigengo.lift.common.MicroserviceApp.BootedNode
 import com.eigengo.lift.exercise.ExerciseBoot._
 import com.eigengo.lift.profile.UserProfileLink
 import spray.routing.Route
-
 import scala.concurrent.ExecutionContext
+import scala.collection.JavaConversions._
 
 case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef, exerciseClassifiers: ActorRef) extends BootedNode {
   /**
@@ -35,15 +35,16 @@ object ExerciseBoot extends ExerciseService {
    * @param system the AS to boot the microservice in
    */
   def boot(profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
+    val roles = system.settings.config.getStringList("akka.cluster.roles")
     val exerciseClassifiers = system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
     val userExercise = ClusterSharding(system).start(
       typeName = UserExercises.shardName,
-      entryProps = Some(UserExercises.props(profile, exerciseClassifiers)),
+      entryProps = roles.find("exercise" ==).map(_ => UserExercises.props(profile, exerciseClassifiers)),
       idExtractor = UserExercises.idExtractor,
       shardResolver = UserExercises.shardResolver)
     val userExerciseView = ClusterSharding(system).start(
       typeName = UserExercisesView.shardName,
-      entryProps = Some(UserExercisesView.props),
+      entryProps = roles.find("exercise" ==).map(_ => UserExercisesView.props),
       idExtractor = UserExercisesView.idExtractor,
       shardResolver = UserExercisesView.shardResolver)
 
