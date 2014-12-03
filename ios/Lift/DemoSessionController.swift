@@ -35,6 +35,7 @@ class DemoSessionController : UIViewController, UITabBarDelegate, UITableViewDel
     }
     
     func setMuscleGroupKeys(muscleGroupKeys: [String]) {
+        // LiftServer.sharedInstance.exerciseStartSession(CurrentLiftUser.userId, muscleGroupKeys)
         NSLog("Starting with %@", muscleGroupKeys)
     }
     

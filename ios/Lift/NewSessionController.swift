@@ -8,7 +8,7 @@ class MuscleGroupsTableModel : NSObject, UITableViewDataSource {
 
     init(f: Void -> Void) {
         super.init()
-        LiftServer.sharedInstance.getExerciseMuscleGroups {
+        LiftServer.sharedInstance.exerciseGetMuscleGroups {
             self.muscleGroups = $0.fold([], identity)
             f()
         }

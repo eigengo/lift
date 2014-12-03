@@ -236,7 +236,7 @@ public class LiftServer {
     ///
     /// Register the iOS push device token for the given user
     ///
-    func registerDeviceToken(userId: NSUUID, deviceToken: NSData) -> Void {
+    func userRegisterDeviceToken(userId: NSUUID, deviceToken: NSData) -> Void {
         let tokenString = NSString(data: deviceToken, encoding: NSASCIIStringEncoding)!
         request(LiftServerURLs.UserRegisterDevice(userId), body: .Json(params: [ "deviceToken": tokenString ]))
             .responseString { (_, _, body, error) -> Void in
@@ -248,7 +248,7 @@ public class LiftServer {
     ///
     /// Login the user given the username and password
     ///
-    func login(email: String, password: String, f: Result<User> -> Void) -> Void {
+    func userLogin(email: String, password: String, f: Result<User> -> Void) -> Void {
         request(LiftServerURLs.UserLogin(), body: .Json(params: [ "email": email, "password": password ]))
             .responseAsResutlt(f) { json -> User in
                 let userId = NSUUID(UUIDString: json["id"].stringValue)
@@ -259,7 +259,7 @@ public class LiftServer {
     ///
     /// Register the user given the username and password
     ///
-    func register(email: String, password: String, f: Result<User> -> Void) -> Void {
+    func userRegister(email: String, password: String, f: Result<User> -> Void) -> Void {
         request(LiftServerURLs.UserRegister(), body: .Json(params: [ "email": email, "password": password ]))
             .responseAsResutlt(f) { json -> User in
                 let userId = NSUUID(UUIDString: json["id"].stringValue)
@@ -271,7 +271,7 @@ public class LiftServer {
     ///
     /// Get the public profile for the given ``userId``
     ///
-    func getPublicProfile(userId: NSUUID, f: Result<User.PublicProfile?> -> Void) -> Void {
+    func userGetPublicProfile(userId: NSUUID, f: Result<User.PublicProfile?> -> Void) -> Void {
         request(LiftServerURLs.UserGetPublicProfile(userId))
             .responseAsResutlt(f) { json -> User.PublicProfile? in
                 if json.isEmpty {
@@ -288,7 +288,7 @@ public class LiftServer {
     ///
     /// Sets the public profile for the given ``userId``
     ///
-    func setPublicProfile(userId: NSUUID, publicProfile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
+    func userSetPublicProfile(userId: NSUUID, publicProfile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
         var params: [String : AnyObject] = ["firstName": publicProfile.firstName, "lastName": publicProfile.lastName]
         if publicProfile.age != nil {
             params["age"] = publicProfile.age!
@@ -303,7 +303,7 @@ public class LiftServer {
     
     // MARK: - Exercise
     
-    func getExerciseMuscleGroups(f: Result<[Exercise.MuscleGroup]> -> Void) -> Void {
+    func exerciseGetMuscleGroups(f: Result<[Exercise.MuscleGroup]> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetMuscleGroups())
             .responseAsResutlt(f) { json -> [Exercise.MuscleGroup] in
                 return json.arrayValue.map { mg -> Exercise.MuscleGroup in

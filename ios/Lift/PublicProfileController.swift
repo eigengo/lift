@@ -17,7 +17,7 @@ class PublicProfileController : UIViewController {
             weight: weight.text.toInt(),
             age: age.text.toInt())
         
-        LiftServer.sharedInstance.setPublicProfile(CurrentLiftUser.userId!, publicProfile: publicProfile) {
+        LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, publicProfile: publicProfile) {
             $0.cata(LiftAlertController.showError("user_publicprofile_set_failed", parent: self), { _ in })
         }
     }
@@ -36,7 +36,7 @@ class PublicProfileController : UIViewController {
     }
     
     override func viewDidLoad() {
-        LiftServer.sharedInstance.getPublicProfile(CurrentLiftUser.userId!) {
+        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
             $0.cata(LiftAlertController.showError("user_publicprofile_get_failed", parent: self), self.showProfile)
         }
     }
