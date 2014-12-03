@@ -75,13 +75,10 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps)(boot: Actor
     // resolve the local host name
     val hostname = InetAddress.getLocalHost.getHostAddress
     log.info(s"Starting Up microservice $microserviceProps at $hostname")
-    Thread.sleep(10000)
 
     // load config and set Up etcd client
     import scala.concurrent.duration._
-    val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
-    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=['${microserviceProps.role}']")
-    val config = clusterShardingConfig.withFallback(clusterRoleConfig).withFallback(ConfigFactory.load())
+    val config = ConfigFactory.load()
     val etcd = new EtcdClient(config.getString("etcd.url"))
     log.info(s"Config loaded; etcd expected at $etcd")
 
