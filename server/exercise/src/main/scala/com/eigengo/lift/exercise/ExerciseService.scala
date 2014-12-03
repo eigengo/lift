@@ -5,7 +5,7 @@ import java.util.UUID
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.ExerciseClassifiers.{MuscleGroup, GetMuscleGroups}
 import com.eigengo.lift.exercise.UserExercises.{UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
-import com.eigengo.lift.exercise.UserExercisesView.UserGetAllExercises
+import com.eigengo.lift.exercise.UserExercisesView.{Exercises, UserGetAllExercises}
 import scodec.bits.BitVector
 import spray.routing.Directives
 
@@ -31,7 +31,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       get {
         complete {
-          (userExercisesView ? UserGetAllExercises(userId)).map(_.toString)
+          (userExercisesView ? UserGetAllExercises(userId)).mapTo[List[SessionProps]]
         }
       }
     } ~

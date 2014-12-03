@@ -175,21 +175,92 @@
             </objects>
             <point key="canvasLocation" x="-491" y="264"/>
         </scene>
-        <!--View Controller-->
-        <scene sceneID="Rn3-0p-Cxo">
+        <!--Exercise Sessions-->
+        <scene sceneID="DnT-AD-6hh">
             <objects>
-                <viewController id="gUb-iZ-245" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="9DM-rf-TOg">
+                <tableViewController title="Exercise Sessions" id="olW-i1-6E4" customClass="SessionsController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="9qo-lk-hsU">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="default" textLabel="bnK-Ie-id2" detailTextLabel="c1W-3d-Jhb" style="IBUITableViewCellStyleValue2" id="yZ5-9l-dBG">
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="yZ5-9l-dBG" id="awx-W7-0Jz">
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="bnK-Ie-id2">
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
+                                            <color key="textColor" red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="c1W-3d-Jhb">
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="olW-i1-6E4" id="0zg-zH-Y0E"/>
+                            <outlet property="delegate" destination="olW-i1-6E4" id="Ofj-9c-1Jh"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Sessions" id="sEW-VI-BiF"/>
+                    <connections>
+                        <segue destination="DyL-Am-q2t" kind="push" identifier="detail" id="ZJn-aG-Ix9"/>
+                    </connections>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="efG-ho-9cT" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1174" y="-751"/>
+        </scene>
+        <!--Session Detail Controller-->
+        <scene sceneID="n01-7B-E8y">
+            <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ivZ-cg-0Aq" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <viewController id="DyL-Am-q2t" customClass="SessionDetailController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="a9C-1f-WRt">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SD" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="zdT-nR-e8h">
+                                <rect key="frame" x="142" y="227" width="24" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" systemItem="more" id="9pr-SI-H8Q"/>
+                    <navigationItem key="navigationItem" id="Saa-fm-BwO"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="hr9-mm-sTp" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="570" y="-751"/>
+            <point key="canvasLocation" x="1751" y="-737"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="OPz-OZ-a7P">
+            <objects>
+                <navigationController id="tiz-gY-thd" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" systemItem="more" id="27P-o9-fDU"/>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="WxR-xO-OUZ">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="olW-i1-6E4" kind="relationship" relationship="rootViewController" id="DJz-7C-rhC"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="bje-t3-AMm" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="562" y="-751"/>
         </scene>
         <!--Start Session-->
         <scene sceneID="L28-51-kFF">
@@ -337,7 +408,7 @@
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </tabBar>
                     <connections>
-                        <segue destination="gUb-iZ-245" kind="relationship" relationship="viewControllers" id="1x6-fd-CEi"/>
+                        <segue destination="tiz-gY-thd" kind="relationship" relationship="viewControllers" id="GtU-hg-jWh"/>
                         <segue destination="K1Y-y1-1sg" kind="relationship" relationship="viewControllers" id="Vib-HS-bKN"/>
                         <segue destination="ucP-LO-yqW" kind="relationship" relationship="viewControllers" id="sHS-no-tEh"/>
                     </connections>

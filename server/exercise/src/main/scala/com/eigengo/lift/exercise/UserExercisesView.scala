@@ -22,9 +22,9 @@ object UserExercisesView {
   /**
    * The key in the exercises map
    * @param metadata the model metadata
-   * @param session the session
+   * @param props the session
    */
-  case class SessionKey(metadata: ModelMetadata, session: SessionProps)
+  case class SessionKey(metadata: ModelMetadata, props: SessionProps)
 
   /**
    * All user's exercises
@@ -38,6 +38,8 @@ object UserExercisesView {
         case Some(exercises) ⇒ copy(sessions = sessions + (key → exercises.+:(exercise)))
       }
     }
+
+    def summary: List[SessionProps] = sessions.keys.map(_.props).toList
   }
 
   /**
@@ -104,6 +106,6 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
 
     // query for exercises
     case GetExercises =>
-      sender() ! exercises
+      sender() ! exercises.summary
   }
 }

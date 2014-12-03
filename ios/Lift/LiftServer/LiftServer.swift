@@ -38,6 +38,22 @@ struct Exercise {
         var intendedIntensity: Double
     }
     
+    ///
+    /// Sigle exercise
+    ///
+    struct Exercise {
+        var name: String
+        var intensity: Double?
+    }
+    
+    ///
+    /// Association of list of exercise with a particular session props
+    ///
+    struct Exercises {
+        var props: SessionProps
+        var exercises: [Exercise]
+    }
+    
 }
 
 ///
@@ -355,5 +371,17 @@ public class LiftServer {
     func exerciseSessionEnd(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionEnd(userId, sessionId))
             .responseAsResutlt(f) { json in }
+    }
+    
+    func exerciseGetAllExercises(userId: NSUUID, f: Result<[Exercise.SessionProps]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetAllExercises(userId))
+            .responseAsResutlt(f) { json -> [Exercise.SessionProps] in
+                return json.arrayValue.map { json -> Exercise.SessionProps in
+                    let startDate = NSDate() // TODO: fixme
+                    let muscleGroupKeys = json["muscleGroupKeys"].arrayValue.map { $0.stringValue }
+                    let intendedIntensity = json[""].doubleValue
+                    return Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
+                }
+            }
     }
 }
