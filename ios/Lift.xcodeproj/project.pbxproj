@@ -29,6 +29,7 @@
 		54960F251A20C03F00E980AB /* Lift WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
+		54A53ECD1A2F1E5400EDD092 /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A53ECC1A2F1E5400EDD092 /* Predef.swift */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54B29B211A2C82B700098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
@@ -127,6 +128,7 @@
 		54960F211A20C03F00E980AB /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
+		54A53ECC1A2F1E5400EDD092 /* Predef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predef.swift; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
@@ -365,6 +367,7 @@
 				54F780BE1A27937A00E4F3C5 /* Either.swift */,
 				54F780C11A27938F00E4F3C5 /* Result.swift */,
 				54F780C41A2793C300E4F3C5 /* Operators.swift */,
+				54A53ECC1A2F1E5400EDD092 /* Predef.swift */,
 			);
 			path = LiftServer;
 			sourceTree = "<group>";
@@ -622,6 +625,7 @@
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				54F780C51A2793C300E4F3C5 /* Operators.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
+				54A53ECD1A2F1E5400EDD092 /* Predef.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */,

@@ -2,6 +2,6 @@ import Foundation
 
 @objc protocol MuscleGroupsSettable {
     
-    func setMuscleGroups(muscleGroups: [String])
+    func setMuscleGroupKeys(muscleGroupsKeys: [String])
     
 }

@@ -11,6 +11,23 @@ struct User {
     }
 }
 
+struct Exercise {
+
+    ///
+    /// Single muscle group cell holding the key, which is the communication key with the server
+    /// together with the (localisable) title and set of exercises
+    ///
+    struct MuscleGroup {
+        /// the key that identifies the muscle group to the server
+        var key: String
+        /// the title—in the future received from the server (localised)
+        var title: String
+        /// the sample/suggested exercises—in the future received from the server (localised)
+        var exercises: [String]
+    }
+    
+}
+
 ///
 /// The request to the Lift server-side code
 ///
@@ -63,6 +80,11 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case UserSetPublicProfile(/*userId: */NSUUID)
 
     ///
+    /// Get supported muscle groups
+    ///
+    case ExerciseGetMuscleGroups()
+    
+    ///
     /// Retrieves all the exercises for the given ``userId``
     ///
     case ExerciseGetAllExercises(/*userId: */NSUUID)
@@ -93,6 +115,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .UserRegisterDevice(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)/device/ios", method: Method.POST)
                 case .UserGetPublicProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.GET)
                 case .UserSetPublicProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.POST)
+                
+                case .ExerciseGetMuscleGroups(): return LiftServerRequest(path: "/exercise/musclegroups", method: Method.GET)
                     
                 case .ExerciseGetAllExercises(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
                 
@@ -207,6 +231,8 @@ public class LiftServer {
         }
     }
     
+    // MARK: - User profile
+    
     ///
     /// Register the iOS push device token for the given user
     ///
@@ -275,4 +301,18 @@ public class LiftServer {
             .responseAsResutlt(f) { json -> Void in return }
     }
     
+    // MARK: - Exercise
+    
+    func getExerciseMuscleGroups(f: Result<[Exercise.MuscleGroup]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetMuscleGroups())
+            .responseAsResutlt(f) { json -> [Exercise.MuscleGroup] in
+                return json.arrayValue.map { mg -> Exercise.MuscleGroup in
+                    return Exercise.MuscleGroup(
+                        key: mg["key"].stringValue,
+                        title: mg["title"].stringValue,
+                        exercises: mg["exercises"].arrayValue.map { $0.stringValue }
+                    )
+                }
+            }
+    }
 }

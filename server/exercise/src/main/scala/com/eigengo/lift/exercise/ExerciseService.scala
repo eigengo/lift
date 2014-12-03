@@ -1,6 +1,7 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.ActorRef
+import com.eigengo.lift.exercise.ExerciseClassifiers.{MuscleGroup, GetMuscleGroups}
 import com.eigengo.lift.exercise.UserExercises.{UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
 import com.eigengo.lift.exercise.UserExercisesView.UserGetAllExercises
 import scodec.bits.BitVector
@@ -12,7 +13,14 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef, exerciseClassifiers: ActorRef)(implicit ec: ExecutionContext) =
+    path("exercise" / "musclegroups") {
+      get {
+        complete {
+          (exerciseClassifiers ? GetMuscleGroups).mapTo[List[MuscleGroup]]
+        }
+      }
+    } ~
     path("exercise" / UserIdValue) { userId ⇒
       post {
         handleWith { session: Session ⇒

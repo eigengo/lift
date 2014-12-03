@@ -6,6 +6,9 @@ package object exercise {
   /** The exercise intensity 0..1 */
   type ExerciseIntensity = Double
 
+  /** Muscle group */
+  type MuscleGroupKey = String
+
   /**
    * Adds much greater than and much less than operators to ``ExerciseIntensity`` instances
    * @param intensity the wrapped intensity

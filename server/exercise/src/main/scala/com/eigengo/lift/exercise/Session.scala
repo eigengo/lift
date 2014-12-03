@@ -13,22 +13,14 @@ object SessionId {
   def apply(s: String): SessionId = SessionId(UUID.fromString(s))
 }
 
-/**
- * Muscle groups enum
- */
-sealed trait MuscleGroup
-case object Arms extends MuscleGroup
-case object Chest extends MuscleGroup
-case object Back extends MuscleGroup
-case object Legs extends MuscleGroup
 
 /**
  * The exercise session
  * @param id the session identity
- * @param muscleGroups the planned muscle groups
+ * @param muscleGroupKeys the planned muscle groups
  * @param intendedIntensity the planned intensity
  */
 case class Session(id: SessionId, startDate: Date,
-                   muscleGroups: Seq[MuscleGroup],
+                   muscleGroupKeys: Seq[MuscleGroupKey],
                    intendedIntensity: ExerciseIntensity)
 

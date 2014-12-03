@@ -15,7 +15,7 @@ class UserExercisesExerciseDataProcessorServiceTest
   extends FlatSpec with ScalatestRouteTest with TestKitBase with Matchers
   with ExerciseService with ExerciseMarshallers with LiftTestMarshallers with ImplicitSender {
   val probe = TestProbe()
-  val route = exerciseRoute(probe.ref, testActor)
+  val route = exerciseRoute(probe.ref, testActor, testActor)
 
   override def testConfig: Config = ConfigFactory.load("/test.conf")
 

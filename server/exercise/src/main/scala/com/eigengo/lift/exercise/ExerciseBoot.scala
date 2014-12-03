@@ -14,7 +14,7 @@ case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef, ex
    * @param ec the execution context
    * @return the route
    */
-  def route(ec: ExecutionContext): Route = exerciseRoute(userExercises, userExercisesView)(ec)
+  def route(ec: ExecutionContext): Route = exerciseRoute(userExercises, userExercisesView, exerciseClassifiers)(ec)
 
   override def api: Option[(ExecutionContext) ⇒ Route] = Some(route)
 }

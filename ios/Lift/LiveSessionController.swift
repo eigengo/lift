@@ -33,8 +33,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         receiver.delegate = self
     }
     
-    func setMuscleGroups(muscleGroups: [String]) {
-        NSLog("Starting with %@", muscleGroups)
+    func setMuscleGroupKeys(muscleGroupKeys: [String]) {
+        NSLog("Starting with %@", muscleGroupKeys)
     }
     
     // #pragma mark - UITableViewDataSource
