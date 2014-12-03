@@ -239,7 +239,7 @@ public class LiftServer {
         let lsr = req.Request
         switch body {
         case let .Some(Body.Json(params)): return manager.request(lsr.method, baseURLString + lsr.path, parameters: params, encoding: ParameterEncoding.JSON)
-        case let .Some(Body.Data(data)): return upload(lsr.method, baseURLString + lsr.path, data)
+        case let .Some(Body.Data(data)): return manager.upload(URLRequest(lsr.method, baseURLString + lsr.path), data: data)
         case .None: return manager.request(lsr.method, baseURLString + lsr.path, parameters: nil, encoding: ParameterEncoding.URL)
         }
     }
@@ -332,13 +332,19 @@ public class LiftServer {
     // Mark: - Exercise session
     
     func exerciseSessionStart(userId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
-        let params = [
-            "startDate": props.startDate,
+        let dateFormatter = NSDateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+        let startDateString = dateFormatter.stringFromDate(props.startDate)
+        let params: [String : AnyObject] = [
+            "startDate": startDateString,
             "muscleGroupKeys": props.muscleGroupKeys,
             "intendedIntensity": props.intendedIntensity
         ]
         request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: params))
-            .responseAsResutlt(f) { json in return NSUUID(UUIDString: json["id"].stringValue)! }
+            .responseAsResutlt(f) { json in
+                println(json)
+                return NSUUID(UUIDString: json["id"].stringValue)!
+            }
     }
     
     func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {

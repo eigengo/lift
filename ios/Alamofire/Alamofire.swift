@@ -1444,7 +1444,7 @@ extension Request {
 
 // MARK: - Convenience -
 
-private func URLRequest(method: Method, URL: URLStringConvertible) -> NSURLRequest {
+internal func URLRequest(method: Method, URL: URLStringConvertible) -> NSURLRequest {
     let mutableURLRequest = NSMutableURLRequest(URL: NSURL(string: URL.URLString)!)
     mutableURLRequest.HTTPMethod = method.rawValue
 

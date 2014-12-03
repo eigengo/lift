@@ -124,6 +124,13 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   }
 
   private def exercising(id: SessionId, props: SessionProps): Receive = withPassivation {
+    case cmd@ExerciseSessionStart(session) ⇒
+      persist(cmd) { evt ⇒
+        val id = SessionId.randomId()
+        sender() ! \/.right(id)
+        context.become(exercising(id, session))
+      }
+
     case ExerciseDataProcess(`id`, bits) ⇒
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
@@ -162,9 +169,9 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case cmd@ExerciseSessionStart(session) ⇒
       persist(cmd) { evt ⇒
         val id = SessionId.randomId()
+        sender() ! \/.right(id)
         context.become(exercising(id, session))
       }
-      sender() ! \/.right("Session started")
   }
 
   // after recovery is complete, we move to processing commands

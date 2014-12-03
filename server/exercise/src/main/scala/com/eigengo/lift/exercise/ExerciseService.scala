@@ -1,5 +1,7 @@
 package com.eigengo.lift.exercise
 
+import java.util.UUID
+
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.ExerciseClassifiers.{MuscleGroup, GetMuscleGroups}
 import com.eigengo.lift.exercise.UserExercises.{UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
@@ -24,7 +26,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / UserIdValue) { userId ⇒
       post {
         handleWith { sessionProps: SessionProps ⇒
-          (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[SessionId]
+          (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[UUID]
         }
       } ~
       get {
