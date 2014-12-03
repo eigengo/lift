@@ -50,7 +50,7 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="default" textLabel="ytb-Ne-SDx" detailTextLabel="N58-JS-CEl" style="IBUITableViewCellStyleValue2" id="371-Wb-TnJ">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="default" textLabel="ytb-Ne-SDx" detailTextLabel="N58-JS-CEl" rowHeight="60" style="IBUITableViewCellStyleValue2" id="371-Wb-TnJ">
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="371-Wb-TnJ" id="p2r-2L-wif">
                                             <autoresizingMask key="autoresizingMask"/>
@@ -222,7 +222,6 @@
         <!--Session Detail Controller-->
         <scene sceneID="n01-7B-E8y">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="ivZ-cg-0Aq" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <viewController id="DyL-Am-q2t" customClass="SessionDetailController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="a9C-1f-WRt">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
@@ -241,6 +240,7 @@
                     <navigationItem key="navigationItem" id="Saa-fm-BwO"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ivZ-cg-0Aq" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1751" y="-737"/>
         </scene>
@@ -286,7 +286,7 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="detailDisclosureButton" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="default" textLabel="Sb7-mv-hlJ" detailTextLabel="oH3-ka-Len" rowHeight="76" style="IBUITableViewCellStyleValue2" id="d9g-DK-mfK">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="detailDisclosureButton" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="default" textLabel="Sb7-mv-hlJ" detailTextLabel="oH3-ka-Len" rowHeight="60" style="IBUITableViewCellStyleValue2" id="d9g-DK-mfK">
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="d9g-DK-mfK" id="bzw-cC-t5f">
                                             <autoresizingMask key="autoresizingMask"/>

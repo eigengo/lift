@@ -47,11 +47,27 @@ struct Exercise {
     }
     
     ///
+    /// Classification model metadata
+    ///
+    struct ModelMetadata {
+        var version: Int
+    }
+    
+    ///
+    ///
+    ///
+    struct SessionSummary {
+        var id: NSUUID
+        var sessionProps: SessionProps
+    }
+    
+    ///
     /// Association of list of exercise with a particular session props
     ///
-    struct Exercises {
-        var props: SessionProps
+    struct ExerciseSession {
+        var sessionProps: SessionProps
         var exercises: [Exercise]
+        var modelMetadata: ModelMetadata
     }
     
 }
@@ -115,7 +131,12 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     ///
     /// Retrieves all the exercises for the given ``userId``
     ///
-    case ExerciseGetAllExercises(/*userId: */NSUUID)
+    case ExerciseGetExerciseSessionsSummary(/*userId: */NSUUID)
+
+    ///
+    /// Retrieves all the exercises for the given ``userId`` and ``sessionId``
+    ///
+    case ExerciseGetExerciseSession(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
     /// Starts an exercise session for the given ``userId``
@@ -146,7 +167,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 
                 case .ExerciseGetMuscleGroups(): return LiftServerRequest(path: "/exercise/musclegroups", method: Method.GET)
                     
-                case .ExerciseGetAllExercises(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
+                case .ExerciseGetExerciseSessionsSummary(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
+                case .ExerciseGetExerciseSession(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.GET)
                 
                 case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.POST)
                 case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
@@ -274,7 +296,7 @@ public class LiftServer {
         let tokenString = NSString(data: deviceToken, encoding: NSASCIIStringEncoding)!
         request(LiftServerURLs.UserRegisterDevice(userId), body: .Json(params: [ "deviceToken": tokenString ]))
             .responseString { (_, _, body, error) -> Void in
-                println(body)
+                // println(body)
             }
         
     }
@@ -335,8 +357,11 @@ public class LiftServer {
             .responseAsResutlt(f) { json in }
     }
     
-    // MARK: - Exercise
+    // MARK: - Classifiers
     
+    ///
+    /// Get known / classifiable muscle groups
+    ///
     func exerciseGetMuscleGroups(f: Result<[Exercise.MuscleGroup]> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetMuscleGroups())
             .responseAsResutlt(f) { json -> [Exercise.MuscleGroup] in
@@ -351,7 +376,10 @@ public class LiftServer {
     }
     
     // Mark: - Exercise session
-    
+
+    ///
+    /// Start exercise session for the user, with the props
+    ///
     func exerciseSessionStart(userId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
         let startDateString = isoDateFormatter.stringFromDate(props.startDate)
         let params: [String : AnyObject] = [
@@ -365,26 +393,49 @@ public class LiftServer {
                 return NSUUID(UUIDString: json["id"].stringValue)!
             }
     }
-    
+
+    ///
+    /// Submit data (received from the smartwatch most likely) to the running session
+    ///
     func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data))
             .responseAsResutlt(f) { json in }
     }
     
+    ///
+    /// Close the running session
+    ///
     func exerciseSessionEnd(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionEnd(userId, sessionId))
             .responseAsResutlt(f) { json in }
     }
     
-    func exerciseGetAllExercises(userId: NSUUID, f: Result<[Exercise.SessionProps]> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseGetAllExercises(userId))
-            .responseAsResutlt(f) { json -> [Exercise.SessionProps] in
-                return json.arrayValue.map { json -> Exercise.SessionProps in
-                    let startDate = self.isoDateFormatter.dateFromString(json["startDate"].stringValue)!
-                    let muscleGroupKeys = json["muscleGroupKeys"].arrayValue.map { $0.stringValue }
-                    let intendedIntensity = json["intendedIntensity"].doubleValue
-                    return Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
+    ///
+    /// Get summary of all sessions
+    ///
+    func exerciseGetExerciseSessionsSummary(userId: NSUUID, f: Result<[Exercise.SessionSummary]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetExerciseSessionsSummary(userId))
+            .responseAsResutlt(f) { json -> [Exercise.SessionSummary] in
+                return json.arrayValue.map { json -> Exercise.SessionSummary in
+                    let id = NSUUID(UUIDString: json["id"].stringValue)!
+                    let sessionProps = json["sessionProps"]
+                    let startDate = self.isoDateFormatter.dateFromString(sessionProps["startDate"].stringValue)!
+                    let muscleGroupKeys = sessionProps["muscleGroupKeys"].arrayValue.map { $0.stringValue }
+                    let intendedIntensity = sessionProps["intendedIntensity"].doubleValue
+                    let p = Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
+                    return Exercise.SessionSummary(id: id, sessionProps: p)
                 }
+            }
+    }
+
+    ///
+    /// Get one particular session
+    ///
+    func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<[Exercise.ExerciseSession]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetExerciseSession(userId, sessionId))
+            .responseAsResutlt(f) { json in
+                println(json)
+                return []
             }
     }
 }

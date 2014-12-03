@@ -3,9 +3,9 @@ package com.eigengo.lift.exercise
 import java.util.UUID
 
 import akka.actor.ActorRef
-import com.eigengo.lift.exercise.ExerciseClassifiers.{MuscleGroup, GetMuscleGroups}
+import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
 import com.eigengo.lift.exercise.UserExercises.{UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
-import com.eigengo.lift.exercise.UserExercisesView.{Exercises, UserGetAllExercises}
+import com.eigengo.lift.exercise.UserExercisesView.{SessionSummary, ExerciseSession, UserGetExerciseSession, UserGetExerciseSessionsSummary}
 import scodec.bits.BitVector
 import spray.routing.Directives
 
@@ -31,11 +31,16 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       get {
         complete {
-          (userExercisesView ? UserGetAllExercises(userId)).mapTo[List[SessionProps]]
+          (userExercisesView ? UserGetExerciseSessionsSummary(userId)).mapTo[List[SessionSummary]]
         }
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue) { (userId, sessionId) ⇒
+      get {
+        complete {
+          (userExercisesView ? UserGetExerciseSession(userId, sessionId)).mapTo[Option[ExerciseSession]]
+        }
+      } ~
       put {
         handleWith { bits: BitVector ⇒
           (userExercises ? UserExerciseDataProcess(userId, sessionId, bits)).map(_.toString)

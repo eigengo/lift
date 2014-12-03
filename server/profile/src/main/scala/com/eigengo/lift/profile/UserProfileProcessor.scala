@@ -93,15 +93,17 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
   }
 
   override def receiveCommand: Receive = {
-    case UserRegister(email, password) if !knownAccounts.contains(email) ⇒
-      val salt = Random.nextString(100)
-      val userId = UserId.randomId()
-      userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
-      knownAccounts = knownAccounts.withNewAccount(email, userId)
-      saveSnapshot(knownAccounts)
-      mediator ! Publish(topic, KnownAccountAdded(email, userId))
+    case evt@UserRegister(email, password) if !knownAccounts.contains(email) ⇒
+      persist(evt) { evt ⇒
+        val salt = Random.nextString(100)
+        val userId = UserId.randomId()
+        userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
+        knownAccounts = knownAccounts.withNewAccount(email, userId)
+        saveSnapshot(knownAccounts)
+        mediator ! Publish(topic, KnownAccountAdded(email, userId))
 
-      sender() ! \/.right(userId)
+        sender() ! \/.right(userId)
+      }
 
     case KnownAccountAdded(email, userId) if sender() != self ⇒
         knownAccounts = knownAccounts.withNewAccount(email, userId)
@@ -113,7 +115,7 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
     case UserLogin(email, password) ⇒
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
 
-    case UserSetDevice(userId, device) ⇒
+    case cmd@UserSetDevice(userId, device) ⇒
       userProfile ! UserDeviceSet(userId, device)
       sender() ! \/.right(())
 

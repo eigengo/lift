@@ -20,26 +20,49 @@ object UserExercisesView {
   case class Exercise(name: ExerciseName, intensity: Option[ExerciseIntensity])
 
   /**
+   * Exercise session groups the props with the list of exercises and metadata of the model that
+   * classified them
+   *
+   * @param sessionProps the session props
+   * @param exercises the exercises done
+   * @param modelMetadata the model used to classify the exercises
+   */
+  case class ExerciseSession(sessionProps: SessionProps, exercises: List[Exercise], modelMetadata: ModelMetadata) {
+    def withExercise(exercise: Exercise): ExerciseSession = copy(exercises = exercises :+ exercise)
+  }
+
+  /**
    * The key in the exercises map
+   * @param sessionId the session id
    * @param metadata the model metadata
    * @param props the session
    */
-  case class SessionKey(metadata: ModelMetadata, props: SessionProps)
+  case class SessionKey(sessionId: SessionId, metadata: ModelMetadata, props: SessionProps)
+
+  /**
+   * The summary of the exercise session
+   * @param id the session id
+   * @param sessionProps the session props
+   */
+  case class SessionSummary(id: SessionId, sessionProps: SessionProps)
 
   /**
    * All user's exercises
    * @param sessions the list of exercises
    */
-  case class Exercises(sessions: Map[SessionKey, List[Exercise]]) extends AnyVal {
-    def withExercise(metadata: ModelMetadata, session: SessionProps, exercise: Exercise): Exercises = {
-      val key = SessionKey(metadata, session)
-      sessions.get(key) match {
-        case None ⇒ copy(sessions = sessions + (key → List(exercise)))
-        case Some(exercises) ⇒ copy(sessions = sessions + (key → exercises.+:(exercise)))
+  case class Exercises(sessions: Map[SessionId, ExerciseSession]) extends AnyVal {
+    def withExercise(sessionId: SessionId, modelMetadata: ModelMetadata, sessionProps: SessionProps, exercise: Exercise): Exercises = {
+      sessions.get(sessionId) match {
+        case None ⇒ copy(sessions = sessions + (sessionId → ExerciseSession(sessionProps, exercises = List(exercise), modelMetadata = modelMetadata)))
+        case Some(exercises) ⇒ copy(sessions = sessions + (sessionId → exercises.withExercise(exercise)))
       }
     }
+    
+    def get(sessionId: SessionId): Option[ExerciseSession] = sessions.get(sessionId)
 
-    def summary: List[SessionProps] = sessions.keys.map(_.props).toList
+    def summary: List[SessionSummary] = sessions.collect {
+      case (id, ExerciseSession(p, _, _)) ⇒ SessionSummary(id, p)
+    }.toList
   }
 
   /**
@@ -52,38 +75,54 @@ object UserExercisesView {
 
   /**
    * Exercise event received for the given session with model metadata and exercise
+   * @param sessionId the session identity
    * @param metadata the model metadata
-   * @param session the session
+   * @param sessionProps the session props
    * @param exercise the result
    */
-  case class ExerciseEvt(metadata: ModelMetadata, session: SessionProps, exercise: Exercise)
+  case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, sessionProps: SessionProps, exercise: Exercise)
 
   /**
    * Query to receive all exercises for the given ``userId``
    * @param userId the user identity
    */
-  case class UserGetAllExercises(userId: UserId)
+  case class UserGetExerciseSessionsSummary(userId: UserId)
 
   /**
-   * Query to receive all exercises. The relationship between ``GetUserExercises`` and ``GetExercises`` is that
-   * ``GetUserExercises`` is sent to the shard coordinator, which locates the appropriate (user-specific) shard,
-   * and sends it the ``GetExercises`` message
+   * Query to retrieve the exercises in the given ``userId`` and ``sessionId``
+   * @param userId the user identity
+   * @param sessionId the session identity
    */
-  private case object GetExercises
+  case class UserGetExerciseSession(userId: UserId, sessionId: SessionId)
+
+  /**
+   * Query to receive all exercises. The relationship between ``GetUserExercises`` and ``GetExerciseSessionsSummary`` is that
+   * ``GetUserExercises`` is sent to the shard coordinator, which locates the appropriate (user-specific) shard,
+   * and sends it the ``GetExerciseSessionsSummary`` message
+   */
+  private case object GetExerciseSessionsSummary
+
+  /**
+   * Finds all exercises in the given ``sessionId``. 
+   * @param sessionId the session identity
+   */
+  private case class GetExerciseSession(sessionId: SessionId)
 
   /**
    * Extracts the identity of the shard from the messages sent to the coordinator. We have per-user shard,
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserGetAllExercises(userId) ⇒ (userId.toString, GetExercises)
+    case UserGetExerciseSessionsSummary(userId)    ⇒ (userId.toString, GetExerciseSessionsSummary)
+    case UserGetExerciseSession(userId, sessionId) ⇒ (userId.toString, GetExerciseSession(sessionId))
   }
 
   /**
    * Resolves the shard name from the incoming message.
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserGetAllExercises(userId) ⇒ s"${userId.hashCode() % 10}"
+    case UserGetExerciseSessionsSummary(userId) ⇒ s"${userId.hashCode() % 10}"
+    case UserGetExerciseSession(userId, _)      ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -101,11 +140,13 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
 
   override def receive: Receive = withPassivation {
     // exercise received
-    case ExerciseEvt(metadata, session, exercise) ⇒
-      exercises = exercises.withExercise(metadata, session, exercise)
+    case ExerciseEvt(sessionId, metadata, sessionProps, exercise) ⇒
+      exercises = exercises.withExercise(sessionId, metadata, sessionProps, exercise)
 
     // query for exercises
-    case GetExercises =>
+    case GetExerciseSessionsSummary =>
       sender() ! exercises.summary
+    case GetExerciseSession(sessionId) ⇒
+      sender() ! exercises.get(sessionId)
   }
 }

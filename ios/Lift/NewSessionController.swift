@@ -52,7 +52,7 @@ class NewSessionController : UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func startSession(muscleGroupKeys: [String]) -> Void {
-        let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: muscleGroupKeys, intendedIntensity: 0.7)
+        let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: muscleGroupKeys, intendedIntensity: 0.75)
         LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) {
             $0.cata(LiftAlertController.showError("startsession_failed", parent: self), self.segueToStartedSession(props))
         }

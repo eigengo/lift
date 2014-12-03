@@ -143,7 +143,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
 
     case FullyClassifiedExercise(metadata, `props`, confidence, name, intensity) ⇒
       if (confidence > confidenceThreshold) {
-        persist(ExerciseEvt(metadata, props, Exercise(name, intensity))) { evt ⇒
+        persist(ExerciseEvt(id, metadata, props, Exercise(name, intensity))) { evt ⇒
           intensity.foreach { i ⇒
             if (i << props.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
             if (i >> props.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
@@ -162,10 +162,6 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   }
 
   private def notExercising: Receive = withPassivation {
-    case FullyClassifiedExercise(metadata, session, confidence, name, intensity) ⇒
-      if (confidence > confidenceThreshold) {
-        persist(ExerciseEvt(metadata, session, Exercise(name, intensity)))(_ ⇒ ())
-      }
     case cmd@ExerciseSessionStart(session) ⇒
       persist(cmd) { evt ⇒
         val id = SessionId.randomId()
