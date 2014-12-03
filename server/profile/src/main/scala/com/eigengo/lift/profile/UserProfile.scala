@@ -3,10 +3,17 @@ package com.eigengo.lift.profile
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.AutoPassivation
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConversions._
 
 object UserProfile {
 
   val props = Props[UserProfile]
+  /** The props to create the actor within the context of a shard */
+  def shardingProps(): Option[Props] = {
+    val roles = ConfigFactory.load().getStringList("akka.cluster.roles")
+    roles.find("profile" ==).map(_ => props)
+  }
 
 }
 

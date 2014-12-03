@@ -5,12 +5,19 @@ import akka.contrib.pattern.ShardRegion
 import akka.persistence.PersistentView
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.ExerciseClassifier.ModelMetadata
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConversions._
 
 object UserExercisesView {
   /** The shard name */
   val shardName = "user-exercises-view"
   /** The props to create the actor on a node */
   val props = Props[UserExercisesView]
+  /** The props to create the actor within the context of a shard */
+  def shardingProps(): Option[Props] = {
+    val roles = ConfigFactory.load().getStringList("akka.cluster.roles")
+    roles.find("exercise" ==).map(_ => props)
+  }
 
   /**
    * A single recorded exercise
