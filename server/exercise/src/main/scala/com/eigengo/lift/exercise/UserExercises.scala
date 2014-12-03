@@ -27,47 +27,47 @@ object UserExercises {
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
    * @param userId the user identity
-   * @param sessionId the session identity
+   * @param sessionId the props identity
    * @param bits the submitted bits
    */
   case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
 
   /**
-   * Process exercise data for the given session
-   * @param sessionId the session identifier
+   * Process exercise data for the given props
+   * @param sessionId the props identifier
    * @param bits the exercise data bits
    */
   private case class ExerciseDataProcess(sessionId: SessionId, bits: BitVector)
 
   /**
-   * Starts the user exercise session
+   * Starts the user exercise props
    * @param userId the user identity
-   * @param session the session details
+   * @param sessionProps the props details
    */
-  case class UserExerciseSessionStart(userId: UserId, session: Session)
+  case class UserExerciseSessionStart(userId: UserId, sessionProps: SessionProps)
 
   /**
-   * Ends the user exercise session
+   * Ends the user exercise props
    * @param userId the user identity
-   * @param sessionId the generated session identity
+   * @param sessionId the generated props identity
    */
   case class UserExerciseSessionEnd(userId: UserId, sessionId: SessionId)
 
   /**
-   * The session has started
-   * @param session the session identity
+   * The props has started
+   * @param props the props identity
    */
-  private case class ExerciseSessionStart(session: Session)
+  private case class ExerciseSessionStart(props: SessionProps)
 
   /**
-   * The session has ended
-   * @param sessionId the session identity
+   * The props has ended
+   * @param sessionId the props identity
    */
   private case class ExerciseSessionEnd(sessionId: SessionId)
 
   /**
-   * Accelerometer data for the given session
-   * @param sessionId the session identity
+   * Accelerometer data for the given props
+   * @param sessionId the props identity
    * @param data the data
    */
   private case class ExerciseSessionData(sessionId: SessionId, data: AccelerometerData)
@@ -123,35 +123,35 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case (_, _)                    ⇒ \/.left("Undecoded input")
   }
 
-  private def exercising(session: Session): Receive = withPassivation {
-    case ExerciseDataProcess(id, bits) if id == session.id ⇒
+  private def exercising(id: SessionId, props: SessionProps): Receive = withPassivation {
+    case ExerciseDataProcess(`id`, bits) ⇒
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err) },
         { evt ⇒
-          persist(Classify(session, evt))(exerciseClasssifiers !)
-          sender() ! \/.right("Data accepted")
+          persist(Classify(props, evt))(exerciseClasssifiers !)
+          sender() ! \/.right(())
         }
       )
 
-    case FullyClassifiedExercise(metadata, `session`, confidence, name, intensity) ⇒
+    case FullyClassifiedExercise(metadata, `props`, confidence, name, intensity) ⇒
       if (confidence > confidenceThreshold) {
-        persist(ExerciseEvt(metadata, session, Exercise(name, intensity))) { evt ⇒
+        persist(ExerciseEvt(metadata, props, Exercise(name, intensity))) { evt ⇒
           intensity.foreach { i ⇒
-            if (i << session.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-            if (i >> session.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+            if (i << props.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+            if (i >> props.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
           }
         }
       }
 
-    case UnclassifiedExercise(_, `session`) ⇒
+    case UnclassifiedExercise(_, `props`) ⇒
       notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
 
-    case cmd@ExerciseSessionEnd(id) if session.id == id ⇒
+    case cmd@ExerciseSessionEnd(`id`) ⇒
       persist(cmd) { evt ⇒
         context.become(notExercising)
       }
-      sender() ! \/.right("Session ended")
+      sender() ! \/.right(())
   }
 
   private def notExercising: Receive = withPassivation {
@@ -161,7 +161,8 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
       }
     case cmd@ExerciseSessionStart(session) ⇒
       persist(cmd) { evt ⇒
-        context.become(exercising(session))
+        val id = SessionId.randomId()
+        context.become(exercising(id, session))
       }
       sender() ! \/.right("Session started")
   }

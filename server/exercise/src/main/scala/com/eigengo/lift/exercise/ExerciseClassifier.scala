@@ -47,7 +47,7 @@ object ExerciseClassifier {
    * @param session the session
    * @param ad the accelerometer data
    */
-  case class Classify(session: Session, ad: AccelerometerData)
+  case class Classify(session: SessionProps, ad: AccelerometerData)
 
   /**
    * Model version and other metadata
@@ -68,14 +68,14 @@ object ExerciseClassifier {
    * @param name the exercise name
    * @param intensity the intensity, if known
    */
-  case class FullyClassifiedExercise(metadata: ModelMetadata, session: Session, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
+  case class FullyClassifiedExercise(metadata: ModelMetadata, session: SessionProps, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
 
   /**
    * Unknown exercise
    * @param metadata the model
    * @param session the session
    */
-  case class UnclassifiedExercise(metadata: ModelMetadata, session: Session) extends ClassifiedExercise
+  case class UnclassifiedExercise(metadata: ModelMetadata, session: SessionProps) extends ClassifiedExercise
 
 }
 

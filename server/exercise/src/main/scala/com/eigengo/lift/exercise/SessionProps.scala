@@ -11,16 +11,17 @@ case class SessionId(id: UUID) extends AnyVal {
 }
 object SessionId {
   def apply(s: String): SessionId = SessionId(UUID.fromString(s))
+  def randomId(): SessionId = SessionId(UUID.randomUUID())
 }
 
 
 /**
- * The exercise session
- * @param id the session identity
+ * The exercise session props
+ * @param startDate the start date
  * @param muscleGroupKeys the planned muscle groups
  * @param intendedIntensity the planned intensity
  */
-case class Session(id: SessionId, startDate: Date,
+case class SessionProps(startDate: Date,
                    muscleGroupKeys: Seq[MuscleGroupKey],
                    intendedIntensity: ExerciseIntensity)
 

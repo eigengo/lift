@@ -26,6 +26,18 @@ struct Exercise {
         var exercises: [String]
     }
     
+    ///
+    /// Session properties
+    ///
+    struct SessionProps {
+        /// the start date
+        var startDate: NSDate
+        /// the targeted muscle groups
+        var muscleGroupKeys: [String]
+        /// the intended intensity
+        var intendedIntensity: Double
+    }
+    
 }
 
 ///
@@ -299,7 +311,7 @@ public class LiftServer {
         }
         
         request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: params))
-            .responseAsResutlt(f) { json -> Void in return }
+            .responseAsResutlt(f) { json in }
     }
     
     // MARK: - Exercise
@@ -315,5 +327,27 @@ public class LiftServer {
                     )
                 }
             }
+    }
+    
+    // Mark: - Exercise session
+    
+    func exerciseSessionStart(userId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
+        let params = [
+            "startDate": props.startDate,
+            "muscleGroupKeys": props.muscleGroupKeys,
+            "intendedIntensity": props.intendedIntensity
+        ]
+        request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: params))
+            .responseAsResutlt(f) { json in return NSUUID(UUIDString: json["id"].stringValue)! }
+    }
+    
+    func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data))
+            .responseAsResutlt(f) { json in }
+    }
+    
+    func exerciseSessionEnd(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionEnd(userId, sessionId))
+            .responseAsResutlt(f) { json in }
     }
 }

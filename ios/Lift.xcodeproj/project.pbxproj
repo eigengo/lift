@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894461A2F4E18009FDD10 /* arms1.adv1 */; };
+		5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894471A2F4E18009FDD10 /* arms2.adv1 */; };
+		5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894481A2F4E18009FDD10 /* arms3.adv1 */; };
+		5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894491A2F4E18009FDD10 /* chest1.adv1 */; };
 		54155B461A2A37D1002222E3 /* PebbleConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54155B451A2A37D1002222E3 /* PebbleConnector.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5427CDEC19C5F296005C9B4E /* Recorder.swift */; };
@@ -29,11 +33,20 @@
 		54960F251A20C03F00E980AB /* Lift WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
-		54A53ECD1A2F1E5400EDD092 /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A53ECC1A2F1E5400EDD092 /* Predef.swift */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54B29B211A2C82B700098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B221A2C82BD00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
+		54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD41A2F5E650044BDAB /* Box.swift */; };
+		54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD51A2F5E650044BDAB /* Either.swift */; };
+		54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
+		54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
+		54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
+		54C6EFDE1A2F61870044BDAB /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD41A2F5E650044BDAB /* Box.swift */; };
+		54C6EFDF1A2F61870044BDAB /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD51A2F5E650044BDAB /* Either.swift */; };
+		54C6EFE01A2F61870044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
+		54C6EFE11A2F61870044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
+		54C6EFE21A2F61870044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */; };
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
@@ -43,18 +56,10 @@
 		54D320811A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D320821A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD291A2E58660005E2ED /* DemoSessionController.swift */; };
-		54D8DD2C1A2E59FA0005E2ED /* MuscleGroupsSettable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* MuscleGroupsSettable.swift */; };
+		54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
-		54F780BC1A27936000E4F3C5 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BB1A27936000E4F3C5 /* Box.swift */; };
-		54F780BD1A27936000E4F3C5 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BB1A27936000E4F3C5 /* Box.swift */; };
-		54F780BF1A27937A00E4F3C5 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BE1A27937A00E4F3C5 /* Either.swift */; };
-		54F780C01A27937A00E4F3C5 /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780BE1A27937A00E4F3C5 /* Either.swift */; };
-		54F780C21A27938F00E4F3C5 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C11A27938F00E4F3C5 /* Result.swift */; };
-		54F780C31A27938F00E4F3C5 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C11A27938F00E4F3C5 /* Result.swift */; };
-		54F780C51A2793C300E4F3C5 /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C41A2793C300E4F3C5 /* Operators.swift */; };
-		54F780C61A2793C300E4F3C5 /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780C41A2793C300E4F3C5 /* Operators.swift */; };
 		54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
 		54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
 		54F780DA1A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
@@ -101,6 +106,10 @@
 
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		540894461A2F4E18009FDD10 /* arms1.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms1.adv1; sourceTree = "<group>"; };
+		540894471A2F4E18009FDD10 /* arms2.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms2.adv1; sourceTree = "<group>"; };
+		540894481A2F4E18009FDD10 /* arms3.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms3.adv1; sourceTree = "<group>"; };
+		540894491A2F4E18009FDD10 /* chest1.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = chest1.adv1; sourceTree = "<group>"; };
 		54155B451A2A37D1002222E3 /* PebbleConnector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleConnector.swift; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
@@ -128,11 +137,15 @@
 		54960F211A20C03F00E980AB /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
-		54A53ECC1A2F1E5400EDD092 /* Predef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predef.swift; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
 		54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
+		54C6EFD41A2F5E650044BDAB /* Box.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
+		54C6EFD51A2F5E650044BDAB /* Either.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
+		54C6EFD61A2F5E650044BDAB /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
+		54C6EFD71A2F5E650044BDAB /* Predef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predef.swift; sourceTree = "<group>"; };
+		54C6EFD81A2F5E650044BDAB /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC699B19C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -147,13 +160,9 @@
 		54D3207F1A276747002527C8 /* Alamofire.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Alamofire.h; sourceTree = "<group>"; };
 		54D320801A276747002527C8 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
 		54D8DD291A2E58660005E2ED /* DemoSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoSessionController.swift; sourceTree = "<group>"; };
-		54D8DD2B1A2E59FA0005E2ED /* MuscleGroupsSettable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupsSettable.swift; sourceTree = "<group>"; };
+		54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSession.swift; sourceTree = "<group>"; };
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
-		54F780BB1A27936000E4F3C5 /* Box.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
-		54F780BE1A27937A00E4F3C5 /* Either.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
-		54F780C11A27938F00E4F3C5 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		54F780C41A2793C300E4F3C5 /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
 		54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftAlertController.swift; sourceTree = "<group>"; };
 		54F780D81A28A29D00E4F3C5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LiftAlertController.xib; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
@@ -196,6 +205,17 @@
 				5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */,
 			);
 			name = Pods;
+			sourceTree = "<group>";
+		};
+		540894451A2F4E18009FDD10 /* AccelerometerData */ = {
+			isa = PBXGroup;
+			children = (
+				540894461A2F4E18009FDD10 /* arms1.adv1 */,
+				540894471A2F4E18009FDD10 /* arms2.adv1 */,
+				540894481A2F4E18009FDD10 /* arms3.adv1 */,
+				540894491A2F4E18009FDD10 /* chest1.adv1 */,
+			);
+			path = AccelerometerData;
 			sourceTree = "<group>";
 		};
 		5427CDE519C5EAF4005C9B4E /* Motion */ = {
@@ -264,12 +284,25 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		54C6EFD31A2F5E650044BDAB /* Predef */ = {
+			isa = PBXGroup;
+			children = (
+				54C6EFD41A2F5E650044BDAB /* Box.swift */,
+				54C6EFD51A2F5E650044BDAB /* Either.swift */,
+				54C6EFD61A2F5E650044BDAB /* Operators.swift */,
+				54C6EFD71A2F5E650044BDAB /* Predef.swift */,
+				54C6EFD81A2F5E650044BDAB /* Result.swift */,
+			);
+			path = Predef;
+			sourceTree = "<group>";
+		};
 		54CC698E19C4AD8E00B29EC8 = {
 			isa = PBXGroup;
 			children = (
 				5427CDEA19C5F259005C9B4E /* CoreMotion.framework */,
 				5427CDE819C5F203005C9B4E /* Accelerate.framework */,
 				54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */,
+				540894451A2F4E18009FDD10 /* AccelerometerData */,
 				54D3207E1A276747002527C8 /* Alamofire */,
 				54CC699919C4AD8E00B29EC8 /* Lift */,
 				54CC69AF19C4AD8E00B29EC8 /* LiftTests */,
@@ -295,6 +328,7 @@
 		54CC699919C4AD8E00B29EC8 /* Lift */ = {
 			isa = PBXGroup;
 			children = (
+				54C6EFD31A2F5E650044BDAB /* Predef */,
 				5427CDE519C5EAF4005C9B4E /* Motion */,
 				547C5E1019EFBCAB00E0010B /* Pebble */,
 				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
@@ -303,7 +337,7 @@
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
-				54D8DD2B1A2E59FA0005E2ED /* MuscleGroupsSettable.swift */,
+				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
 				54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */,
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
@@ -363,11 +397,6 @@
 			isa = PBXGroup;
 			children = (
 				54F780B81A278EFC00E4F3C5 /* LiftServer.swift */,
-				54F780BB1A27936000E4F3C5 /* Box.swift */,
-				54F780BE1A27937A00E4F3C5 /* Either.swift */,
-				54F780C11A27938F00E4F3C5 /* Result.swift */,
-				54F780C41A2793C300E4F3C5 /* Operators.swift */,
-				54A53ECC1A2F1E5400EDD092 /* Predef.swift */,
 			);
 			path = LiftServer;
 			sourceTree = "<group>";
@@ -535,10 +564,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */,
 				54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
 				54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */,
 				54CC69A419C4AD8E00B29EC8 /* Images.xcassets in Resources */,
+				5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */,
+				5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */,
+				5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */,
 				54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -590,17 +623,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54F780C01A27937A00E4F3C5 /* Either.swift in Sources */,
 				54960F111A20C03E00E980AB /* NotificationController.swift in Sources */,
+				54C6EFE01A2F61870044BDAB /* Operators.swift in Sources */,
 				54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54B29B221A2C82BD00098D2A /* SwiftyJSON.swift in Sources */,
 				54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */,
 				54B29B211A2C82B700098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
-				54F780BD1A27936000E4F3C5 /* Box.swift in Sources */,
+				54C6EFE21A2F61870044BDAB /* Result.swift in Sources */,
+				54C6EFE11A2F61870044BDAB /* Predef.swift in Sources */,
+				54C6EFDE1A2F61870044BDAB /* Box.swift in Sources */,
 				54D320821A276747002527C8 /* Alamofire.swift in Sources */,
-				54F780C31A27938F00E4F3C5 /* Result.swift in Sources */,
+				54C6EFDF1A2F61870044BDAB /* Either.swift in Sources */,
 				54960F131A20C03E00E980AB /* GlanceController.swift in Sources */,
-				54F780C61A2793C300E4F3C5 /* Operators.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -610,26 +644,26 @@
 			files = (
 				54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */,
 				54155B461A2A37D1002222E3 /* PebbleConnector.swift in Sources */,
-				54D8DD2C1A2E59FA0005E2ED /* MuscleGroupsSettable.swift in Sources */,
+				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
 				543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */,
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,
-				54F780C21A27938F00E4F3C5 /* Result.swift in Sources */,
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
+				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
-				54F780BF1A27937A00E4F3C5 /* Either.swift in Sources */,
 				543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */,
-				54F780BC1A27936000E4F3C5 /* Box.swift in Sources */,
 				543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
-				54F780C51A2793C300E4F3C5 /* Operators.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
-				54A53ECD1A2F1E5400EDD092 /* Predef.swift in Sources */,
+				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
+				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,
 				5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */,
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
+				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
+				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,

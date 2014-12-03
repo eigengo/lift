@@ -24,14 +24,14 @@ object UserExercisesView {
    * @param metadata the model metadata
    * @param session the session
    */
-  case class SessionKey(metadata: ModelMetadata, session: Session)
+  case class SessionKey(metadata: ModelMetadata, session: SessionProps)
 
   /**
    * All user's exercises
    * @param sessions the list of exercises
    */
   case class Exercises(sessions: Map[SessionKey, List[Exercise]]) extends AnyVal {
-    def withExercise(metadata: ModelMetadata, session: Session, exercise: Exercise): Exercises = {
+    def withExercise(metadata: ModelMetadata, session: SessionProps, exercise: Exercise): Exercises = {
       val key = SessionKey(metadata, session)
       sessions.get(key) match {
         case None ⇒ copy(sessions = sessions + (key → List(exercise)))
@@ -54,7 +54,7 @@ object UserExercisesView {
    * @param session the session
    * @param exercise the result
    */
-  case class ExerciseEvt(metadata: ModelMetadata, session: Session, exercise: Exercise)
+  case class ExerciseEvt(metadata: ModelMetadata, session: SessionProps, exercise: Exercise)
 
   /**
    * Query to receive all exercises for the given ``userId``

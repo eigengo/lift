@@ -23,7 +23,7 @@ enum CellData {
     }
 }
 
-class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, AccelerometerReceiverDelegate, MuscleGroupsSettable {
+class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, AccelerometerReceiverDelegate, ExerciseSessionSettable {
     private let receiver = PebbleAccelerometerReceiver()
     private let recorder = CombinedAccelerometerRecorder(recorders: [LocalAccelerometerRecorder(), PEAccelerometerRecorder()])
     private var sessionCells: [CellData] = []
@@ -32,9 +32,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         super.viewDidLoad()
         receiver.delegate = self
     }
-    
-    func setMuscleGroupKeys(muscleGroupKeys: [String]) {
-        NSLog("Starting with %@", muscleGroupKeys)
+
+    func setExerciseSession(session: ExerciseSession) {
+        NSLog("Starting with %@", session)
     }
     
     // #pragma mark - UITableViewDataSource

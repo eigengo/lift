@@ -45,7 +45,7 @@ class NewSessionController : UIViewController, UITableViewDelegate {
     @IBOutlet
     var tableView: UITableView!
     var tableModel: MuscleGroupsTableModel?
-    
+
     override func viewDidLoad() {
         self.tableModel = MuscleGroupsTableModel(self.tableView.reloadData)
         tableView.dataSource = self.tableModel!
@@ -57,23 +57,32 @@ class NewSessionController : UIViewController, UITableViewDelegate {
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let segueName = demoMode.on ? "newsession_demo" : "newsession_live"
         let cell = tableModel!.muscleGroupAt(indexPath)
         if cell != nil {
-            self.muscleGroupKeys = [cell!.key]
-            performSegueWithIdentifier(segueName, sender: nil)
+            startSession([cell!.key])
         }
     }
     
-    private var muscleGroupKeys: [String]?
+    func startSession(muscleGroupKeys: [String]) -> Void {
+        let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: muscleGroupKeys, intendedIntensity: 0.7)
+        LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) {
+            $0.cata(LiftAlertController.showError("startsession_failed", parent: self), self.segueToStartedSession(props))
+        }
+    }
     
-    @IBAction
-    func startSession(sender: UIButton) {
+    func segueToStartedSession(props: Exercise.SessionProps) -> NSUUID -> Void {
+        return { sessionId -> Void in
+            let segueName = self.demoMode.on ? "newsession_demo" : "newsession_live"
+            let session = ExerciseSession(id: sessionId, props: props)
+            self.performSegueWithIdentifier(segueName, sender: session)
+        }
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if let ctrl = segue.destinationViewController as? MuscleGroupsSettable {
-            ctrl.setMuscleGroupKeys(self.muscleGroupKeys!)
+        if let ctrl = segue.destinationViewController as? ExerciseSessionSettable {
+            if let session = sender as? ExerciseSession {
+                ctrl.setExerciseSession(session)
+            }
         }
     }
     

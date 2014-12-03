@@ -23,8 +23,8 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     } ~
     path("exercise" / UserIdValue) { userId ⇒
       post {
-        handleWith { session: Session ⇒
-          (userExercises ? UserExerciseSessionStart(userId, session)).map(_.toString)
+        handleWith { sessionProps: SessionProps ⇒
+          (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[SessionId]
         }
       } ~
       get {
