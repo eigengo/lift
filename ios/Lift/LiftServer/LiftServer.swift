@@ -185,7 +185,7 @@ public class LiftServer {
     )
     
     //private let baseURLString = "http://192.168.59.103:49154"
-    private let baseURLString = "http://192.168.0.6:12551"
+    private let baseURLString = "http://192.168.0.8:12551"
     
     ///
     /// Body is either JSON structure or NSData

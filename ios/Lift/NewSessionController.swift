@@ -5,10 +5,6 @@ class NewSessionController : UIViewController {
     var demoMode: UISwitch!
     private var muscleGroups: [String]?
     
-    override func viewDidLoad() {
-        setBackgroundImage(["Start1", "Start2"])
-    }
- 
     @IBAction
     func startSession(sender: UIButton) {
         let segueName = demoMode.on ? "newsession_demo" : "newsession_live"
