@@ -235,10 +235,15 @@ public class LiftServer {
         return configuration
         }()
     )
+    private let isoDateFormatter: NSDateFormatter = {
+        let dateFormatter = NSDateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        return dateFormatter
+    }()
     
     //private let baseURLString = "http://192.168.59.103:49154"
-    //private let baseURLString = "http://192.168.0.8:12551"
-    private let baseURLString = "http://192.168.101.102:12551"
+    private let baseURLString = "http://192.168.0.6:12551"
+    //private let baseURLString = "http://192.168.101.102:12551"
     
     ///
     /// Body is either JSON structure or NSData
@@ -348,9 +353,7 @@ public class LiftServer {
     // Mark: - Exercise session
     
     func exerciseSessionStart(userId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
-        let dateFormatter = NSDateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-        let startDateString = dateFormatter.stringFromDate(props.startDate)
+        let startDateString = isoDateFormatter.stringFromDate(props.startDate)
         let params: [String : AnyObject] = [
             "startDate": startDateString,
             "muscleGroupKeys": props.muscleGroupKeys,
@@ -377,9 +380,9 @@ public class LiftServer {
         request(LiftServerURLs.ExerciseGetAllExercises(userId))
             .responseAsResutlt(f) { json -> [Exercise.SessionProps] in
                 return json.arrayValue.map { json -> Exercise.SessionProps in
-                    let startDate = NSDate() // TODO: fixme
+                    let startDate = self.isoDateFormatter.dateFromString(json["startDate"].stringValue)!
                     let muscleGroupKeys = json["muscleGroupKeys"].arrayValue.map { $0.stringValue }
-                    let intendedIntensity = json[""].doubleValue
+                    let intendedIntensity = json["intendedIntensity"].doubleValue
                     return Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
                 }
             }

@@ -27,8 +27,7 @@ class SessionsController : UITableViewController, UITableViewDataSource {
         let data = sessionProps[indexPath.row]
         let cell = tableView.dequeueReusableCellWithIdentifier("default") as UITableViewCell
         
-        let formatter = NSDateFormatter()
-        let dateText = formatter.stringFromDate(data.startDate)
+        let dateText = NSDateFormatter.localizedStringFromDate(data.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
         cell.textLabel!.text = ", ".join(data.muscleGroupKeys)
         cell.detailTextLabel!.text = "On \(dateText)"
         

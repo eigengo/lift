@@ -2,19 +2,15 @@ package com.eigengo.lift.profile
 
 import java.security.MessageDigest
 import java.util
-import java.util.UUID
 
-import akka.actor.{ActorLogging, Props, ActorRef}
-import akka.cluster.Cluster
+import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.contrib.pattern.DistributedPubSubExtension
 import akka.contrib.pattern.DistributedPubSubMediator.{Publish, Subscribe}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.UserId
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
-import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserSetDevice, UserRegister}
 import com.eigengo.lift.profile.UserProfileProtocol._
 
-import scala.collection.immutable.HashSet
 import scala.util.Random
 import scalaz.\/
 
@@ -64,7 +60,7 @@ object UserProfileProcessor {
 }
 
 class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with ActorLogging {
-  import UserProfileProcessor._
+  import com.eigengo.lift.profile.UserProfileProcessor._
   private var knownAccounts: KnownAccounts = KnownAccounts.empty
   private val mediator = DistributedPubSubExtension(context.system).mediator
   private val topic = "UserProfileProcessor.knownAccounts"
