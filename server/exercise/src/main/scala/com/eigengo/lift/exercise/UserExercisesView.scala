@@ -14,10 +14,11 @@ object UserExercisesView {
 
   /**
    * A single recorded exercise
+   *
    * @param name the name
    * @param intensity the intensity, if known
    */
-  case class Exercise(name: ExerciseName, intensity: Option[ExerciseIntensity])
+  case class Exercise(name: ExerciseName, intensity: Option[Double] /* Ideally, this would be Option[ExerciseIntensity], but Json4s is being silly */)
 
   /**
    * Exercise session groups the props with the list of exercises and metadata of the model that

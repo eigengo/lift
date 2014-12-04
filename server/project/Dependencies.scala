@@ -37,8 +37,8 @@ object Dependencies {
   }
 
   object json4s {
-    val native = "org.json4s" %% "json4s-native" % "3.2.10"
-    val jackson = "org.json4s" %% "json4s-jackson" % "3.2.10"
+    val native = "org.json4s" %% "json4s-native" % "3.2.11"
+    val jackson = "org.json4s" %% "json4s-jackson" % "3.2.11"
   }
 
   val scodec_bits  = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
