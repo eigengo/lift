@@ -1,10 +1,12 @@
 import Foundation
 
 class SessionDetailController : UIViewController, UITableViewDataSource {
-    var exerciseSession: Exercise.ExerciseSession?
+    @IBOutlet var tableView: UITableView!
+    private var exerciseSession: Exercise.ExerciseSession?
     
     func setExerciseSession(exerciseSession: Exercise.ExerciseSession) {
         self.exerciseSession = exerciseSession
+        self.tableView.reloadData()
     }
     
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
