@@ -21,53 +21,53 @@ object UserExercises {
 
   /** The shard name */
   val shardName = "user-exercises"
-  /** The props to create the actor on a node */
+  /** The sessionProps to create the actor on a node */
   def props(notification: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
    * @param userId the user identity
-   * @param sessionId the props identity
+   * @param sessionId the sessionProps identity
    * @param bits the submitted bits
    */
   case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
 
   /**
-   * Process exercise data for the given props
-   * @param sessionId the props identifier
+   * Process exercise data for the given sessionProps
+   * @param sessionId the sessionProps identifier
    * @param bits the exercise data bits
    */
   private case class ExerciseDataProcess(sessionId: SessionId, bits: BitVector)
 
   /**
-   * Starts the user exercise props
+   * Starts the user exercise sessionProps
    * @param userId the user identity
-   * @param sessionProps the props details
+   * @param sessionProps the sessionProps details
    */
   case class UserExerciseSessionStart(userId: UserId, sessionProps: SessionProps)
 
   /**
-   * Ends the user exercise props
+   * Ends the user exercise sessionProps
    * @param userId the user identity
-   * @param sessionId the generated props identity
+   * @param sessionId the generated sessionProps identity
    */
   case class UserExerciseSessionEnd(userId: UserId, sessionId: SessionId)
 
   /**
-   * The props has started
-   * @param props the props identity
+   * The sessionProps has started
+   * @param sessionProps the sessionProps identity
    */
   private case class ExerciseSessionStart(props: SessionProps)
 
   /**
-   * The props has ended
-   * @param sessionId the props identity
+   * The sessionProps has ended
+   * @param sessionId the sessionProps identity
    */
   private case class ExerciseSessionEnd(sessionId: SessionId)
 
   /**
-   * Accelerometer data for the given props
-   * @param sessionId the props identity
+   * Accelerometer data for the given sessionProps
+   * @param sessionId the sessionProps identity
    * @param data the data
    */
   private case class ExerciseSessionData(sessionId: SessionId, data: AccelerometerData)
@@ -123,7 +123,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case (_, _)                    ⇒ \/.left("Undecoded input")
   }
 
-  private def exercising(id: SessionId, props: SessionProps): Receive = withPassivation {
+  private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
     case ExerciseSessionStart(session) ⇒
       val newId = SessionId.randomId()
       log.warning(s"Implicitly ending session $id and starting $newId")
@@ -135,16 +135,16 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err) },
         { evt ⇒
-          exerciseClasssifiers ! evt
+          exerciseClasssifiers ! Classify(sessionProps, evt)
           sender() ! \/.right(())
         }
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      persist(ExerciseEvt(id, metadata, props, Exercise(name, intensity))) { evt ⇒
+      persist(ExerciseEvt(id, metadata, sessionProps, Exercise(name, intensity))) { evt ⇒
         intensity.foreach { i ⇒
-          if (i << props.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          if (i >> props.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i << sessionProps.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
         }
       }
 
