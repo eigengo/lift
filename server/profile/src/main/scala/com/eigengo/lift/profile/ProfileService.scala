@@ -10,7 +10,7 @@ import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
 
-trait UserProfileService extends Directives with CommonMarshallers with CommonPathDirectives {
+trait ProfileService extends Directives with CommonMarshallers with CommonPathDirectives {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 

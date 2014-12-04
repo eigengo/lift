@@ -6,7 +6,7 @@ import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStor
 import akka.util.Timeout
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.notification.NotificationBoot
-import com.eigengo.lift.profile.UserProfileBoot
+import com.eigengo.lift.profile.ProfileBoot
 import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route}
@@ -40,7 +40,7 @@ object LiftLocalApp extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      val profile = UserProfileBoot.boot(system)
+      val profile = ProfileBoot.boot(system)
       val notificaiton = NotificationBoot.boot(profile.userProfile)
       val exercise = ExerciseBoot.boot(notificaiton.notification)
 
