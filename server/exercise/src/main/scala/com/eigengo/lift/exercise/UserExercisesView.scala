@@ -47,6 +47,10 @@ object UserExercisesView {
    */
   case class SessionSummary(id: SessionId, sessionProps: SessionProps)
 
+  implicit object SessionSummaryOrdering extends Ordering[SessionSummary] {
+    override def compare(x: SessionSummary, y: SessionSummary): Int = y.sessionProps.startDate.compareTo(x.sessionProps.startDate)
+  }
+
   /**
    * All user's exercises
    * @param sessions the list of exercises
@@ -63,7 +67,7 @@ object UserExercisesView {
 
     def summary: List[SessionSummary] = sessions.collect {
       case (id, ExerciseSession(p, _, _)) ⇒ SessionSummary(id, p)
-    }.toList
+    }.toList.sorted
   }
 
   /**

@@ -65,12 +65,12 @@ class NewSessionPropsController : UIViewController, UITableViewDelegate, UITable
     override func viewDidAppear(animated: Bool) {
         // TODO: Lift server: get intensities
         intensities = [
-            Exercise.ExerciseIntensity(intensity: 0.30, title: "Very light",    userNotes: "Just stretching bones on a rest day."),
-            Exercise.ExerciseIntensity(intensity: 0.45, title: "Light",         userNotes: "Basic endurance. Energy from fat."),
-            Exercise.ExerciseIntensity(intensity: 0.65, title: "Moderate",      userNotes: "Aerobic fitness improvement."),
-            Exercise.ExerciseIntensity(intensity: 0.75, title: "Hard",          userNotes: "Improves functional power."),
-            Exercise.ExerciseIntensity(intensity: 0.87, title: "Very hard",     userNotes: "Develop maximum performance and speed."),
-            Exercise.ExerciseIntensity(intensity: 0.95, title: "Bleeding eyes", userNotes: "Do you feel lucky, punk?")
+            Exercise.ExerciseIntensity(intensity: 0.30, title: "Very light", userNotes: "Just stretching bones on a rest day."),
+            Exercise.ExerciseIntensity(intensity: 0.45, title: "Light",      userNotes: "Basic endurance. Energy from fat."),
+            Exercise.ExerciseIntensity(intensity: 0.65, title: "Moderate",   userNotes: "Aerobic fitness improvement."),
+            Exercise.ExerciseIntensity(intensity: 0.75, title: "Hard",       userNotes: "Improves functional power."),
+            Exercise.ExerciseIntensity(intensity: 0.87, title: "Very hard",  userNotes: "Develop maximum performance and speed."),
+            Exercise.ExerciseIntensity(intensity: 0.95, title: "Brutal",     userNotes: "Do you feel lucky, punk?")
         ]
         self.tableView.reloadData()
     }

@@ -72,9 +72,7 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
         let elapsed = Int(NSDate().timeIntervalSinceDate(self.startTime!))
         let minutes: Int = elapsed / 60
         let seconds: Int = elapsed - minutes * 60
-        let x = NSString(format: "For %d:%02d", minutes, seconds)
-        NSLog(x)
-        self.navigationItem.prompt = x
+        self.navigationItem.prompt = NSString(format: "Elapsed %d:%02d", minutes, seconds)
     }
     
     func setExerciseSession(session: ExerciseSession) {
