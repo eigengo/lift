@@ -49,37 +49,62 @@ class DemoSessionTableModel : NSObject, UITableViewDataSource {
 
 }
 
-class DemoSessionController : UIViewController, UITabBarDelegate, UITableViewDelegate, ExerciseSessionSettable {
-    @IBOutlet
-    var tableView: UITableView!
-    var tableModel: DemoSessionTableModel?
-    var sessionId: NSUUID?
+class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSessionSettable {
+    @IBOutlet var tableView: UITableView!
+    @IBOutlet var stopSessionButton: UIBarButtonItem!
+    
+    private var tableModel: DemoSessionTableModel?
+    private var sessionId: NSUUID?
+    private let reallyStopTag = 1
+    private var timer: NSTimer?
+    private var startTime: NSDate?
     
     override func viewDidLoad() {
-        tableView.delegate = self
-        tableView.dataSource = tableModel!
+        self.tableView.delegate = self
+        self.tableView.dataSource = tableModel!
+        self.stopSessionButton.title = "Stop"
+        self.stopSessionButton.tag = 0
+        self.startTime = NSDate()
+        self.timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
+    }
+    
+    func tick() {
+        let elapsed = Int(NSDate().timeIntervalSinceDate(self.startTime!))
+        let minutes: Int = elapsed / 60
+        let seconds: Int = elapsed - minutes * 60
+        let x = NSString(format: "For %d:%02d", minutes, seconds)
+        NSLog(x)
+        self.navigationItem.prompt = x
     }
     
     func setExerciseSession(session: ExerciseSession) {
         self.sessionId = session.id
-        tableModel = DemoSessionTableModel(muscleGroupKeys: session.props.muscleGroupKeys)
+        self.tableModel = DemoSessionTableModel(muscleGroupKeys: session.props.muscleGroupKeys)
     }
     
-    func tabBar(tabBar: UITabBar, didSelectItem item: UITabBarItem!) {
-        // we only have one item, so back we go
-        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: sessionId!) {
-            $0.cata(LiftAlertController.showError("sessionend_fail", parent: self), const(self.performSegueWithIdentifier("end", sender: nil)))
-        }
-        
-    }
- 
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let path = tableModel!.filePathAtIndexPath(indexPath)
+        let path = self.tableModel!.filePathAtIndexPath(indexPath)
         let data = NSFileManager.defaultManager().contentsAtPath(path!)
         LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: self.sessionId!, data: data!) { x in
             NSLog("Sent...")
         }
         
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        self.tableView.deselectRowAtIndexPath(indexPath, animated: true)
+    }
+    
+    override func viewWillDisappear(animated: Bool) {
+        self.timer!.invalidate()
+        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: self.sessionId!) { _ in }
+    }
+    
+    @IBAction
+    func stopSession() {
+        if self.stopSessionButton.tag != reallyStopTag {
+            self.stopSessionButton.title = "Really?"
+            self.stopSessionButton.tag = reallyStopTag
+        } else {
+            self.navigationItem.prompt = nil
+            self.navigationController!.popToRootViewControllerAnimated(true)
+        }
     }
 }

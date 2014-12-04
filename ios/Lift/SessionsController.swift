@@ -33,12 +33,7 @@ class SessionsController : UITableViewController, UITableViewDataSource {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
         let props = sessionSummaries[indexPath.row].sessionProps
         let cell = tableView.dequeueReusableCellWithIdentifier("default") as UITableViewCell
-        if props.intendedIntensity > 0.7 {
-            cell.textLabel!.textColor = UIColor.redColor()
-        } else if props.intendedIntensity < 0.4 {
-            cell.textLabel!.textColor = UIColor.greenColor()
-        }
-        
+        cell.textLabel!.textColor = props.intendedIntensity.textColor()        
         let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
         cell.textLabel!.text = ", ".join(props.muscleGroupKeys)
         cell.detailTextLabel!.text = "On \(dateText)"

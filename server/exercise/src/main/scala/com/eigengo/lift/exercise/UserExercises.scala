@@ -126,9 +126,10 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   private def exercising(id: SessionId, props: SessionProps): Receive = withPassivation {
     case cmd@ExerciseSessionStart(session) ⇒
       persist(cmd) { evt ⇒
-        val id = SessionId.randomId()
-        sender() ! \/.right(id)
-        context.become(exercising(id, session))
+        val newId = SessionId.randomId()
+        log.warning(s"Implicitly ending session $id and starting $newId")
+        sender() ! \/.right(newId)
+        context.become(exercising(newId, session))
       }
 
     case ExerciseDataProcess(`id`, bits) ⇒
@@ -141,13 +142,11 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
         }
       )
 
-    case FullyClassifiedExercise(metadata, `props`, confidence, name, intensity) ⇒
-      if (confidence > confidenceThreshold) {
-        persist(ExerciseEvt(id, metadata, props, Exercise(name, intensity))) { evt ⇒
-          intensity.foreach { i ⇒
-            if (i << props.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-            if (i >> props.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          }
+    case FullyClassifiedExercise(metadata, `props`, confidence, name, intensity) if confidence > confidenceThreshold ⇒
+      persist(ExerciseEvt(id, metadata, props, Exercise(name, intensity))) { evt ⇒
+        intensity.foreach { i ⇒
+          if (i << props.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i >> props.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
         }
       }
 
@@ -155,6 +154,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
       notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
 
     case cmd@ExerciseSessionEnd(`id`) ⇒
+      log.info(s"Ended session $id ")
       persist(cmd) { evt ⇒
         context.become(notExercising)
       }

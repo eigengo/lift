@@ -10,7 +10,7 @@ class AccountViewController : UIViewController {
             LiftServer.sharedInstance.userRegisterDeviceToken(user.id, deviceToken: deviceToken!)
         }
         CurrentLiftUser.userId = user.id
-        performSegueWithIdentifier("account_account", sender: nil)
+        performSegueWithIdentifier("main", sender: nil)
     }
     
     @IBAction
