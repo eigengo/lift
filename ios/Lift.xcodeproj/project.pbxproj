@@ -21,17 +21,17 @@
 		543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
-		545E06081A304D3100AB633B /* URLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* URLs.swift */; };
+		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06091A304D5700AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E060A1A304D5700AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
-		545E060B1A304D5700AB633B /* URLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* URLs.swift */; };
-		545E060D1A304DC500AB633B /* LiftServerUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060C1A304DC500AB633B /* LiftServerUser.swift */; };
-		545E060E1A304DC500AB633B /* LiftServerUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060C1A304DC500AB633B /* LiftServerUser.swift */; };
+		545E060B1A304D5700AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		545E06111A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */; };
+		547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* LiftServerMarshallers.swift */; };
 		547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
 		547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64791A2E4FB400F887EE /* PublicProfileController.swift */; };
+		548DC4511A30650700EF1961 /* LiftServerMarshallers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* LiftServerMarshallers.swift */; };
 		54960F091A20C03E00E980AB /* WatchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54960F081A20C03E00E980AB /* WatchKit.framework */; };
 		54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54960F0E1A20C03E00E980AB /* InterfaceController.swift */; };
 		54960F111A20C03E00E980AB /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54960F101A20C03E00E980AB /* NotificationController.swift */; };
@@ -134,10 +134,10 @@
 		543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedRecorder.swift; sourceTree = "<group>"; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
-		545E06071A304D3100AB633B /* URLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLs.swift; sourceTree = "<group>"; };
-		545E060C1A304DC500AB633B /* LiftServerUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerUser.swift; sourceTree = "<group>"; };
+		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
 		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
 		5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AccelerometerReceiver.swift; path = Pebble/AccelerometerReceiver.swift; sourceTree = "<group>"; };
+		547D51531A3061800055EB35 /* LiftServerMarshallers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerMarshallers.swift; sourceTree = "<group>"; };
 		547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentLiftUser.swift; sourceTree = "<group>"; };
 		547F64791A2E4FB400F887EE /* PublicProfileController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicProfileController.swift; sourceTree = "<group>"; };
 		54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Lift WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -419,10 +419,10 @@
 			isa = PBXGroup;
 			children = (
 				54F780B81A278EFC00E4F3C5 /* LiftServer.swift */,
+				545E06071A304D3100AB633B /* LiftServerURLs.swift */,
+				547D51531A3061800055EB35 /* LiftServerMarshallers.swift */,
 				545E06031A304CB500AB633B /* UserModel.swift */,
-				545E060C1A304DC500AB633B /* LiftServerUser.swift */,
 				545E06051A304CBD00AB633B /* ExerciseModel.swift */,
-				545E06071A304D3100AB633B /* URLs.swift */,
 			);
 			path = LiftServer;
 			sourceTree = "<group>";
@@ -653,7 +653,6 @@
 				54C6EFE01A2F61870044BDAB /* Operators.swift in Sources */,
 				54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54B29B221A2C82BD00098D2A /* SwiftyJSON.swift in Sources */,
-				545E060E1A304DC500AB633B /* LiftServerUser.swift in Sources */,
 				54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */,
 				545E06091A304D5700AB633B /* UserModel.swift in Sources */,
 				545E06111A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */,
@@ -661,10 +660,11 @@
 				54C6EFE21A2F61870044BDAB /* Result.swift in Sources */,
 				54C6EFE11A2F61870044BDAB /* Predef.swift in Sources */,
 				54C6EFDE1A2F61870044BDAB /* Box.swift in Sources */,
-				545E060B1A304D5700AB633B /* URLs.swift in Sources */,
+				545E060B1A304D5700AB633B /* LiftServerURLs.swift in Sources */,
 				54D320821A276747002527C8 /* Alamofire.swift in Sources */,
 				545E060A1A304D5700AB633B /* ExerciseModel.swift in Sources */,
 				54C6EFDF1A2F61870044BDAB /* Either.swift in Sources */,
+				548DC4511A30650700EF1961 /* LiftServerMarshallers.swift in Sources */,
 				54960F131A20C03E00E980AB /* GlanceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -699,10 +699,10 @@
 				5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */,
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
-				545E06081A304D3100AB633B /* URLs.swift in Sources */,
+				547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */,
+				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
 				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
-				545E060D1A304DC500AB633B /* LiftServerUser.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
 			);

@@ -250,11 +250,10 @@ public class LiftServer {
     ///
     /// Get one particular session
     ///
-    func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<[Exercise.ExerciseSession]> -> Void) -> Void {
+    func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Exercise.ExerciseSession> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetExerciseSession(userId, sessionId))
             .responseAsResutlt(f) { json in
-                println(json)
-                return []
-            }
+                return Exercise.ExerciseSession.unmarshal(json)
+        }
     }
 }

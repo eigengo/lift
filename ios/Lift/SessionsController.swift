@@ -14,10 +14,18 @@ class SessionsController : UITableViewController, UITableViewDataSource {
         performSegueWithIdentifier("detail", sender: self)
     }
     
+    func showSessionDetail(segue: UIStoryboardSegue) -> Exercise.ExerciseSession -> Void {
+        return { exerciseSession in
+            if let ctrl = segue.destinationViewController as? SessionDetailController {
+                ctrl.setExerciseSession(exerciseSession)
+            }
+        }
+    }
+    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
-        if let ctrl = segue.destinationViewController as? SessionDetailController {
-            ctrl.setSessionId(summary.id)
+        LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id) {
+            $0.cata(LiftAlertController.showError("session_detail_failed", parent: self), self.showSessionDetail(segue))
         }
     }
 
