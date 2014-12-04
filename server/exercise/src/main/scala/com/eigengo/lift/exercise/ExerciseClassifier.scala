@@ -17,7 +17,7 @@ sealed trait ExerciseModel {
  */
 case object WaveletModel extends ExerciseModel {
   val metadata = ModelMetadata(1)
-  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(metadata, classify.session)
+  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(metadata)
 }
 
 /**
@@ -25,7 +25,7 @@ case object WaveletModel extends ExerciseModel {
  */
 case object DynamicTimeWrappingModel extends ExerciseModel {
   val metadata = ModelMetadata(1)
-  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(metadata, classify.session)
+  override def apply(classify: Classify): ClassifiedExercise = UnclassifiedExercise(metadata)
 }
 
 /**
@@ -34,7 +34,7 @@ case object DynamicTimeWrappingModel extends ExerciseModel {
 case object NaiveModel extends ExerciseModel {
   val metadata = ModelMetadata(2)
   override def apply(classify: Classify): ClassifiedExercise =
-    FullyClassifiedExercise(metadata, classify.session, 1.0, "Goku was your spotter, man!", Some(Random.nextDouble()))
+    FullyClassifiedExercise(metadata, 1.0, "Goku was your spotter, man!", Some(Random.nextDouble()))
 }
 
 /**
@@ -44,10 +44,10 @@ object ExerciseClassifier {
 
   /**
    * Classify the given accelerometer data together with session information
-   * @param session the session
+   * @param sessionProps the session
    * @param ad the accelerometer data
    */
-  case class Classify(session: SessionProps, ad: AccelerometerData)
+  case class Classify(sessionProps: SessionProps, ad: AccelerometerData)
 
   /**
    * Model version and other metadata
@@ -63,19 +63,17 @@ object ExerciseClassifier {
   /**
    * Known exercise with the given confidence, name and optional intensity
    * @param metadata the model metadata
-   * @param session the session
    * @param confidence the confidence
    * @param name the exercise name
    * @param intensity the intensity, if known
    */
-  case class FullyClassifiedExercise(metadata: ModelMetadata, session: SessionProps, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
+  case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
 
   /**
    * Unknown exercise
    * @param metadata the model
-   * @param session the session
    */
-  case class UnclassifiedExercise(metadata: ModelMetadata, session: SessionProps) extends ClassifiedExercise
+  case class UnclassifiedExercise(metadata: ModelMetadata) extends ClassifiedExercise
 
 }
 

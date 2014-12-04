@@ -149,7 +149,7 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
       exercises = exercises.withExercise(sessionId, metadata, sessionProps, exercise)
 
     // query for exercises
-    case GetExerciseSessionsSummary =>
+    case GetExerciseSessionsSummary ⇒
       sender() ! exercises.summary
     case GetExerciseSession(sessionId) ⇒
       sender() ! exercises.get(sessionId)

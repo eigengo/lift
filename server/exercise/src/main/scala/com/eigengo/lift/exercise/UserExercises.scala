@@ -124,25 +124,23 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   }
 
   private def exercising(id: SessionId, props: SessionProps): Receive = withPassivation {
-    case cmd@ExerciseSessionStart(session) ⇒
-      persist(cmd) { evt ⇒
-        val newId = SessionId.randomId()
-        log.warning(s"Implicitly ending session $id and starting $newId")
-        sender() ! \/.right(newId)
-        context.become(exercising(newId, session))
-      }
+    case ExerciseSessionStart(session) ⇒
+      val newId = SessionId.randomId()
+      log.warning(s"Implicitly ending session $id and starting $newId")
+      sender() ! \/.right(newId)
+      context.become(exercising(newId, session))
 
     case ExerciseDataProcess(`id`, bits) ⇒
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err) },
         { evt ⇒
-          persist(Classify(props, evt))(exerciseClasssifiers !)
+          exerciseClasssifiers ! evt
           sender() ! \/.right(())
         }
       )
 
-    case FullyClassifiedExercise(metadata, `props`, confidence, name, intensity) if confidence > confidenceThreshold ⇒
+    case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
       persist(ExerciseEvt(id, metadata, props, Exercise(name, intensity))) { evt ⇒
         intensity.foreach { i ⇒
           if (i << props.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
@@ -150,24 +148,19 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
         }
       }
 
-    case UnclassifiedExercise(_, `props`) ⇒
+    case UnclassifiedExercise(_) ⇒
       notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
 
     case cmd@ExerciseSessionEnd(`id`) ⇒
-      log.info(s"Ended session $id ")
-      persist(cmd) { evt ⇒
-        context.become(notExercising)
-      }
+      context.become(notExercising)
       sender() ! \/.right(())
   }
 
   private def notExercising: Receive = withPassivation {
-    case cmd@ExerciseSessionStart(session) ⇒
-      persist(cmd) { evt ⇒
-        val id = SessionId.randomId()
-        sender() ! \/.right(id)
-        context.become(exercising(id, session))
-      }
+    case cmd@ExerciseSessionStart(sessionProps) ⇒
+      val id = SessionId.randomId()
+      sender() ! \/.right(id)
+      context.become(exercising(id, sessionProps))
   }
 
   // after recovery is complete, we move to processing commands
