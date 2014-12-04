@@ -43,12 +43,12 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       put {
         handleWith { bits: BitVector ⇒
-          (userExercises ? UserExerciseDataProcess(userId, sessionId, bits)).map(_.toString)
+          (userExercises ? UserExerciseDataProcess(userId, sessionId, bits)).mapRight[Unit]
         }
       } ~
       delete {
         complete {
-          (userExercises ? UserExerciseSessionEnd(userId, sessionId)).map(_.toString)
+          (userExercises ? UserExerciseSessionEnd(userId, sessionId)).mapRight[Unit]
         }
       }
     }
