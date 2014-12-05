@@ -19,6 +19,7 @@
 		543F0C791A11727000EC8BE6 /* LocalRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C771A11727000EC8BE6 /* LocalRecorder.swift */; };
 		543F0C7A1A11727000EC8BE6 /* PERecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C781A11727000EC8BE6 /* PERecorder.swift */; };
 		543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */; };
+		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
@@ -132,6 +133,7 @@
 		543F0C771A11727000EC8BE6 /* LocalRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalRecorder.swift; sourceTree = "<group>"; };
 		543F0C781A11727000EC8BE6 /* PERecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PERecorder.swift; sourceTree = "<group>"; };
 		543F0C7B1A11748800EC8BE6 /* CombinedRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedRecorder.swift; sourceTree = "<group>"; };
+		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
@@ -201,6 +203,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */,
 				5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */,
 				54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */,
 				83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */,
@@ -430,6 +433,7 @@
 		8D64789A58A65961D3659708 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */,
 				604C4FB0BC879EB56AD28A81 /* libPods.a */,
 				54960F081A20C03E00E980AB /* WatchKit.framework */,
 			);
@@ -919,7 +923,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos",
 				);
 				INFOPLIST_FILE = Lift/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -929,7 +933,7 @@
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Lift/Lift-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -947,7 +951,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lift-bibucqyzhhsvvrfkufdklduqdumr/Build/Products/Debug-iphoneos",
 				);
 				INFOPLIST_FILE = Lift/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -956,7 +960,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Lift/Lift-Bridging-Header.h";
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

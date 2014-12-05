@@ -22,7 +22,7 @@ object ApplePushNotification {
    * @param badge the badge
    * @param sound the sound
    */
-  case class ScreenMessage(deviceToken: String, message: String, badge: Option[Int], sound: Option[String])
+  case class ScreenMessage(deviceToken: Array[Byte], message: String, badge: Option[Int], sound: Option[String])
 
 }
 
@@ -47,7 +47,7 @@ class ApplePushNotification extends Actor with ActorLogging {
       val payloadBuilder = APNS.newPayload.alertBody(message)
       badge.foreach(payloadBuilder.badge)
       sound.foreach(payloadBuilder.sound)
-      service.push(deviceToken, payloadBuilder.build())
+      service.push(deviceToken, payloadBuilder.build().getBytes("UTF-8"))
   }
 
   private def screenOnly: Receive = {

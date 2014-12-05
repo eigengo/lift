@@ -60,7 +60,7 @@ object UserProfileProtocol {
    * The user's devices
    */
   sealed trait UserDevice
-  case class IOSUserDevice(deviceToken: String) extends UserDevice
+  case class IOSUserDevice(deviceToken: Array[Byte]) extends UserDevice
   case class AndroidUserDevice() extends UserDevice
 
   /**

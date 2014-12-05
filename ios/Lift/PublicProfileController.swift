@@ -12,6 +12,7 @@ class PublicProfileController : UIViewController {
     
     @IBAction
     func save() {
+        self.view.endEditing(true)
         let publicProfile = User.PublicProfile(firstName: firstName.text,
             lastName: lastName.text,
             weight: weight.text.toInt(),

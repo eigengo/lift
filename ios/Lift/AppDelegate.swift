@@ -4,8 +4,8 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var deviceToken: NSData?
-    
     var window: UIWindow?
+    var alertView: UIAlertView? = nil
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         if UIDevice.currentDevice().systemVersion >= "8.0" {
@@ -24,7 +24,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: NSError) {
-        self.deviceToken = "5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8".dataUsingEncoding(NSASCIIStringEncoding, allowLossyConversion: false)
+        let data: [UInt8] = [0x5A, 0xB8, 0x48, 0x05, 0xF8, 0xD0, 0xCC, 0x63, 0x0A, 0x89, 0x90, 0xA8, 0x4D, 0x48, 0x08, 0x41, 0xC3, 0x68, 0x40, 0x03, 0x6C, 0x12, 0x2C, 0x8E, 0x52, 0xA8, 0xDC, 0xFD, 0x68, 0xA6, 0xF6, 0xF8]
+        let buf = UnsafePointer<[UInt8]>(data)
+        let deviceToken = NSData(bytes: buf, length: data.count)
+        self.deviceToken = deviceToken
         NSLog("Not registered \(error)")
     }
     
@@ -32,5 +35,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         application.registerForRemoteNotifications()
     }
     
+    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject]) {
+        if self.alertView == nil {
+            let aps = userInfo["aps"] as [NSObject : AnyObject]
+            let alert = aps["alert"] as String
+            
+            AudioServicesPlayAlertSound(1007)
+            self.alertView = UIAlertView(title: "Exercise", message: alert, delegate: nil, cancelButtonTitle: nil)
+            self.alertView!.show()
+            let delay = dispatch_time(DISPATCH_TIME_NOW, Int64(2 * Double(NSEC_PER_SEC)))
+            dispatch_after(delay, dispatch_get_main_queue()) {
+                self.alertView!.dismissWithClickedButtonIndex(0, animated: true)
+                self.alertView = nil
+            }
+        }
+    }
 }
 

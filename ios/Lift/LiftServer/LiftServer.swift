@@ -83,8 +83,8 @@ public class LiftServer {
     }()
     
     //private let baseURLString = "http://192.168.59.103:49154"
-    //private let baseURLString = "http://192.168.0.8:12551"
-    private let baseURLString = "http://192.168.101.102:12551"
+    private let baseURLString = "http://192.168.0.8:12551"
+    //private let baseURLString = "http://192.168.101.102:12551"
     
     ///
     /// Body is either JSON structure or NSData
@@ -112,8 +112,12 @@ public class LiftServer {
     /// Register the iOS push device token for the given user
     ///
     func userRegisterDeviceToken(userId: NSUUID, deviceToken: NSData) -> Void {
-        let tokenString = NSString(data: deviceToken, encoding: NSASCIIStringEncoding)!
-        request(LiftServerURLs.UserRegisterDevice(userId), body: .Json(params: [ "deviceToken": tokenString ]))
+        let bytes = UnsafePointer<UInt8>(deviceToken.bytes)
+        var tokenBytes: [NSNumber] = []
+        for var i = 0; i < deviceToken.length; ++i {
+            tokenBytes.append(NSNumber(unsignedChar: bytes.advancedBy(i).memory))
+        }
+        request(LiftServerURLs.UserRegisterDevice(userId), body: .Json(params: [ "deviceToken": tokenBytes ]))
             .responseString { (_, _, body, error) -> Void in
                 // println(body)
             }
