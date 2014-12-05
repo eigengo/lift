@@ -32,9 +32,19 @@ case object DynamicTimeWrappingModel extends ExerciseModel {
  * This is the only implementation I can have a go at!
  */
 case object NaiveModel extends ExerciseModel {
+  val exercises =
+    Map(
+      "arms" → List("Biceps curl", "Triceps press"),
+      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
+    )
   val metadata = ModelMetadata(2)
-  override def apply(classify: Classify): ClassifiedExercise =
-    FullyClassifiedExercise(metadata, 1.0, "Goku was your spotter, man!", Some(Random.nextDouble()))
+
+  private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
+    val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Random.shuffle(es).head, Some(Random.nextDouble())))
+  }
+
+  override def apply(classify: Classify): ClassifiedExercise = randomExercise(classify.sessionProps)
 }
 
 /**
