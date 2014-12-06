@@ -1,6 +1,7 @@
 package com.eigengo.lift.notification
 
 import java.net.UnknownHostException
+import java.util
 
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
@@ -43,7 +44,7 @@ class ApplePushNotification extends Actor with ActorLogging {
 
   private def withCertificates(service: ApnsService): Receive = {
     case ScreenMessage(deviceToken, message, badge, sound) ⇒
-      log.info(s"Screen message $message to $deviceToken")
+      log.info(s"Screen message $message to ${util.Arrays.toString(deviceToken)}")
       val payloadBuilder = APNS.newPayload.alertBody(message)
       badge.foreach(payloadBuilder.badge)
       sound.foreach(payloadBuilder.sound)

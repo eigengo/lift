@@ -97,7 +97,6 @@ object UserExercisesView {
      * @return all sessions summary
      */
     def summary: List[SessionSummary] = sessions.map { s ⇒
-      // http://192.168.0.8:12551/exercise/D3D21230-0323-4D22-9848-CD4C67F4865F/71DB39BE-CFB0-4561-B0E5-5DB936128618
       val intensities = s.sets.map(_.intensity).toArray
       SessionSummary(s.id, s.sessionProps, intensities)
     }.sorted
@@ -214,23 +213,23 @@ import scala.concurrent.duration._
       exercises = offeredSnapshot
 
     case SessionStartedEvt(sessionId, sessionProps) if isPersistent ⇒
-      log.info("SessionStartedEvt: not exercising -> exercising")
+      log.info("SessionStartedEvt: not exercising -> exercising.")
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
   }
 
   private def inASet(session: ExerciseSession, set: ExerciseSet): Receive = {
     case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
-      log.info("ExerciseEvt: in a set -> in a set")
+      log.info("ExerciseEvt: in a set -> in a set.")
       context.become(inASet(session, set.withNewExercise(metadata, exercise)).orElse(queries))
     case NoExerciseEvt(_, metadata) if isPersistent ⇒
-      log.info("NoExerciseEvt: in a set -> exercising")
+      log.info("NoExerciseEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
     case TooMuchRestEvt(_) if isPersistent ⇒
-      log.info("TooMuchRestEvt: in a set -> exercising")
+      log.info("TooMuchRestEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
 
     case SessionEndedEvt(_) if isPersistent ⇒
-      log.info("SessionEndedEvt: in a set -> not exercising")
+      log.info("SessionEndedEvt: in a set -> not exercising.")
       exercises = exercises.withNewSession(session.withNewExerciseSet(set))
       saveSnapshot(exercises)
       context.become(notExercising.orElse(queries))
@@ -238,14 +237,14 @@ import scala.concurrent.duration._
   
   private def exercising(session: ExerciseSession): Receive = {
     case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
-      log.info("ExerciseEvt: exercising -> in a set")
+      log.info("ExerciseEvt: exercising -> in a set.")
       context.become(inASet(session, ExerciseSet(metadata, exercise)).orElse(queries))
 
     case TooMuchRestEvt(_) ⇒
-      log.info("TooMuchRest: exercising -> exercising")
+      log.info("TooMuchRest: exercising -> exercising.")
 
     case SessionEndedEvt(_) if isPersistent ⇒
-      log.info("SessionEndedEvt: exercising -> not exercising")
+      log.info("SessionEndedEvt: exercising -> not exercising.")
       saveSnapshot(exercises)
       exercises = exercises.withNewSession(session)
   }

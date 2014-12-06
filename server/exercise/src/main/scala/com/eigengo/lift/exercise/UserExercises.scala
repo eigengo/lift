@@ -120,12 +120,6 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
 
   import context.dispatcher
 
-  // when we're recovering, handle the classify events
-  override def receiveRecover: Receive = {
-    case SnapshotOffer(_, SessionStartedEvt(sessionId, sessionProps)) ⇒
-      context.become(exercising(sessionId, sessionProps))
-  }
-
   private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
     case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
     case (BitVector.empty, h :: t) ⇒
@@ -143,10 +137,16 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       r(x)
   }
 
+  override def receiveRecover: Receive = {
+    case SnapshotOffer(_, SessionStartedEvt(sessionId, sessionProps)) ⇒
+      context.become(exercising(sessionId, sessionProps))
+  }
+
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation(cancellingTooMuchRest {
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
       persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
+        log.warning("ExerciseSessionStart: exercising -> excercising. Implicitly ending running session and starting a new one.")
         val (_::newSession) = x
         saveSnapshot(newSession)
         sender() ! \/.right(newId)
@@ -154,6 +154,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       }
 
     case ExerciseDataProcess(`id`, bits) ⇒
+      log.info("ExerciseDataProcess: exercising -> excercising.")
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
       { err ⇒ sender() ! \/.left(err)}, { evt ⇒
@@ -163,6 +164,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
+      log.info("FullyClassifiedExercise: exercising -> excercising.")
       persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
@@ -176,16 +178,19 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
 
     case NoExercise(metadata) ⇒
+      log.info("NoExercise: exercising -> excercising.")
       persist(NoExerciseEvt(id, metadata)) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
       }
 
     case TooMuchRest ⇒
+      log.info("NoExercise: exercising -> excercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
         notification ! PushMessage(userId, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
       }
 
-    case cmd@ExerciseSessionEnd(`id`) ⇒
+    case ExerciseSessionEnd(`id`) ⇒
+      log.info("ExerciseSessionEnd: exercising -> not excercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)
@@ -202,7 +207,6 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       }
   }
 
-  // after recovery is complete, we move to processing commands
   override def receiveCommand: Receive = notExercising
 
 }
