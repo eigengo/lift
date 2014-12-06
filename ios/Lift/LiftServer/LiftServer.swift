@@ -6,8 +6,9 @@ import Foundation
 extension Request {
     
     public func responseAsResutlt<A, U>(f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
-        responseSwiftyJSON { (_, response, json, error) -> Void in
+        responseSwiftyJSON { (request, response, json, error) -> Void in
             if error != nil {
+                NSLog("Failed with %@ -> %@", request, response!)
                 f(Result.error(error!))
             } else if response != nil {
                 if response!.statusCode != 200 {
@@ -195,13 +196,7 @@ public class LiftServer {
     func exerciseGetMuscleGroups(f: Result<[Exercise.MuscleGroup]> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetMuscleGroups())
             .responseAsResutlt(f) { json -> [Exercise.MuscleGroup] in
-                return json.arrayValue.map { mg -> Exercise.MuscleGroup in
-                    return Exercise.MuscleGroup(
-                        key: mg["key"].stringValue,
-                        title: mg["title"].stringValue,
-                        exercises: mg["exercises"].arrayValue.map { $0.stringValue }
-                    )
-                }
+                return json.arrayValue.map(Exercise.MuscleGroup.unmarshal)
             }
     }
     
@@ -246,15 +241,7 @@ public class LiftServer {
     func exerciseGetExerciseSessionsSummary(userId: NSUUID, f: Result<[Exercise.SessionSummary]> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetExerciseSessionsSummary(userId))
             .responseAsResutlt(f) { json -> [Exercise.SessionSummary] in
-                return json.arrayValue.map { json -> Exercise.SessionSummary in
-                    let id = NSUUID(UUIDString: json["id"].stringValue)!
-                    let sessionProps = json["sessionProps"]
-                    let startDate = self.isoDateFormatter.dateFromString(sessionProps["startDate"].stringValue)!
-                    let muscleGroupKeys = sessionProps["muscleGroupKeys"].arrayValue.map { $0.stringValue }
-                    let intendedIntensity = sessionProps["intendedIntensity"].doubleValue
-                    let p = Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
-                    return Exercise.SessionSummary(id: id, sessionProps: p)
-                }
+                return json.arrayValue.map(Exercise.SessionSummary.unmarshal)
             }
     }
 

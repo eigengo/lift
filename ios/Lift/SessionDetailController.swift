@@ -10,7 +10,10 @@ class SessionDetailController : UIViewController, UITableViewDataSource {
     }
     
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 2
+        if exerciseSession == nil {
+            return 0
+        }
+        return exerciseSession!.sets.count + 1
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -19,13 +22,21 @@ class SessionDetailController : UIViewController, UITableViewDataSource {
         }
 
         if section == 0 { return 1 }
-        return exerciseSession!.exercises.count
+        return exerciseSession!.sets[section - 1].exercises.count
+    }
+    
+    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if section == 0 {
+            return "Summary"
+        } else {
+            return "Set \(section)"
+        }
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
         
-        func exerciseCell(row: Int) -> UITableViewCell {
-            let exercise = exerciseSession!.exercises[row]
+        func exerciseCell(set: Int, row: Int) -> UITableViewCell {
+            let exercise = exerciseSession!.sets[set].exercises[row]
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
             cell.textLabel!.text = exercise.name
             if exercise.intensity != nil { cell.textLabel!.textColor = exercise.intensity!.textColor() }
@@ -35,20 +46,19 @@ class SessionDetailController : UIViewController, UITableViewDataSource {
         
         func summaryCell() -> UITableViewCell {
             let props = exerciseSession!.sessionProps
-            let metadata = exerciseSession!.modelMetadata
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
 
             cell.textLabel!.text = ", ".join(props.muscleGroupKeys)
             cell.textLabel!.textColor = props.intendedIntensity.textColor()
             let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
-            cell.detailTextLabel!.text = "On \(dateText) classified with \(metadata.version)"
+            cell.detailTextLabel!.text = "On \(dateText)"
             
             return cell
         }
         
         
         if indexPath.section == 0 { return summaryCell() }
-        return exerciseCell(indexPath.row)
+        return exerciseCell(indexPath.section - 1, indexPath.row)
     }
     
 }
