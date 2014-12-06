@@ -146,7 +146,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
       persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
-        log.warning("ExerciseSessionStart: exercising -> excercising. Implicitly ending running session and starting a new one.")
+        log.warning("ExerciseSessionStart: exercising -> exercising. Implicitly ending running session and starting a new one.")
         val (_::newSession) = x
         saveSnapshot(newSession)
         sender() ! \/.right(newId)
@@ -154,7 +154,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       }
 
     case ExerciseDataProcess(`id`, bits) ⇒
-      log.info("ExerciseDataProcess: exercising -> excercising.")
+      log.info("ExerciseDataProcess: exercising -> exercising.")
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err)},
@@ -162,7 +162,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      log.info("FullyClassifiedExercise: exercising -> excercising.")
+      log.info("FullyClassifiedExercise: exercising -> exercising.")
       persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
@@ -176,19 +176,19 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
 
     case NoExercise(metadata) ⇒
-      log.info("NoExercise: exercising -> excercising.")
+      log.info("NoExercise: exercising -> exercising.")
       persist(NoExerciseEvt(id, metadata)) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
       }
 
     case TooMuchRest ⇒
-      log.info("NoExercise: exercising -> excercising.")
+      log.info("NoExercise: exercising -> exercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
         notification ! PushMessage(userId, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
       }
 
     case ExerciseSessionEnd(`id`) ⇒
-      log.info("ExerciseSessionEnd: exercising -> not excercising.")
+      log.info("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)
