@@ -2,7 +2,7 @@ package com.eigengo.lift.exercise
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{SnapshotSelectionCriteria, PersistentActor, Recover}
+import akka.persistence.{SnapshotOffer, SnapshotSelectionCriteria, PersistentActor, Recover}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier.{NoExercise, Classify, FullyClassifiedExercise, UnclassifiedExercise}
@@ -121,7 +121,10 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
   import context.dispatcher
 
   // when we're recovering, handle the classify events
-  override def receiveRecover: Receive = Actor.emptyBehavior
+  override def receiveRecover: Receive = {
+    case SnapshotOffer(_, SessionStartedEvt(sessionId, sessionProps)) ⇒
+      context.become(exercising(sessionId, sessionProps))
+  }
 
   private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
     case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
@@ -143,7 +146,9 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation(cancellingTooMuchRest {
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
-      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { _ ⇒
+      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
+        val (_::newSession) = x
+        saveSnapshot(newSession)
         sender() ! \/.right(newId)
         context.become(exercising(newId, newSessionProps))
       }
@@ -182,6 +187,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
 
     case cmd@ExerciseSessionEnd(`id`) ⇒
       persist(SessionEndedEvt(id)) { evt ⇒
+        saveSnapshot(evt)
         context.become(notExercising)
         sender() ! \/.right(())
       }
@@ -190,6 +196,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
   private def notExercising: Receive = withPassivation {
     case ExerciseSessionStart(sessionProps) ⇒
       persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
+        saveSnapshot(evt)
         sender() ! \/.right(evt.sessionId)
         context.become(exercising(evt.sessionId, sessionProps))
       }
