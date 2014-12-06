@@ -157,10 +157,8 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       log.info("ExerciseDataProcess: exercising -> excercising.")
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
-      { err ⇒ sender() ! \/.left(err)}, { evt ⇒
-        exerciseClasssifiers ! Classify(sessionProps, evt)
-        sender() ! \/.right(())
-      }
+        { err ⇒ sender() ! \/.left(err)},
+        { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
