@@ -3,7 +3,6 @@ import Foundation
 class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarChartViewDelegate {
     @IBOutlet var titleLabel: UILabel!
     @IBOutlet var detailLabel: UILabel!
-    @IBOutlet var chartView: UIView!
     private var intensityChart: JBBarChartView?
     private var sessionSummary: Exercise.SessionSummary?
 
@@ -15,8 +14,15 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
         self.intensityChart = JBBarChartView()
         self.intensityChart!.dataSource = self
         self.intensityChart!.delegate = self
-        self.intensityChart!.frame = self.chartView.frame
+        self.intensityChart!.minimumValue = 0
+        self.intensityChart!.maximumValue = 1
+        self.intensityChart!.frame = CGRectMake(15, 48, 200, 71)
         addSubview(self.intensityChart!)
+    }
+    
+    override func layoutSubviews() {
+        self.intensityChart!.frame = CGRectMake(15, 48, self.frame.width - 20, 71)
+        self.intensityChart!.layoutSubviews()
     }
     
     func setSessionSummary(sessionSummary: Exercise.SessionSummary) {
@@ -24,25 +30,25 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
         let props = sessionSummary.sessionProps
         
         self.titleLabel.textColor = props.intendedIntensity.textColor()
-        let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
-        // let ints = " ".join(sessionSummary.setIntensities.map { x in return String(format:"%f", x) })
+        self.titleLabel.text = ", ".join(props.muscleGroupKeys)
+        let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
         self.detailLabel.text = "On \(dateText)"
         self.intensityChart!.reloadData()
     }
     
     func numberOfBarsInBarChartView(barChartView: JBBarChartView!) -> UInt {
         if self.sessionSummary != nil {
-            return 5 //UInt(self.sessionSummary!.setIntensities.count)
+            return UInt(self.sessionSummary!.setIntensities.count)
         }
         return 0
     }
-
-    func barChartView(barChartView: JBBarChartView, colorForBarViewAtIndex index: UInt) -> UIColor {
-        return self.sessionSummary!.setIntensities[0].textColor()
+    
+    func barChartView(barChartView: JBBarChartView!, colorForBarViewAtIndex index: UInt) -> UIColor! {
+        return self.sessionSummary!.setIntensities[Int(index)].textColor()
     }
 
     func barChartView(barChartView: JBBarChartView!, heightForBarViewAtIndex index: UInt) -> CGFloat {
-        return 100 //CGFloat(self.sessionSummary!.setIntensities[Int(index)]) * 20
+        return CGFloat(self.sessionSummary!.setIntensities[Int(index)])
     }
 }
 
@@ -56,10 +62,6 @@ class SessionsController : UITableViewController, UITableViewDataSource {
         }
     }
     
-    override func viewDidLoad() {
-        self.tableView.registerNib(UINib(nibName: "SessionTableCell", bundle: nil), forCellReuseIdentifier: "default")
-    }
-
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         performSegueWithIdentifier("detail", sender: self)
     }
