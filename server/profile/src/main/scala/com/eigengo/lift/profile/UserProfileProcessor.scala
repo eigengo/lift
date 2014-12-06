@@ -71,11 +71,6 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
     sha256.digest((password + salt).getBytes)
   }
 
-  override def receiveRecover: Receive = {
-    case SnapshotOffer(_, offeredSnapshot: KnownAccounts) ⇒
-      knownAccounts = offeredSnapshot
-  }
-
   private def loginFailed(sender: ActorRef): Unit = sender ! \/.left("Login failed 1")
 
   private def loginTry(sender: ActorRef, password: String)(userId: UserId): Unit = {
@@ -92,23 +87,30 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
     }
   }
 
+  override def receiveRecover: Receive = {
+    case SnapshotOffer(_, offeredSnapshot: KnownAccounts) ⇒
+      knownAccounts = offeredSnapshot
+  }
+
   override def receiveCommand: Receive = {
-    case UserRegister(email, password) if !knownAccounts.contains(email) ⇒
-      val salt = Random.nextString(100)
-      val userId = UserId.randomId()
-      userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
-      knownAccounts = knownAccounts.withNewAccount(email, userId)
-      saveSnapshot(knownAccounts)
-      mediator ! Publish(topic, KnownAccountAdded(email, userId))
-
-      sender() ! \/.right(userId)
-
-    case KnownAccountAdded(email, userId) if sender() != self ⇒
-        knownAccounts = knownAccounts.withNewAccount(email, userId)
-        log.info(s"Received new knownAccount. Now ${knownAccounts.accounts}")
-
     case UserRegister(email, _) if knownAccounts.contains(email) ⇒
       sender() ! \/.left("Username already taken")
+
+    case cmd@UserRegister(email, password) if !knownAccounts.contains(email) ⇒
+      persist(cmd) { cmd ⇒
+        val salt = Random.nextString(100)
+        val userId = UserId.randomId()
+        userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
+        knownAccounts = knownAccounts.withNewAccount(email, userId)
+        saveSnapshot(knownAccounts)
+        mediator ! Publish(topic, KnownAccountAdded(email, userId))
+
+        sender() ! \/.right(userId)
+      }
+
+    case KnownAccountAdded(email, userId) if sender() != self ⇒
+      knownAccounts = knownAccounts.withNewAccount(email, userId)
+      log.info(s"Received new knownAccount. Now ${knownAccounts.accounts}")
 
     case UserLogin(email, password) ⇒
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))

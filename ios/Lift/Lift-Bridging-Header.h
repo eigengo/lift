@@ -4,3 +4,6 @@
 
 #import <PebbleKit/PebbleKit.h>
 #import <AudioToolbox/AudioToolbox.h>
+#import "JBChartView/JBChartView.h"
+#import "JBChartView/JBBarChartView.h"
+#import "JBChartView/JBLineChartView.h"
