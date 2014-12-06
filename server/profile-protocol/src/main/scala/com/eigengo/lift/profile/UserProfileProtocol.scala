@@ -1,5 +1,7 @@
 package com.eigengo.lift.profile
 
+import java.util
+
 import com.eigengo.lift.common.UserId
 
 object UserProfileProtocol {
@@ -60,7 +62,14 @@ object UserProfileProtocol {
    * The user's devices
    */
   sealed trait UserDevice
-  case class IOSUserDevice(deviceToken: Array[Byte]) extends UserDevice
+  case class IOSUserDevice(deviceToken: Array[Byte]) extends UserDevice {
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case IOSUserDevice(dt) ⇒ util.Arrays.equals(deviceToken, dt)
+      case x ⇒ false
+    }
+
+    override val hashCode: Int = deviceToken.hashCode()
+  }
   case class AndroidUserDevice() extends UserDevice
 
   /**

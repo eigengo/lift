@@ -23,7 +23,7 @@ class Notification(userProfile: ActorRef) extends Actor with ActorLogging {
           case IOSUserDevice(deviceToken) ⇒
             destinations.foreach {
               case MobileDestination ⇒ apple ! ApplePushNotification.ScreenMessage(deviceToken, message, badge, sound)
-              case WatchDestination ⇒ log.info(s"Not yet delivering iOS push message $message to $deviceToken")
+              case WatchDestination ⇒ // noop for now
             }
 
           case AndroidUserDevice() ⇒

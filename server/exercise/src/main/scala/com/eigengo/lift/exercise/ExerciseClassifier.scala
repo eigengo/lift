@@ -85,6 +85,12 @@ object ExerciseClassifier {
    */
   case class UnclassifiedExercise(metadata: ModelMetadata) extends ClassifiedExercise
 
+  /**
+   * No exercise: ideally, a rest between sets, or just plain old not working out
+   * @param metadata the model
+   */
+  case class NoExercise(metadata: ModelMetadata) extends ClassifiedExercise
+
 }
 
 /**
@@ -95,7 +101,7 @@ class ExerciseClassifier(model: ExerciseModel) extends Actor {
 
   override def receive: Receive = {
     case c@Classify(_, _) =>
-      Thread.sleep(300 + Random.nextInt(1000)) // Is complicated, no? :)
+      Thread.sleep(100 + Random.nextInt(100)) // Is complicated, no? :)
 
       sender() ! model(c)
   }

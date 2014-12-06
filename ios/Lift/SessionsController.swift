@@ -1,5 +1,65 @@
 import Foundation
 
+class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarChartViewDelegate {
+    @IBOutlet var titleLabel: UILabel!
+    @IBOutlet var detailLabel: UILabel!
+    @IBOutlet var chartView: UIView!
+    private var intensityChart: JBBarChartView?
+    private var sessionSummary: Exercise.SessionSummary?
+
+    required init(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
+    override func awakeFromNib() {
+        self.intensityChart = JBBarChartView()
+        self.intensityChart!.dataSource = self
+        self.intensityChart!.delegate = self
+        self.intensityChart!.minimumValue = 0
+        self.intensityChart!.maximumValue = 1
+        self.intensityChart!.userInteractionEnabled = false
+        self.intensityChart!.showsVerticalSelection = false
+        self.intensityChart!.frame = CGRectMake(0, 0, 50, 70)
+        self.chartView.addSubview(self.intensityChart!)
+    }
+    
+    override func layoutSubviews() {
+        self.chartView.frame = CGRectMake(15, 56, self.frame.width - 40, 65)
+        self.intensityChart!.frame = self.chartView.bounds
+        self.intensityChart!.reloadData()
+    }
+    
+    func setSessionSummary(sessionSummary: Exercise.SessionSummary) {
+        self.sessionSummary = sessionSummary
+        let props = sessionSummary.sessionProps
+        
+        self.titleLabel.textColor = props.intendedIntensity.textColor()
+        self.titleLabel.text = ", ".join(props.muscleGroupKeys)
+        let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
+        self.detailLabel.text = "On \(dateText)"
+        self.intensityChart!.reloadData()
+    }
+    
+    func numberOfBarsInBarChartView(barChartView: JBBarChartView!) -> UInt {
+        if self.sessionSummary != nil {
+            return UInt(self.sessionSummary!.setIntensities.count)
+        }
+        return 0
+    }
+    
+    func barChartView(barChartView: JBBarChartView!, colorForBarViewAtIndex index: UInt) -> UIColor! {
+        return self.sessionSummary!.setIntensities[Int(index)].textColor()
+    }
+
+    func barChartView(barChartView: JBBarChartView!, heightForBarViewAtIndex index: UInt) -> CGFloat {
+        return CGFloat(self.sessionSummary!.setIntensities[Int(index)])
+    }
+    
+    func barChartView(barChartView: JBBarChartView!, didSelectBarAtIndex index: UInt) {
+        self.selected = true
+    }
+}
+
 class SessionsController : UITableViewController, UITableViewDataSource {
     private var sessionSummaries: [Exercise.SessionSummary] = []
     
@@ -9,7 +69,7 @@ class SessionsController : UITableViewController, UITableViewDataSource {
             self.tableView.reloadData()
         }
     }
-
+    
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         performSegueWithIdentifier("detail", sender: self)
     }
@@ -39,13 +99,9 @@ class SessionsController : UITableViewController, UITableViewDataSource {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
-        let props = sessionSummaries[indexPath.row].sessionProps
-        let cell = tableView.dequeueReusableCellWithIdentifier("default") as UITableViewCell
-        cell.textLabel!.textColor = props.intendedIntensity.textColor()        
-        let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
-        cell.textLabel!.text = ", ".join(props.muscleGroupKeys)
-        cell.detailTextLabel!.text = "On \(dateText)"
-        
+        let sessionSummary = sessionSummaries[indexPath.row]
+        let cell = tableView.dequeueReusableCellWithIdentifier("default") as SessionTableViewCell
+        cell.setSessionSummary(sessionSummary)
         return cell
     }
     

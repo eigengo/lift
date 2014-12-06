@@ -5,9 +5,9 @@ import akka.contrib.pattern.ShardRegion
 import akka.persistence.{SnapshotSelectionCriteria, PersistentActor, Recover}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
-import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, UnclassifiedExercise}
+import com.eigengo.lift.exercise.ExerciseClassifier.{NoExercise, Classify, FullyClassifiedExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
-import com.eigengo.lift.exercise.UserExercisesView.{Exercise, ExerciseEvt}
+import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
 import scodec.bits.BitVector
 
@@ -57,7 +57,7 @@ object UserExercises {
    * The sessionProps has started
    * @param sessionProps the sessionProps identity
    */
-  private case class ExerciseSessionStart(props: SessionProps)
+  private case class ExerciseSessionStart(sessionProps: SessionProps)
 
   /**
    * The sessionProps has ended
@@ -71,6 +71,11 @@ object UserExercises {
    * @param data the data
    */
   private case class ExerciseSessionData(sessionId: SessionId, data: AccelerometerData)
+
+  /**
+   * Too much rest message that is sent to us if the user is being lazy
+   */
+  private case object TooMuchRest
 
   /**
    * Extracts the identity of the shard from the messages sent to the coordinator. We have per-user shard,
@@ -97,7 +102,8 @@ object UserExercises {
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) extends PersistentActor with ActorLogging with AutoPassivation {
+class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
+  extends PersistentActor with ActorLogging with AutoPassivation {
   import scala.concurrent.duration._
 
   private val userId = UserId(self.path.name)
@@ -108,6 +114,11 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
   // our unique persistenceId; the self.path.name is provided by ``UserExercises.idExtractor``,
   // hence, self.path.name is the String representation of the userId UUID.
   override val persistenceId: String = s"user-exercises-${self.path.name}"
+
+  // chop-chop timer cancellable
+  private var tooMuchRestCancellable: Option[Cancellable] = None
+
+  import context.dispatcher
 
   // when we're recovering, handle the classify events
   override def receiveRecover: Receive = Actor.emptyBehavior
@@ -123,25 +134,32 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
     case (_, _)                    ⇒ \/.left("Undecoded input")
   }
 
-  private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
-    case ExerciseSessionStart(session) ⇒
+  private def cancellingTooMuchRest(r: Receive): Receive = {
+    case x if r.isDefinedAt(x) ⇒
+      tooMuchRestCancellable.foreach(_.cancel())
+      r(x)
+  }
+
+  private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation(cancellingTooMuchRest {
+    case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
-      log.warning(s"Implicitly ending session $id and starting $newId")
-      sender() ! \/.right(newId)
-      context.become(exercising(newId, session))
+      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { _ ⇒
+        sender() ! \/.right(newId)
+        context.become(exercising(newId, newSessionProps))
+      }
 
     case ExerciseDataProcess(`id`, bits) ⇒
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
-        { err ⇒ sender() ! \/.left(err) },
-        { evt ⇒
-          exerciseClasssifiers ! Classify(sessionProps, evt)
-          sender() ! \/.right(())
-        }
+      { err ⇒ sender() ! \/.left(err)}, { evt ⇒
+        exerciseClasssifiers ! Classify(sessionProps, evt)
+        sender() ! \/.right(())
+      }
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      persist(ExerciseEvt(id, metadata, sessionProps, Exercise(name, intensity))) { evt ⇒
+      persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
+        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
           if (i << sessionProps.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
           if (i >> sessionProps.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
@@ -149,18 +167,32 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef) exte
       }
 
     case UnclassifiedExercise(_) ⇒
-      notification ! PushMessage(userId, "Missed exercise", None, None, Seq(WatchDestination))
+      // Maybe notify the user?
+      tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+
+    case NoExercise(metadata) ⇒
+      persist(NoExerciseEvt(id, metadata)) { evt ⇒
+        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+      }
+
+    case TooMuchRest ⇒
+      persist(TooMuchRestEvt(id)) { evt ⇒
+        notification ! PushMessage(userId, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+      }
 
     case cmd@ExerciseSessionEnd(`id`) ⇒
-      context.become(notExercising)
-      sender() ! \/.right(())
-  }
+      persist(SessionEndedEvt(id)) { evt ⇒
+        context.become(notExercising)
+        sender() ! \/.right(())
+      }
+  })
 
   private def notExercising: Receive = withPassivation {
-    case cmd@ExerciseSessionStart(sessionProps) ⇒
-      val id = SessionId.randomId()
-      sender() ! \/.right(id)
-      context.become(exercising(id, sessionProps))
+    case ExerciseSessionStart(sessionProps) ⇒
+      persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
+        sender() ! \/.right(evt.sessionId)
+        context.become(exercising(evt.sessionId, sessionProps))
+      }
   }
 
   // after recovery is complete, we move to processing commands

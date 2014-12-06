@@ -8,11 +8,12 @@ let isoDateFormatter: NSDateFormatter = {
 
 
 extension Exercise.SessionSummary {
-    
+
     static func unmarshal(json: JSON) -> Exercise.SessionSummary {
         let sessionProps = json["sessionProps"]
         let id = NSUUID(UUIDString: json["id"].stringValue)!
-        return Exercise.SessionSummary(id: id, sessionProps: Exercise.SessionProps.unmarshal(sessionProps))
+        let setIntensities = json["setIntensities"].arrayValue.map { $0.doubleValue }
+        return Exercise.SessionSummary(id: id, sessionProps: Exercise.SessionProps.unmarshal(sessionProps), setIntensities: setIntensities)
     }
 }
 
@@ -35,6 +36,14 @@ extension Exercise.Exercise {
     
 }
 
+extension Exercise.ExerciseSet {
+    
+    static func unmarshal(json: JSON) -> Exercise.ExerciseSet {
+        return Exercise.ExerciseSet(exercises: json["exercises"].arrayValue.map(Exercise.Exercise.unmarshal))
+    }
+    
+}
+
 extension Exercise.ModelMetadata {
     
     static func unmarshal(json: JSON) -> Exercise.ModelMetadata {
@@ -47,10 +56,20 @@ extension Exercise.ExerciseSession {
     
     static func unmarshal(json: JSON) -> Exercise.ExerciseSession {
         let sessionProps = Exercise.SessionProps.unmarshal(json["sessionProps"])
-        let exercises = json["exercises"].arrayValue.map(Exercise.Exercise.unmarshal)
-        let modelMetadata = Exercise.ModelMetadata.unmarshal(json["modelMetadata"])
+        let sets = json["sets"].arrayValue.map(Exercise.ExerciseSet.unmarshal)
         
-        return Exercise.ExerciseSession(sessionProps: sessionProps, exercises: exercises, modelMetadata: modelMetadata)
+        return Exercise.ExerciseSession(sessionProps: sessionProps, sets: sets)
+    }
+    
+}
+
+extension Exercise.MuscleGroup {
+    
+    static func unmarshal(json: JSON) -> Exercise.MuscleGroup {
+        return Exercise.MuscleGroup(
+            key: json["key"].stringValue,
+            title: json["title"].stringValue,
+            exercises: json["exercises"].arrayValue.map { $0.stringValue })
     }
     
 }

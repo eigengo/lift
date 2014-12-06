@@ -46,6 +46,13 @@ struct Exercise {
     }
     
     ///
+    /// Exercise set
+    ///
+    struct ExerciseSet {
+        var exercises: [Exercise]
+    }
+
+    ///
     /// Exercise intensity
     ///
     struct ExerciseIntensity {
@@ -67,6 +74,7 @@ struct Exercise {
     struct SessionSummary {
         var id: NSUUID
         var sessionProps: SessionProps
+        var setIntensities: [ExerciseIntensityKey]
     }
     
     ///
@@ -74,8 +82,7 @@ struct Exercise {
     ///
     struct ExerciseSession {
         var sessionProps: SessionProps
-        var exercises: [Exercise]
-        var modelMetadata: ModelMetadata
+        var sets: [ExerciseSet]
     }
     
 }
