@@ -1,23 +1,19 @@
 package com.eigengo.lift.common
 
-import akka.actor.{Actor, ReceiveTimeout}
-import akka.contrib.pattern.ShardRegion.Passivate
+import akka.actor.{ActorLogging, Actor, ReceiveTimeout}
 
-import scala.concurrent.duration.Duration
-
-trait AutoPassivation {
+trait AutoPassivation extends ActorLogging {
   this: Actor ⇒
 
-  def passivationTimeout: Duration
-
-  // the shard lives for the specified timeout seconds before passivating
-  context.setReceiveTimeout(passivationTimeout)
+  import akka.contrib.pattern.ShardRegion.Passivate
 
   private val passivationReceive: Receive = {
     // passivation support
     case ReceiveTimeout ⇒
+      log.info("ReceiveTimeout: passivating.")
       context.parent ! Passivate(stopMessage = 'stop)
     case 'stop ⇒
+      log.info("'stop: bye-bye, cruel world, see you after recovery.")
       context.stop(self)
   }
 

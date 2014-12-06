@@ -78,10 +78,12 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
 
   override def persistenceId: String = s"user-profile-${self.path.name}"
 
-  override val passivationTimeout: Duration = 10.seconds
+  // the shard lives for the specified timeout seconds before passivating
+  context.setReceiveTimeout(10.seconds)
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Profile) ⇒
+      log.info("SnapshotOffer: not registered -> registered.")
       profile = offeredSnapshot
       context.become(registered)
   }
@@ -91,6 +93,7 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
   private def notRegistered: Receive = withPassivation {
     case cmd: Account ⇒
       persist(cmd) { acc ⇒
+        log.info("Account: not registered -> registered.")
         profile = Profile(acc, UserDevices.empty, None)
         saveSnapshot(profile)
         context.become(registered)
@@ -98,20 +101,25 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
   }
 
   private def registered: Receive = withPassivation {
-    case ds@DeviceSet(device) ⇒ persist(ds) { evt ⇒
+    case ds: DeviceSet ⇒ persist(ds) { evt ⇒
+        log.info("DeviceSet: registered -> registered.")
         profile = profile.withDevice(evt.device)
         saveSnapshot(profile)
       }
     case pp: PublicProfile ⇒ persist(pp) { evt ⇒
+        log.info("PublicProfile: registered -> registered.")
         profile = profile.withPublicProfile(evt)
         saveSnapshot(profile)
       }
 
     case GetPublicProfile ⇒
+      log.info("GetPublicProfile: registered -> registered.")
       sender() ! profile.publicProfile
     case GetAccount ⇒
+      log.info("GetAccount: registered -> registered.")
       sender() ! profile.account
     case GetDevices ⇒
+      log.info("GetDevices: registered -> registered.")
       sender() ! profile.devices
   }
 

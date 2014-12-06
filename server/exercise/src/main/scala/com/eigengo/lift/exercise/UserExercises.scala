@@ -110,7 +110,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
   // minimum confidence
   private val confidenceThreshold = 0.5
   // how long until we stop processing
-  override val passivationTimeout: Duration = 360.seconds
+  context.setReceiveTimeout(360.seconds)
   // our unique persistenceId; the self.path.name is provided by ``UserExercises.idExtractor``,
   // hence, self.path.name is the String representation of the userId UUID.
   override val persistenceId: String = s"user-exercises-${self.path.name}"

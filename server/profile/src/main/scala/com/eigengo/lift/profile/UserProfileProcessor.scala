@@ -94,32 +94,36 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
 
   override def receiveCommand: Receive = {
     case UserRegister(email, _) if knownAccounts.contains(email) ⇒
+      log.info("UserRegister: username taken.")
       sender() ! \/.left("Username already taken")
 
-    case cmd@UserRegister(email, password) if !knownAccounts.contains(email) ⇒
-      persist(cmd) { cmd ⇒
-        val salt = Random.nextString(100)
-        val userId = UserId.randomId()
-        userProfile ! UserRegistered(userId, Account(email, digestPassword(password, salt), salt))
-        knownAccounts = knownAccounts.withNewAccount(email, userId)
+    case UserRegister(email, password) if !knownAccounts.contains(email) ⇒
+      log.info("UserRegister: username available.")
+      val salt = Random.nextString(100)
+      persist(UserRegistered(UserId.randomId(), Account(email, digestPassword(password, salt), salt))) { userRegistered ⇒
+        userProfile ! userRegistered
+        knownAccounts = knownAccounts.withNewAccount(email, userRegistered.userId)
         saveSnapshot(knownAccounts)
-        mediator ! Publish(topic, KnownAccountAdded(email, userId))
+        mediator ! Publish(topic, KnownAccountAdded(email, userRegistered.userId))
 
-        sender() ! \/.right(userId)
+        sender() ! \/.right(userRegistered.userId)
       }
 
     case KnownAccountAdded(email, userId) if sender() != self ⇒
+      log.info(s"KnownAccountAdded. Accounts now ${knownAccounts.accounts}.")
       knownAccounts = knownAccounts.withNewAccount(email, userId)
-      log.info(s"Received new knownAccount. Now ${knownAccounts.accounts}")
 
     case UserLogin(email, password) ⇒
+      log.info("UserLogin.")
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
 
-    case cmd@UserSetDevice(userId, device) ⇒
+    case UserSetDevice(userId, device) ⇒
+      log.info("UserSetDevice.")
       userProfile ! UserDeviceSet(userId, device)
       sender() ! \/.right(())
 
     case UserSetPublicProfile(userId, publicProfile) ⇒
+      log.info("UserSetPublicProfile.")
       userProfile ! UserPublicProfileSet(userId, publicProfile)
       sender() ! \/.right(())
   }

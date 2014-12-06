@@ -196,20 +196,24 @@ import scala.concurrent.duration._
   // our internal state
   private var exercises = Exercises.empty
 
-  override val passivationTimeout: Duration = 360.seconds
+  // we'll hang around for 360 seconds, just like the exercise sessions
+  context.setReceiveTimeout(360.seconds)
   override val viewId: String = s"user-exercises-view-${self.path.name}"
   override val persistenceId: String = s"user-exercises-${self.path.name}"
 
   private lazy val queries: Receive = {
     // query for exercises
     case GetExerciseSessionsSummary ⇒
+      log.info("GetExerciseSessionsSummary: from userspace.")
       sender() ! exercises.summary
     case GetExerciseSession(sessionId) ⇒
+      log.info("GetExerciseSession: from userspace.")
       sender() ! exercises.get(sessionId)
   }
 
   private lazy val notExercising: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Exercises) ⇒
+      log.info("SnapshotOffer: not exercising -> not exercising.")
       exercises = offeredSnapshot
 
     case SessionStartedEvt(sessionId, sessionProps) if isPersistent ⇒
