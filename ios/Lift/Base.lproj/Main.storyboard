@@ -29,7 +29,7 @@
         <scene sceneID="6O3-JK-wJX">
             <objects>
                 <navigationController title="Session" id="Jfa-49-1eG" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Exercise" image="exercise" selectedImage="exercise_selected" id="wCP-yC-ser"/>
+                    <tabBarItem key="tabBarItem" title="Exercise" image="exercise" id="wCP-yC-ser"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="o6W-rh-5M6">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -250,7 +250,7 @@
         <scene sceneID="0vG-rn-hru">
             <objects>
                 <navigationController id="pC7-9I-bcV" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Profile" image="profile" selectedImage="profile_selected" id="mNb-pG-LaM"/>
+                    <tabBarItem key="tabBarItem" title="Profile" image="profile" id="mNb-pG-LaM"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="E8C-pT-fKC">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -392,7 +392,7 @@
         <scene sceneID="OPz-OZ-a7P">
             <objects>
                 <navigationController id="tiz-gY-thd" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="History" image="sessions" selectedImage="sessions_selected" id="27P-o9-fDU"/>
+                    <tabBarItem key="tabBarItem" title="History" image="sessions" id="27P-o9-fDU"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="WxR-xO-OUZ">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -568,11 +568,8 @@
     </scenes>
     <resources>
         <image name="exercise" width="25" height="25"/>
-        <image name="exercise_selected" width="25" height="25"/>
         <image name="profile" width="25" height="25"/>
-        <image name="profile_selected" width="25" height="25"/>
         <image name="sessions" width="25" height="25"/>
-        <image name="sessions_selected" width="25" height="25"/>
     </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
