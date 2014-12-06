@@ -25,14 +25,23 @@ object UserExercisesView {
    * @param exercises the exercises in the set
    */
   case class ExerciseSet(exercises: List[Exercise]) {
-    lazy val isEmpty = exercises.isEmpty
-    def withExercise(modelMetadata: ModelMetadata, exercise: Exercise): ExerciseSet = copy(exercises :+ exercise)
+    /** true if empty */
+    def isEmpty = exercises.isEmpty
+
+    /** Average set intensity */
+    def intensity: ExerciseIntensity = {
+      val kie = exercises.filter(_.intensity.isDefined).flatMap(_.intensity)
+      kie.sum / kie.size
+    }
+
+    def withNewExercise(modelMetadata: ModelMetadata, exercise: Exercise): ExerciseSet = copy(exercises :+ exercise)
   }
   
   object ExerciseSet {
     def apply(modelMetadata: ModelMetadata, exercise: Exercise): ExerciseSet = {
-      empty.withExercise(modelMetadata, exercise)
+      empty.withNewExercise(modelMetadata, exercise)
     }
+    /** Average set intensity */
     val empty = ExerciseSet(List.empty)
   }
 
@@ -45,17 +54,21 @@ object UserExercisesView {
    * @param sets the exercise sets done
    */
   case class ExerciseSession(id: SessionId, sessionProps: SessionProps, sets: List[ExerciseSet]) {
-    def withExerciseSet(set: ExerciseSet): ExerciseSession = {
+    def withNewExerciseSet(set: ExerciseSet): ExerciseSession = {
       if (set.isEmpty) this else copy(sets = sets :+ set)
     }
+
+    /** Intensities in the sets */
+    def getSetIntensities: List[Double] = sets.map(_.intensity)
   }
 
   /**
    * The summary of the exercise session
    * @param id the session id
    * @param sessionProps the session props
+   * @param setIntensities the averaged set intensities
    */
-  case class SessionSummary(id: SessionId, sessionProps: SessionProps)
+  case class SessionSummary(id: SessionId, sessionProps: SessionProps, setIntensities: List[Double])
 
   /** Ordering on SessionSummary */
   private implicit object SessionSummaryOrdering extends Ordering[SessionSummary] {
@@ -86,7 +99,7 @@ object UserExercisesView {
      * Computes summary of all sessions
      * @return all sessions summary
      */
-    def summary: List[SessionSummary] = sessions.map(s ⇒ SessionSummary(s.id, s.sessionProps)).sorted
+    def summary: List[SessionSummary] = sessions.map(s ⇒ SessionSummary(s.id, s.sessionProps, s.getSetIntensities)).sorted
   }
 
   /**
@@ -113,10 +126,9 @@ object UserExercisesView {
    * Exercise event received for the given session with model metadata and exercise
    * @param sessionId the session identity
    * @param metadata the model metadata
-   * @param sessionProps the session props
    * @param exercise the result
    */
-  case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, sessionProps: SessionProps, exercise: Exercise)
+  case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, exercise: Exercise)
 
   /**
    * No exercise: rest or just being lazy
@@ -194,8 +206,6 @@ import scala.concurrent.duration._
       sender() ! exercises.summary
     case GetExerciseSession(sessionId) ⇒
       sender() ! exercises.get(sessionId)
-
-    case x ⇒ log.warning("Missed " + x)
   }
 
   private lazy val notExercising: Receive = {
@@ -203,33 +213,35 @@ import scala.concurrent.duration._
       exercises = offeredSnapshot
 
     case SessionStartedEvt(sessionId, sessionProps) if isPersistent ⇒
+      log.info("SessionStartedEvt: not exercising -> exercising")
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
   }
 
   private def inASet(session: ExerciseSession, set: ExerciseSet): Receive = {
-    case ExerciseEvt(_, metadata, _, exercise) if isPersistent ⇒
-      log.info("ExerciseEvt: in a set -> in a set (new exercise)")
-      context.become(inASet(session, set.withExercise(metadata, exercise)).orElse(queries))
+    case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
+      log.info("ExerciseEvt: in a set -> in a set")
+      context.become(inASet(session, set.withNewExercise(metadata, exercise)).orElse(queries))
     case NoExerciseEvt(_, metadata) if isPersistent ⇒
       log.info("NoExerciseEvt: in a set -> exercising")
-      context.become(exercising(session.withExerciseSet(set)).orElse(queries))
+      context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
     case TooMuchRestEvt(_) if isPersistent ⇒
       log.info("TooMuchRestEvt: in a set -> exercising")
-      context.become(exercising(session.withExerciseSet(set)).orElse(queries))
+      context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
 
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: in a set -> not exercising")
-      exercises = exercises.withNewSession(session.withExerciseSet(set))
+      exercises = exercises.withNewSession(session.withNewExerciseSet(set))
       saveSnapshot(exercises)
       context.become(notExercising.orElse(queries))
   }
   
   private def exercising(session: ExerciseSession): Receive = {
-    case ExerciseEvt(_, metadata, _, exercise) if isPersistent ⇒
+    case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
       log.info("ExerciseEvt: exercising -> in a set")
       context.become(inASet(session, ExerciseSet(metadata, exercise)).orElse(queries))
 
     case TooMuchRestEvt(_) ⇒
+      log.info("TooMuchRest: exercising -> exercising")
 
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: exercising -> not exercising")

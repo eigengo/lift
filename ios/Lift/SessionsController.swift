@@ -39,12 +39,15 @@ class SessionsController : UITableViewController, UITableViewDataSource {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
-        let props = sessionSummaries[indexPath.row].sessionProps
+        let sessionSummary = sessionSummaries[indexPath.row]
+        let props = sessionSummary.sessionProps
         let cell = tableView.dequeueReusableCellWithIdentifier("default") as UITableViewCell
         cell.textLabel!.textColor = props.intendedIntensity.textColor()        
         let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
         cell.textLabel!.text = ", ".join(props.muscleGroupKeys)
-        cell.detailTextLabel!.text = "On \(dateText)"
+        
+        let ints = " ".join(sessionSummary.setIntensities.map { x in return String(format:"%f", x) })
+        cell.detailTextLabel!.text = "On \(dateText) \(ints)"
         
         return cell
     }

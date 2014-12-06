@@ -158,7 +158,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      persist(ExerciseEvt(id, metadata, sessionProps, Exercise(name, intensity))) { evt ⇒
+      persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
           if (i << sessionProps.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))

@@ -8,22 +8,12 @@ let isoDateFormatter: NSDateFormatter = {
 
 
 extension Exercise.SessionSummary {
-    
-    /*
-return json.arrayValue.map { json -> Exercise.SessionSummary in
-let id = NSUUID(UUIDString: json["id"].stringValue)!
-let sessionProps = json["sessionProps"]
-let startDate = self.isoDateFormatter.dateFromString(sessionProps["startDate"].stringValue)!
-let muscleGroupKeys = sessionProps["muscleGroupKeys"].arrayValue.map { $0.stringValue }
-let intendedIntensity = sessionProps["intendedIntensity"].doubleValue
-let p = Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
-return Exercise.SessionSummary(id: id, sessionProps: p)
-*/
 
     static func unmarshal(json: JSON) -> Exercise.SessionSummary {
         let sessionProps = json["sessionProps"]
         let id = NSUUID(UUIDString: json["id"].stringValue)!
-        return Exercise.SessionSummary(id: id, sessionProps: Exercise.SessionProps.unmarshal(sessionProps))
+        let setIntensities = json["setIntensities"].arrayValue.map { $0.doubleValue }
+        return Exercise.SessionSummary(id: id, sessionProps: Exercise.SessionProps.unmarshal(sessionProps), setIntensities: setIntensities)
     }
 }
 

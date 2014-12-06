@@ -74,6 +74,7 @@ struct Exercise {
     struct SessionSummary {
         var id: NSUUID
         var sessionProps: SessionProps
+        var setIntensities: [ExerciseIntensityKey]
     }
     
     ///
