@@ -2,10 +2,10 @@ package com.eigengo.lift.exercise
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{SnapshotOffer, SnapshotSelectionCriteria, PersistentActor, Recover}
+import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
-import com.eigengo.lift.exercise.ExerciseClassifier.{NoExercise, Classify, FullyClassifiedExercise, UnclassifiedExercise}
+import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, NoExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
