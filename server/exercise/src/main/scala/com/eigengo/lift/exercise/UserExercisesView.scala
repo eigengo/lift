@@ -57,9 +57,6 @@ object UserExercisesView {
     def withNewExerciseSet(set: ExerciseSet): ExerciseSession = {
       if (set.isEmpty) this else copy(sets = sets :+ set)
     }
-
-    /** Intensities in the sets */
-    def getSetIntensities: List[Double] = sets.map(_.intensity)
   }
 
   /**
@@ -68,7 +65,7 @@ object UserExercisesView {
    * @param sessionProps the session props
    * @param setIntensities the averaged set intensities
    */
-  case class SessionSummary(id: SessionId, sessionProps: SessionProps, setIntensities: List[Double])
+  case class SessionSummary(id: SessionId, sessionProps: SessionProps, setIntensities: Array[Double])
 
   /** Ordering on SessionSummary */
   private implicit object SessionSummaryOrdering extends Ordering[SessionSummary] {
@@ -99,7 +96,11 @@ object UserExercisesView {
      * Computes summary of all sessions
      * @return all sessions summary
      */
-    def summary: List[SessionSummary] = sessions.map(s ⇒ SessionSummary(s.id, s.sessionProps, s.getSetIntensities)).sorted
+    def summary: List[SessionSummary] = sessions.map { s ⇒
+      // http://192.168.0.8:12551/exercise/D3D21230-0323-4D22-9848-CD4C67F4865F/71DB39BE-CFB0-4561-B0E5-5DB936128618
+      val intensities = s.sets.map(_.intensity).toArray
+      SessionSummary(s.id, s.sessionProps, intensities)
+    }.sorted
   }
 
   /**
