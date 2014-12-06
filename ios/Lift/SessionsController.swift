@@ -3,6 +3,7 @@ import Foundation
 class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarChartViewDelegate {
     @IBOutlet var titleLabel: UILabel!
     @IBOutlet var detailLabel: UILabel!
+    @IBOutlet var chartView: UIView!
     private var intensityChart: JBBarChartView?
     private var sessionSummary: Exercise.SessionSummary?
 
@@ -16,13 +17,16 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
         self.intensityChart!.delegate = self
         self.intensityChart!.minimumValue = 0
         self.intensityChart!.maximumValue = 1
-        self.intensityChart!.frame = CGRectMake(15, 48, 200, 71)
-        addSubview(self.intensityChart!)
+        self.intensityChart!.userInteractionEnabled = false
+        self.intensityChart!.showsVerticalSelection = false
+        self.intensityChart!.frame = CGRectMake(0, 0, 50, 70)
+        self.chartView.addSubview(self.intensityChart!)
     }
     
     override func layoutSubviews() {
-        self.intensityChart!.frame = CGRectMake(15, 48, self.frame.width - 20, 71)
-        self.intensityChart!.layoutSubviews()
+        self.chartView.frame = CGRectMake(15, 56, self.frame.width - 40, 65)
+        self.intensityChart!.frame = self.chartView.bounds
+        self.intensityChart!.reloadData()
     }
     
     func setSessionSummary(sessionSummary: Exercise.SessionSummary) {
@@ -49,6 +53,10 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
 
     func barChartView(barChartView: JBBarChartView!, heightForBarViewAtIndex index: UInt) -> CGFloat {
         return CGFloat(self.sessionSummary!.setIntensities[Int(index)])
+    }
+    
+    func barChartView(barChartView: JBBarChartView!, didSelectBarAtIndex index: UInt) {
+        self.selected = true
     }
 }
 
