@@ -34,7 +34,8 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
         let props = sessionSummary.sessionProps
         
         self.titleLabel.textColor = props.intendedIntensity.textColor()
-        self.titleLabel.text = ", ".join(props.muscleGroupKeys)
+        let mgs = Exercise.MuscleGroup.titlesFromMuscleGroupKeys(props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
+        self.titleLabel.text = ", ".join(mgs)
         let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
         self.detailLabel.text = "On \(dateText)"
         self.intensityChart!.reloadData()

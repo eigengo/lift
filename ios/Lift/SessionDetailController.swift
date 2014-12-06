@@ -48,7 +48,8 @@ class SessionDetailController : UIViewController, UITableViewDataSource {
             let props = exerciseSession!.sessionProps
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
 
-            cell.textLabel!.text = ", ".join(props.muscleGroupKeys)
+            let mgs = Exercise.MuscleGroup.titlesFromMuscleGroupKeys(props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
+            cell.textLabel!.text = ", ".join(mgs)
             cell.textLabel!.textColor = props.intendedIntensity.textColor()
             let dateText = NSDateFormatter.localizedStringFromDate(props.startDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
             cell.detailTextLabel!.text = "On \(dateText)"

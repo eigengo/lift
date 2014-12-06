@@ -41,7 +41,7 @@ public class LiftServer {
         
         return Singleton.instance
     }
-
+    
     ///
     /// The connection manager's configuration
     ///

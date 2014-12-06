@@ -50,5 +50,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
+    
+    func applicationDidBecomeActive(application: UIApplication) {
+        LiftServerCache.sharedInstance.build()
+    }
+    
+    func applicationDidReceiveMemoryWarning(application: UIApplication) {
+        LiftServerCache.sharedInstance.clean()
+    }
 }
 

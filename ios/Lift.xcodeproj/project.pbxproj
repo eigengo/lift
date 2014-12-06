@@ -29,6 +29,7 @@
 		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		545E06111A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */; };
+		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
 		547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* LiftServerMarshallers.swift */; };
@@ -141,6 +142,7 @@
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
 		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
 		5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AccelerometerReceiver.swift; path = Pebble/AccelerometerReceiver.swift; sourceTree = "<group>"; };
+		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		547D51531A3061800055EB35 /* LiftServerMarshallers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerMarshallers.swift; sourceTree = "<group>"; };
@@ -381,6 +383,7 @@
 				54A53EC21A2EF5EC00EDD092 /* Localizable.strings */,
 				54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */,
 				545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */,
+				546336371A338A1600004FAA /* MuscleGroupView.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -690,6 +693,7 @@
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
 				54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
+				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
 				543F0C7C1A11748800EC8BE6 /* CombinedRecorder.swift in Sources */,
 				545E06041A304CB500AB633B /* UserModel.swift in Sources */,
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,

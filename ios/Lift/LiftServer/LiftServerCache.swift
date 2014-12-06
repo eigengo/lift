@@ -14,4 +14,19 @@ public class LiftServerCache {
         return Singleton.instance
     }
     
+    private var muscleGroups: [Exercise.MuscleGroup]?
+    
+    func build() {
+        LiftServer.sharedInstance.exerciseGetMuscleGroups() {
+            $0.cata(const(()), { x in self.muscleGroups = x })
+        }
+    }
+    
+    func clean() {
+        self.muscleGroups = nil
+    }
+    
+    func exerciseGetMuscleGroups() -> [Exercise.MuscleGroup]? {
+        return self.muscleGroups
+    }
 }
