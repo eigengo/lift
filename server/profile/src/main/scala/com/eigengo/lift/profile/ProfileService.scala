@@ -6,7 +6,7 @@ import akka.actor.ActorRef
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
 import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice, UserSetPublicProfile}
 import com.eigengo.lift.profile.UserProfileProtocol._
-import spray.routing.Directives
+import spray.routing.{Route, Directives}
 
 import scala.concurrent.ExecutionContext
 
@@ -14,7 +14,7 @@ trait ProfileService extends Directives with CommonMarshallers with CommonPathDi
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def userProfileRoute(userProfile: ActorRef, userProfileProcessor: ActorRef)(implicit ec: ExecutionContext) =
+  def userProfileRoute(userProfile: ActorRef, userProfileProcessor: ActorRef)(implicit ec: ExecutionContext): Route =
     path("user") {
       post {
         handleWith { register: UserRegister ⇒
