@@ -53,6 +53,7 @@ object MicroserviceApp {
   }
 
   object BootedNode {
+    val empty: BootedNode = new BootedNode {}
     type RestApi = ExecutionContext ⇒ Route
     case class Default(api1: RestApi, api2: RestApi) extends BootedNode with RouteConcatenation {
       override lazy val api = Some({ ec: ExecutionContext ⇒ api1(ec) ~ api2(ec) })
@@ -67,7 +68,7 @@ object MicroserviceApp {
  */
 abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App {
 
-  def boot(implicit system: ActorSystem): BootedNode
+  def boot(implicit system: ActorSystem, cluster: Cluster): BootedNode
 
   private object EtcdKeys {
 
@@ -98,8 +99,9 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     Thread.sleep(10000)
 
     import scala.concurrent.duration._
-    val etcd = new EtcdClient(config.getString("etcd.url"))
-    log.info(s"Config loaded; etcd expected at $etcd")
+    val etcdUrl: String = config.getString("etcd.url")
+    val etcd = new EtcdClient(etcdUrl)
+    log.info(s"Config loaded; etcd expected at $etcdUrl")
 
     // retry timeout for the cluster formation
     val retry = config.getDuration("akka.cluster.retry", TimeUnit.SECONDS).seconds
@@ -120,9 +122,10 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
       case Success(_) =>
         // Register cluster MemberUp callback
         cluster.registerOnMemberUp {
-          log.info(s"Node $selfAddress booting Up")
+          log.info(s"Node $selfAddress booting up")
           // boot the microservice code
-          val bootedNode = boot(system)
+          val bootedNode = boot(system, cluster)
+          log.info(s"Node $selfAddress booted up $bootedNode")
           bootedNode.api.foreach(startupApi)
           // logme!
           log.info(s"Node $selfAddress Up")
@@ -137,11 +140,13 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     def startupApi(api: ExecutionContext ⇒ Route): Unit = {
       import AdapterProtocol._
       val route: Route = api(system.dispatcher)
+      val port: Int = 8080
       // TODO: We're not always 1.0 C&Q
-      val restApi = RestApi(hostname, 8080, "1.0", Seq(Query, Command))
+      val restApi = RestApi(hostname, port, "1.0", Seq(Query, Command))
       AdapterProtocol.register(selfAddress, restApi)
+      system.registerOnTermination(AdapterProtocol.unregister(selfAddress))
       val restService = system.actorOf(Props(classOf[RestAPIActor], route))
-      IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = restApi.port)
+      IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
     }
 
     def joinCluster(): Unit = {

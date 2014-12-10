@@ -2,10 +2,10 @@ package com.eigengo.lift.adapter
 
 import java.util.UUID
 
-import akka.actor.{Props, ActorLogging, Actor, ActorRef}
+import akka.actor._
 import akka.contrib.pattern.DistributedPubSubExtension
 import akka.contrib.pattern.DistributedPubSubMediator.Subscribe
-import akka.io.IO
+import akka.io.{Tcp, IO}
 import com.eigengo.lift.common.AdapterProtocol
 import spray.can.Http
 import spray.http._
@@ -19,7 +19,7 @@ import scala.util.Random
 object AdapteesActor {
   import AdapterProtocol._
 
-  case class Routee(ref: Reference, host: Host, port: Port, version: Version, side: Seq[Side])
+  case class Adaptee(address: Address, host: Host, port: Port, version: Version, side: Seq[Side])
 
   val props = Props[AdapteesActor]
 }
@@ -37,7 +37,7 @@ class AdapteesActor extends Actor with ActorLogging {
   val mediator = DistributedPubSubExtension(context.system).mediator
   mediator ! Subscribe(topic, self)
 
-  private var routees: List[Routee] = List()
+  private var adaptees: List[Adaptee] = List()
 
   private implicit class RichList[A](l: List[A]) {
     def randomElement: Option[A] = l match {
@@ -53,16 +53,16 @@ class AdapteesActor extends Actor with ActorLogging {
       (header is HttpHeaders.`Content-Length`.lowercaseName)
     }
 
-  private def findRoutee(uri: Uri, method: HttpMethod): Option[Uri] = {
+  private def findAdaptee(uri: Uri, method: HttpMethod): Option[Uri] = {
     val path            = uri.path.tail
     val versionPath     = path.head
     val versionlessPath = path.tail
 
-    println(versionlessPath.toString())
+    log.info(versionlessPath.toString())
 
     val side = if (method == HttpMethods.GET || method == HttpMethods.OPTIONS || method == HttpMethods.OPTIONS) Query else Command
 
-    routees.filter(r => r.version == versionPath.toString && r.side == side).randomElement.map { router =>
+    adaptees.filter(r => r.version == versionPath.toString && r.side.contains(side)).randomElement.map { router =>
       uri.withHost(router.host).withPort(router.port).withPath(versionlessPath)
     }
   }
@@ -70,36 +70,32 @@ class AdapteesActor extends Actor with ActorLogging {
   def receive: Receive = {
     // register a new node
     case Register(address, api@RestApi(host, port, version, side)) ⇒
-      log.info(s"Subscribed node at $address to $api")
-      val ref = UUID.randomUUID().toString
-      routees = routees :+ Routee(ref, host, port, version, side)
-      sender() ! Registered(ref)
+      if (!adaptees.exists(_.address == address)) {
+        log.info(s"Registered node at $address to $api")
+        adaptees = adaptees :+ Adaptee(address, host, port, version, side)
+      } else {
+        log.info(s"Already registered node at $address to $api")
+      }
     // unregister a node
-    case AdapterProtocol.Unregister(ref) =>
-      routees = routees.filter(_.ref != ref)
-      sender() ! Unregistered(ref)
+    case AdapterProtocol.Unregister(address) =>
+      log.info(s"Unregistered node at $address")
+      adaptees = adaptees.filter(_.address != address)
+
+    case Tcp.Connected(_, _) ⇒
+      // by default we register ourselves as the handler for a new connection
+      sender() ! Tcp.Register(self)
+
     // proxy a request
-    case ctx: RequestContext =>
-      val request = ctx.request
-      findRoutee(request.uri, request.method).fold
+    case request: HttpRequest =>
+      log.info(s"Handling ${request.uri} with adaptees $adaptees")
+      findAdaptee(request.uri, request.method).fold
       {
-        ctx.complete(HttpResponse(status = StatusCodes.BadGateway, entity = HttpEntity(s"No routee for path ${request.uri.path}")))
+        sender() ! HttpResponse(status = StatusCodes.BadGateway, entity = HttpEntity(s"No routee for path ${request.uri.path}"))
       }
       { updatedUri =>
         val updatedRequest = request.copy(uri = updatedUri, headers = stripHeaders(request.headers))
-        IO(Http)(context.system) tell(updatedRequest, ctx.responder)
+        IO(Http)(context.system) tell(updatedRequest, sender())
       }
+    case x ⇒ println("Unhandled " + x)
   }
-}
-
-/**
- * All other routes are proxied to the underlying node
- */
-trait AdapteeRoute extends Directives {
-
-  /** Route adds user identity header and proxies all requests to given host */
-  def adapteesRoute(adaptees: ActorRef): Route = ctx => {
-    adaptees ! ctx
-  }
-
 }

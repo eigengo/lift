@@ -42,22 +42,10 @@ object AdapterProtocol {
   case class Register(address: Address, restApi: RestApi)
 
   /**
-   * Response to ``Register`` carries the reference the router maintains for it. Use this ``ref`` to ``Unregister``
-   * @param ref the generated reference
-   */
-  case class Registered(ref: Reference)
-
-  /**
    * Request to unregister the node given explicit reference from the router
-   * @param ref the reference obtained from ``Registered``
+   * @param address the AS address
    */
-  case class Unregister(ref: Reference)
-
-  /**
-   * Confirmation of unregistration
-   * @param ref the reference obtained from ``Registered``
-   */
-  case class Unregistered(ref: Reference)
+  case class Unregister(address: Address)
 
   /**
    * Mediation topic
@@ -65,40 +53,17 @@ object AdapterProtocol {
   val topic = "Adapter.nodes"
 
   def register(address: Address, restApi: RestApi)(implicit system: ActorSystem): Unit = {
+    import scala.concurrent.duration._
     val mediator = DistributedPubSubExtension(system).mediator
 
-    mediator ! Publish(topic, Register(address, restApi))
+    import system.dispatcher
+    system.scheduler.schedule(1.second, 10.seconds, mediator, Publish(topic, Register(address, restApi)))
+  }
+
+  def unregister(address: Address)(implicit system: ActorSystem): Unit = {
+    val mediator = DistributedPubSubExtension(system).mediator
+
+    mediator ! Publish(topic, Unregister(address))
   }
 
 }
-
-/**
- * API for the router—call the ``apply`` function, specifying the router URL, side and version, and a function that
- * will be called upon successful registration. You should then bind to the given port and host.
- *
- * Notice that there is no two-phase registration: you are *expected* complete the bind.
-object Router extends Json4sSupport {
-  import org.eigengo.cqrsrest.router.RouterProtocol._
-  import spray.client.pipelining._
-
-  override implicit def json4sFormats: Formats = DefaultFormats + SideSerializer
-
-  private def unregister(routerUrl: String, ref: Reference)(implicit arf: ActorRefFactory): Unit = {
-    import arf.dispatcher
-    val unregisterPipeline = sendReceive ~> unmarshal[Unregistered]
-    unregisterPipeline(Delete(s"$routerUrl/register", Unregister(ref)))
-  }
-
-  def apply(routerUrl: String, side: Side, version: Version)(run: Run)(implicit arf: ActorRefFactory): Unit = {
-    import arf.dispatcher
-    val localhost = InetAddress.getLocalHost.getHostAddress
-    val register = Register(localhost, 10000 + Random.nextInt(55535), version, side)
-    val registerPipeline = sendReceive ~> unmarshal[Registered]
-    registerPipeline(Post(s"$routerUrl/register", register)).onComplete {
-      case Success(r) => run(RunParameters(register.host, register.port, () => unregister(routerUrl, r.ref)))
-      case Failure(t) => throw t
-    }
-  }
-
-}
-*/
