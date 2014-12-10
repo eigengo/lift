@@ -90,7 +90,10 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
   def startup(): Unit = {
     // resolve the local host name
     // load config and set Up etcd client
-    val config = ConfigFactory.load()
+    val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
+    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=['${microserviceProps.role}']")
+    val config = clusterShardingConfig.withFallback(clusterRoleConfig).withFallback(ConfigFactory.load())
+
     implicit val system = ActorSystem(name, config)
     val log = Logger(getClass)
 
@@ -186,7 +189,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
       // We first ensure that we de-register and leave the cluster!
       etcd.deleteKey(EtcdKeys.ClusterNodes(cluster))
       cluster.leave(selfAddress)
-      log.info(s"Shut down ActorSystem ${system}")
+      log.info(s"Shut down ActorSystem $system")
       system.shutdown()
     }
   }
