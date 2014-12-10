@@ -85,17 +85,19 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
   import com.eigengo.lift.common.MicroserviceApp._
 
   private val name = "Lift"
-  private val log = Logger(getClass)
 
   def startup(): Unit = {
     // resolve the local host name
+    // load config and set Up etcd client
+    val config = ConfigFactory.load()
+    implicit val system = ActorSystem(name, config)
+    val log = Logger(getClass)
+
     val hostname = InetAddress.getLocalHost.getHostAddress
     log.info(s"Starting Up microservice $microserviceProps at $hostname")
     Thread.sleep(10000)
 
-    // load config and set Up etcd client
     import scala.concurrent.duration._
-    val config = ConfigFactory.load()
     val etcd = new EtcdClient(config.getString("etcd.url"))
     log.info(s"Config loaded; etcd expected at $etcd")
 
@@ -105,8 +107,8 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
 
     // Create the ActorSystem for the microservice
     log.info("Creating the microservice's ActorSystem")
-    val system = ActorSystem(name, config)
     val cluster = Cluster(system)
+    val selfAddress: Address = cluster.selfAddress
 
     import system.dispatcher
 
@@ -114,16 +116,16 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     system.registerOnTermination(shutdown())
 
     // register this (cluster) actor system with etcd
-    etcd.setKey(EtcdKeys.ClusterNodes(cluster), cluster.selfAddress.toString).onComplete {
+    etcd.setKey(EtcdKeys.ClusterNodes(cluster), selfAddress.toString).onComplete {
       case Success(_) =>
         // Register cluster MemberUp callback
         cluster.registerOnMemberUp {
-          log.info(s"Node ${cluster.selfAddress} booting Up")
+          log.info(s"Node $selfAddress booting Up")
           // boot the microservice code
           val bootedNode = boot(system)
           bootedNode.api.foreach(startupApi)
           // logme!
-          log.info(s"Node ${cluster.selfAddress} Up")
+          log.info(s"Node $selfAddress Up")
         }
         joinCluster()
 
@@ -133,9 +135,13 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     }
 
     def startupApi(api: ExecutionContext ⇒ Route): Unit = {
+      import AdapterProtocol._
       val route: Route = api(system.dispatcher)
+      // TODO: We're not always 1.0 C&Q
+      val restApi = RestApi(hostname, 8080, "1.0", Seq(Query, Command))
+      AdapterProtocol.register(selfAddress, restApi)
       val restService = system.actorOf(Props(classOf[RestAPIActor], route))
-      IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = 8080)
+      IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = restApi.port)
     }
 
     def joinCluster(): Unit = {
@@ -174,7 +180,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     def shutdown(): Unit = {
       // We first ensure that we de-register and leave the cluster!
       etcd.deleteKey(EtcdKeys.ClusterNodes(cluster))
-      cluster.leave(cluster.selfAddress)
+      cluster.leave(selfAddress)
       log.info(s"Shut down ActorSystem ${system}")
       system.shutdown()
     }

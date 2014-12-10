@@ -1,18 +1,13 @@
-package org.eigengo.cqrsrest.router
+package com.eigengo.lift.common
 
-import java.net.InetAddress
-
-import akka.actor.ActorRefFactory
-import org.json4s.JsonAST.JString
-import org.json4s.{CustomSerializer, DefaultFormats, Formats}
-import spray.httpx.Json4sSupport
-
-import scala.util.{Failure, Random, Success}
+import akka.actor.{ActorSystem, Address}
+import akka.contrib.pattern.DistributedPubSubExtension
+import akka.contrib.pattern.DistributedPubSubMediator.Publish
 
 /**
  * Defines the router protocol
  */
-object RouterProtocol {
+object AdapterProtocol {
   /** The network interface for the host—"localhost" or "0.0.0.0" */
   type Host      = String
   /** The IP port 1024 — 64k */
@@ -22,37 +17,29 @@ object RouterProtocol {
   /** The reference to the registered side */
   type Reference = String
 
-  /** A function that runs when the side registers with the router */
-  type Run       = RunParameters => Unit
-
-  /**
-   * Run parameters include the generated host and port, and the unregister function. The side should
-   * bind to the given host and port, and it may call ``unregister`` to detach from the router.
-   *
-   * Once detached, it should exit.
-   *
-   * @param host the host (IP or name)
-   * @param port the port
-   * @param unregister the unregister function
-   */
-  case class RunParameters(host: Host, port: Port, unregister: () => Unit)
-
   /**
    * Sides are either the write for POST, PUT, DELETE or the read side for GET, HEAD, OPTIONS
    */
   sealed trait Side
   case object Query extends Side
-  case object Write extends Side
+  case object Command extends Side
+
+  /**
+   * The rest API details showing the bound houst, port, API version and Q/C "side"
+   * @param host the host name
+   * @param port the port number (accessible outside the host)
+   * @param version the microservice version
+   * @param side the "sides" of the CQRS devide the API serves
+   */
+  case class RestApi(host: Host, port: Port, version: Version, side: Seq[Side])
 
   /**
    * Registers the given ``host`` and ``port`` running a specified ``version`` of the query or write API
    *
-   * @param host the host (this can be localhost, but should really be a resolvable name or IP)
-   * @param port the port the API is bound to
-   * @param version the API version
-   * @param side the side
+   * @param address the AS address
+   * @param restApi the REST API details
    */
-  case class Register(host: Host, port: Port, version: Version, side: Side)
+  case class Register(address: Address, restApi: RestApi)
 
   /**
    * Response to ``Register`` carries the reference the router maintains for it. Use this ``ref`` to ``Unregister``
@@ -60,20 +47,29 @@ object RouterProtocol {
    */
   case class Registered(ref: Reference)
 
+  /**
+   * Request to unregister the node given explicit reference from the router
+   * @param ref the reference obtained from ``Registered``
+   */
   case class Unregister(ref: Reference)
+
+  /**
+   * Confirmation of unregistration
+   * @param ref the reference obtained from ``Registered``
+   */
   case class Unregistered(ref: Reference)
 
-  object SideSerializer extends CustomSerializer[Side](side => (
-    {
-      case JString("query") => Query
-      case JString("write") => Write
-    },
-    {
-      case Query => JString("query")
-      case Write => JString("write")
-    }
-    )
-  )
+  /**
+   * Mediation topic
+   */
+  val topic = "Adapter.nodes"
+
+  def register(address: Address, restApi: RestApi)(implicit system: ActorSystem): Unit = {
+    val mediator = DistributedPubSubExtension(system).mediator
+
+    mediator ! Publish(topic, Register(address, restApi))
+  }
+
 }
 
 /**
@@ -81,7 +77,6 @@ object RouterProtocol {
  * will be called upon successful registration. You should then bind to the given port and host.
  *
  * Notice that there is no two-phase registration: you are *expected* complete the bind.
- */
 object Router extends Json4sSupport {
   import org.eigengo.cqrsrest.router.RouterProtocol._
   import spray.client.pipelining._
@@ -106,3 +101,4 @@ object Router extends Json4sSupport {
   }
 
 }
+*/

@@ -23,6 +23,7 @@ object Dependencies {
     val httpx   = "io.spray" %% "spray-httpx"   % version
     val can     = "io.spray" %% "spray-can"     % version
     val routing = "io.spray" %% "spray-routing" % version
+    val client  = "io.spray" %% "spray-client"  % version
 
     val testkit = "io.spray" %% "spray-testkit" % version
   }
@@ -49,9 +50,6 @@ object Dependencies {
  
   // Datastax Cassandra Client
   val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
-
-  // Etcd Client
-  val etcd_client           = "net.nikore.etcd"    %% "scala-etcd"      % "0.7"
 
   // Testing
   val scalatest    = "org.scalatest"    %% "scalatest"    % "2.2.1"

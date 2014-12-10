@@ -1,28 +1,27 @@
-package org.eigengo.cqrsrest.router
+package com.eigengo.lift.adapter
 
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Props, ActorLogging, Actor, ActorRef}
+import akka.contrib.pattern.DistributedPubSubExtension
+import akka.contrib.pattern.DistributedPubSubMediator.Subscribe
 import akka.io.IO
-import akka.pattern.AskSupport
-import akka.util.Timeout
-import org.json4s.{DefaultFormats, Formats}
+import com.eigengo.lift.common.AdapterProtocol
 import spray.can.Http
 import spray.http._
-import spray.httpx.Json4sSupport
 import spray.routing.{Directives, RequestContext, Route}
 
-import scala.concurrent.ExecutionContext
 import scala.util.Random
 
 /**
  * Protocol for the ``RouteesActor``
  */
-object RouteesActor {
-  import org.eigengo.cqrsrest.router.RouterProtocol._
+object AdapteesActor {
+  import AdapterProtocol._
 
-  case class Routee(ref: Reference, host: Host, port: Port, version: Version, side: Side)
+  case class Routee(ref: Reference, host: Host, port: Port, version: Version, side: Seq[Side])
 
+  val props = Props[AdapteesActor]
 }
 
 /**
@@ -32,9 +31,11 @@ object RouteesActor {
  * Production implementation should check for version consistency—only allowing to register nodes of expected and
  * well-known version; it can also virtualise the versions, mapping—for example—``/1`` to ``/1.1.42``.
  */
-class RouteesActor extends Actor {
-  import org.eigengo.cqrsrest.router.RouteesActor._
-  import org.eigengo.cqrsrest.router.RouterProtocol._
+class AdapteesActor extends Actor with ActorLogging {
+  import AdapterProtocol._
+  import com.eigengo.lift.adapter.AdapteesActor._
+  val mediator = DistributedPubSubExtension(context.system).mediator
+  mediator ! Subscribe(topic, self)
 
   private var routees: List[Routee] = List()
 
@@ -59,7 +60,7 @@ class RouteesActor extends Actor {
 
     println(versionlessPath.toString())
 
-    val side = if (method == HttpMethods.GET || method == HttpMethods.OPTIONS || method == HttpMethods.OPTIONS) Query else Write
+    val side = if (method == HttpMethods.GET || method == HttpMethods.OPTIONS || method == HttpMethods.OPTIONS) Query else Command
 
     routees.filter(r => r.version == versionPath.toString && r.side == side).randomElement.map { router =>
       uri.withHost(router.host).withPort(router.port).withPath(versionlessPath)
@@ -68,12 +69,13 @@ class RouteesActor extends Actor {
 
   def receive: Receive = {
     // register a new node
-    case cmd@RouterProtocol.Register(_, _, _, _) =>
+    case Register(address, api@RestApi(host, port, version, side)) ⇒
+      log.info(s"Subscribed node at $address to $api")
       val ref = UUID.randomUUID().toString
-      routees = routees :+ Routee(ref, cmd.host, cmd.port, cmd.version, cmd.side)
+      routees = routees :+ Routee(ref, host, port, version, side)
       sender() ! Registered(ref)
     // unregister a node
-    case RouterProtocol.Unregister(ref) =>
+    case AdapterProtocol.Unregister(ref) =>
       routees = routees.filter(_.ref != ref)
       sender() ! Unregistered(ref)
     // proxy a request
@@ -91,42 +93,13 @@ class RouteesActor extends Actor {
 }
 
 /**
- * This is the management endpoint that allows the nodes to register and de-register themselves.
- *
- * To register, POST the ``Register`` command, to unregister DELETE the ``Unregister`` command.
- */
-trait RouteesRoute extends Directives with AskSupport with Json4sSupport {
-  import org.eigengo.cqrsrest.router.RouterProtocol._
-
-import scala.concurrent.duration._
-
-  override implicit def json4sFormats: Formats = DefaultFormats + SideSerializer
-  implicit val timeout: Timeout = Timeout(1000.milliseconds)
-
-  def routeesRoute(routees: ActorRef)(implicit es: ExecutionContext): Route =
-    path("register") {
-      post {
-        entity(as[Register]) { cmd =>
-          complete((routees ? cmd).mapTo[Registered])
-        }
-      } ~
-      delete {
-        entity(as[Unregister]) { cmd =>
-          complete((routees ? cmd).mapTo[Unregistered])
-        }
-      }
-    }
-
-}
-
-/**
  * All other routes are proxied to the underlying node
  */
-trait ProxyRoute extends Directives with AskSupport {
+trait AdapteeRoute extends Directives {
 
   /** Route adds user identity header and proxies all requests to given host */
-  def proxyRoute(routees: ActorRef): Route = ctx => {
-    routees ! ctx
+  def adapteesRoute(adaptees: ActorRef): Route = ctx => {
+    adaptees ! ctx
   }
 
 }
