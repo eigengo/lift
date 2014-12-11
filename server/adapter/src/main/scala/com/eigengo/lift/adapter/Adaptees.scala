@@ -14,7 +14,16 @@ import scala.util.Random
 object AdapteesActor {
   import com.eigengo.lift.common.AdapterProtocol._
 
-  case class Adaptee(address: Address, host: Host, port: Port, version: Version, side: Seq[Side])
+  object Adaptee {
+    val Address = "http://(.*):(\\d+)(.*)\\?version=(.*)&side=(.*)".r
+
+    def unapply(key: String, s: String): Option[Adaptee] = s match {
+      case Address(host, port, path, version, side) ⇒
+        Some(Adaptee(key, host, port.toInt, version, Command :: Query :: Nil))
+      case _ ⇒ None
+    }
+  }
+  case class Adaptee(key: String, host: Host, port: Port, version: Version, side: Seq[Side])
 
   val props = Props[AdapteesActor]
 }
@@ -29,11 +38,11 @@ object AdapteesActor {
 class AdapteesActor extends Actor with ActorLogging {
   import com.eigengo.lift.adapter.AdapteesActor._
   import com.eigengo.lift.common.AdapterProtocol._
-  ClusterInventory(context.system).subscribe("", self)
+  ClusterInventory(context.system).subscribe("api", self, true)
 
-  private var adaptees: List[Adaptee] = List()
+  private var adaptees: List[Adaptee] = List.empty
 
-  private implicit class RichList[A](l: List[A]) {
+  private implicit class RichSet[A](l: List[A]) {
     def randomElement: Option[A] = l match {
       case Nil => None
       case nel => Some(nel(Random.nextInt(nel.size)))
@@ -63,21 +72,16 @@ class AdapteesActor extends Actor with ActorLogging {
 
   def receive: Receive = {
     case ClusterInventoryGuardian.KeyAdded(k, v) ⇒
-      log.info(s"Would like to register $k and $v")
-
-    /*
-    case Register(address, api@RestApi(host, port, version, side)) ⇒
-      if (!adaptees.exists(_.address == address)) {
-        log.info(s"Registered node at $address to $api")
-        adaptees = adaptees :+ Adaptee(address, host, port, version, side)
-      } else {
-        log.info(s"Already registered node at $address to $api")
+      Adaptee.unapply(k, v).foreach { adaptee ⇒
+        if (!adaptees.contains(adaptee)) {
+          adaptees = adaptee :: adaptees
+          log.info(s"Registered endpoint. Now with $adaptees.")
+        }
       }
-    // unregister a node
-    case AdapterProtocol.Unregister(address) =>
-      log.info(s"Unregistered node at $address")
-      adaptees = adaptees.filter(_.address != address)
-    */
+
+    case ClusterInventoryGuardian.KeyRemoved(key) ⇒
+      adaptees = adaptees.dropWhile(_.key == key)
+      log.info(s"Dropped endpoint. Now with $adaptees.")
 
     case Tcp.Connected(_, _) ⇒
       // by default we register ourselves as the handler for a new connection
@@ -85,12 +89,12 @@ class AdapteesActor extends Actor with ActorLogging {
 
     // proxy a request
     case request: HttpRequest =>
-      log.info(s"Handling ${request.uri} with adaptees $adaptees")
       findAdaptee(request.uri, request.method).fold
       {
         sender() ! HttpResponse(status = StatusCodes.BadGateway, entity = HttpEntity(s"No routee for path ${request.uri.path}"))
       }
       { updatedUri =>
+        log.info(s"Sending ${request.uri} to $updatedUri")
         val updatedRequest = request.copy(uri = updatedUri, headers = stripHeaders(request.headers))
         IO(Http)(context.system) tell(updatedRequest, sender())
       }

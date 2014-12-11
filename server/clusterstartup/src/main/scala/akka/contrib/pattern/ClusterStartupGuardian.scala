@@ -15,7 +15,6 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
   import ClusterStartupGuardian._
   import scala.concurrent.duration._
   private val inventory = ClusterInventory(context.system)
-  private val selfCluster = Cluster(context.system)
   private var seedNodes: Set[Address] = Set.empty
   private val retryDuration = 5.seconds
   private val minNrMembers = 2
@@ -26,10 +25,8 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
   override def receive: Receive = {
     case ClusterInventoryGuardian.KeyAdded(_, value) ⇒ value match {
       case AddressFromURIString(address) ⇒
-        if (selfCluster.selfAddress != address) {
-          seedNodes = seedNodes + address
-          log.info(s"Now with seed nodes $seedNodes")
-        }
+        seedNodes = seedNodes + address
+        log.info(s"Now with seed nodes $seedNodes")
       case x ⇒ log.warning(s"Got value $value, which is not address")
     }
 
@@ -40,7 +37,7 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
       } else {
         log.info(s"Joining seed nodes $seedNodes")
         inventory.unsubscribe("node", self)
-        cluster.joinSeedNodes(seedNodes.toList)
+        cluster.joinSeedNodes(seedNodes.toList.sortWith((x, y) ⇒ x.toString.compareTo(y.toString) < 0).take(minNrMembers))
       }
 
   }

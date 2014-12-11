@@ -96,10 +96,10 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
       log.info(s"Node $selfAddress booted up $bootedNode")
       bootedNode.api.foreach { api ⇒
         val route: Route = api(system.dispatcher)
-        val port: Int = 0
+        val port: Int = 8080
         val restService = system.actorOf(Props(classOf[RestAPIActor], route))
         IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
-        ClusterInventory(system).add("api", "http://192.168.0.8:1234/foo")
+        ClusterInventory(system).add("api", s"http://$hostname:$port?version=1.0&side=q,c")
       }
       // logme!
       log.info(s"Node $selfAddress Up")
