@@ -2,6 +2,7 @@ package akka.contrib.pattern
 
 import akka.actor._
 import akka.cluster.Cluster
+import akka.cluster.ClusterEvent.{MemberRemoved, MemberExited}
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.FiniteDuration
@@ -32,8 +33,15 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
   import scala.concurrent.duration._
   import context.dispatcher
 
+  private val cluster = Cluster(context.system)
   private var addedKeys: List[String] = Nil
   private var subscribers: List[Subscriber] = Nil
+
+  cluster.subscribe(self, classOf[MemberExited], classOf[MemberRemoved])
+
+  private def suffixForCluster(address: Address): String = {
+    s"${address.protocol.replace(':', '_')}_${address.host.getOrElse("")}_${address.port.getOrElse(0)}"
+  }
 
   override def receive: Receive = {
     case Subscribe(key, subscriber, refresh) if !subscribers.exists(_.subscriber == sender()) ⇒
@@ -59,7 +67,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       if (subscribers.exists(_.refresh)) context.system.scheduler.scheduleOnce(5.seconds, self, RefreshSubscribers)
 
     case AddValue(key, value) ⇒
-      val resolvedKey = s"$rootKey/$key"
+      val resolvedKey = rootKey + "/" + key + "/" + suffixForCluster(cluster.selfAddress)
       inventoryStore.set(resolvedKey, value).onComplete {
         case Success(_) ⇒
           addedKeys = resolvedKey :: addedKeys
@@ -67,6 +75,30 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
             if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyAdded(key, value)
           }
         case Failure(ex) ⇒ log.error(s"Could not set $resolvedKey to $value: ${ex.getMessage}")
+      }
+
+    case MemberExited(member) ⇒
+      log.info(s"Member at ${member.address} exited. Removing its keys.")
+      val suffix = suffixForCluster(member.address)
+      inventoryStore.getAll(rootKey).onComplete {
+        case Success(kvs) ⇒ kvs.foreach {
+          case (k, _) ⇒ if (k.endsWith(suffix)) {
+            log.info(s"Removing $k.")
+            inventoryStore.delete(k)
+          }
+        }
+      }
+
+    case MemberRemoved(member, _) ⇒
+      log.info(s"Member at ${member.address} removed. Removing its keys.")
+      val suffix = suffixForCluster(member.address)
+      inventoryStore.getAll(rootKey).onComplete {
+        case Success(kvs) ⇒ kvs.foreach {
+          case (k, _) ⇒ if (k.endsWith(suffix)) {
+            log.info(s"Removing $k.")
+            inventoryStore.delete(k)
+          }
+        }
       }
 
     case RemoveAllAddedKeys ⇒

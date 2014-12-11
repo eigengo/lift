@@ -46,17 +46,12 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
   private lazy val guardian = system.actorOf(ClusterInventoryGuardian.props(Settings.Inventory, system))
   system.registerOnTermination(leave())
 
-  private def prefixForCluster(cluster: Cluster): String = {
-    val address = cluster.selfAddress
-    s"${address.protocol.replace(':', '_')}_${address.host.getOrElse("")}_${address.port.getOrElse(0)}"
-  }
-
   def add(key: String, value: String): Unit = {
-    guardian ! AddValue(key + "/" + prefixForCluster(cluster), value)
+    guardian ! AddValue(key, value)
   }
 
-  def subscribe(keyPattern: String, subscriber: ActorRef, refresh: Boolean = false): Unit = {
-    guardian ! Subscribe(keyPattern, subscriber, refresh)
+  def subscribe(key: String, subscriber: ActorRef, refresh: Boolean = false): Unit = {
+    guardian ! Subscribe(key, subscriber, refresh)
   }
 
   def unsubscribe(key: String, subscriber: ActorRef): Unit = {
