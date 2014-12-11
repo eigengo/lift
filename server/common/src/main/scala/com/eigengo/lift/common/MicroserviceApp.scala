@@ -1,21 +1,17 @@
 package com.eigengo.lift.common
 
 import java.net.InetAddress
-import java.util.concurrent.TimeUnit
 
 import akka.actor._
 import akka.cluster.Cluster
-import akka.contrib.pattern.ClusterStartup
+import akka.contrib.pattern.ClusterInventory
 import akka.io.IO
-import com.eigengo.lift.common.MicroserviceApp.{MicroserviceProps, BootedNode}
+import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
 import com.typesafe.config.ConfigFactory
-import net.nikore.etcd.EtcdClient
-import net.nikore.etcd.EtcdJsonProtocol.EtcdListResponse
 import spray.can.Http
-import spray.routing.{RouteConcatenation, HttpServiceActor, Route}
+import spray.routing.{HttpServiceActor, Route, RouteConcatenation}
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
 
 /**
  * Companion for the microservice app
@@ -42,7 +38,7 @@ object MicroserviceApp {
    * Booted node that defines the rest API
    */
   trait BootedNode {
-    import BootedNode._
+    import com.eigengo.lift.common.MicroserviceApp.BootedNode._
     def api: Option[RestApi] = None
 
     def +(that: BootedNode): BootedNode = (this.api, that.api) match {
@@ -92,7 +88,8 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     // Create the ActorSystem for the microservice
     log.info("Creating the microservice's ActorSystem")
     val cluster = Cluster(system)
-    ClusterStartup(system).join {
+
+    cluster.registerOnMemberUp {
       val selfAddress = cluster.selfAddress
       log.info(s"Node $selfAddress booting up")
       // boot the microservice code
@@ -100,9 +97,10 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
       log.info(s"Node $selfAddress booted up $bootedNode")
       bootedNode.api.foreach { api ⇒
         val route: Route = api(system.dispatcher)
-        val port: Int = 8080
+        val port: Int = 0
         val restService = system.actorOf(Props(classOf[RestAPIActor], route))
         IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
+        ClusterInventory(system).add("api", "http://192.168.0.8:1234/foo")
       }
       // logme!
       log.info(s"Node $selfAddress Up")

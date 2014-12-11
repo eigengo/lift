@@ -1,15 +1,10 @@
 package com.eigengo.lift.adapter
 
-import java.util.UUID
-
 import akka.actor._
-import akka.contrib.pattern.DistributedPubSubExtension
-import akka.contrib.pattern.DistributedPubSubMediator.Subscribe
-import akka.io.{Tcp, IO}
-import com.eigengo.lift.common.AdapterProtocol
+import akka.contrib.pattern.ClusterInventory
+import akka.io.{IO, Tcp}
 import spray.can.Http
 import spray.http._
-import spray.routing.{Directives, RequestContext, Route}
 
 import scala.util.Random
 
@@ -17,7 +12,7 @@ import scala.util.Random
  * Protocol for the ``RouteesActor``
  */
 object AdapteesActor {
-  import AdapterProtocol._
+  import com.eigengo.lift.common.AdapterProtocol._
 
   case class Adaptee(address: Address, host: Host, port: Port, version: Version, side: Seq[Side])
 
@@ -32,10 +27,9 @@ object AdapteesActor {
  * well-known version; it can also virtualise the versions, mapping—for example—``/1`` to ``/1.1.42``.
  */
 class AdapteesActor extends Actor with ActorLogging {
-  import AdapterProtocol._
   import com.eigengo.lift.adapter.AdapteesActor._
-  val mediator = DistributedPubSubExtension(context.system).mediator
-  mediator ! Subscribe(topic, self)
+  import com.eigengo.lift.common.AdapterProtocol._
+  ClusterInventory(context.system).subscribe("", self)
 
   private var adaptees: List[Adaptee] = List()
 
@@ -68,7 +62,10 @@ class AdapteesActor extends Actor with ActorLogging {
   }
 
   def receive: Receive = {
-    // register a new node
+    case ClusterInventory.KeyAdded(k, v) ⇒
+      log.info(s"Would like to register $k and $v")
+
+    /*
     case Register(address, api@RestApi(host, port, version, side)) ⇒
       if (!adaptees.exists(_.address == address)) {
         log.info(s"Registered node at $address to $api")
@@ -80,6 +77,7 @@ class AdapteesActor extends Actor with ActorLogging {
     case AdapterProtocol.Unregister(address) =>
       log.info(s"Unregistered node at $address")
       adaptees = adaptees.filter(_.address != address)
+    */
 
     case Tcp.Connected(_, _) ⇒
       // by default we register ourselves as the handler for a new connection
