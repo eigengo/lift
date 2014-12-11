@@ -3,6 +3,8 @@ package akka.contrib.pattern
 import akka.actor._
 import akka.cluster.Cluster
 
+import scala.concurrent.duration.FiniteDuration
+
 object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdProvider {
   override def get(system: ActorSystem): ClusterInventory = super.get(system)
 
@@ -30,6 +32,7 @@ object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdPr
  * @param system
  */
 class ClusterInventory(system: ExtendedActorSystem) extends Extension {
+
   import akka.contrib.pattern.ClusterInventoryGuardian._
 
   private val cluster = Cluster(system)
@@ -37,7 +40,7 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
    * INTERNAL API
    */
   private[akka] object Settings {
-    val config = system.settings.config.getConfig("akka.contrib.cluster.inventory")
+    val config = system.settings.config.getConfig("akka.contrib.cluster")
     val Inventory = config.getConfig("inventory")
   }
   private lazy val guardian = system.actorOf(ClusterInventoryGuardian.props(Settings.Inventory, system))
@@ -52,12 +55,12 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
     guardian ! AddValue(key + "/" + prefixForCluster(cluster), value)
   }
 
-  def subscribe(keyPattern: String, subscriber: ActorRef): Unit = {
-    guardian ! Subscribe(keyPattern, subscriber)
+  def subscribe(keyPattern: String, subscriber: ActorRef, refresh: Option[FiniteDuration] = None): Unit = {
+    guardian ! Subscribe(keyPattern, subscriber, refresh)
   }
 
   private def leave(): Unit = {
-    guardian ! RemoveAllKeys(prefixForCluster(cluster))
+    guardian ! RemoveAllAddedKeys
   }
 
 }

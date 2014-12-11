@@ -4,7 +4,7 @@ import java.net.InetAddress
 
 import akka.actor._
 import akka.cluster.Cluster
-import akka.contrib.pattern.ClusterInventory
+import akka.contrib.pattern.{ClusterStartup, ClusterInventory}
 import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
 import com.typesafe.config.ConfigFactory
@@ -88,8 +88,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     // Create the ActorSystem for the microservice
     log.info("Creating the microservice's ActorSystem")
     val cluster = Cluster(system)
-
-    cluster.registerOnMemberUp {
+    ClusterStartup(system).join {
       val selfAddress = cluster.selfAddress
       log.info(s"Node $selfAddress booting up")
       // boot the microservice code
