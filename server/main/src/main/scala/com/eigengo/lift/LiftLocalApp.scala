@@ -4,6 +4,7 @@ import akka.actor._
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
+import com.eigengo.lift.common.MicroserviceApp.MicroserviceProps
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.ProfileBoot
@@ -27,7 +28,10 @@ object LiftLocalApp extends App {
     ports.par.foreach { port ⇒
       import scala.collection.JavaConverters._
       // Override the configuration of the port
-      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(ConfigFactory.load("main.conf"))
+      val microserviceProps = MicroserviceProps("Lift")
+      val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
+      val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[${microserviceProps.role}]")
+      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(clusterShardingConfig).withFallback(clusterRoleConfig).withFallback(ConfigFactory.load("main.conf"))
       val firstSeedNodePort = (for {
         seedNode ← config.getStringList("akka.cluster.seed-nodes").asScala
         port ← ActorPath.fromString(seedNode).address.port

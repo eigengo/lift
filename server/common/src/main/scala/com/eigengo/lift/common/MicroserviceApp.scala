@@ -75,7 +75,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     // resolve the local host name
     // load config and set Up etcd client
     val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
-    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=['${microserviceProps.role}']")
+    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[${microserviceProps.role}]")
     val config = clusterShardingConfig.withFallback(clusterRoleConfig).withFallback(ConfigFactory.load())
 
     implicit val system = ActorSystem(name, config)
