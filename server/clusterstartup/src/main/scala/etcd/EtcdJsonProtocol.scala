@@ -13,11 +13,4 @@ object EtcdJsonProtocol {
   //for handling error messages
   case class Error(errorCode: Int, message: String, cause: String, index: Int)
 
-//  implicit val nodeResponseFormat = jsonFormat4(NodeResponse)
-//  implicit val etcdResponseFormat = jsonFormat3(EtcdResponse)
-//
-//  implicit val nodeListElementFormat: JsonFormat[NodeListElement] = lazyFormat(jsonFormat4(NodeListElement))
-//  implicit val etcdResponseListFormat = jsonFormat2(EtcdListResponse)
-//
-//  implicit val errorFormat = jsonFormat4(Error)
 }
