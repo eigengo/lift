@@ -2,7 +2,6 @@ package akka.contrib.pattern
 
 import akka.actor._
 import akka.cluster.Cluster
-import akka.contrib.pattern.ClusterInventory.Subscribe
 
 object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdProvider {
   override def get(system: ActorSystem): ClusterInventory = super.get(system)
@@ -11,10 +10,6 @@ object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdPr
 
   override def createExtension(system: ExtendedActorSystem): ClusterInventory =
     new ClusterInventory(system)
-
-  case class Subscribe(keyPattern: String)
-  case class KeyAdded(key: String, value: String)
-  case class KeyRemoved(key: String)
 
 }
 
@@ -54,7 +49,7 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
   }
 
   def subscribe(keyPattern: String, subscriber: ActorRef): Unit = {
-    guardian.tell(Subscribe(keyPattern), subscriber)
+    guardian ! Subscribe(keyPattern, subscriber)
   }
 
   private def leave(): Unit = {
