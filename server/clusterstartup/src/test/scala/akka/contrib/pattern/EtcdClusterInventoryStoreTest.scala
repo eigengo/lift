@@ -25,7 +25,6 @@ class EtcdClusterInventoryStoreTest extends TestKit(ActorSystem()) with FlatSpec
     println(values)
     println(all)
   }
-*/
   "etcd store" should "delete stuff" in {
     import system.dispatcher
 
@@ -36,4 +35,5 @@ class EtcdClusterInventoryStoreTest extends TestKit(ActorSystem()) with FlatSpec
       case None ⇒ println(">???")
     }
   }
+*/
 }
