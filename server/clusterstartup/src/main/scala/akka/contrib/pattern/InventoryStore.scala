@@ -10,9 +10,6 @@ import scala.util.Try
 
 case class NoSuchKeyException(key: String) extends RuntimeException(s"No such key $key")
 
-case class InventoryStoreNodeAttribute(name: String, value: String)
-case class InventoryStoreNode(value: String, attributes: Seq[InventoryStoreNodeAttribute])
-
 object InventoryStore {
   def apply(config: Config, system: ActorSystem): InventoryStore = config.getString("plugin") match {
       case "file" ⇒ new FileInventoryStore(config.getString("file.fileName"))
@@ -22,11 +19,11 @@ object InventoryStore {
 
 trait InventoryStore {
 
-  def get(key: String): Future[InventoryStoreNode]
+  def get(key: String): Future[String]
 
-  def getAll(key: String): Future[List[InventoryStoreNode]]
+  def getAll(key: String): Future[List[(String, String)]]
 
-  def set(key: String, node: InventoryStoreNode): Future[Unit]
+  def set(key: String, node: String): Future[Unit]
 
   def delete(key: String): Future[Unit]
 
@@ -34,17 +31,17 @@ trait InventoryStore {
 
 object FileInventoryStore {
 
-  case class KISN(key: String, isn: InventoryStoreNode)
+  case class KISN(key: String, value: String)
 
   private def parseKisn(line: String): Option[KISN] = {
     val elems = line.split("⇒")
     if (elems.length == 2) {
-      Some(KISN(elems(0), InventoryStoreNode(elems(1), Nil)))
+      Some(KISN(elems(0), elems(1)))
     } else None
   }
 
   private def kisnToString(kisn: KISN): String = {
-    s"${kisn.key}⇒${kisn.isn.value}"
+    s"${kisn.key}⇒${kisn.value}"
   }
 
   implicit object KVOrdering extends Ordering[KISN] {
@@ -72,17 +69,17 @@ import akka.contrib.pattern.FileInventoryStore._
     fos.close()
   }
 
-  override def get(key: String): Future[InventoryStoreNode] = {
-    load().find(_.key == key).fold[Future[InventoryStoreNode]](Future.failed(NoSuchKeyException(key)))(x ⇒ Future.successful(x.isn))
+  override def get(key: String): Future[String] = {
+    load().find(_.key == key).fold[Future[String]](Future.failed(NoSuchKeyException(key)))(x ⇒ Future.successful(x.value))
   }
 
-  override def set(key: String, node: InventoryStoreNode): Future[Unit] = {
-    val kisns = KISN(key, node) :: load().dropWhile(_.key == key)
+  override def set(key: String, value: String): Future[Unit] = {
+    val kisns = KISN(key, value) :: load().dropWhile(_.key == key)
     Future.successful(save(kisns))
   }
 
-  override def getAll(key: String): Future[List[InventoryStoreNode]] = {
-    Future.successful(load().filter(_.key.startsWith(key)).map(_.isn))
+  override def getAll(key: String): Future[List[(String, String)]] = {
+    Future.successful(load().filter(_.key.startsWith(key)).map(kisn ⇒ kisn.key → kisn.value))
   }
 
   override def delete(key: String): Future[Unit] = {
@@ -94,12 +91,21 @@ class EtcdInventoryStore(url: String, system: ActorSystem) extends InventoryStor
   val etcdClient = new EtcdClient(url)(system)
   import system.dispatcher
 
-  override def get(key: String): Future[InventoryStoreNode] = etcdClient.getKey(key).map(r ⇒ InventoryStoreNode(r.node.value.get, Nil))
+  override def get(key: String): Future[String] = {
+    etcdClient.getKey(key).map(r ⇒ r.node.value.get)
+  }
 
-  override def set(key: String, node: InventoryStoreNode): Future[Unit] = etcdClient.setKey(key, node.value).map(_ ⇒ ())
+  override def set(key: String, value: String): Future[Unit] = {
+    (if (key.contains("/")) {
+      val i = key.lastIndexOf('/')
+      val directory = key.substring(0, i)
+      etcdClient.createDir(directory).zip(etcdClient.setKey(key, value)).map(_ ⇒ ())
+    }
+    else etcdClient.setKey(key, value)).map(_ ⇒ ())
+  }
 
-  override def getAll(key: String): Future[List[InventoryStoreNode]] = etcdClient.listDir(key).map(r ⇒ r.node.nodes.map { nle ⇒
-    nle.map(e ⇒ InventoryStoreNode(e.value.get, Nil))
+  override def getAll(key: String): Future[List[(String, String)]] = etcdClient.listDir(key).map(r ⇒ r.node.nodes.map { nle ⇒
+    nle.flatMap(e ⇒ e.value.map(v ⇒ e.key → v))
   }.getOrElse(Nil))
 
   override def delete(key: String): Future[Unit] = etcdClient.deleteKey(key).map(_ ⇒ ())

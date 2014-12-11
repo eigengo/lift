@@ -1,7 +1,7 @@
 package com.eigengo.lift.adapter
 
 import akka.actor._
-import akka.contrib.pattern.ClusterInventory
+import akka.contrib.pattern.{ClusterInventory, ClusterInventoryGuardian}
 import akka.io.{IO, Tcp}
 import spray.can.Http
 import spray.http._
@@ -62,7 +62,7 @@ class AdapteesActor extends Actor with ActorLogging {
   }
 
   def receive: Receive = {
-    case ClusterInventory.KeyAdded(k, v) ⇒
+    case ClusterInventoryGuardian.KeyAdded(k, v) ⇒
       log.info(s"Would like to register $k and $v")
 
     /*

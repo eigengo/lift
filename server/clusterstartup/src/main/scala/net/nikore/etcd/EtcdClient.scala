@@ -59,8 +59,10 @@ class EtcdClient(conn: String)(implicit system: ActorSystem) extends Json4sSuppo
     if (response.status.isSuccess) response
     else {
       serialization.read[Error](response.entity.asString) match {
-        case e if e.errorCode == 100 => throw KeyNotFoundException(e.message, "not found", e.index)
-        case e => throw new RuntimeException("General error: " + e.toString)
+        case e if e.errorCode == 100 ⇒
+          throw KeyNotFoundException(e.message, "not found", e.index)
+        case e ⇒
+          throw new RuntimeException("General error: " + e.toString)
       }
     }
   }
