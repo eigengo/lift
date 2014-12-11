@@ -55,8 +55,12 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
     guardian ! AddValue(key + "/" + prefixForCluster(cluster), value)
   }
 
-  def subscribe(keyPattern: String, subscriber: ActorRef, refresh: Option[FiniteDuration] = None): Unit = {
+  def subscribe(keyPattern: String, subscriber: ActorRef, refresh: Boolean = false): Unit = {
     guardian ! Subscribe(keyPattern, subscriber, refresh)
+  }
+
+  def unsubscribe(key: String, subscriber: ActorRef): Unit = {
+    guardian ! Unsubscribe(key, subscriber)
   }
 
   private def leave(): Unit = {

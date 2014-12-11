@@ -14,18 +14,23 @@ object ClusterStartupGuardian {
 class ClusterStartupGuardian extends Actor with ActorLogging {
   import ClusterStartupGuardian._
   import scala.concurrent.duration._
-  ClusterInventory(context.system).subscribe("node", self, Some(5.seconds))
+  private val inventory = ClusterInventory(context.system)
   private val selfCluster = Cluster(context.system)
-  private var seedNodes: List[Address] = List.empty
+  private var seedNodes: Set[Address] = Set.empty
   private val retryDuration = 5.seconds
   private val minNrMembers = 2
   import context.dispatcher
 
+  inventory.subscribe("node", self, refresh = true)
+
   override def receive: Receive = {
     case ClusterInventoryGuardian.KeyAdded(_, value) ⇒ value match {
-      case AddressFromURIString(address) if selfCluster.selfAddress != address ⇒
-        seedNodes = address :: seedNodes
-      case x ⇒ log.warning(s"Got key $value, which is not address")
+      case AddressFromURIString(address) ⇒
+        if (selfCluster.selfAddress != address) {
+          seedNodes = seedNodes + address
+          log.info(s"Now with seed nodes $seedNodes")
+        }
+      case x ⇒ log.warning(s"Got value $value, which is not address")
     }
 
     case cmd@TryJoinSeedNodes(cluster) ⇒
@@ -33,8 +38,9 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
         log.warning(s"Could not get sufficient number of seed nodes (got ${seedNodes.size}, needed $minNrMembers). Retrying in $retryDuration.")
         context.system.scheduler.scheduleOnce(retryDuration, self, cmd)
       } else {
-        log.info(s"Got seed nodes $seedNodes")
-        cluster.joinSeedNodes(seedNodes)
+        log.info(s"Joining seed nodes $seedNodes")
+        inventory.unsubscribe("node", self)
+        cluster.joinSeedNodes(seedNodes.toList)
       }
 
   }

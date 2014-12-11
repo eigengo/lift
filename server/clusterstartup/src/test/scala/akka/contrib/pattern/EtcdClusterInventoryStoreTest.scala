@@ -1,6 +1,6 @@
 package akka.contrib.pattern
 
-import akka.actor.ActorSystem
+import akka.actor.{AddressFromURIString, ActorSystem}
 import akka.testkit.TestKit
 import org.scalatest.{FlatSpecLike, Matchers}
 
