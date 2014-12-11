@@ -21,8 +21,9 @@ object ClusterInventoryGuardian {
 
   case class Subscribe(keyPattern: String, subscriber: ActorRef, refresh: Boolean)
   case class Unsubscribe(keyPattern: String, subscriber: ActorRef)
-  case class KeyAdded(key: String, value: String)
-  case class KeyRemoved(key: String)
+  case class KeyValue(key: String, value: String)
+  case class KeyValuesRefreshed(values: List[KeyValue]) extends AnyVal
+  case class KeyAdded(kv: KeyValue) extends AnyVal
 
   private case object RefreshSubscribers
   private case class Subscriber(key: String, subscriber: ActorRef, refresh: Boolean)
@@ -36,17 +37,12 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
   private val cluster = Cluster(context.system)
   private var addedKeys: List[String] = Nil
   private var subscribers: List[Subscriber] = Nil
+  private var lastSubscriberKeys: Map[Subscriber, List[String]] = Map.empty
 
   cluster.subscribe(self, classOf[MemberExited], classOf[MemberRemoved])
 
   private def suffixForCluster(address: Address): String = {
     s"${address.protocol.replace(':', '_')}_${address.host.getOrElse("")}_${address.port.getOrElse(0)}"
-  }
-
-  private def notifyRemoved(key: String): Unit = {
-    subscribers.foreach { subscriber ⇒
-      if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyRemoved(key)
-    }
   }
 
   override def receive: Receive = {
@@ -64,10 +60,11 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
 
     case RefreshSubscribers ⇒
       subscribers.foreach { sub ⇒
-        inventoryStore.getAll(sub.key).onComplete {
-          case Success(nodes) ⇒
-            nodes.foreach { case (k, v) ⇒ if (sub.refresh) sub.subscriber ! KeyAdded(k, v) }
-          case Failure(exn) ⇒ // noop
+        if (sub.refresh) {
+          inventoryStore.getAll(sub.key).onComplete {
+            case Success(nodes) ⇒ sub.subscriber ! KeyValuesRefreshed(nodes.map { case (k, v) ⇒ KeyValue(k, v) })
+            case Failure(exn) ⇒ // noop
+          }
         }
       }
       if (subscribers.exists(_.refresh)) context.system.scheduler.scheduleOnce(5.seconds, self, RefreshSubscribers)
@@ -78,7 +75,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
         case Success(_) ⇒
           addedKeys = resolvedKey :: addedKeys
           subscribers.foreach { subscriber ⇒
-            if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyAdded(key, value)
+            if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyAdded(KeyValue(key, value))
           }
         case Failure(ex) ⇒ log.error(s"Could not set $resolvedKey to $value: ${ex.getMessage}")
       }
@@ -91,7 +88,6 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
           case (key, _) ⇒ if (key.endsWith(suffix)) {
             log.info(s"Removing $key.")
             inventoryStore.delete(key)
-            notifyRemoved(key)
           }
         }
       }
@@ -105,15 +101,11 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
             case (key, _) ⇒ if (key.endsWith(suffix)) {
               log.info(s"Removing $key.")
               inventoryStore.delete(key)
-              notifyRemoved(key)
             }
           }
       }
 
     case RemoveAllAddedKeys ⇒
-      addedKeys.foreach { key ⇒
-        inventoryStore.delete(key)
-        notifyRemoved(key)
-      }
+      addedKeys.foreach(inventoryStore.delete)
   }
 }

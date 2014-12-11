@@ -1,6 +1,7 @@
 package com.eigengo.lift.adapter
 
 import akka.actor._
+import akka.contrib.pattern.ClusterInventoryGuardian.KeyValue
 import akka.contrib.pattern.{ClusterInventory, ClusterInventoryGuardian}
 import akka.io.{IO, Tcp}
 import spray.can.Http
@@ -71,7 +72,7 @@ class AdapteesActor extends Actor with ActorLogging {
   }
 
   def receive: Receive = {
-    case ClusterInventoryGuardian.KeyAdded(k, v) ⇒
+    case ClusterInventoryGuardian.KeyAdded(KeyValue(k, v)) ⇒
       Adaptee.unapply(k, v).foreach { adaptee ⇒
         if (!adaptees.contains(adaptee)) {
           adaptees = adaptee :: adaptees
@@ -79,9 +80,9 @@ class AdapteesActor extends Actor with ActorLogging {
         }
       }
 
-    case ClusterInventoryGuardian.KeyRemoved(key) ⇒
-      adaptees = adaptees.dropWhile(_.key == key)
-      log.info(s"Dropped endpoint. Now with $adaptees.")
+    case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
+      adaptees = kvs.flatMap { kv ⇒ Adaptee.unapply(kv.key, kv.value) }
+      log.info(s"Updated endpoints. Now with $adaptees.")
 
     case Tcp.Connected(_, _) ⇒
       // by default we register ourselves as the handler for a new connection
