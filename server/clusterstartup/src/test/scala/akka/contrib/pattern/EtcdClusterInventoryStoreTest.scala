@@ -16,6 +16,7 @@ class EtcdClusterInventoryStoreTest extends TestKit(ActorSystem()) with FlatSpec
     store.set("system/foo/bar.baz/status", "some://complicated@string‡unicode")
     store.set("system/foo/bar.baz/api", "some://complicated@string‡unicode")
     store.set("system/bar/bar.baz/api", "some://complicated@string‡unicode")
+    store.set("system/frontent.cluster.nodes/node/akka.tcp_192.168.0.8_2552", "akka.tcp://Lift@192.168.0.8:2552")
 
     Thread.sleep(3000)
     val all    = Await.result(store.getAll("system"), atMost)

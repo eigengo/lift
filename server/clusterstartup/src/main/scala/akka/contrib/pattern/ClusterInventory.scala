@@ -48,7 +48,7 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
 
   private def prefixForCluster(cluster: Cluster): String = {
     val address = cluster.selfAddress
-    s"${address.protocol.replace(':', '_')}_${address.host}_${address.port}"
+    s"${address.protocol.replace(':', '_')}_${address.host.getOrElse("")}_${address.port.getOrElse(0)}"
   }
 
   def add(key: String, value: String): Unit = {

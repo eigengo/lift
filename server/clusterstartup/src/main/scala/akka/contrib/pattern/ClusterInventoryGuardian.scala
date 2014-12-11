@@ -50,10 +50,13 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
 
     case AddValue(key, value) ⇒
       val resolvedKey = s"$rootKey/$key"
-      inventoryStore.set(resolvedKey, value)
-      addedKeys = resolvedKey :: addedKeys
-      subscribers.foreach { subscriber ⇒
-        if (key.startsWith(subscriber.keyPattern)) subscriber.subscriber ! KeyAdded(key, value)
+      inventoryStore.set(resolvedKey, value).onComplete {
+        case Success(_) ⇒
+          addedKeys = resolvedKey :: addedKeys
+          subscribers.foreach { subscriber ⇒
+            if (key.startsWith(subscriber.keyPattern)) subscriber.subscriber ! KeyAdded(key, value)
+          }
+        case Failure(ex) ⇒ log.error(s"Could not set $resolvedKey to $value: ${ex.getMessage}")
       }
 
     case RemoveAllAddedKeys ⇒
