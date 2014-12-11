@@ -22,8 +22,8 @@ object ClusterInventoryGuardian {
   case class Subscribe(keyPattern: String, subscriber: ActorRef, refresh: Boolean)
   case class Unsubscribe(keyPattern: String, subscriber: ActorRef)
   case class KeyValue(key: String, value: String)
-  case class KeyValuesRefreshed(values: List[KeyValue]) extends AnyVal
-  case class KeyAdded(kv: KeyValue) extends AnyVal
+  case class KeyValuesRefreshed(values: List[(String, String)])
+  case class KeyAdded(key: String, value: String)
 
   private case object RefreshSubscribers
   private case class Subscriber(key: String, subscriber: ActorRef, refresh: Boolean)
@@ -37,7 +37,6 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
   private val cluster = Cluster(context.system)
   private var addedKeys: List[String] = Nil
   private var subscribers: List[Subscriber] = Nil
-  private var lastSubscriberKeys: Map[Subscriber, List[String]] = Map.empty
 
   cluster.subscribe(self, classOf[MemberExited], classOf[MemberRemoved])
 
@@ -62,7 +61,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       subscribers.foreach { sub ⇒
         if (sub.refresh) {
           inventoryStore.getAll(sub.key).onComplete {
-            case Success(nodes) ⇒ sub.subscriber ! KeyValuesRefreshed(nodes.map { case (k, v) ⇒ KeyValue(k, v) })
+            case Success(nodes) ⇒ sub.subscriber ! KeyValuesRefreshed(nodes)
             case Failure(exn) ⇒ // noop
           }
         }
@@ -75,7 +74,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
         case Success(_) ⇒
           addedKeys = resolvedKey :: addedKeys
           subscribers.foreach { subscriber ⇒
-            if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyAdded(KeyValue(key, value))
+            if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyAdded(key, value)
           }
         case Failure(ex) ⇒ log.error(s"Could not set $resolvedKey to $value: ${ex.getMessage}")
       }
@@ -90,6 +89,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
             inventoryStore.delete(key)
           }
         }
+        case Failure(_) ⇒
       }
 
     case MemberRemoved(member, _) ⇒
@@ -103,6 +103,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
               inventoryStore.delete(key)
             }
           }
+        case Failure(_) ⇒
       }
 
     case RemoveAllAddedKeys ⇒

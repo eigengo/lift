@@ -72,7 +72,7 @@ class AdapteesActor extends Actor with ActorLogging {
   }
 
   def receive: Receive = {
-    case ClusterInventoryGuardian.KeyAdded(KeyValue(k, v)) ⇒
+    case ClusterInventoryGuardian.KeyValue(k, v) ⇒
       Adaptee.unapply(k, v).foreach { adaptee ⇒
         if (!adaptees.contains(adaptee)) {
           adaptees = adaptee :: adaptees
@@ -81,7 +81,7 @@ class AdapteesActor extends Actor with ActorLogging {
       }
 
     case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
-      adaptees = kvs.flatMap { kv ⇒ Adaptee.unapply(kv.key, kv.value) }
+      adaptees = kvs.flatMap { case (k, v) ⇒ Adaptee.unapply(k, v) }
       log.info(s"Updated endpoints. Now with $adaptees.")
 
     case Tcp.Connected(_, _) ⇒
