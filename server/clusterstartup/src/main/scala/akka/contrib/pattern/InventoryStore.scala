@@ -91,6 +91,10 @@ class EtcdInventoryStore(url: String, system: ActorSystem) extends InventoryStor
   val etcdClient = new EtcdClient(url)(system)
   import system.dispatcher
 
+  implicit class RichString(s: String) {
+    def saneKey: String = if (s.startsWith("/")) s.substring(1) else s
+  }
+
   override def get(key: String): Future[String] = {
     etcdClient.getKey(key).map(r ⇒ r.node.value.get)
   }
@@ -99,9 +103,9 @@ class EtcdInventoryStore(url: String, system: ActorSystem) extends InventoryStor
     (if (key.contains("/")) {
       val i = key.lastIndexOf('/')
       val directory = key.substring(0, i)
-      etcdClient.createDir(directory).zip(etcdClient.setKey(key, value)).map(_ ⇒ ())
+      etcdClient.createDir(directory).zip(etcdClient.setKey(key.saneKey, value)).map(_ ⇒ ())
     }
-    else etcdClient.setKey(key, value)).map(_ ⇒ ())
+    else etcdClient.setKey(key.saneKey, value)).map(_ ⇒ ())
   }
 
   override def getAll(key: String): Future[List[(String, String)]] = {
@@ -118,8 +122,8 @@ class EtcdInventoryStore(url: String, system: ActorSystem) extends InventoryStor
       }
     }
 
-    etcdClient.listDir(key, recursive = true).map(r ⇒ r.node.nodes.map(append).getOrElse(Nil))
+    etcdClient.listDir(key.saneKey, recursive = true).map(r ⇒ r.node.nodes.map(append).getOrElse(Nil))
   }
 
-  override def delete(key: String): Future[Unit] = etcdClient.deleteKey(key).map(_ ⇒ ())
+  override def delete(key: String): Future[Unit] = etcdClient.deleteKey(key.saneKey).map(_ ⇒ ())
 }

@@ -43,6 +43,12 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
     s"${address.protocol.replace(':', '_')}_${address.host.getOrElse("")}_${address.port.getOrElse(0)}"
   }
 
+  private def notifyRemoved(key: String): Unit = {
+    subscribers.foreach { subscriber ⇒
+      if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyRemoved(key)
+    }
+  }
+
   override def receive: Receive = {
     case Subscribe(key, subscriber, refresh) if !subscribers.exists(_.subscriber == sender()) ⇒
       val resolvedKey = rootKey + "/" + key
@@ -82,9 +88,10 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       val suffix = suffixForCluster(member.address)
       inventoryStore.getAll(rootKey).onComplete {
         case Success(kvs) ⇒ kvs.foreach {
-          case (k, _) ⇒ if (k.endsWith(suffix)) {
-            log.info(s"Removing $k.")
-            inventoryStore.delete(k)
+          case (key, _) ⇒ if (key.endsWith(suffix)) {
+            log.info(s"Removing $key.")
+            inventoryStore.delete(key)
+            notifyRemoved(key)
           }
         }
       }
@@ -93,20 +100,20 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       log.info(s"Member at ${member.address} removed. Removing its keys.")
       val suffix = suffixForCluster(member.address)
       inventoryStore.getAll(rootKey).onComplete {
-        case Success(kvs) ⇒ kvs.foreach {
-          case (k, _) ⇒ if (k.endsWith(suffix)) {
-            log.info(s"Removing $k.")
-            inventoryStore.delete(k)
+        case Success(kvs) ⇒
+          kvs.foreach {
+            case (key, _) ⇒ if (key.endsWith(suffix)) {
+              log.info(s"Removing $key.")
+              inventoryStore.delete(key)
+              notifyRemoved(key)
+            }
           }
-        }
       }
 
     case RemoveAllAddedKeys ⇒
       addedKeys.foreach { key ⇒
         inventoryStore.delete(key)
-        subscribers.foreach { subscriber ⇒
-          if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyRemoved(key)
-        }
+        notifyRemoved(key)
       }
   }
 }
