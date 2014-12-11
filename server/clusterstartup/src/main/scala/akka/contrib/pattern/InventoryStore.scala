@@ -2,7 +2,7 @@ package akka.contrib.pattern
 
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
-import net.nikore.etcd.EtcdClient
+import net.nikore.etcd.{EtcdJsonProtocol, EtcdClient}
 
 import scala.concurrent.Future
 import scala.io.Source
@@ -104,9 +104,22 @@ class EtcdInventoryStore(url: String, system: ActorSystem) extends InventoryStor
     else etcdClient.setKey(key, value)).map(_ ⇒ ())
   }
 
-  override def getAll(key: String): Future[List[(String, String)]] = etcdClient.listDir(key).map(r ⇒ r.node.nodes.map { nle ⇒
-    nle.flatMap(e ⇒ e.value.map(v ⇒ e.key → v))
-  }.getOrElse(Nil))
+  override def getAll(key: String): Future[List[(String, String)]] = {
+    def append(nodes: List[EtcdJsonProtocol.NodeListElement]): List[(String, String)] = {
+      nodes.flatMap { e ⇒
+        val x = e.nodes.map(append).getOrElse(Nil)
+        val y = e.value.map { v ⇒
+          val h = e.key → v
+          val t = e.nodes.map(append).getOrElse(Nil)
+          h :: t
+        }.getOrElse(Nil)
+
+        x ++ y
+      }
+    }
+
+    etcdClient.listDir(key, recursive = true).map(r ⇒ r.node.nodes.map(append).getOrElse(Nil))
+  }
 
   override def delete(key: String): Future[Unit] = etcdClient.deleteKey(key).map(_ ⇒ ())
 }

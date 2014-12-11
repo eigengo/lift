@@ -15,9 +15,12 @@ class EtcdClusterInventoryStoreTest extends TestKit(ActorSystem()) with FlatSpec
     store.set("system/foo/bar.baz/address", "some://complicated@string‡unicode")
     store.set("system/foo/bar.baz/status", "some://complicated@string‡unicode")
     store.set("system/foo/bar.baz/api", "some://complicated@string‡unicode")
+    store.set("system/bar/bar.baz/api", "some://complicated@string‡unicode")
 
     Thread.sleep(3000)
+    val all    = Await.result(store.getAll("system"), atMost)
     val values = Await.result(store.getAll("system/foo/bar.baz"), atMost)
     println(values)
+    println(all)
   }
 }

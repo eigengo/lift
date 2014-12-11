@@ -13,7 +13,6 @@ object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdPr
 
 }
 
-
 /**
  * XXX
  *
@@ -44,8 +43,13 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
   private lazy val guardian = system.actorOf(ClusterInventoryGuardian.props(Settings.Inventory, system))
   system.registerOnTermination(leave())
 
+  private def prefixForCluster(cluster: Cluster): String = {
+    val address = cluster.selfAddress
+    s"${address.protocol.replace(':', '_')}_${address.host}_${address.port}"
+  }
+
   def add(key: String, value: String): Unit = {
-    guardian ! AddValue(cluster.selfAddress + "/" + key, value)
+    guardian ! AddValue(key + "/" + prefixForCluster(cluster), value)
   }
 
   def subscribe(keyPattern: String, subscriber: ActorRef): Unit = {
@@ -53,7 +57,7 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
   }
 
   private def leave(): Unit = {
-    guardian ! RemoveAllKeys(cluster.selfAddress.toString)
+    guardian ! RemoveAllKeys(prefixForCluster(cluster))
   }
 
 }
