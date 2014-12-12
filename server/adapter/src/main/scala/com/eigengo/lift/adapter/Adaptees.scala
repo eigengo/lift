@@ -72,14 +72,6 @@ class AdapteesActor extends Actor with ActorLogging {
   }
 
   def receive: Receive = {
-    case ClusterInventoryGuardian.KeyValue(k, v) ⇒
-      Adaptee.unapply(k, v).foreach { adaptee ⇒
-        if (!adaptees.contains(adaptee)) {
-          adaptees = adaptee :: adaptees
-          log.info(s"Registered endpoint. Now with $adaptees.")
-        }
-      }
-
     case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
       adaptees = kvs.flatMap { case (k, v) ⇒ Adaptee.unapply(k, v) }
       log.info(s"Updated endpoints. Now with $adaptees.")

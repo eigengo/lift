@@ -47,23 +47,27 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
   override def receive: Receive = {
     case Subscribe(key, subscriber, refresh) if !subscribers.exists(_.subscriber == sender()) ⇒
       val resolvedKey = rootKey + "/" + key
-      log.info(s"Subscribed $subscriber to $resolvedKey")
       subscribers = Subscriber(resolvedKey, subscriber, refresh) :: subscribers
       if (refresh) context.system.scheduler.scheduleOnce(5.seconds, self, RefreshSubscribers)
+      log.info(s"Subscribed $subscriber to $resolvedKey. Now with $subscribers.")
 
     case Unsubscribe(key, subscriber) ⇒
       val resolvedKey = rootKey + "/" + key
-      log.info(s"Unsubscribed $subscriber from $resolvedKey ($subscribers)")
       subscribers = subscribers.dropWhile(s ⇒ s.key == resolvedKey && s.subscriber == subscriber)
-      log.info(s"Unsubscribed $subscriber from $resolvedKey ($subscribers)")
+      log.info(s"Unsubscribed $subscriber from $resolvedKey. Now with $subscribers.")
 
     case RefreshSubscribers ⇒
-      subscribers.foreach { sub ⇒
-        if (sub.refresh) {
-          inventoryStore.getAll(sub.key).onComplete {
-            case Success(nodes) ⇒ sub.subscriber ! KeyValuesRefreshed(nodes)
-            case Failure(exn) ⇒ // noop
-          }
+      val uniqueKeys = subscribers.map(_.key).distinct
+      uniqueKeys.foreach { key ⇒
+        inventoryStore.getAll(key).onComplete {
+          case Success(nodes) ⇒
+            subscribers.foreach { sub ⇒
+              if (sub.key == key) {
+                log.info(s"KeyValuesRefreshed with $nodes to $sub")
+                sub.subscriber ! KeyValuesRefreshed(nodes)
+              }
+            }
+          case Failure(exn) ⇒ // noop
         }
       }
       if (subscribers.exists(_.refresh)) context.system.scheduler.scheduleOnce(5.seconds, self, RefreshSubscribers)

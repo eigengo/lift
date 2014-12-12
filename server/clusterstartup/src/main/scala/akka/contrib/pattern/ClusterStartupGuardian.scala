@@ -23,12 +23,15 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
   inventory.subscribe("node", self, refresh = true)
 
   override def receive: Receive = {
-    case ClusterInventoryGuardian.KeyAdded(_, value) ⇒ value match {
-      case AddressFromURIString(address) ⇒
-        seedNodes = seedNodes + address
-        log.info(s"Now with seed nodes $seedNodes")
-      case x ⇒ log.warning(s"Got value $value, which is not address")
-    }
+    case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
+      kvs.foreach {
+        case (_, value) ⇒ value match {
+          case AddressFromURIString(address) ⇒
+            seedNodes = seedNodes + address
+            log.info(s"Now with seed nodes $seedNodes")
+          case x ⇒ log.warning(s"Got value $value, which is not address")
+        }
+      }
 
     case cmd@TryJoinSeedNodes(cluster) ⇒
       if (seedNodes.size < minNrMembers) {
