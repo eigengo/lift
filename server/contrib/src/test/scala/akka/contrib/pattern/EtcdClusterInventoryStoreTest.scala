@@ -1,11 +1,9 @@
 package akka.contrib.pattern
 
-import akka.actor.{AddressFromURIString, ActorSystem}
+import akka.actor.ActorSystem
+import akka.contrib.pattern.inventorystore.EtcdInventoryStore
 import akka.testkit.TestKit
 import org.scalatest.{FlatSpecLike, Matchers}
-
-import scala.concurrent.Await
-import scala.util.{Success, Failure}
 
 class EtcdClusterInventoryStoreTest extends TestKit(ActorSystem()) with FlatSpecLike with Matchers {
   import scala.concurrent.duration._

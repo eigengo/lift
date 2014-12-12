@@ -3,15 +3,26 @@ package akka.contrib.pattern
 import akka.actor._
 import akka.cluster.Cluster
 
-object ClusterStartupGuardian {
+/**
+ * Companion for the ``ClusterStartupGuardian``, defining the startup props and the messages sent to it
+ */
+private[akka] object ClusterStartupGuardian {
   val props = Props[ClusterStartupGuardian]
 
-  case class TryJoinSeedNodes(cluster: Cluster)
+  /**
+   * Join the discovered seed nodes in the cluster
+   * @param cluster the cluster
+   */
+  case class JoinSeedNodes(cluster: Cluster)
+
+  /**
+   * Remove the given node from the cluster
+   * @param cluster the node to be removed
+   */
   case class RemoveCluster(cluster: Cluster)
-  case class MarkClusterUp(cluster: Cluster)
 }
 
-class ClusterStartupGuardian extends Actor with ActorLogging {
+private[akka] class ClusterStartupGuardian extends Actor with ActorLogging {
   import ClusterStartupGuardian._
   import scala.concurrent.duration._
   private val inventory = ClusterInventory(context.system)
@@ -20,10 +31,10 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
   private val minNrMembers = 2
   import context.dispatcher
 
-  inventory.subscribe("node", self, refresh = true)
+  inventory.subscribe("node", self)
 
   override def receive: Receive = {
-    case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
+    case ClusterInventory.KeyValuesRefreshed(kvs) ⇒
       kvs.foreach {
         case (_, value) ⇒ value match {
           case AddressFromURIString(address) ⇒
@@ -33,7 +44,7 @@ class ClusterStartupGuardian extends Actor with ActorLogging {
         }
       }
 
-    case cmd@TryJoinSeedNodes(cluster) ⇒
+    case cmd@JoinSeedNodes(cluster) ⇒
       if (seedNodes.size < minNrMembers) {
         log.warning(s"Could not get sufficient number of seed nodes (got ${seedNodes.size}, needed $minNrMembers). Retrying in $retryDuration.")
         context.system.scheduler.scheduleOnce(retryDuration, self, cmd)

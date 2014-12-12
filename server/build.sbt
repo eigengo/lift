@@ -4,7 +4,7 @@ import Keys._
 name := "lift"
 
 //Common code, but not protocols
-lazy val common = project.in(file("common")).dependsOn(clusterStartup)
+lazy val common = project.in(file("common")).dependsOn(contrib)
 
 //Exercise
 lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common)
@@ -24,7 +24,7 @@ lazy val main = project.in(file("main")).dependsOn(exercise, profile, notificati
 lazy val adapter = project.in(file("adapter")).dependsOn(common)
 
 //The cluster config
-lazy val clusterStartup = project.in(file("clusterstartup"))
+lazy val contrib = project.in(file("contrib"))
 
 //The main aggregate
 lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter)

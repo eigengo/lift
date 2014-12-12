@@ -1,25 +1,33 @@
-package net.nikore.etcd
+package akka.contrib.pattern.inventorystore
 
 import akka.actor.ActorSystem
-import akka.io.IO
-import akka.pattern.ask
-import net.nikore.etcd.EtcdExceptions._
-import net.nikore.etcd.EtcdJsonProtocol._
 import org.json4s.{DefaultFormats, Formats}
-import spray.can.Http
 import spray.client.pipelining._
 import spray.http._
 import spray.httpx.Json4sSupport
-import spray.util._
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 
-class EtcdClient(conn: String)(implicit system: ActorSystem) extends Json4sSupport {
+private[akka] object EtcdClient {
+
+  //single key/values
+  case class NodeResponse(key: String, value: Option[String], modifiedIndex: Int, createdIndex: Int)
+  case class EtcdResponse(action: String, node: NodeResponse, prevNode: Option[NodeResponse])
+
+  //for hanlding dirs
+  case class NodeListElement(key: String, dir: Option[Boolean], value: Option[String], nodes: Option[List[NodeListElement]])
+  case class EtcdListResponse(action: String, node: NodeListElement)
+
+  //for handling error messages
+  case class Error(errorCode: Int, message: String, cause: String, index: Int)
+}
+
+
+private[akka] class EtcdClient(conn: String)(implicit system: ActorSystem) extends Json4sSupport {
+  import EtcdClient._
   private val baseUrl = s"$conn/v2/keys"
   import system.dispatcher
-
-  override implicit def json4sFormats: Formats = DefaultFormats
+  override implicit val json4sFormats: Formats = DefaultFormats
 
   def getKey(key: String): Future[EtcdResponse] = {
     getKeyAndWait(key, wait = false)
@@ -60,7 +68,7 @@ class EtcdClient(conn: String)(implicit system: ActorSystem) extends Json4sSuppo
     else {
       serialization.read[Error](response.entity.asString) match {
         case e if e.errorCode == 100 ⇒
-          throw KeyNotFoundException(e.message, "not found", e.index)
+          throw new NoSuchKeyException(e.message)
         case e ⇒
           throw new RuntimeException("General error: " + e.toString)
       }
@@ -73,8 +81,4 @@ class EtcdClient(conn: String)(implicit system: ActorSystem) extends Json4sSuppo
       ~> unmarshal[EtcdResponse]
     )
 
-  def shutdown(): Unit = {
-    IO(Http).ask(Http.CloseAll)(1.second).await
-    system.shutdown()
-  }
 }

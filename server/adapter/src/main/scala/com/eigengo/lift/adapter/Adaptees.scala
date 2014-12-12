@@ -1,8 +1,7 @@
 package com.eigengo.lift.adapter
 
 import akka.actor._
-import akka.contrib.pattern.ClusterInventoryGuardian.KeyValue
-import akka.contrib.pattern.{ClusterInventory, ClusterInventoryGuardian}
+import akka.contrib.pattern.ClusterInventory
 import akka.io.{IO, Tcp}
 import akka.util.Timeout
 import spray.can.Http
@@ -44,7 +43,7 @@ class AdapteesActor extends Actor with ActorLogging {
   import spray.client.pipelining._
   import context.dispatcher
   private val pipeline = sendReceive
-  ClusterInventory(context.system).subscribe("api", self, true)
+  ClusterInventory(context.system).subscribe("api", self)
 
   private var adaptees: List[Adaptee] = List.empty
 
@@ -79,7 +78,7 @@ class AdapteesActor extends Actor with ActorLogging {
   }
 
   def receive: Receive = {
-    case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
+    case ClusterInventory.KeyValuesRefreshed(kvs) ⇒
       adaptees = kvs.flatMap { case (k, v) ⇒ Adaptee.unapply(k, v) }
       log.debug(s"Updated endpoints. Now with $adaptees.")
 

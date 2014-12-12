@@ -26,7 +26,7 @@ class ClusterStartup(system: ExtendedActorSystem) extends Extension {
 
   def join[U](onMemberUp: ⇒ U): Unit = {
     ClusterInventory(system).add("node", cluster.selfAddress.toString)
-    guardian ! TryJoinSeedNodes(cluster)
+    guardian ! JoinSeedNodes(cluster)
     cluster.registerOnMemberUp(onMemberUp)
   }
 
