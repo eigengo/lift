@@ -12,14 +12,6 @@ import Foundation
 
 class GlanceController: WKInterfaceController {
 
-    override init(context: AnyObject?) {
-        // Initialize variables here.
-        super.init(context: context)
-        
-        // Configure interface objects here.
-        NSLog("%@ init", self)
-    }
-
     override func willActivate() {
         // This method is called when watch view controller is about to be visible to user
         super.willActivate()

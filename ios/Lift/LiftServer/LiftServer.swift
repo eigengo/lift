@@ -8,7 +8,8 @@ extension Request {
     public func responseAsResutlt<A, U>(f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
         responseSwiftyJSON { (request, response, json, error) -> Void in
             if error != nil {
-                NSLog("Failed with %@ -> %@", request, response!)
+                let r = response != nil ? response! : ""
+                NSLog("Failed with %@ -> %@", request, r)
                 f(Result.error(error!))
             } else if response != nil {
                 if response!.statusCode != 200 {

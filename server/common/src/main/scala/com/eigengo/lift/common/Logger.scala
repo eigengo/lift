@@ -10,17 +10,12 @@ import scala.language.existentials
  */
 object Logger {
 
-  private var logSystem = Option.empty[ActorSystem]
+  def apply[T : event.LogSource](source: T)(implicit system: ActorSystem) = {
+    val (str, clazz) = LogSource(source, system)
 
-  def apply[T : event.LogSource](source: T) = {
-    logSystem = Some(logSystem.getOrElse(ActorSystem("LoggingActorSystem")))
-
-    val (str, clazz) = LogSource(source, logSystem.get)
-
-    new BusLogging(logSystem.get.eventStream, str, clazz) {
+    new BusLogging(system.eventStream, str, clazz) {
       def shutdown() = {
-        logSystem.map(_.shutdown())
-        logSystem = None
+        system.shutdown()
       }
     }
   }
