@@ -49,12 +49,12 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       val resolvedKey = rootKey + "/" + key
       subscribers = Subscriber(resolvedKey, subscriber, refresh) :: subscribers
       if (refresh) context.system.scheduler.scheduleOnce(5.seconds, self, RefreshSubscribers)
-      log.info(s"Subscribed $subscriber to $resolvedKey. Now with $subscribers.")
+      log.debug(s"Subscribed $subscriber to $resolvedKey. Now with $subscribers.")
 
     case Unsubscribe(key, subscriber) ⇒
       val resolvedKey = rootKey + "/" + key
       subscribers = subscribers.dropWhile(s ⇒ s.key == resolvedKey && s.subscriber == subscriber)
-      log.info(s"Unsubscribed $subscriber from $resolvedKey. Now with $subscribers.")
+      log.debug(s"Unsubscribed $subscriber from $resolvedKey. Now with $subscribers.")
 
     case RefreshSubscribers ⇒
       val uniqueKeys = subscribers.map(_.key).distinct
@@ -63,7 +63,7 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
           case Success(nodes) ⇒
             subscribers.foreach { sub ⇒
               if (sub.key == key) {
-                log.info(s"KeyValuesRefreshed with $nodes to $sub")
+                log.debug(s"KeyValuesRefreshed with $nodes to $sub")
                 sub.subscriber ! KeyValuesRefreshed(nodes)
               }
             }
@@ -84,12 +84,12 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       }
 
     case MemberExited(member) ⇒
-      log.info(s"Member at ${member.address} exited. Removing its keys.")
+      log.debug(s"Member at ${member.address} exited. Removing its keys.")
       val suffix = suffixForCluster(member.address)
       inventoryStore.getAll(rootKey).onComplete {
         case Success(kvs) ⇒ kvs.foreach {
           case (key, _) ⇒ if (key.endsWith(suffix)) {
-            log.info(s"Removing $key.")
+            log.debug(s"Removing $key.")
             inventoryStore.delete(key)
           }
         }
@@ -97,13 +97,13 @@ class ClusterInventoryGuardian(rootKey: String, inventoryStore: InventoryStore) 
       }
 
     case MemberRemoved(member, _) ⇒
-      log.info(s"Member at ${member.address} removed. Removing its keys.")
+      log.debug(s"Member at ${member.address} removed. Removing its keys.")
       val suffix = suffixForCluster(member.address)
       inventoryStore.getAll(rootKey).onComplete {
         case Success(kvs) ⇒
           kvs.foreach {
             case (key, _) ⇒ if (key.endsWith(suffix)) {
-              log.info(s"Removing $key.")
+              log.debug(s"Removing $key.")
               inventoryStore.delete(key)
             }
           }

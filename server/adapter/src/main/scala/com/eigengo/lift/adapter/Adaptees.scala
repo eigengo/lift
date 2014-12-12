@@ -60,7 +60,8 @@ class AdapteesActor extends Actor with ActorLogging {
       (header is HttpHeaders.`Host`.lowercaseName) ||
       (header is HttpHeaders.`Content-Type`.lowercaseName) ||
       (header is HttpHeaders.`Content-Length`.lowercaseName) ||
-      (header is HttpHeaders.Server.lowercaseName)
+      (header is HttpHeaders.Server.lowercaseName) ||
+      (header is HttpHeaders.Date.lowercaseName)
     }
 
   private def findAdaptee(uri: Uri, method: HttpMethod): Option[(Adaptee, Uri)] = {
