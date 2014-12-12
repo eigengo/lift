@@ -1,11 +1,3 @@
-//
-//  InterfaceController.swift
-//  Lift WatchKit Extension
-//
-//  Created by Jan Machacek on 11/22/14.
-//  Copyright (c) 2014 Jan Machacek. All rights reserved.
-//
-
 import WatchKit
 import Foundation
 

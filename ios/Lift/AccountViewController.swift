@@ -15,6 +15,9 @@ class AccountViewController : UIViewController {
     
     @IBAction
     func login(sender: UIButton) {
+//        let ln = UILocalNotification()
+//        ln.alertTitle = "Logging in"
+//        UIApplication.sharedApplication().scheduleLocalNotification(ln)        
         self.view.endEditing(true)
         LiftServer.sharedInstance.userLogin(username.text, password: password.text) {
             $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
