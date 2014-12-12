@@ -4,10 +4,12 @@ import akka.actor._
 import akka.contrib.pattern.ClusterInventoryGuardian.KeyValue
 import akka.contrib.pattern.{ClusterInventory, ClusterInventoryGuardian}
 import akka.io.{IO, Tcp}
+import akka.util.Timeout
 import spray.can.Http
+import spray.can.client.ProxySettings
 import spray.http._
 
-import scala.util.Random
+import scala.util.{Failure, Success, Random}
 
 /**
  * Protocol for the ``RouteesActor``
@@ -39,6 +41,9 @@ object AdapteesActor {
 class AdapteesActor extends Actor with ActorLogging {
   import com.eigengo.lift.adapter.AdapteesActor._
   import com.eigengo.lift.common.AdapterProtocol._
+  import spray.client.pipelining._
+  import context.dispatcher
+  private val pipeline = sendReceive
   ClusterInventory(context.system).subscribe("api", self, true)
 
   private var adaptees: List[Adaptee] = List.empty
@@ -54,27 +59,28 @@ class AdapteesActor extends Actor with ActorLogging {
     headers filterNot { header =>
       (header is HttpHeaders.`Host`.lowercaseName) ||
       (header is HttpHeaders.`Content-Type`.lowercaseName) ||
-      (header is HttpHeaders.`Content-Length`.lowercaseName)
+      (header is HttpHeaders.`Content-Length`.lowercaseName) ||
+      (header is HttpHeaders.Server.lowercaseName)
     }
 
-  private def findAdaptee(uri: Uri, method: HttpMethod): Option[Uri] = {
+  private def findAdaptee(uri: Uri, method: HttpMethod): Option[(Adaptee, Uri)] = {
     val path            = uri.path.tail
     val versionPath     = path.head
     val versionlessPath = path.tail
 
-    log.info(versionlessPath.toString())
+    log.debug(versionlessPath.toString())
 
     val side = if (method == HttpMethods.GET || method == HttpMethods.OPTIONS || method == HttpMethods.OPTIONS) Query else Command
 
-    adaptees.filter(r => r.version == versionPath.toString && r.side.contains(side)).randomElement.map { router =>
-      uri.withHost(router.host).withPort(router.port).withPath(versionlessPath)
+    adaptees.filter(r => r.version == versionPath.toString && r.side.contains(side)).randomElement.map { adaptee =>
+      (adaptee, uri.withHost(adaptee.host).withPort(adaptee.port).withPath(versionlessPath))
     }
   }
 
   def receive: Receive = {
     case ClusterInventoryGuardian.KeyValuesRefreshed(kvs) ⇒
       adaptees = kvs.flatMap { case (k, v) ⇒ Adaptee.unapply(k, v) }
-      log.info(s"Updated endpoints. Now with $adaptees.")
+      log.debug(s"Updated endpoints. Now with $adaptees.")
 
     case Tcp.Connected(_, _) ⇒
       // by default we register ourselves as the handler for a new connection
@@ -86,11 +92,16 @@ class AdapteesActor extends Actor with ActorLogging {
       {
         sender() ! HttpResponse(status = StatusCodes.BadGateway, entity = HttpEntity(s"No routee for path ${request.uri.path}"))
       }
-      { updatedUri =>
-        log.info(s"Sending ${request.uri} to $updatedUri")
+      { case (adaptee, updatedUri) =>
+        log.debug(s"Sending ${request.uri} to $updatedUri")
         val updatedRequest = request.copy(uri = updatedUri, headers = stripHeaders(request.headers))
-        IO(Http)(context.system) tell(updatedRequest, sender())
+        val sndr = sender()
+        pipeline(updatedRequest).onComplete {
+          case Success(response) ⇒ sndr ! response.copy(headers = stripHeaders(response.headers))
+          case Failure(exn)      ⇒ adaptees = adaptees.dropWhile(_ == adaptee)
+        }
+        // IO(Http)(context.system).tell(updatedRequest, sender())
       }
-    case x ⇒ println("Unhandled " + x)
+    case x ⇒ log.warning("Adapter not handling " + x)
   }
 }
