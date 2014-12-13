@@ -2,13 +2,10 @@ package com.eigengo.lift.adapter
 
 import akka.actor._
 import akka.contrib.pattern.ClusterInventory
-import akka.io.{IO, Tcp}
-import akka.util.Timeout
-import spray.can.Http
-import spray.can.client.ProxySettings
+import akka.io.Tcp
 import spray.http._
 
-import scala.util.{Failure, Success, Random}
+import scala.util.{Failure, Random, Success}
 
 /**
  * Protocol for the ``RouteesActor``
@@ -40,8 +37,8 @@ object AdapteesActor {
 class AdapteesActor extends Actor with ActorLogging {
   import com.eigengo.lift.adapter.AdapteesActor._
   import com.eigengo.lift.common.AdapterProtocol._
-  import spray.client.pipelining._
   import context.dispatcher
+  import spray.client.pipelining._
   private val pipeline = sendReceive
   ClusterInventory(context.system).subscribe("api", self)
 
