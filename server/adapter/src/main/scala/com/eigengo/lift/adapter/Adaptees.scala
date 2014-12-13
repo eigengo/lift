@@ -21,11 +21,11 @@ object AdapteesActor {
 
     def unapply(key: String, s: String): Option[Adaptee] = s match {
       case Address(host, port, path, version, side) ⇒
-        Some(Adaptee(key, host, port.toInt, version, Command :: Query :: Nil))
+        Some(Adaptee(key, host, port.toInt, path, version, Command :: Query :: Nil))
       case _ ⇒ None
     }
   }
-  case class Adaptee(key: String, host: Host, port: Port, version: Version, side: Seq[Side])
+  case class Adaptee(key: String, host: Host, port: Port, uriPrefix: String, version: Version, side: Seq[Side])
 
   val props = Props[AdapteesActor]
 }
@@ -72,8 +72,12 @@ class AdapteesActor extends Actor with ActorLogging {
 
     val side = if (method == HttpMethods.GET || method == HttpMethods.OPTIONS || method == HttpMethods.OPTIONS) Query else Command
 
-    adaptees.filter(r => r.version == versionPath.toString && r.side.contains(side)).randomElement.map { adaptee =>
-      (adaptee, uri.withHost(adaptee.host).withPort(adaptee.port).withPath(versionlessPath))
+    adaptees.filter(r =>
+        r.uriPrefix.startsWith(versionlessPath.toString()) &&
+        r.version == versionPath.toString &&
+        r.side.contains(side)).randomElement.map { adaptee =>
+      val microservicePath = versionlessPath.dropChars(adaptee.uriPrefix.length)
+      (adaptee, uri.withHost(adaptee.host).withPort(adaptee.port).withPath(microservicePath))
     }
   }
 

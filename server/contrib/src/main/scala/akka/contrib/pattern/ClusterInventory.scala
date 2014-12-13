@@ -1,9 +1,6 @@
 package akka.contrib.pattern
 
 import akka.actor._
-import akka.cluster.Cluster
-
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Cluster inventory extension provides a mechanism to keep inventory of values that are
@@ -19,7 +16,7 @@ object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdPr
 
   override def get(system: ActorSystem): ClusterInventory = super.get(system)
 
-  override def lookup = ClusterInventory
+  override def lookup() = ClusterInventory
 
   override def createExtension(system: ExtendedActorSystem): ClusterInventory =
     new ClusterInventory(system)
@@ -45,11 +42,8 @@ object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdPr
  * @param system the actor system being extended
  */
 class ClusterInventory(system: ExtendedActorSystem) extends Extension {
-  import ClusterInventory._
+  import akka.contrib.pattern.ClusterInventory._
   import akka.contrib.pattern.ClusterInventoryGuardian._
-
-  // our cluster
-  private val cluster = Cluster(system)
 
   /**
    * Settings for the ``akka.contrib.cluster.inventory`` extension
@@ -78,8 +72,16 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
    * @param key the key to be added
    * @param value the value to be added
    */
-  def add(key: String, value: String): Unit = {
-    guardian ! AddValue(key, value)
+  def set(key: String, value: String): Unit = {
+    guardian ! SetKey(key, value)
+  }
+
+  /**
+   * Removes the previously set key
+   * @param key the key to be removed
+   */
+  def delete(key: String): Unit = {
+    guardian ! DeleteKey(key)
   }
 
   /**

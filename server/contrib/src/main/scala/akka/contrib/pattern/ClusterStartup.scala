@@ -25,7 +25,7 @@ class ClusterStartup(system: ExtendedActorSystem) extends Extension {
   private lazy val guardian = system.actorOf(ClusterStartupGuardian.props)
 
   def join[U](onMemberUp: ⇒ U): Unit = {
-    ClusterInventory(system).add("node", cluster.selfAddress.toString)
+    ClusterInventory(system).set("node", cluster.selfAddress.toString)
     guardian ! JoinSeedNodes(cluster)
     cluster.registerOnMemberUp(onMemberUp)
   }

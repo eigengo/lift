@@ -19,7 +19,13 @@ private[akka] object ClusterInventoryGuardian {
    * @param key the key
    * @param value the value
    */
-  case class AddValue(key: String, value: String)
+  case class SetKey(key: String, value: String)
+
+  /**
+   * Remove the ``key``
+   * @param key the key to be removed
+   */
+  case class DeleteKey(key: String)
 
   /**
    * Remove all added keys: this should typically be called at shutdown
@@ -123,7 +129,7 @@ private[akka] class ClusterInventoryGuardian(rootKey: String, inventoryStore: In
       }
 
     /* Add a value for the given key */
-    case AddValue(key, value) ⇒
+    case SetKey(key, value) ⇒
       val resolvedKey = rootKey + "/" + key + "/" + suffixForAddress(cluster.selfAddress)
       inventoryStore.set(resolvedKey, value).onComplete {
         case Success(_) ⇒
@@ -132,6 +138,14 @@ private[akka] class ClusterInventoryGuardian(rootKey: String, inventoryStore: In
             if (key.startsWith(subscriber.key)) subscriber.subscriber ! KeyAdded(key, value)
           }
         case Failure(ex) ⇒ log.error(s"Could not set $resolvedKey to $value: ${ex.getMessage}")
+      }
+
+    /* Remove a key */
+    case DeleteKey(key) ⇒
+      val resolvedKey = rootKey + "/" + key + "/" + suffixForAddress(cluster.selfAddress)
+      inventoryStore.delete(resolvedKey).onComplete {
+        case Success(_) ⇒
+        case Failure(ex) ⇒ log.error(s"Could not remove $resolvedKey: ${ex.getMessage}")
       }
 
     /* Cluster members leaving */

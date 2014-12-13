@@ -99,7 +99,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
         val port: Int = 8080
         val restService = system.actorOf(Props(classOf[RestAPIActor], route))
         IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
-        ClusterInventory(system).add("api", s"http://$hostname:$port?version=1.0&side=q,c")
+        ClusterInventory(system).set("api", s"http://$hostname:$port?version=1.0&side=q,c")
       }
       // logme!
       log.info(s"Node $selfAddress Up")
