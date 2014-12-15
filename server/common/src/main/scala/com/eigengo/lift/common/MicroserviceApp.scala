@@ -4,6 +4,7 @@ import java.net.InetAddress
 
 import akka.actor._
 import akka.cluster.Cluster
+import akka.contrib.pattern.ClusterInventory.UnresolvedDependencies
 import akka.contrib.pattern.{ClusterStartup, ClusterInventory}
 import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
@@ -12,17 +13,32 @@ import spray.can.Http
 import spray.routing.{HttpServiceActor, Route, RouteConcatenation}
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 /**
  * Companion for the microservice app
  */
 object MicroserviceApp {
 
+  sealed trait CQRSMicroservice
+  case object CommandMicroservice extends CQRSMicroservice {
+    override val toString = "c"
+  }
+  case object QueryMicroservice extends CQRSMicroservice {
+    override val toString = "q"
+  }
+
   /**
    * The microservice props
    * @param name the microservice name
+   * @param version the version (try semantic versioning, but we don't really care here)
+   * @param dependencies the other microservices the must exist in the inventory for this one to start-up
+   * @param cqrs the sides of the CQRS barricade
    */
-  case class MicroserviceProps(name: String) {
+  case class MicroserviceProps(name: String,
+                               version: String = "1.0",
+                               dependencies: Seq[String] = Nil,
+                               cqrs: Seq[CQRSMicroservice] = Seq(CommandMicroservice, QueryMicroservice)) {
     val role = name
   }
 
@@ -65,9 +81,16 @@ object MicroserviceApp {
  */
 abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App {
 
+  /**
+   * Subclasses must implement this method to perform their startup: all dependencies
+   * on other microservices are fully resolved by then
+   * @param system the local ActorSystem
+   * @param cluster the cluster hosting the AS
+   */
   def boot(implicit system: ActorSystem, cluster: Cluster): BootedNode
 
   import com.eigengo.lift.common.MicroserviceApp._
+  import scala.concurrent.duration._
 
   private val name = "Lift"
 
@@ -79,30 +102,40 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     val config = clusterShardingConfig.withFallback(clusterRoleConfig).withFallback(ConfigFactory.load())
 
     implicit val system = ActorSystem(name, config)
+    import system.dispatcher
+    val cluster = Cluster(system)
     val log = Logger(getClass)
 
-    val hostname = InetAddress.getLocalHost.getHostAddress
-    log.info(s"Starting Up microservice $microserviceProps at $hostname")
-    Thread.sleep(10000)
+    ClusterInventory(system).resolveDependencies(microserviceProps.dependencies, 60.seconds).onComplete {
+      case Success(_) ⇒
+        val hostname = InetAddress.getLocalHost.getHostAddress
+        log.info(s"Starting Up microservice $microserviceProps at $hostname")
+        Thread.sleep(10000)
 
-    // Create the ActorSystem for the microservice
-    log.info("Creating the microservice's ActorSystem")
-    val cluster = Cluster(system)
-    ClusterStartup(system).join {
-      val selfAddress = cluster.selfAddress
-      log.info(s"Node $selfAddress booting up")
-      // boot the microservice code
-      val bootedNode = boot(system, cluster)
-      log.info(s"Node $selfAddress booted up $bootedNode")
-      bootedNode.api.foreach { api ⇒
-        val route: Route = api(system.dispatcher)
-        val port: Int = 8080
-        val restService = system.actorOf(Props(classOf[RestAPIActor], route))
-        IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
-        ClusterInventory(system).set("api", s"http://$hostname:$port?version=1.0&side=q,c")
-      }
-      // logme!
-      log.info(s"Node $selfAddress Up")
+        // Create the ActorSystem for the microservice
+        log.info("Creating the microservice's ActorSystem")
+        ClusterStartup(system).join {
+          val selfAddress = cluster.selfAddress
+          log.info(s"Node $selfAddress booting up")
+          // boot the microservice code
+          val bootedNode = boot(system, cluster)
+          log.info(s"Node $selfAddress booted up $bootedNode")
+          bootedNode.api.foreach { api ⇒
+            val route: Route = api(system.dispatcher)
+            val port: Int = 8080
+            val restService = system.actorOf(Props(classOf[RestAPIActor], route))
+            IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
+            ClusterInventory(system).set("api", s"http://$hostname:$port?version=${microserviceProps.version}&side=${microserviceProps.cqrs.mkString(",")}")
+          }
+          // logme!
+          log.info(s"Node $selfAddress Up")
+        }
+      case Failure(UnresolvedDependencies(resolved, remaining)) ⇒
+        log.error(s"Could not resolve dependencies for $microserviceProps: resolved $resolved, $remaining remaining.")
+        system.shutdown()
+      case Failure(ex) ⇒
+        log.error(s"Could start the $microserviceProps: ${ex.getMessage}.")
+        system.shutdown()
     }
   }
 

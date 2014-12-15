@@ -23,11 +23,7 @@
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
-		545E06091A304D5700AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
-		545E060A1A304D5700AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
-		545E060B1A304D5700AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
-		545E06111A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		5460122B19FAA1D4009B7CC8 /* AccelerometerReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5460122919FAA1D4009B7CC8 /* AccelerometerReceiver.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
@@ -35,32 +31,15 @@
 		547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* LiftServerMarshallers.swift */; };
 		547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
 		547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64791A2E4FB400F887EE /* PublicProfileController.swift */; };
-		548DC4511A30650700EF1961 /* LiftServerMarshallers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* LiftServerMarshallers.swift */; };
-		54960F091A20C03E00E980AB /* WatchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54960F081A20C03E00E980AB /* WatchKit.framework */; };
-		54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54960F0E1A20C03E00E980AB /* InterfaceController.swift */; };
-		54960F111A20C03E00E980AB /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54960F101A20C03E00E980AB /* NotificationController.swift */; };
-		54960F131A20C03E00E980AB /* GlanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54960F121A20C03E00E980AB /* GlanceController.swift */; };
-		54960F151A20C03F00E980AB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54960F141A20C03F00E980AB /* Images.xcassets */; };
-		54960F191A20C03F00E980AB /* Lift Watch App.app in Resources */ = {isa = PBXBuildFile; fileRef = 54960F181A20C03F00E980AB /* Lift Watch App.app */; };
-		54960F201A20C03F00E980AB /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54960F1F1A20C03F00E980AB /* Interface.storyboard */; };
-		54960F221A20C03F00E980AB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54960F211A20C03F00E980AB /* Images.xcassets */; };
-		54960F251A20C03F00E980AB /* Lift WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
-		54B29B211A2C82B700098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
-		54B29B221A2C82BD00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD41A2F5E650044BDAB /* Box.swift */; };
 		54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD51A2F5E650044BDAB /* Either.swift */; };
 		54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
 		54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
 		54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
-		54C6EFDE1A2F61870044BDAB /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD41A2F5E650044BDAB /* Box.swift */; };
-		54C6EFDF1A2F61870044BDAB /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD51A2F5E650044BDAB /* Either.swift */; };
-		54C6EFE01A2F61870044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
-		54C6EFE11A2F61870044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
-		54C6EFE21A2F61870044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
 		54C6EFE41A2F899A0044BDAB /* SessionsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* SessionsController.swift */; };
 		54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
@@ -70,33 +49,16 @@
 		54CC69B319C4AD8E00B29EC8 /* LiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC69B219C4AD8E00B29EC8 /* LiftTests.swift */; };
 		54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */; };
 		54D320811A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
-		54D320821A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD291A2E58660005E2ED /* DemoSessionController.swift */; };
 		54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
-		54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
 		54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
-		54F780DA1A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		54960F1A1A20C03F00E980AB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 54CC698F19C4AD8E00B29EC8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 54960F171A20C03F00E980AB;
-			remoteInfo = "Lift Watch App";
-		};
-		54960F231A20C03F00E980AB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 54CC698F19C4AD8E00B29EC8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 54960F061A20C03E00E980AB;
-			remoteInfo = "Lift WatchKit Extension";
-		};
 		54CC69AD19C4AD8E00B29EC8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 54CC698F19C4AD8E00B29EC8 /* Project object */;
@@ -113,7 +75,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				54960F251A20C03F00E980AB /* Lift WatchKit Extension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -148,18 +109,7 @@
 		547D51531A3061800055EB35 /* LiftServerMarshallers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerMarshallers.swift; sourceTree = "<group>"; };
 		547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentLiftUser.swift; sourceTree = "<group>"; };
 		547F64791A2E4FB400F887EE /* PublicProfileController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicProfileController.swift; sourceTree = "<group>"; };
-		54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Lift WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
-		54960F0C1A20C03E00E980AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		54960F0D1A20C03E00E980AB /* PushNotificationPayload.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PushNotificationPayload.json; sourceTree = "<group>"; };
-		54960F0E1A20C03E00E980AB /* InterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceController.swift; sourceTree = "<group>"; };
-		54960F101A20C03E00E980AB /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
-		54960F121A20C03E00E980AB /* GlanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceController.swift; sourceTree = "<group>"; };
-		54960F141A20C03F00E980AB /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		54960F181A20C03F00E980AB /* Lift Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lift Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		54960F1E1A20C03F00E980AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		54960F1F1A20C03F00E980AB /* Interface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Interface.storyboard; sourceTree = "<group>"; };
-		54960F211A20C03F00E980AB /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
@@ -197,14 +147,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		54960F041A20C03E00E980AB /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				54960F091A20C03E00E980AB /* WatchKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		54CC699419C4AD8E00B29EC8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -273,45 +215,6 @@
 			name = Pebble;
 			sourceTree = "<group>";
 		};
-		54960F0A1A20C03E00E980AB /* Lift WatchKit Extension */ = {
-			isa = PBXGroup;
-			children = (
-				54960F0E1A20C03E00E980AB /* InterfaceController.swift */,
-				54960F101A20C03E00E980AB /* NotificationController.swift */,
-				54960F121A20C03E00E980AB /* GlanceController.swift */,
-				54960F141A20C03F00E980AB /* Images.xcassets */,
-				54960F0B1A20C03E00E980AB /* Supporting Files */,
-			);
-			path = "Lift WatchKit Extension";
-			sourceTree = "<group>";
-		};
-		54960F0B1A20C03E00E980AB /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				54960F0C1A20C03E00E980AB /* Info.plist */,
-				54960F0D1A20C03E00E980AB /* PushNotificationPayload.json */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		54960F1C1A20C03F00E980AB /* Lift Watch App */ = {
-			isa = PBXGroup;
-			children = (
-				54960F1F1A20C03F00E980AB /* Interface.storyboard */,
-				54960F211A20C03F00E980AB /* Images.xcassets */,
-				54960F1D1A20C03F00E980AB /* Supporting Files */,
-			);
-			path = "Lift Watch App";
-			sourceTree = "<group>";
-		};
-		54960F1D1A20C03F00E980AB /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				54960F1E1A20C03F00E980AB /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 		54C6EFD31A2F5E650044BDAB /* Predef */ = {
 			isa = PBXGroup;
 			children = (
@@ -334,8 +237,6 @@
 				54D3207E1A276747002527C8 /* Alamofire */,
 				54CC699919C4AD8E00B29EC8 /* Lift */,
 				54CC69AF19C4AD8E00B29EC8 /* LiftTests */,
-				54960F0A1A20C03E00E980AB /* Lift WatchKit Extension */,
-				54960F1C1A20C03F00E980AB /* Lift Watch App */,
 				54CC699819C4AD8E00B29EC8 /* Products */,
 				2B79CAD9FA3A249396AFBB5A /* Pods */,
 				8D64789A58A65961D3659708 /* Frameworks */,
@@ -347,8 +248,6 @@
 			children = (
 				54CC699719C4AD8E00B29EC8 /* Lift.app */,
 				54CC69AC19C4AD8E00B29EC8 /* LiftTests.xctest */,
-				54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */,
-				54960F181A20C03F00E980AB /* Lift Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -452,39 +351,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		54960F061A20C03E00E980AB /* Lift WatchKit Extension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 54960F2B1A20C03F00E980AB /* Build configuration list for PBXNativeTarget "Lift WatchKit Extension" */;
-			buildPhases = (
-				54960F031A20C03E00E980AB /* Sources */,
-				54960F041A20C03E00E980AB /* Frameworks */,
-				54960F051A20C03E00E980AB /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				54960F1B1A20C03F00E980AB /* PBXTargetDependency */,
-			);
-			name = "Lift WatchKit Extension";
-			productName = "Lift WatchKit Extension";
-			productReference = 54960F071A20C03E00E980AB /* Lift WatchKit Extension.appex */;
-			productType = "com.apple.product-type.watchkit-extension";
-		};
-		54960F171A20C03F00E980AB /* Lift Watch App */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 54960F2A1A20C03F00E980AB /* Build configuration list for PBXNativeTarget "Lift Watch App" */;
-			buildPhases = (
-				54960F161A20C03F00E980AB /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "Lift Watch App";
-			productName = "Lift Watch App";
-			productReference = 54960F181A20C03F00E980AB /* Lift Watch App.app */;
-			productType = "com.apple.product-type.application.watchapp";
-		};
 		54CC699619C4AD8E00B29EC8 /* Lift */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 54CC69B619C4AD8E00B29EC8 /* Build configuration list for PBXNativeTarget "Lift" */;
@@ -499,7 +365,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				54960F241A20C03F00E980AB /* PBXTargetDependency */,
 			);
 			name = Lift;
 			productName = Lift;
@@ -533,14 +398,6 @@
 				LastUpgradeCheck = 0600;
 				ORGANIZATIONNAME = "Jan Machacek";
 				TargetAttributes = {
-					54960F061A20C03E00E980AB = {
-						CreatedOnToolsVersion = 6.2;
-						DevelopmentTeam = K5TCBGB2PR;
-					};
-					54960F171A20C03F00E980AB = {
-						CreatedOnToolsVersion = 6.2;
-						DevelopmentTeam = K5TCBGB2PR;
-					};
 					54CC699619C4AD8E00B29EC8 = {
 						CreatedOnToolsVersion = 6.1;
 						DevelopmentTeam = K5TCBGB2PR;
@@ -574,32 +431,11 @@
 			targets = (
 				54CC699619C4AD8E00B29EC8 /* Lift */,
 				54CC69AB19C4AD8E00B29EC8 /* LiftTests */,
-				54960F061A20C03E00E980AB /* Lift WatchKit Extension */,
-				54960F171A20C03F00E980AB /* Lift Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		54960F051A20C03E00E980AB /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				54F780DA1A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */,
-				54960F191A20C03F00E980AB /* Lift Watch App.app in Resources */,
-				54960F151A20C03F00E980AB /* Images.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		54960F161A20C03F00E980AB /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				54960F201A20C03F00E980AB /* Interface.storyboard in Resources */,
-				54960F221A20C03F00E980AB /* Images.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		54CC699519C4AD8E00B29EC8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -660,30 +496,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		54960F031A20C03E00E980AB /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				54960F111A20C03E00E980AB /* NotificationController.swift in Sources */,
-				54C6EFE01A2F61870044BDAB /* Operators.swift in Sources */,
-				54F780BA1A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
-				54B29B221A2C82BD00098D2A /* SwiftyJSON.swift in Sources */,
-				54960F0F1A20C03E00E980AB /* InterfaceController.swift in Sources */,
-				545E06091A304D5700AB633B /* UserModel.swift in Sources */,
-				545E06111A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */,
-				54B29B211A2C82B700098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
-				54C6EFE21A2F61870044BDAB /* Result.swift in Sources */,
-				54C6EFE11A2F61870044BDAB /* Predef.swift in Sources */,
-				54C6EFDE1A2F61870044BDAB /* Box.swift in Sources */,
-				545E060B1A304D5700AB633B /* LiftServerURLs.swift in Sources */,
-				54D320821A276747002527C8 /* Alamofire.swift in Sources */,
-				545E060A1A304D5700AB633B /* ExerciseModel.swift in Sources */,
-				54C6EFDF1A2F61870044BDAB /* Either.swift in Sources */,
-				548DC4511A30650700EF1961 /* LiftServerMarshallers.swift in Sources */,
-				54960F131A20C03E00E980AB /* GlanceController.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		54CC699319C4AD8E00B29EC8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -736,16 +548,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		54960F1B1A20C03F00E980AB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 54960F171A20C03F00E980AB /* Lift Watch App */;
-			targetProxy = 54960F1A1A20C03F00E980AB /* PBXContainerItemProxy */;
-		};
-		54960F241A20C03F00E980AB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 54960F061A20C03E00E980AB /* Lift WatchKit Extension */;
-			targetProxy = 54960F231A20C03F00E980AB /* PBXContainerItemProxy */;
-		};
 		54CC69AE19C4AD8E00B29EC8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 54CC699619C4AD8E00B29EC8 /* Lift */;
@@ -781,70 +583,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		54960F261A20C03F00E980AB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = "Lift WatchKit Extension/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SKIP_INSTALL = YES;
-			};
-			name = Debug;
-		};
-		54960F271A20C03F00E980AB /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				INFOPLIST_FILE = "Lift WatchKit Extension/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SKIP_INSTALL = YES;
-			};
-			name = Release;
-		};
-		54960F281A20C03F00E980AB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				IBSC_MODULE = Lift_WatchKit_Extension;
-				INFOPLIST_FILE = "Lift Watch App/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = 1;
-				"TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]" = "1,4";
-			};
-			name = Debug;
-		};
-		54960F291A20C03F00E980AB /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				IBSC_MODULE = Lift_WatchKit_Extension;
-				INFOPLIST_FILE = "Lift Watch App/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = 1;
-				"TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]" = "1,4";
-			};
-			name = Release;
-		};
 		54CC69B419C4AD8E00B29EC8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1014,24 +752,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		54960F2A1A20C03F00E980AB /* Build configuration list for PBXNativeTarget "Lift Watch App" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				54960F281A20C03F00E980AB /* Debug */,
-				54960F291A20C03F00E980AB /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		54960F2B1A20C03F00E980AB /* Build configuration list for PBXNativeTarget "Lift WatchKit Extension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				54960F261A20C03F00E980AB /* Debug */,
-				54960F271A20C03F00E980AB /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		54CC699219C4AD8E00B29EC8 /* Build configuration list for PBXProject "Lift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

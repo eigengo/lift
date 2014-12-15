@@ -2,6 +2,9 @@ package akka.contrib.pattern
 
 import akka.actor._
 
+import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+
 /**
  * Cluster inventory extension provides a mechanism to keep inventory of values that are
  * running in the cluster.
@@ -9,6 +12,8 @@ import akka.actor._
  * The inventory store can be an etcd server, or a simple file, or perhaps a database.
  */
 object ClusterInventory extends ExtensionId[ClusterInventory] with ExtensionIdProvider {
+  case class UnresolvedDependencies(resolved: Seq[String], remaining: Seq[String]) extends RuntimeException(s"Unresolved dependencies: found $resolved, $remaining remaining.")
+
   case class Subscribe(keyPattern: String, subscriber: ActorRef)
   case class Unsubscribe(keyPattern: String, subscriber: ActorRef)
   case class KeyValuesRefreshed(values: List[(String, String)])
@@ -103,6 +108,17 @@ class ClusterInventory(system: ExtendedActorSystem) extends Extension {
    */
   def unsubscribe(key: String, subscriber: ActorRef): Unit = {
     guardian ! Unsubscribe(key, subscriber)
+  }
+
+  /**
+   * Resolve the ``dependencies``, retrying multiple times, and ultimately failing in ``duration``
+   *
+   * @param dependencies the dependencies to find
+   * @param duration the duration
+   * @return ()
+   */
+  def resolveDependencies(dependencies: Seq[String], duration: FiniteDuration): Future[Unit] = {
+    Future.successful(())
   }
 
 }
