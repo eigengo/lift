@@ -51,6 +51,17 @@
 		54D320811A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD291A2E58660005E2ED /* DemoSessionController.swift */; };
 		54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
+		54DC83951A40ACEA006DD311 /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83941A40ACEA006DD311 /* InterfaceController.swift */; };
+		54DC83971A40ACEA006DD311 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83961A40ACEA006DD311 /* NotificationController.swift */; };
+		54DC83991A40ACEA006DD311 /* GlanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83981A40ACEA006DD311 /* GlanceController.swift */; };
+		54DC839B1A40ACEA006DD311 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54DC839A1A40ACEA006DD311 /* Images.xcassets */; };
+		54DC839F1A40ACEA006DD311 /* Lift WatchKit App.app in Resources */ = {isa = PBXBuildFile; fileRef = 54DC839E1A40ACEA006DD311 /* Lift WatchKit App.app */; };
+		54DC83A61A40ACEA006DD311 /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54DC83A51A40ACEA006DD311 /* Interface.storyboard */; };
+		54DC83A81A40ACEA006DD311 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54DC83A71A40ACEA006DD311 /* Images.xcassets */; };
+		54DC83AB1A40ACEA006DD311 /* Lift WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 54DC838F1A40ACEA006DD311 /* Lift WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83B31A40AF82006DD311 /* NotificationModel.swift */; };
+		54DC83B51A40AF82006DD311 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83B31A40AF82006DD311 /* NotificationModel.swift */; };
+		54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
@@ -66,6 +77,20 @@
 			remoteGlobalIDString = 54CC699619C4AD8E00B29EC8;
 			remoteInfo = Lift;
 		};
+		54DC83A01A40ACEA006DD311 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 54CC698F19C4AD8E00B29EC8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 54DC839D1A40ACEA006DD311;
+			remoteInfo = "Lift WatchKit App";
+		};
+		54DC83A91A40ACEA006DD311 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 54CC698F19C4AD8E00B29EC8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 54DC838E1A40ACEA006DD311;
+			remoteInfo = "Lift WatchKit Extension";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -75,6 +100,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				54DC83AB1A40ACEA006DD311 /* Lift WatchKit Extension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -138,6 +164,18 @@
 		54D320801A276747002527C8 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
 		54D8DD291A2E58660005E2ED /* DemoSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoSessionController.swift; sourceTree = "<group>"; };
 		54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSession.swift; sourceTree = "<group>"; };
+		54DC838F1A40ACEA006DD311 /* Lift WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Lift WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		54DC83921A40ACEA006DD311 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		54DC83931A40ACEA006DD311 /* PushNotificationPayload.apns */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationPayload.apns; sourceTree = "<group>"; };
+		54DC83941A40ACEA006DD311 /* InterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceController.swift; sourceTree = "<group>"; };
+		54DC83961A40ACEA006DD311 /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
+		54DC83981A40ACEA006DD311 /* GlanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceController.swift; sourceTree = "<group>"; };
+		54DC839A1A40ACEA006DD311 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		54DC839E1A40ACEA006DD311 /* Lift WatchKit App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lift WatchKit App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		54DC83A41A40ACEA006DD311 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		54DC83A51A40ACEA006DD311 /* Interface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Interface.storyboard; sourceTree = "<group>"; };
+		54DC83A71A40ACEA006DD311 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		54DC83B31A40AF82006DD311 /* NotificationModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
 		54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftAlertController.swift; sourceTree = "<group>"; };
@@ -159,6 +197,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		54CC69A919C4AD8E00B29EC8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		54DC838C1A40ACEA006DD311 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -237,6 +282,8 @@
 				54D3207E1A276747002527C8 /* Alamofire */,
 				54CC699919C4AD8E00B29EC8 /* Lift */,
 				54CC69AF19C4AD8E00B29EC8 /* LiftTests */,
+				54DC83901A40ACEA006DD311 /* Lift WatchKit Extension */,
+				54DC83A21A40ACEA006DD311 /* Lift WatchKit App */,
 				54CC699819C4AD8E00B29EC8 /* Products */,
 				2B79CAD9FA3A249396AFBB5A /* Pods */,
 				8D64789A58A65961D3659708 /* Frameworks */,
@@ -248,6 +295,8 @@
 			children = (
 				54CC699719C4AD8E00B29EC8 /* Lift.app */,
 				54CC69AC19C4AD8E00B29EC8 /* LiftTests.xctest */,
+				54DC838F1A40ACEA006DD311 /* Lift WatchKit Extension.appex */,
+				54DC839E1A40ACEA006DD311 /* Lift WatchKit App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -325,6 +374,45 @@
 			path = Alamofire;
 			sourceTree = "<group>";
 		};
+		54DC83901A40ACEA006DD311 /* Lift WatchKit Extension */ = {
+			isa = PBXGroup;
+			children = (
+				54DC83941A40ACEA006DD311 /* InterfaceController.swift */,
+				54DC83961A40ACEA006DD311 /* NotificationController.swift */,
+				54DC83981A40ACEA006DD311 /* GlanceController.swift */,
+				54DC839A1A40ACEA006DD311 /* Images.xcassets */,
+				54DC83911A40ACEA006DD311 /* Supporting Files */,
+			);
+			path = "Lift WatchKit Extension";
+			sourceTree = "<group>";
+		};
+		54DC83911A40ACEA006DD311 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				54DC83921A40ACEA006DD311 /* Info.plist */,
+				54DC83931A40ACEA006DD311 /* PushNotificationPayload.apns */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		54DC83A21A40ACEA006DD311 /* Lift WatchKit App */ = {
+			isa = PBXGroup;
+			children = (
+				54DC83A51A40ACEA006DD311 /* Interface.storyboard */,
+				54DC83A71A40ACEA006DD311 /* Images.xcassets */,
+				54DC83A31A40ACEA006DD311 /* Supporting Files */,
+			);
+			path = "Lift WatchKit App";
+			sourceTree = "<group>";
+		};
+		54DC83A31A40ACEA006DD311 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				54DC83A41A40ACEA006DD311 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		54F780B71A278EFC00E4F3C5 /* LiftServer */ = {
 			isa = PBXGroup;
 			children = (
@@ -334,6 +422,7 @@
 				547D51531A3061800055EB35 /* LiftServerMarshallers.swift */,
 				545E06031A304CB500AB633B /* UserModel.swift */,
 				545E06051A304CBD00AB633B /* ExerciseModel.swift */,
+				54DC83B31A40AF82006DD311 /* NotificationModel.swift */,
 			);
 			path = LiftServer;
 			sourceTree = "<group>";
@@ -365,6 +454,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				54DC83AA1A40ACEA006DD311 /* PBXTargetDependency */,
 			);
 			name = Lift;
 			productName = Lift;
@@ -388,6 +478,39 @@
 			productName = LiftTests;
 			productReference = 54CC69AC19C4AD8E00B29EC8 /* LiftTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		54DC838E1A40ACEA006DD311 /* Lift WatchKit Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 54DC83B11A40ACEB006DD311 /* Build configuration list for PBXNativeTarget "Lift WatchKit Extension" */;
+			buildPhases = (
+				54DC838B1A40ACEA006DD311 /* Sources */,
+				54DC838C1A40ACEA006DD311 /* Frameworks */,
+				54DC838D1A40ACEA006DD311 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				54DC83A11A40ACEA006DD311 /* PBXTargetDependency */,
+			);
+			name = "Lift WatchKit Extension";
+			productName = "Lift WatchKit Extension";
+			productReference = 54DC838F1A40ACEA006DD311 /* Lift WatchKit Extension.appex */;
+			productType = "com.apple.product-type.watchkit-extension";
+		};
+		54DC839D1A40ACEA006DD311 /* Lift WatchKit App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 54DC83B01A40ACEB006DD311 /* Build configuration list for PBXNativeTarget "Lift WatchKit App" */;
+			buildPhases = (
+				54DC839C1A40ACEA006DD311 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Lift WatchKit App";
+			productName = "Lift WatchKit App";
+			productReference = 54DC839E1A40ACEA006DD311 /* Lift WatchKit App.app */;
+			productType = "com.apple.product-type.application.watchapp";
 		};
 /* End PBXNativeTarget section */
 
@@ -414,6 +537,13 @@
 						CreatedOnToolsVersion = 6.1;
 						TestTargetID = 54CC699619C4AD8E00B29EC8;
 					};
+					54DC838E1A40ACEA006DD311 = {
+						CreatedOnToolsVersion = 6.2;
+						DevelopmentTeam = K5TCBGB2PR;
+					};
+					54DC839D1A40ACEA006DD311 = {
+						CreatedOnToolsVersion = 6.2;
+					};
 				};
 			};
 			buildConfigurationList = 54CC699219C4AD8E00B29EC8 /* Build configuration list for PBXProject "Lift" */;
@@ -431,6 +561,8 @@
 			targets = (
 				54CC699619C4AD8E00B29EC8 /* Lift */,
 				54CC69AB19C4AD8E00B29EC8 /* LiftTests */,
+				54DC838E1A40ACEA006DD311 /* Lift WatchKit Extension */,
+				54DC839D1A40ACEA006DD311 /* Lift WatchKit App */,
 			);
 		};
 /* End PBXProject section */
@@ -457,6 +589,24 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		54DC838D1A40ACEA006DD311 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				54DC839B1A40ACEA006DD311 /* Images.xcassets in Resources */,
+				54DC839F1A40ACEA006DD311 /* Lift WatchKit App.app in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		54DC839C1A40ACEA006DD311 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				54DC83A61A40ACEA006DD311 /* Interface.storyboard in Resources */,
+				54DC83A81A40ACEA006DD311 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,6 +678,7 @@
 				5427CDED19C5F296005C9B4E /* Recorder.swift in Sources */,
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
 				547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */,
+				54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */,
 				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
 				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
@@ -545,6 +696,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		54DC838B1A40ACEA006DD311 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				54DC83971A40ACEA006DD311 /* NotificationController.swift in Sources */,
+				54DC83951A40ACEA006DD311 /* InterfaceController.swift in Sources */,
+				54DC83B51A40AF82006DD311 /* NotificationModel.swift in Sources */,
+				54DC83991A40ACEA006DD311 /* GlanceController.swift in Sources */,
+				54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -552,6 +715,16 @@
 			isa = PBXTargetDependency;
 			target = 54CC699619C4AD8E00B29EC8 /* Lift */;
 			targetProxy = 54CC69AD19C4AD8E00B29EC8 /* PBXContainerItemProxy */;
+		};
+		54DC83A11A40ACEA006DD311 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 54DC839D1A40ACEA006DD311 /* Lift WatchKit App */;
+			targetProxy = 54DC83A01A40ACEA006DD311 /* PBXContainerItemProxy */;
+		};
+		54DC83AA1A40ACEA006DD311 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 54DC838E1A40ACEA006DD311 /* Lift WatchKit Extension */;
+			targetProxy = 54DC83A91A40ACEA006DD311 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -749,6 +922,73 @@
 			};
 			name = Release;
 		};
+		54DC83AC1A40ACEA006DD311 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "Lift WatchKit Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_NAME = "${TARGET_NAME}";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		54DC83AD1A40ACEA006DD311 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				INFOPLIST_FILE = "Lift WatchKit Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_NAME = "${TARGET_NAME}";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		54DC83AE1A40ACEA006DD311 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_ENABLE_MODULES = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IBSC_MODULE = Lift_WatchKit_Extension;
+				INFOPLIST_FILE = "Lift WatchKit App/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Lift/LiftServer/Lift WatchKit App-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = 4;
+				"TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]" = "1,4";
+			};
+			name = Debug;
+		};
+		54DC83AF1A40ACEA006DD311 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_ENABLE_MODULES = YES;
+				IBSC_MODULE = Lift_WatchKit_Extension;
+				INFOPLIST_FILE = "Lift WatchKit App/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Lift/LiftServer/Lift WatchKit App-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = 4;
+				"TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]" = "1,4";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -778,6 +1018,22 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		54DC83B01A40ACEB006DD311 /* Build configuration list for PBXNativeTarget "Lift WatchKit App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				54DC83AE1A40ACEA006DD311 /* Debug */,
+				54DC83AF1A40ACEA006DD311 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		54DC83B11A40ACEB006DD311 /* Build configuration list for PBXNativeTarget "Lift WatchKit Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				54DC83AC1A40ACEA006DD311 /* Debug */,
+				54DC83AD1A40ACEA006DD311 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
