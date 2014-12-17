@@ -5,7 +5,7 @@ import java.net.InetAddress
 import akka.actor._
 import akka.cluster.Cluster
 import akka.contrib.pattern.ClusterInventory.UnresolvedDependencies
-import akka.contrib.pattern.{ClusterStartup, ClusterInventory}
+import akka.contrib.pattern._
 import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
 import com.typesafe.config.ConfigFactory
@@ -106,6 +106,8 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     val cluster = Cluster(system)
     val log = Logger(getClass)
 
+    NodeManager(JmxConnector).apply(microserviceProps.name)
+
     ClusterInventory(system).resolveDependencies(microserviceProps.dependencies, 60.seconds).onComplete {
       case Success(_) ⇒
         val hostname = InetAddress.getLocalHost.getHostAddress
@@ -121,7 +123,8 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
           val bootedNode = boot(system, cluster)
           log.info(s"Node $selfAddress booted up $bootedNode")
           bootedNode.api.foreach { api ⇒
-            val route: Route = api(system.dispatcher)
+            import RouteConcatenation._
+            val route: Route = api(system.dispatcher) ~ NodeManager(SprayConnector).apply("deleteme")
             val port: Int = 8080
             val restService = system.actorOf(Props(classOf[RestAPIActor], route))
             IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)

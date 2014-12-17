@@ -1,9 +1,20 @@
 <p>In today's post, let's take a explore a sending push notifications from Akka to an iOS application, <em>including</em> all the complexities of setting up the required certificates for push notifications, the iOS code, and packaging the entire solution in a container.</p>
 <p>Remember that the application we're building often cannot provide immediate response to the requests it receives other than HTTP 200/202. The server-side code is saying "we heard you, we're working on it." In practical terms in the Lift <a href="https://github.com/eigengo/lift" target="_blank">https://github.com/eigengo/lift</a> application, a <code>PUT</code> to <code>/exercise/:userId/:sessionId</code> with the valid accelerometer data payload results in <code>status = 200, body = {}</code> type of response. It is only when the system classifies the exercise that it may decide to send a push notification to the device telling the user to get on with the exercise. Viz the code in <code>UserExercises</code>:</p>
 [code language="scala"]
-class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
+class UserExercises(notification: ActorRef, 
+                    userProfile: ActorRef, 
+                    exerciseClasssifiers: ActorRef)
   extends PersistentActor with ActorLogging {
   ...
+
+  import akka.pattern.ask
+  import com.eigengo.lift.common.Timeouts.defaults._
+  import context.dispatcher
+  private val userId = UserId(self.path.name)
+  private var devices = Devices.empty
+  (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
+    case ds ⇒ devices = ds
+  }
 
   private def exercising(id: SessionId, sessionProps: SessionProps): 
     Receive = {
@@ -42,4 +53,229 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
   ...
 }
 [/code]
-<p>Let's dive into the mechanics of the <code>Notification</code> actor, which deals with delivering the notifications to the users' devices.</p>
+<p>Let's dive into the mechanics of the <code>Notification</code> actor, which deals with delivering the notifications to the users' devices. The <code>Notification</code> actor itself is just a router, which decides which of its children can handle the notification: so far, we only have iOS as notification target, but Android, and dare I say Windows Phone could be next.</p>
+IMAGE HERE
+<p>Going back to Scala, we have the usual world of actors creating &amp; supervising children.</p>
+[code language="scala"]
+object NotificationProtocol {
+
+  sealed trait Device
+  case class IOSDevice(deviceToken: Array[Byte]) extends Device {
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case IOSDevice(dt) ⇒ util.Arrays.equals(deviceToken, dt)
+      case x ⇒ false
+    }
+
+    override val hashCode: Int = deviceToken.hashCode()
+  }
+  case class AndroidDevice() extends Device
+
+  case class Devices(devices: Set[Device]) extends AnyVal {
+    def ::(device: Device) = Devices(devices + device)
+    def foreach[U](f: Device ⇒ U): Unit = devices.foreach(f)
+  }
+  object Devices {
+    val empty = Devices(Set.empty)
+  }
+
+  sealed trait Destination
+  case object MobileDestination extends Destination
+  case object WatchDestination extends Destination
+  
+  case class PushMessage(devices: Devices, message: String, badge: Option[Int], sound: Option[String], destinations: Seq[Destination])
+
+}
+
+object Notification {
+  val name = "notification"
+  val props = Props(classOf[Notification]).withRouter(RoundRobinPool(nrOfInstances = 15))
+}
+
+class Notification extends Actor with ActorLogging {
+  import com.eigengo.lift.notification.NotificationProtocol._
+  private val apple = context.actorOf(ApplePushNotification.props)
+
+  override def receive: Receive = {
+    case PushMessage(devices, message, badge, sound, destinations) ⇒
+      devices.foreach {
+        case IOSDevice(deviceToken) ⇒
+          destinations.foreach {
+            case MobileDestination ⇒ apple ! ApplePushNotification.ScreenMessage(deviceToken, message, badge, sound)
+            case WatchDestination ⇒ // noop for now
+          }
+
+        case AndroidDevice() ⇒
+          log.info(s"Not yet delivering Android push message $message")
+      }
+  }
+}
+[/code]
+<p>The <code>Notification</code> actor is our router, which routes the messages for actual delivery depending on what kind of device is on the other end. The actual delivery mechanism is in the <code>ApplePushNotification</code> actor.</p>
+[code language="scala"]
+object ApplePushNotification {
+  val props = Props[ApplePushNotification].withRouter(RoundRobinPool(nrOfInstances = 10))
+
+  case class ScreenMessage(deviceToken: Array[Byte], message: String, badge: Option[Int], sound: Option[String])
+
+}
+
+class ApplePushNotification extends Actor with ActorLogging {
+  import scala.concurrent.duration._
+
+  override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 10.seconds) {
+    case x: UnknownHostException ⇒ Restart
+  }
+
+  override lazy val receive = Try {
+    val userHomeIos = System.getProperty("user.home") + "/.ios"
+    val certificatePath = s"$userHomeIos/lift-push-development.p12"
+    val certificatePassword = Source.fromFile(s"$userHomeIos/lift-push-development.pwd").mkString
+    val service = APNS.newService.withCert(certificatePath, certificatePassword).withSandboxDestination.build
+    withCertificates(service)
+  }.getOrElse(screenOnly)
+
+  private def withCertificates(service: ApnsService): Receive = {
+    case ScreenMessage(deviceToken, message, badge, sound) ⇒
+      log.info(s"Screen message $message to ${util.Arrays.toString(deviceToken)}")
+      val payloadBuilder = APNS.newPayload.alertBody(message)
+      badge.foreach(payloadBuilder.badge)
+      sound.foreach(payloadBuilder.sound)
+      service.push(deviceToken, payloadBuilder.build().getBytes("UTF-8"))
+  }
+
+  private def screenOnly: Receive = {
+    case ScreenMessage(deviceToken, message, _, _) ⇒
+      log.info(s"*** Not delivering screen message $message to $deviceToken")
+  }
+
+}
+[/code]
+<p>It seems rather complex. Somehow, it has two behaviour branches. One that actually does something useful, and one that just adds a message to the system's log. The motivation was to allow you—my dear readers—to try out the code without me having to share my iOS certificate and matching passsphrase. As you can see, I try to load the file <code>~/.ios/lift-push-development.p12</code>, which is the certificate itself and matching passphrase from <code>~/.ios/lift-push-development.pwd</code>. I happen to have these files on my development machines, and in the private Docker images. Unless you obtain the certificates, you will have no such luck, and you'll only see the log message instead of a message delivered to your phone.</p> 
+<h3>Docker images</h3>
+<p>From this discussion, we can easily slip into how I prepare the Docker images. Again, I wanted to be sure that even you can build the images, even if you are missing the magical <code>~/.ios/lift-push-development.*</code> files. And so, in the <code>build.sbt</code> in the <code>main</code> project, I have:</p>
+[code language="scala"]
+...
+
+import DockerKeys._
+import sbtdocker.ImageName
+import sbtdocker.mutable.Dockerfile
+
+dockerSettings
+
+mainClass in assembly := Some("com.eigengo.lift.LiftServiceApp")
+
+docker <<= (docker dependsOn assembly)
+
+dockerfile in docker := {
+  val artifact = (outputPath in assembly).value
+  val artifactTargetPath = s"/app/${artifact.name}"
+  new Dockerfile {
+    from("dockerfile/java")
+    val f = new File(s"${Path.userHome.absolutePath}/.ios")
+    if (f.exists) add(f, "/root/.ios")
+    add(artifact, artifactTargetPath)
+    entryPoint("java", "-jar", artifactTargetPath)
+  }
+}
+
+imageName in docker := {
+  ImageName(
+    namespace = Some("janm399"),
+    repository = "lift",
+    tag = Some(name.value))
+}
+[/code]
+<p>The key (pardon the pun) is the check for the existence of the <code>~/.ios</code> directory on the machine that prepares the images. If it exists, it will be included in the generated Docker image; from there, the <code>ApplePushNotificaiton</code> actor is going to load the certificate and its passphrase, and all will work.</p>
+<h3>iOS</h3>
+<p>To finish, allow me to take a detour to the iOS programming. I will show you how to write some nice Swift code that registers for remote notifications, and show you how the iOS code acually interacts with the Scala server.</p>
+<p>First, in the Certificates, Identities &amp; Profiles in the Apple Developer Member Centre, be sure to include push notifications in the provisioning profile for the Lift application.</p>
+IMAGE PP
+<p>Next, create a keypair, and obtain a APNs Development iOS certificate; download the certificate. You should then see the certificate and matching private key in your Keychain Access. Export the certificate to the <code>~/.ios/lift-push-development.p12</code> file, and save the passphrase you selected in <code>~/.ios/lift-push-development.pwd</code>.</p>
+IMAGE KC
+<p>With all this in place, we're ready to dive into the iOS code. First, we need to register for remote notifications; the registration process has changed a little in iOS 8. Hence, the code in the <code>AppDelegate</code> is now</p>
+[code language="swift"]
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    var deviceToken: NSData?
+    var window: UIWindow?
+    var alertView: UIAlertView? = nil
+
+    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        registerSettingsAndDelegates()
+        
+        return true
+    }
+    
+    func registerSettingsAndDelegates() {
+        if UIDevice.currentDevice().systemVersion >= "8.0" {
+            let settings = UIUserNotificationSettings(forTypes: UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound, categories: nil)
+            UIApplication.sharedApplication().registerUserNotificationSettings(settings)
+        } else {
+            UIApplication.sharedApplication().registerForRemoteNotificationTypes(UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound)
+        }
+        
+        UIApplication.sharedApplication().registerForRemoteNotifications()
+   }
+        
+    func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
+        self.deviceToken = deviceToken
+    }
+    
+    func application(application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: NSError) {
+        // typically when running in the simulator
+        NSLog("Not registered \(error)")
+    }
+    
+    ...
+}
+[/code]
+<p>So, when the app starts up, it registers for remote notifications. If it is doing so for the first time, it'll ask the user for permission. (The user can revoke this permission at any time in the phone's Settings app.) Once granted, the <code>application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData)</code> method runs. All that we do there is to remember the <code>deviceToken</code>. We don't yet know which user the token should go to. Is it a new user, or a user that is logging in again? We only find that out in the <code>AccountViewController</code>. When the user logs in or registers, the server replies with its identity, once we have the user's identity, we can set the user's device.</p>
+[code language="swift"]
+class AccountViewController : UIViewController {
+    @IBOutlet var username: UITextField!
+    @IBOutlet var password: UITextField!
+    
+    private func showAccount(user: User) {
+        let deviceToken = (UIApplication.sharedApplication().delegate! as AppDelegate).deviceToken
+        if deviceToken != nil {
+            LiftServer.sharedInstance.userRegisterDeviceToken(user.id, deviceToken: deviceToken!)
+        }
+        CurrentLiftUser.userId = user.id
+        performSegueWithIdentifier("main", sender: nil)
+    }
+    
+    @IBAction
+    func login(sender: UIButton) {
+        LiftServer.sharedInstance.userLogin(username.text, password: password.text) {
+            $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
+        }
+    }
+    
+    @IBAction
+    func register(sender: UIButton) {
+        LiftServer.sharedInstance.userRegister(username.text, password: password.text) {
+            $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
+        }
+    }
+}
+[/code]
+<p>Looking at this code, it's not that terribly different from the Scala code. The methods in the <code>LiftServer</code> instance all follow similar shape:</p>
+[code language="swift"]
+class LiftServer {
+  
+    ...
+
+    func userLogin(email: String, password: String, 
+                   f: Result<User> -> Void) -> Void { ... }
+
+    func userRegister(email: String, password: String, 
+                      f: Result<User> -> Void) -> Void { ... }
+    
+    ...
+}                      
+[/code]
+<p>When we apply the <code>userLogin</code> to the first two parameters, we are left with <code>Result&lt;User&gt; -&gt; Void -&gt; Void</code>. We apply that to <code>{ x in return x.cata(..., ...) }</code>, or in the Swift shorthand <code>{ $0.cata(..., ...) }</code>, which finally evaluates to just <code>Void</code>. In the catamorphism of <code>Result&lt;A&gt;</code>, we collapse the whole thing into <code>Void</code> by either showing an error message or performing the <code>self.showAccount</code> function.</p>
+<p>The body of <code>showAccount</code> is therefore called when we have user identity, either by registering a new user or successfully logging in an existing user. We can therefore get our hands on the <code>deviceToken</code> and call the <code>userRegisterDeviceToken</code>. This updates the <code>devices</code> in the <code>UserProfile</code> shard, and the <code>UserExercises</code> can now query the same set and use it to send push notifications...</p>
+<h3>Summary</h3>
+<p>Today's post was plain-old-Akka, but I have tried to demonstrate how to combine the server-side code with other components in the system, and hopefully explained the motivation for some of the needlessly complex code. So, what are you waiting for? Head over to <a href="https://github.com/eigengo/lift" target="_blank">https://github.com/eigengo/lift</a> clone or fork, and try the push notifications for yourself!</p>
