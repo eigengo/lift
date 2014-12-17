@@ -25,7 +25,7 @@ object NodeManager {
   }
 
   /**
-   * The health manager extension
+   * The node manager extension
    */
   private[akka] trait Manager extends akka.actor.Extension {
     def stop(): Unit
