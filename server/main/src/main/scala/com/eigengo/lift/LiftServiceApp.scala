@@ -14,8 +14,8 @@ import com.eigengo.lift.profile.ProfileBoot
 object LiftServiceApp extends MicroserviceApp(MicroserviceProps("Lift")) {
   override def boot(implicit system: ActorSystem, cluster: Cluster): BootedNode = {
     val profile = ProfileBoot.boot(system)
-    val notificaiton = NotificationBoot.boot(profile.userProfile)
-    val exercise = ExerciseBoot.boot(notificaiton.notification)
+    val notificaiton = NotificationBoot.boot
+    val exercise = ExerciseBoot.boot(notificaiton.notification, profile.userProfile)
 
     profile + notificaiton + exercise
   }

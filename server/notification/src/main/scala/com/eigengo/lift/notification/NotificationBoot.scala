@@ -7,8 +7,8 @@ case class NotificationBoot(notification: ActorRef) extends BootedNode
 
 object NotificationBoot {
 
-  def boot(userProfile: ActorRef)(implicit system: ActorSystem): NotificationBoot = {
-    val notification = system.actorOf(Notification.props(userProfile), Notification.name)
+  def boot(implicit system: ActorSystem): NotificationBoot = {
+    val notification = system.actorOf(Notification.props, Notification.name)
     NotificationBoot(notification)
   }
 

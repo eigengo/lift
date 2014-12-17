@@ -28,11 +28,11 @@ object ExerciseBoot extends ExerciseService {
    * Boot the exercise microservice
    * @param system the AS to boot the microservice in
    */
-  def boot(profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
+  def boot(notification: ActorRef, profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
     val exerciseClassifiers = system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
     val userExercise = ClusterSharding(system).start(
       typeName = UserExercises.shardName,
-      entryProps = Some(UserExercises.props(profile, exerciseClassifiers)),
+      entryProps = Some(UserExercises.props(notification, profile, exerciseClassifiers)),
       idExtractor = UserExercises.idExtractor,
       shardResolver = UserExercises.shardResolver)
     val userExerciseView = ClusterSharding(system).start(

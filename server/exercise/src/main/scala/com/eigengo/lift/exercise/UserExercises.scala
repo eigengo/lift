@@ -8,7 +8,8 @@ import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, NoExercise, UnclassifiedExercise}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
-import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, WatchDestination}
+import com.eigengo.lift.notification.NotificationProtocol.{Devices, MobileDestination, PushMessage, WatchDestination}
+import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
@@ -22,7 +23,7 @@ object UserExercises {
   /** The shard name */
   val shardName = "user-exercises"
   /** The sessionProps to create the actor on a node */
-  def props(notification: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, exerciseClassifiers)
+  def props(notification: ActorRef, userProfile: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, userProfile, exerciseClassifiers)
 
   /**
    * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
@@ -102,13 +103,23 @@ object UserExercises {
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
+class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
   import scala.concurrent.duration._
 
+  import akka.pattern.ask
   private val userId = UserId(self.path.name)
+  import com.eigengo.lift.common.Timeouts.defaults._
+  import context.dispatcher
+  (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
+    case ds ⇒
+      devices = ds
+  }
+
   // minimum confidence
   private val confidenceThreshold = 0.5
+  // known user devices
+  private var devices = Devices.empty
   // how long until we stop processing
   context.setReceiveTimeout(360.seconds)
   // our unique persistenceId; the self.path.name is provided by ``UserExercises.idExtractor``,
@@ -166,8 +177,8 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
       persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
-          if (i << sessionProps.intendedIntensity) notification ! PushMessage(userId, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(userId, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
         }
       }
 
@@ -184,7 +195,7 @@ class UserExercises(notification: ActorRef, exerciseClasssifiers: ActorRef)
     case TooMuchRest ⇒
       log.info("NoExercise: exercising -> exercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
-        notification ! PushMessage(userId, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+        notification ! PushMessage(devices, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
       }
 
     case ExerciseSessionEnd(`id`) ⇒

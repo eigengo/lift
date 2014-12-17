@@ -8,6 +8,7 @@ import akka.contrib.pattern.DistributedPubSubExtension
 import akka.contrib.pattern.DistributedPubSubMediator.{Publish, Subscribe}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.UserId
+import com.eigengo.lift.notification.NotificationProtocol.Device
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
 import com.eigengo.lift.profile.UserProfileProtocol._
 
@@ -37,7 +38,7 @@ object UserProfileProcessor {
    * @param userId the user identity
    * @param device the device to be added
    */
-  case class UserSetDevice(userId: UserId, device: UserDevice)
+  case class UserSetDevice(userId: UserId, device: Device)
 
   /**
    * Sets the users' public profile

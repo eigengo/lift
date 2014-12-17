@@ -1,23 +1,10 @@
 package com.eigengo.lift.profile
 
-import java.util
-
 import com.eigengo.lift.common.UserId
 
 object UserProfileProtocol {
 
-  /**
-   * All user devices
-   * @param devices the devices
-   */
-  case class UserDevices(devices: Set[UserDevice]) extends AnyVal {
-    def ::(device: UserDevice) = UserDevices(devices + device)
-    def foreach[U](f: UserDevice ⇒ U): Unit = devices.foreach(f)
-  }
-  object UserDevices {
-    /** empty UserDevices */
-    val empty = UserDevices(Set.empty)
-  }
+  import com.eigengo.lift.notification.NotificationProtocol._
 
   /**
    * The user profile includes the user's account and registered / known devices
@@ -25,13 +12,13 @@ object UserProfileProtocol {
    * @param devices the known devices
    * @param publicProfile the public profile
    */
-  case class Profile(account: Account, devices: UserDevices, publicProfile: Option[PublicProfile]) {
+  case class Profile(account: Account, devices: Devices, publicProfile: Option[PublicProfile]) {
     /**
      * Adds a device to the profile
      * @param device the device
      * @return the updated profile
      */
-    def withDevice(device: UserDevice) = copy(devices = device :: devices)
+    def withDevice(device: Device) = copy(devices = device :: devices)
 
     /**
      * Sets the public profile
@@ -57,20 +44,6 @@ object UserProfileProtocol {
    * @param age age
    */
   case class PublicProfile(firstName: String, lastName: String, weight: Option[Int], age: Option[Int])
-  
-  /**
-   * The user's devices
-   */
-  sealed trait UserDevice
-  case class IOSUserDevice(deviceToken: Array[Byte]) extends UserDevice {
-    override def equals(obj: scala.Any): Boolean = obj match {
-      case IOSUserDevice(dt) ⇒ util.Arrays.equals(deviceToken, dt)
-      case x ⇒ false
-    }
-
-    override val hashCode: Int = deviceToken.hashCode()
-  }
-  case class AndroidUserDevice() extends UserDevice
 
   /**
    * Get profile query for the given ``userId``

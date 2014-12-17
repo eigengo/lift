@@ -4,8 +4,7 @@ import akka.actor.{ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-
-import scalaz.\/
+import com.eigengo.lift.notification.NotificationProtocol.{Device, Devices}
 
 object UserProfile {
   import com.eigengo.lift.profile.UserProfileProtocol._
@@ -34,7 +33,7 @@ object UserProfile {
    * Sets the user's device
    * @param device the device
    */
-  case class DeviceSet(device: UserDevice)
+  case class DeviceSet(device: Device)
 
   /**
    * Registers a user
@@ -48,7 +47,7 @@ object UserProfile {
    * @param userId the user for the device
    * @param device the device that has just been set
    */
-  case class UserDeviceSet(userId: UserId, device: UserDevice)
+  case class UserDeviceSet(userId: UserId, device: Device)
 
   /**
    * Get account
@@ -72,7 +71,8 @@ object UserProfile {
 class UserProfile extends PersistentActor with ActorLogging with AutoPassivation {
   import com.eigengo.lift.profile.UserProfile._
   import com.eigengo.lift.profile.UserProfileProtocol._
-  import scala.concurrent.duration._
+
+import scala.concurrent.duration._
 
   private var profile: Profile = _
 
@@ -94,7 +94,7 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
     case cmd: Account ⇒
       persist(cmd) { acc ⇒
         log.info("Account: not registered -> registered.")
-        profile = Profile(acc, UserDevices.empty, None)
+        profile = Profile(acc, Devices.empty, None)
         saveSnapshot(profile)
         context.become(registered)
       }

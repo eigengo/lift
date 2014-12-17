@@ -4,6 +4,7 @@ import java.util.UUID
 
 import akka.actor.ActorRef
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
+import com.eigengo.lift.notification.NotificationProtocol.{AndroidDevice, IOSDevice}
 import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice, UserSetPublicProfile}
 import com.eigengo.lift.profile.UserProfileProtocol._
 import spray.routing.Directives
@@ -41,14 +42,14 @@ trait ProfileService extends Directives with CommonMarshallers with CommonPathDi
     } ~
     path("user" / UserIdValue / "device" / "ios") { userId ⇒
       post {
-        handleWith { device: IOSUserDevice ⇒
+        handleWith { device: IOSDevice ⇒
           (userProfileProcessor ? UserSetDevice(userId, device)).mapRight[Unit]
         }
       }
     } ~
     path("user" / UserIdValue / "device" / "android") { userId ⇒
       post {
-        handleWith { device: AndroidUserDevice ⇒
+        handleWith { device: AndroidDevice ⇒
           (userProfileProcessor ? UserSetDevice(userId, device)).mapRight[Unit]
         }
       }

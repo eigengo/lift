@@ -21,6 +21,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             UIApplication.sharedApplication().registerForRemoteNotificationTypes(UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound)
         }
         
+        UIApplication.sharedApplication().registerForRemoteNotifications()
+
         var acceptAction = UIMutableUserNotificationAction()
         acceptAction.title = NSLocalizedString("Accept", comment: "Accept invitation")
         acceptAction.identifier = "accept"

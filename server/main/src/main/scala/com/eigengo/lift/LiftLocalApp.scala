@@ -45,8 +45,8 @@ object LiftLocalApp extends App {
 
       // boot the microservices
       val profile = ProfileBoot.boot(system)
-      val notificaiton = NotificationBoot.boot(profile.userProfile)
-      val exercise = ExerciseBoot.boot(notificaiton.notification)
+      val notificaiton = NotificationBoot.boot
+      val exercise = ExerciseBoot.boot(notificaiton.notification, profile.userProfile)
 
       startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }
