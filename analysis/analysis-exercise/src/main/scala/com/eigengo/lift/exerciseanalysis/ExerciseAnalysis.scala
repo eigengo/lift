@@ -7,7 +7,7 @@ import kafka.producer._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming.kafka._
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkContext, SparkConf}
 
 /**
  * Consumes messages from one or more topics in Kafka and does wordcount.
@@ -22,6 +22,7 @@ import org.apache.spark.SparkConf
  *      org.apache.spark.examples.streaming.KafkaWordCount zoo01,zoo02,zoo03 \
  *      my-consumer-group topic1,topic2 1`
  */
+/*
 object KafkaWordCount {
 
   val zkQuorum = "192.168.59.103"
@@ -45,7 +46,7 @@ object KafkaWordCount {
   }
 }
 
-// Produces some random words between 1 and 100.
+
 object KafkaWordCountProducer {
 
   def main(args: Array[String]) {
@@ -78,4 +79,15 @@ object KafkaWordCountProducer {
     }
   }
 
+}
+*/
+
+object Trivial {
+
+  def main(args: Array[String]) {
+    val sc = new SparkContext(new SparkConf().setAppName("Spark Count"))
+    val count = sc.parallelize(1 to 1000).count()
+
+    println(s"Got $count")
+  }
 }

@@ -39,6 +39,7 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
   lazy val assemblySettings = Seq(
     assemblyMergeStrategy in assembly := {
       case "application.conf" => MergeStrategy.concat
+      case "META-INF/mailcap" ⇒ MergeStrategy.first
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
