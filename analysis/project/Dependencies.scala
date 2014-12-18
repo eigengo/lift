@@ -21,6 +21,7 @@ object Dependencies {
     val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
   }
 
+  val scodec_bits  = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
 
   // Testing
