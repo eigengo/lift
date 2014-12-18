@@ -2,7 +2,7 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "lift-common"
+name := "common"
 
 libraryDependencies ++= Seq(
   // Core Akka

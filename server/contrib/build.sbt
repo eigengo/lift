@@ -2,7 +2,7 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "lift-contrib"
+name := "contrib"
 
 libraryDependencies ++= Seq(
   // Core Akka

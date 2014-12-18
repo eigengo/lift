@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-name := "lift"
+name := "domain"
 
 //Common code, but not protocols
 lazy val common = project.in(file("common")).dependsOn(contrib)

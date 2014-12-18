@@ -1,13 +1,14 @@
-package com.eigengo.lift.exerciseanalysis
+package com.eigengo.lift.analysis.exercisert
 
 import java.util.Properties
 
 import kafka.producer._
-
-import org.apache.spark.streaming._
+import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext._
+import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
-import org.apache.spark.{SparkContext, SparkConf}
+
+import scala.util.Random
 
 /**
  * Consumes messages from one or more topics in Kafka and does wordcount.
@@ -49,14 +50,12 @@ object KafkaWordCount {
 
 object KafkaWordCountProducer {
 
+  val brokers = "192.168.59.103:9092"
+  val topic = "accelerometer-data"
+  def messagesPerSec = 1 + Random.nextInt(10)
+  def wordsPerMessage = 10 + Random.nextInt(100)
+
   def main(args: Array[String]) {
-    if (args.length < 4) {
-      System.err.println("Usage: KafkaWordCountProducer <metadataBrokerList> <topic> <messagesPerSec> <wordsPerMessage>")
-      System.exit(1)
-    }
-
-    val Array(brokers, topic, messagesPerSec, wordsPerMessage) = args
-
     // Zookeper connection properties
     val props = new Properties()
     props.put("metadata.broker.list", brokers)
@@ -67,8 +66,8 @@ object KafkaWordCountProducer {
 
     // Send some messages
     while(true) {
-      val messages = (1 to messagesPerSec.toInt).map { messageNum =>
-        val str = (1 to wordsPerMessage.toInt).map(x => scala.util.Random.nextInt(10).toString)
+      val messages = (1 to messagesPerSec).map { messageNum =>
+        val str = (1 to wordsPerMessage).map(x => scala.util.Random.nextInt(10).toString)
           .mkString(" ")
 
         new KeyedMessage[String, String](topic, str)
@@ -81,13 +80,26 @@ object KafkaWordCountProducer {
 
 }
 */
+object Main {
 
-object Trivial {
+  val zkQuorum = "192.168.59.103"
+  val group = "lift"
+  val topics = "accelerometer-data"
+  val numThreads = 8
 
   def main(args: Array[String]) {
-    val sc = new SparkContext(new SparkConf().setAppName("Spark Count"))
-    val count = sc.parallelize(1 to 1000).count()
+    val sparkConf = new SparkConf().setAppName("KafkaWordCount")
+    val ssc =  new StreamingContext(sparkConf, Seconds(2))
+    ssc.checkpoint("checkpoint")
 
-    println(s"Got $count")
+    val topicMap = topics.split(",").map((_,numThreads.toInt)).toMap
+    val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
+    val words = lines.flatMap(_.split(" "))
+    val wordCounts = words.map(x => (x, 1L)).reduceByKeyAndWindow(_ + _, _ - _, Minutes(10), Seconds(2), 2)
+    wordCounts.print()
+
+    ssc.start()
+    ssc.awaitTermination()
   }
+
 }

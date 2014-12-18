@@ -2,7 +2,7 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "lift-exercise"
+name := "exercise"
 
 libraryDependencies ++= Seq(
   // Core Akka

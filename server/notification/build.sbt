@@ -2,7 +2,7 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "lift-notification"
+name := "notification"
 
 libraryDependencies ++= Seq(
   akka.actor,

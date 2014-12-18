@@ -2,7 +2,7 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "lift-profile-protocol"
+name := "profile-protocol"
 
 libraryDependencies ++= Seq(
   akka.actor,

@@ -18,7 +18,7 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
   lazy val baseSettings: Seq[Def.Setting[_]] =
     graphSettings ++ assemblySettings ++
     Seq(
-      organization := "com.eigengo",
+      organization := "com.eigengo.lift",
       scalaVersion := "2.10.4",
       version := "1.0.0-SNAPSHOT",
       scalacOptions in Compile ++= Seq("-encoding", "UTF-8", "-target:jvm-1.7", "-deprecation", "-unchecked", "-Ywarn-dead-code", "-feature"),
