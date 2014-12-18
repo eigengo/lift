@@ -3,14 +3,11 @@ import Keys._
 
 name := "lift"
 
-//Common code, but not protocols
-lazy val common = project.in(file("common"))
-
 //Exercise
-lazy val exercise = project.in(file("exercise-analysis")).dependsOn(common)
+lazy val analysisExercise = project.in(file("analysis-exercise"))
 
 //The main aggregate
-lazy val root = (project in file(".")).aggregate(exercise, common)
+lazy val root = (project in file(".")).aggregate(analysisExercise)
 
 fork in Test := false
 

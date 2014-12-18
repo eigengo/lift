@@ -1,9 +1,0 @@
-main:
-  image: com.eigengo/lift-main
-  ports:
-    - "12551"
-    - "12552"
-    - "12553"
-    - "12554"
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock

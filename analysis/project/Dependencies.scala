@@ -21,11 +21,6 @@ object Dependencies {
     val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
   }
 
-  object json4s {
-    val native = "org.json4s" %% "json4s-native" % "3.2.10"
-    val jackson = "org.json4s" %% "json4s-jackson" % "3.2.10"
-  }
-
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
 
   // Testing
