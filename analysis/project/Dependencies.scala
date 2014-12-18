@@ -11,10 +11,10 @@ object Dependencies {
   object spark {
     val version = "1.1.0"
 
-    val core = "org.apache.spark" %% "spark-core" % version
-    val streaming = "org.apache.spark" %% "spark-streaming" % version
-    val streaming_kafka = "org.apache.spark" %% "spark-streaming-kafka" % version
-    val mllib = "org.apache.spark" %% "spark-mllib" % version
+    val core = "org.apache.spark" %% "spark-core" % version % "provided"
+    val streaming = "org.apache.spark" %% "spark-streaming" % version % "provided"
+    val streaming_kafka = "org.apache.spark" %% "spark-streaming-kafka" % version % "provided"
+    val mllib = "org.apache.spark" %% "spark-mllib" % version % "provided"
   }
 
   object scalaz {

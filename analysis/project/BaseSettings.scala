@@ -1,4 +1,3 @@
-import net.virtualvoid.sbt.graph.Plugin._
 import sbt._
 import Keys._
 
@@ -9,13 +8,15 @@ import Keys._
  * - Scalac, Javac: warnings as errors, target JDK 1.7
  * - Fork for run
  */
-object BaseSettings {
- 
+object BaseSettings extends sbtassembly.AssemblyKeys {
+  import sbtassembly.MergeStrategy
+  import net.virtualvoid.sbt.graph.Plugin._
+
   /**
    * Common project settings
    */
-  val baseSettings: Seq[Def.Setting[_]] =
-    graphSettings ++
+  lazy val baseSettings: Seq[Def.Setting[_]] =
+    graphSettings ++ assemblySettings ++
     Seq(
       organization := "com.eigengo",
       scalaVersion := "2.10.4",
@@ -33,7 +34,17 @@ object BaseSettings {
       fork in test := true,
       sbtPlugin := false,
       resolvers := ResolverSettings.resolvers
-    ) 
+    )
+
+  lazy val assemblySettings = Seq(
+    assemblyMergeStrategy in assembly := {
+      case "application.conf" => MergeStrategy.concat
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    },
+    assembleArtifact in assemblyPackageScala := false   // scala-library causes problems for Spark
+  )
 
   val projectSettings: Seq[Def.Setting[_]] =
     Seq(
