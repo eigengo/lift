@@ -7,7 +7,7 @@ name := "exercise-rt"
 libraryDependencies ++= Seq(
   // Spark
   spark.core,
-  spark.mllib,
+  spark.mllib intransitive(),
   spark.streaming intransitive(),
   spark.streaming_kafka intransitive(),
   // Kafka
