@@ -2,7 +2,7 @@ package com.eigengo.lift.analysis.exercise.rt
 
 import java.util.Properties
 
-import _root_.kafka.producer.{Producer, ProducerConfig}
+import _root_.kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming._
@@ -47,7 +47,12 @@ object Main {
     val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
     val words = lines.flatMap(_.split(" "))
     val wordCounts = words.map(x => (x, 1L)).reduceByKeyAndWindow(_ + _, _ - _, Minutes(10), Seconds(2), 2)
-    wordCounts.print()
+    wordCounts.foreachRDD(_.foreach {
+      case (word, count) ⇒
+        val message = s"$word -> $count"
+        producer.send(new KeyedMessage("classified-exercise", message))
+        println(message)
+    })
 
     ssc.start()
     ssc.awaitTermination()
