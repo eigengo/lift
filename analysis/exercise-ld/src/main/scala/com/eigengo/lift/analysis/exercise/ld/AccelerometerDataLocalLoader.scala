@@ -25,7 +25,7 @@ object AccelerometerDataLocalLoader {
     // Send some messages
     while(true) {
       val messages = (1 to messagesPerSec).map { messageNum =>
-        val str = (1 to wordsPerMessage).map(x => scala.util.Random.nextInt(10).toString)
+        val str = (1 to wordsPerMessage).map(x => Random.nextString(30))
           .mkString(" ")
 
         new KeyedMessage[String, String](topic, str)
