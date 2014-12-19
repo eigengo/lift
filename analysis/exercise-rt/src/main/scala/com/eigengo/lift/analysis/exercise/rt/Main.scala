@@ -1,5 +1,8 @@
 package com.eigengo.lift.analysis.exercise.rt
 
+import java.util.Properties
+
+import _root_.kafka.producer.{Producer, ProducerConfig}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming._
@@ -24,6 +27,16 @@ object Main {
   val group = "lift"
   val topics = "accelerometer-data"
   val numThreads = 8
+
+  val producer = {
+    val brokers = "192.168.59.103:9092"
+    val props = new Properties()
+    props.put("metadata.broker.list", brokers)
+    props.put("serializer.class", "kafka.serializer.StringEncoder")
+
+    val config = new ProducerConfig(props)
+    new Producer[String, String](config)
+  }
 
   def main(args: Array[String]) {
     val sparkConf = new SparkConf().setAppName("KafkaWordCount")
