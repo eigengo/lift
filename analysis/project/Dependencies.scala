@@ -9,7 +9,7 @@ object Dependencies {
   }
 
   object spark {
-    val version = "1.1.0"
+    val version = "1.2.0"
 
     val core = "org.apache.spark" %% "spark-core" % version % "provided"
     val streaming = "org.apache.spark" %% "spark-streaming" % version

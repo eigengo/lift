@@ -61,12 +61,10 @@ object AccelerometerDataLocalLoader {
     while(true) {
       val messages = (1 to messagesPerSec).map { messageNum =>
         val str = (1 to wordsPerMessage).map(x => Random.alphanumeric.head).mkString(" ")
-
         new KeyedMessage[String, String](topic, str)
       }.toArray
 
       producer.send(messages: _*)
-
       Thread.sleep(100)
     }
   }

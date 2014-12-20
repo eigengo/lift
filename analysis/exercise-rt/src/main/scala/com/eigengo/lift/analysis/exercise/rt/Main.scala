@@ -2,7 +2,7 @@ package com.eigengo.lift.analysis.exercise.rt
 
 import java.util.Properties
 
-import _root_.kafka.producer.{KeyedMessage, Producer, ProducerConfig}
+import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming._
@@ -25,8 +25,8 @@ object Main {
 
   val zkQuorum = "192.168.59.103"
   val group = "lift"
-  val topics = "accelerometer-data"
-  val numThreads = 8
+  val topicMap = Map("accelerometer-data" → 8)
+  val kafkaParams = Map("zookeeper.connect" → zkQuorum, "group.id" → group)
 
   val producer = {
     val brokers = "192.168.59.103:9092"
@@ -40,10 +40,17 @@ object Main {
 
   def main(args: Array[String]) {
     val sparkConf = new SparkConf().setAppName("KafkaWordCount")
-    val ssc =  new StreamingContext(sparkConf, Seconds(2))
+    val ssc = new StreamingContext(sparkConf, Seconds(2))
     ssc.checkpoint("checkpoint")
 
-    val topicMap = topics.split(",").map((_,numThreads.toInt)).toMap
+    /*
+    val rawAccelerometerData = KafkaUtils.createStream[String, Array[Byte], StringDecoder, DefaultDecoder](ssc, kafkaParams, topicMap, StorageLevel.MEMORY_ONLY).map(_._2)
+    val decodedAccelerometerData = rawAccelerometerData.flatMap(data ⇒ AccelerometerData.decodeAll(BitVector(data), Nil)._2)
+
+    val words = rawAccelerometerData.flatMap(_.split(" "))
+     */
+    val topics = "accelerometer-data"
+    val topicMap = topics.split(",").map((_, 8)).toMap
     val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
     val words = lines.flatMap(_.split(" "))
     val wordCounts = words.map(x => (x, 1L)).reduceByKeyAndWindow(_ + _, _ - _, Minutes(10), Seconds(2), 2)
