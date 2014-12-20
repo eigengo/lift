@@ -9,6 +9,9 @@ object ResolverSettings {
    * The local / development resolvers: it includes the default ones + Scala Linter.
    */
   lazy val resolvers = Seq(
+    DefaultMavenRepository,
+    JavaNet1Repository,
+    Resolver.jcenterRepo,
     Resolver.defaultLocal,
     Resolver.mavenLocal,
     Resolver.sonatypeRepo("releases"),

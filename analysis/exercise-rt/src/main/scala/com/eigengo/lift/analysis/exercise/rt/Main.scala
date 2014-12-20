@@ -4,6 +4,7 @@ import java.util.Properties
 
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import org.apache.spark.SparkConf
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
@@ -25,8 +26,8 @@ object Main {
 
   val zkQuorum = "192.168.59.103"
   val group = "lift"
-  val topicMap = Map("accelerometer-data" → 8)
-  val kafkaParams = Map("zookeeper.connect" → zkQuorum, "group.id" → group)
+  //val topicMap = Map("accelerometer-data" → 8)
+  //val kafkaParams = Map("zookeeper.connect" → zkQuorum, "group.id" → group)
 
   val producer = {
     val brokers = "192.168.59.103:9092"
@@ -51,7 +52,7 @@ object Main {
      */
     val topics = "accelerometer-data"
     val topicMap = topics.split(",").map((_, 8)).toMap
-    val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
+    val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap, StorageLevel.MEMORY_ONLY).map(_._2)
     val words = lines.flatMap(_.split(" "))
     val wordCounts = words.map(x => (x, 1L)).reduceByKeyAndWindow(_ + _, _ - _, Minutes(10), Seconds(2), 2)
     wordCounts.foreachRDD(_.foreach {
