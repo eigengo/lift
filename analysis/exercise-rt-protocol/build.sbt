@@ -4,9 +4,9 @@ Build.Settings.project
 
 name := "exercise-rt-protocol"
 
+crossScalaVersions := Seq("2.10.4", "2.11.4")
+
 libraryDependencies ++= Seq(
-  protostuff.core,
-  protostuff.runtime,
   // Testing
   scalatest % "test",
   scalacheck % "test"

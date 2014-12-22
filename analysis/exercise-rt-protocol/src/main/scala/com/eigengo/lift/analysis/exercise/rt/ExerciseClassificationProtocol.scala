@@ -1,9 +1,18 @@
 package com.eigengo.lift.analysis.exercise.rt
 
+import scalaz.\/
+
 object ExerciseClassificationProtocol {
 
-  case class Train[A](payload: A, exercise: Exercise)
+  type Payload = Array[Byte]
 
-  case class Classify[A](id: String, payload: A)
+  sealed trait ExerciseClassificationRequest {
+    def payload: Payload
+
+    def decodedPayload[A : MessageDecoder]: String \/ A = implicitly[MessageDecoder[A]].decode(payload)
+  }
+
+  case class Train(payload: Payload, exercise: Exercise) extends ExerciseClassificationRequest
+  case class Classify(id: String, payload: Payload) extends ExerciseClassificationRequest
 
 }

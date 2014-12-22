@@ -5,6 +5,9 @@ Build.Settings.project
 name := "exercise-rt"
 
 libraryDependencies ++= Seq(
+  // Codec
+  scodec_bits,
+  scalaz.core,
   // Spark
   spark.core,
   spark.mllib intransitive(),

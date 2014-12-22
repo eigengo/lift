@@ -7,7 +7,7 @@ import scalaz.\/
 
 trait JavaSerializationCodecs {
 
-  implicit def messageDecoder[A <: Serializable]: MessageDecoder[A] =
+  implicit def messageDecoder[A]: MessageDecoder[A] =
     new MessageDecoder[A] {
       override def decode(data: Array[Byte]): String \/ A = {
         val ois = new ObjectInputStream(new ByteArrayInputStream(data))
@@ -21,7 +21,7 @@ trait JavaSerializationCodecs {
       }
     }
 
-  implicit def messageEncoder[A <: Serializable]: MessageEncoder[A] =
+  implicit def messageEncoder[A]: MessageEncoder[A] =
     new MessageEncoder[A] {
       override def encode(value: A): String \/ Array[Byte] = {
         val bos = new ByteArrayOutputStream()

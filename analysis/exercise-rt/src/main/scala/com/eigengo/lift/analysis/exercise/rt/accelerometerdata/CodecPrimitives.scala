@@ -1,4 +1,4 @@
-package com.eigengo.lift.analysis.exercise
+package com.eigengo.lift.analysis.exercise.rt.accelerometerdata
 
 import scodec.bits.{BitVector, ByteOrdering}
 

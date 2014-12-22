@@ -7,4 +7,3 @@ trait MessageEncoder[A] {
   def encode(value: A): String \/ Array[Byte]
 
 }
-
