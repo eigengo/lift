@@ -2,19 +2,33 @@ package com.eigengo.lift.exercise.classifiers
 
 import java.io.FileOutputStream
 
-import com.eigengo.lift.exercise.{AccelerometerValue, AccelerometerData}
+import com.eigengo.lift.exercise.{AccelerometerData, AccelerometerValue}
 
 object RepetitionExtractor {
-  case class MovementTolerance(x: Int, y: Int, z: Int)
+  case class MovementTolerance(x: Double, y: Double, z: Double)
 
+  /**
+   * Double operations
+   * @param d the double
+   */
   private implicit class DoubleOps(d: Double) {
     private val epsilon = 0.001
     def !=~(that: Double) = Math.abs(d) < epsilon
   }
 
-  private implicit class ListOps(l: List[Int]) {
-    def smoothed(groupSize: Int): List[Int] = {
-      l.grouped(groupSize).flatMap { group ⇒
+  /**
+   * Add calculus-like methods to List[Int]
+   * @param list the underlying list
+   */
+  private implicit class ListCalculus(list: List[Int]) {
+
+    /**
+     * Removes noise from the values
+     * @param windowSize the averaging window
+     * @return the smoothed list
+     */
+    def smoothed(windowSize: Int): List[Int] = {
+      list.grouped(windowSize).flatMap { group ⇒
         val x0 = group.head
         val dx = (group.last - x0) / group.size.toDouble
         val g = (0 until group.size).toList.map(i ⇒ (x0 + i * dx).toInt)
@@ -22,13 +36,29 @@ object RepetitionExtractor {
       }.toList
     }
 
-    def filterMovement(tolerance: Int): (Int, Int) = {
-      val filtered = l.zipWithIndex.grouped(10).filter { group ⇒
+    /**
+     * The average of the values in this list
+     */
+    lazy val avg: Double = list.sum / list.size
+
+    /**
+     * The range of the values in this list
+     */
+    lazy val range: Int = list.max - list.min
+
+    /**
+     * Computes the trim range, when trimmed, the list contains only "useful" values
+     * @param epsilon the tolerance in fraction of entire range; typically 0.1
+     * @return the ranges to be removed
+     */
+    def trimRange(epsilon: Double): (Int, Int) = {
+      val tolerance = epsilon * 2048
+      val filtered = list.zipWithIndex.grouped(10).filter { group ⇒
         val (h, _) = group.head
         group.exists { case (x, idx) ⇒ Math.abs(h - x) > tolerance }
       }.toList.flatten
 
-      if (filtered.isEmpty) 0 → l.size
+      if (filtered.isEmpty) 0 → list.size
       else {
         val (_, startIndex) = filtered.head
         val (_, endIndex) = filtered.last
@@ -36,23 +66,48 @@ object RepetitionExtractor {
       }
     }
 
-    def localExtremes(range: Int): List[LocalExtreme] = {
-      val d = l.zipWithIndex.grouped(2).flatMap { group ⇒
-        val (i, y0) = group.head
-        val (_, y1) = group.last
+    /**
+     * Computes the local minima and maxima
+     *
+     * @param windowSize the window size to prevent noise
+     * @return the local extremes
+     */
+    def localExtremes(windowSize: Int): List[LocalExtreme] = {
+      val epsilon = 0.1
+      // diff(...)
+      val d = list.zipWithIndex.grouped(windowSize).flatMap { group ⇒
+        val values = group.map(_._1)
+        val y0 = values.slice(0, windowSize / 2).avg
+        val y1 = values.slice(windowSize / 2, windowSize - 1).avg
+        val i = group(windowSize / 2)._2
         val dy = (y0 - y1) / 2.0
         List((i, dy))
-      }
-      val d2 = d.grouped(2).flatMap { group ⇒
-        val (i, y0) = group.head
-        val (_, y1) = group.last
-        val dy = (y0 - y1) / 2.0
-        if (dy > 0.0001) List(LocalMaximum(i, l(i)))
-        else if (dy < 0.0001) List(LocalMinimum(i, l(i)))
-        else List.empty
-      }
+      }.toList
 
-      d2.toList
+      // inflection points
+      val x = d.grouped(2).flatMap { x ⇒
+        val (i, d0) = x.head
+        val (_, d1) = x.last
+
+        if (d0 > 0 && d1 < 0) {
+          List(LocalMaximum(i, list(i)))
+        } else if (d0 < 0 && d1 > 0) {
+          List(LocalMinimum(i, list(i)))
+        } else List.empty
+      }.toList
+
+      // remove extremes that are too close to each other
+      val r = x.grouped(2).flatMap { g ⇒
+        val m0 = g.head
+        val m1 = g.last
+        if (Math.abs(m0.value - m1.value) > range * epsilon) List(m0, m1) else List.empty
+      }.toList
+
+      if (!r.isEmpty) {
+        val f = if (list.head > r.head.value) LocalMaximum(0, list.head) else LocalMinimum(0, list.head)
+        val l = if (list.last > r.head.value) LocalMaximum(list.size - 1, list.last) else LocalMinimum(list.size - 1, list.last)
+        f :: (r :+ l)
+      } else List.empty
     }
   }
 
@@ -72,7 +127,7 @@ object RepetitionExtractor {
     lazy val localExtremes = values.localExtremes(10)
   }
 
-  private case class MovementModel(x: List[Int], y: List[Int], z: List[Int]) {
+  private case class MovementModel(x: List[Int], y: List[Int], z: List[Int]) extends Iterable[(Int, Int, Int)] {
     require(x.size == y.size && y.size == z.size, "x, y, z must have the same number of elements")
 
     lazy val principalAxis: PrincipalAxis = {
@@ -87,26 +142,26 @@ object RepetitionExtractor {
       }
     }
 
-    def foreach[U](f: (Int, Int, Int) ⇒ U): Unit = {
-      (0 until x.size).foreach { i ⇒
-        f(x(i), y(i), z(i))
-      }
-    }
+    override def iterator: Iterator[(Int, Int, Int)] =
+      (0 until x.size).map { i ⇒
+        (x(i), y(i), z(i))
+      }.iterator
+
   }
 
   case class Repetition(avs: List[AccelerometerValue])
 }
 
 trait RepetitionExtractor {
-  import RepetitionExtractor._
+  import com.eigengo.lift.exercise.classifiers.RepetitionExtractor._
 
   private def filter(movementTolerance: MovementTolerance, avs: List[AccelerometerValue]): MovementModel = {
     val rawX = avs.map(_.x).smoothed(10)
     val rawY = avs.map(_.y).smoothed(10)
     val rawZ = avs.map(_.z).smoothed(10)
-    val (sx, ex) = rawX.filterMovement(movementTolerance.x)
-    val (sy, ey) = rawY.filterMovement(movementTolerance.y)
-    val (sz, ez) = rawZ.filterMovement(movementTolerance.z)
+    val (sx, ex) = rawX.trimRange(movementTolerance.x)
+    val (sy, ey) = rawY.trimRange(movementTolerance.y)
+    val (sz, ez) = rawZ.trimRange(movementTolerance.z)
     val s = List(sx, sy, sz).min
     val e = List(ex, ey, ez).max
 
@@ -118,27 +173,22 @@ trait RepetitionExtractor {
     val movement = filter(movementTolerance, ad.values)
     val pa = movement.principalAxis
     val pae = pa.localExtremes
-    pa.values
 
-    saveCsv("xyz", movement)
+    saveCsv("xyz", movement) { case (x, y, z) ⇒ s"$x,$y,$z" }
+    saveCsv("pa", pa.values) { _.toString }
+    saveCsv("pae", pae) { le: LocalExtreme ⇒ s"${le.index}" }
 
     (ad.copy(values = Nil), Nil)
   }
 
   // Eyeball debugging only ---------------------------------------------------------------------------------------------
-  private def saveCsv(name: String, values: MovementModel): Unit = {
-    val os = new FileOutputStream(s"/Users/janmachacek/$name.csv")
-    values.foreach { case (x, y, z) ⇒
-      val l = s"$x,$y,$z\n"
-      os.write(l.getBytes("UTF-8"))
-    }
-    os.close()
-  }
 
-  private def saveCsv(name: String, values: List[Int]): Unit = {
+  private def saveCsv[A](name: String, values: Iterable[A])(f: A ⇒ String): Unit = {
+    import scala.language.reflectiveCalls
+
     val os = new FileOutputStream(s"/Users/janmachacek/$name.csv")
-    values.foreach { case x ⇒
-      val l = s"$x\n"
+    values.iterator.foreach { case x ⇒
+      val l = s"${f(x)}\n"
       os.write(l.getBytes("UTF-8"))
     }
     os.close()

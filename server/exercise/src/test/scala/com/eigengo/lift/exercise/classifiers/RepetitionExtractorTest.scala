@@ -15,7 +15,7 @@ class RepetitionExtractorTest extends FlatSpec with Matchers with RepetitionExtr
 
   "RepetitionExtractor" should "extract reps" in {
     val ad = loadAd("/training/arm3.dat")
-    val pebbleMovementTolerance = MovementTolerance(80, 80, 150)
+    val pebbleMovementTolerance = MovementTolerance(80 / 2048.0, 80 / 2048.0, 160 / 2048.0)
     extract(pebbleMovementTolerance)(ad)
 
     true
