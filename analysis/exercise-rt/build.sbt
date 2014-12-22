@@ -10,9 +10,12 @@ libraryDependencies ++= Seq(
   scalaz.core,
   // Spark
   spark.core,
+  spark.sql,
   spark.mllib intransitive(),
   spark.streaming intransitive(),
   spark.streaming_kafka intransitive(),
+  // Breeze
+  scalanlp.breeze,
   // Kafka
   kafka.kafka,
   // Testing

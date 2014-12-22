@@ -12,6 +12,7 @@ object Dependencies {
     val version = "1.2.0"
 
     val core = "org.apache.spark" %% "spark-core" % version % "provided"
+    val sql  = "org.apache.spark" %% "spark-sql" % version % "provided"
     val streaming = "org.apache.spark" %% "spark-streaming" % version
     val streaming_kafka = "org.apache.spark" %% "spark-streaming-kafka" % version exclude("log4j", "log4j")
     val mllib = "org.apache.spark" %% "spark-mllib" % version
@@ -19,6 +20,10 @@ object Dependencies {
 
   object scalaz {
     val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
+  }
+
+  object scalanlp {
+    val breeze = "org.scalanlp" %% "breeze" % "0.10"
   }
 
   val scodec_bits  = "org.typelevel"    %% "scodec-bits"   % "1.0.4"

@@ -3,14 +3,18 @@ package com.eigengo.lift.analysis.exercise.ld
 import java.util.Properties
 import java.util.concurrent.Executors
 
+import com.eigengo.lift.analysis.exercise.rt.ExerciseClassificationProtocol.{Payload, Train, ExerciseClassificationRequest}
+import com.eigengo.lift.analysis.exercise.rt.{Exercise, MessageEncoder, MessageDecoder, JavaSerializationCodecs}
 import kafka.consumer.{ConsumerConfig, Consumer}
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
 
+import scala.io.Source
 import scala.util.Random
 
-object AccelerometerDataLocalLoader {
+object AccelerometerDataLocalLoader extends JavaSerializationCodecs {
 
+  val encoder = implicitly[MessageEncoder[ExerciseClassificationRequest]]
   def messagesPerSec = 1 + Random.nextInt(10)
   def wordsPerMessage = 10 + Random.nextInt(100)
 
@@ -19,10 +23,9 @@ object AccelerometerDataLocalLoader {
     val brokers = "192.168.59.103:9092"
     val props = new Properties()
     props.put("metadata.broker.list", brokers)
-    props.put("serializer.class", "kafka.serializer.StringEncoder")
 
     val config = new ProducerConfig(props)
-    new Producer[String, String](config)
+    new Producer[String, Payload](config)
   }
   val consumer = {
     val zkQuorum = "192.168.59.103"
@@ -37,6 +40,11 @@ object AccelerometerDataLocalLoader {
 
     val config = new ConsumerConfig(props)
     Consumer.create(config)
+  }
+
+  def load[U](name: String)(f: Payload => ExerciseClassificationRequest): Array[Byte] = {
+    val msg = f(Source.fromInputStream(getClass.getResourceAsStream(name)).map(_.toByte).toArray)
+    encoder.encode(msg).toOption.get
   }
 
   def main(args: Array[String]) {
@@ -59,12 +67,8 @@ object AccelerometerDataLocalLoader {
     })
 
     while(true) {
-      val messages = (1 to messagesPerSec).map { messageNum =>
-        val str = (1 to wordsPerMessage).map(x => Random.alphanumeric.head).mkString(" ")
-        new KeyedMessage[String, String](topic, str)
-      }.toArray
-
-      producer.send(messages: _*)
+      val msg = load("/arms1.adv1")(Train(_, Exercise("Arms", 1.0)))
+      producer.send(new KeyedMessage[String, Payload](topic, msg))
       Thread.sleep(100)
     }
   }
