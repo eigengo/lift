@@ -1,5 +1,7 @@
 package com.eigengo.lift.exercise
 
+import java.io.FileOutputStream
+
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.{ByteOrdering, BitVector}
 
@@ -59,8 +61,14 @@ class AccelerometerTest extends FlatSpec with Matchers {
   }
 
   "Decoder" should "decode training file" in {
-    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/training/arm3.dat"))
+    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/training/chest1.dat"))
     val (BitVector.empty, ads) = AccelerometerData.decodeAll(bv, Nil)
+    val os = new FileOutputStream("/Users/janmachacek/chest1.csv")
+    ads.foreach(_.values.foreach { av ⇒
+      val s = s"${av.x},${av.y},${av.z}\n"
+      os.write(s.getBytes("UTF-8"))
+    })
+    os.close()
     println(ads)
   }
 

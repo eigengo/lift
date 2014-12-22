@@ -42,6 +42,12 @@ object Dependencies {
     val jackson = "org.json4s" %% "json4s-jackson" % "3.2.11"
   }
 
+  object scalanlp {
+    val version = "0.10"
+
+    val breeze = "org.scalanlp" %% "breeze" % version
+  }
+
   val scodec_bits  = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
   
   // Apple push notifications
@@ -53,6 +59,6 @@ object Dependencies {
 
   // Testing
   val scalatest    = "org.scalatest"    %% "scalatest"    % "2.2.1"
-  val scalacheck   = "org.scalacheck"   %% "scalacheck"   % "1.11.6"
+  val scalacheck   = "org.scalacheck"   %% "scalacheck"   % "1.12.1"
 
 }

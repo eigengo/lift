@@ -10,6 +10,8 @@ libraryDependencies ++= Seq(
   akka.cluster,
   akka.contrib,
   akka.persistence,
+  // Breeze
+  scalanlp.breeze,
   // For REST API
   spray.httpx,
   spray.can,
