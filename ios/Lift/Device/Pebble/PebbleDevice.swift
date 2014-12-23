@@ -13,6 +13,8 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
         NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC")!.getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
         central.appUUID = uuid
         central.delegate = self
+        
+        launch()
     }
 
     func launch() {
@@ -28,18 +30,22 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
                     self.delegate.deviceAppLaunchFailed(watch.serialNumber.md5UUID(), error: error!)
                 } else {
                     self.watch = watch
-                    watch.versionInfo.hardwareVersion
-                    
-                    watch.serialNumber
+                    watch.getVersionInfo({ (watch, version) -> Void in
+                        /*
+                            address: String(format: "%@", watch.versionInfo.deviceAddress),
+                            hardwareVersion: watch.versionInfo.hardwareVersion,
+                            osVersion: watch.versionInfo.systemResources.friendlyVersion
+                        */
+                    }, onTimeout: { (watch) -> Void in
+                        // noop
+                    })
                     
                     let deviceInfo = DeviceInfo(type: "Pebble",
                         name: watch.name,
-                        serialNumber: watch.serialNumber,
-                        address: String(format: "%@", watch.versionInfo.deviceAddress),
-                        hardwareVersion: watch.versionInfo.hardwareVersion,
-                        osVersion: watch.versionInfo.systemResources.friendlyVersion)
+                        serialNumber: watch.serialNumber)
                     
-                    self.delegate.deviceAppLaunched(watch.serialNumber.md5UUID(), deviceInfo: deviceInfo)
+                    self.delegate.deviceGotDeviceInfo(watch.serialNumber.md5UUID(), deviceInfo: deviceInfo)
+                    self.delegate.deviceAppLaunched(watch.serialNumber.md5UUID())
                 }
             })
         }

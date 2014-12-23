@@ -7,9 +7,7 @@ class DeviceTableViewCell : UITableViewCell {
     func setDeviceInfo(deviceInfo: DeviceInfo?) {
         if let di = deviceInfo {
             name.text = di.name
-            detail.text = String(format: "serial %@, address %@\nHardware %s, os %@",
-                di.serialNumber, di.address,
-                di.hardwareVersion, di.osVersion)
+            detail.text = String(format: "Serial %@", di.serialNumber)
         } else {
             name.text = "DeviceTableViewCell.noDevice".localized()
             detail.text = ""
@@ -113,8 +111,17 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
 
     // #pragma mark - DeviceDelegate
-    func deviceAppLaunched(deviceId: NSUUID, deviceInfo: DeviceInfo) {
+    func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo) {
         self.deviceInfo = deviceInfo
+        tableView.reloadData()
+    }
+    
+    func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail) {
+//        self.deviceInfo = deviceInfo
+//        tableView.reloadData()
+    }
+    
+    func deviceAppLaunched(deviceId: NSUUID) {
         tableView.reloadData()
     }
     

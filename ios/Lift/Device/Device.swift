@@ -4,19 +4,25 @@ struct DeviceInfo {
     var type: String
     var name: String
     var serialNumber: String
-    var address: String
-    
-    var hardwareVersion: String
-    var osVersion: String
+        
+    struct Detail {
+        var address: String
+        var hardwareVersion: String
+        var osVersion: String
+    }
 }
 
 protocol DeviceDelegate {
+    
+    func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo)
+    
+    func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail)
     
     func deviceDidNotConnect(error: NSError)
     
     func deviceAppLaunchFailed(deviceId: NSUUID, error: NSError)
     
-    func deviceAppLaunched(deviceId: NSUUID, deviceInfo: DeviceInfo)
+    func deviceAppLaunched(deviceId: NSUUID)
     
     func deviceDisconnected(deviceId: NSUUID)
     
