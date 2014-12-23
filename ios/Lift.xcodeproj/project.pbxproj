@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
 		5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894461A2F4E18009FDD10 /* arms1.adv1 */; };
 		5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894471A2F4E18009FDD10 /* arms2.adv1 */; };
 		5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894481A2F4E18009FDD10 /* arms3.adv1 */; };
@@ -16,7 +17,7 @@
 		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
-		543B27001A49D1A800381298 /* PebbleConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleConnector.swift */; };
+		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
@@ -49,6 +50,7 @@
 		54D320811A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD291A2E58660005E2ED /* DemoSessionController.swift */; };
 		54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
+		54DB071B1A49E65400DC1E91 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB071A1A49E65400DC1E91 /* Device.swift */; };
 		54DC83951A40ACEA006DD311 /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83941A40ACEA006DD311 /* InterfaceController.swift */; };
 		54DC83971A40ACEA006DD311 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83961A40ACEA006DD311 /* NotificationController.swift */; };
 		54DC83991A40ACEA006DD311 /* GlanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83981A40ACEA006DD311 /* GlanceController.swift */; };
@@ -107,6 +109,7 @@
 
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		54008B581A49EC730049A8EA /* String+MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+MD5.swift"; sourceTree = "<group>"; };
 		540894461A2F4E18009FDD10 /* arms1.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms1.adv1; sourceTree = "<group>"; };
 		540894471A2F4E18009FDD10 /* arms2.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms2.adv1; sourceTree = "<group>"; };
 		540894481A2F4E18009FDD10 /* arms3.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms3.adv1; sourceTree = "<group>"; };
@@ -118,7 +121,7 @@
 		54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftViewController.swift; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
 		543B26FC1A49D18800381298 /* Accelerometer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accelerometer.swift; sourceTree = "<group>"; };
-		543B26FF1A49D1A800381298 /* PebbleConnector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleConnector.swift; sourceTree = "<group>"; };
+		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleAccelerometerRecorder.swift; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
@@ -160,6 +163,7 @@
 		54D320801A276747002527C8 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
 		54D8DD291A2E58660005E2ED /* DemoSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoSessionController.swift; sourceTree = "<group>"; };
 		54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSession.swift; sourceTree = "<group>"; };
+		54DB071A1A49E65400DC1E91 /* Device.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
 		54DC838F1A40ACEA006DD311 /* Lift WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Lift WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54DC83921A40ACEA006DD311 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54DC83931A40ACEA006DD311 /* PushNotificationPayload.apns */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationPayload.apns; sourceTree = "<group>"; };
@@ -234,6 +238,7 @@
 			children = (
 				543B26FE1A49D1A800381298 /* Pebble */,
 				543B26FC1A49D18800381298 /* Accelerometer.swift */,
+				54DB071A1A49E65400DC1E91 /* Device.swift */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -241,7 +246,7 @@
 		543B26FE1A49D1A800381298 /* Pebble */ = {
 			isa = PBXGroup;
 			children = (
-				543B26FF1A49D1A800381298 /* PebbleConnector.swift */,
+				543B26FF1A49D1A800381298 /* PebbleDevice.swift */,
 				543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */,
 			);
 			path = Pebble;
@@ -318,6 +323,7 @@
 				545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */,
 				546336371A338A1600004FAA /* MuscleGroupView.swift */,
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
+				54008B581A49EC730049A8EA /* String+MD5.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -638,7 +644,9 @@
 			files = (
 				54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */,
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
+				54008B591A49EC730049A8EA /* String+MD5.swift in Sources */,
 				54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */,
+				54DB071B1A49E65400DC1E91 /* Device.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
 				545E06041A304CB500AB633B /* UserModel.swift in Sources */,
@@ -667,7 +675,7 @@
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
-				543B27001A49D1A800381298 /* PebbleConnector.swift in Sources */,
+				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

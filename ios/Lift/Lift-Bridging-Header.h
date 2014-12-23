@@ -3,6 +3,7 @@
 //
 
 #import <PebbleKit/PebbleKit.h>
+#import <CommonCrypto/CommonDigest.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import "JBChartView/JBChartView.h"
 #import "JBChartView/JBBarChartView.h"
