@@ -182,7 +182,6 @@ trait RepetitionExtractor {
   }
 
   // Eyeball debugging only ---------------------------------------------------------------------------------------------
-
   private def saveCsv[A](name: String, values: Iterable[A])(f: A ⇒ String): Unit = {
     import scala.language.reflectiveCalls
 

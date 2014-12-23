@@ -12,14 +12,13 @@ libraryDependencies ++= Seq(
   akka.persistence,
   // Breeze
   scalanlp.breeze,
+  scalanlp.nak,
   // For REST API
   spray.httpx,
   spray.can,
   spray.routing,
   // Json
   json4s.native,
-  // Kafka
-  kafka.kafka,
   // Codec
   scodec_bits,
   scalaz.core,

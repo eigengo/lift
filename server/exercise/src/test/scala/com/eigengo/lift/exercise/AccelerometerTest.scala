@@ -61,7 +61,7 @@ class AccelerometerTest extends FlatSpec with Matchers {
   }
 
   "Decoder" should "decode training file" in {
-    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/training/chest1.dat"))
+    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/measured/chest1.dat"))
     val (BitVector.empty, ads) = AccelerometerData.decodeAll(bv, Nil)
     val os = new FileOutputStream("/Users/janmachacek/chest1.csv")
     ads.foreach(_.values.foreach { av ⇒

@@ -28,10 +28,10 @@ object Dependencies {
     val testkit = "io.spray" %% "spray-testkit" % version
   }
 
-  object kafka {
-    val version = "0.8.2-beta"
-    val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
-  }
+  // object kafka {
+  //   val version = "0.8.2-beta"
+  //   val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
+  // }
 
   object scalaz {
     val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
@@ -46,6 +46,7 @@ object Dependencies {
     val version = "0.10"
 
     val breeze = "org.scalanlp" %% "breeze" % version
+    val nak    = "org.scalanlp" %% "nak" % "1.3" exclude("org.scalanlp", "breeze_2.11") exclude("org.scalanlp", "breeze-natives_2.11")
   }
 
   val scodec_bits  = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
@@ -55,7 +56,7 @@ object Dependencies {
   val slf4j_simple = "org.slf4j"         % "slf4j-simple" % "1.6.1"
  
   // Datastax Cassandra Client
-  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core"         % "2.1.1"
+  val cassandra_driver      = "com.datastax.cassandra"  % "cassandra-driver-core" % "2.1.1" exclude("io.netty", "netty")
 
   // Testing
   val scalatest    = "org.scalatest"    %% "scalatest"    % "2.2.1"
