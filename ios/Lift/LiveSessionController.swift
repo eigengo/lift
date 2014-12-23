@@ -69,9 +69,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             let cell = tableView.dequeueReusableCellWithIdentifier("device") as DeviceTableViewCell
             cell.setDeviceInfo(deviceInfo)
             return cell
-        case (0, 1):
+        case (0, let x):
+            let index = x - 1
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
-            cell.textLabel!.text = "Session foo."
+            cell.textLabel!.text = String(format: "Session %d", index)
             cell.detailTextLabel!.text = "Received x B, y packets."
             return cell
         // section 2: exercise log
