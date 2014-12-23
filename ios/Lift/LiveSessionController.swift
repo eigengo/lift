@@ -11,7 +11,7 @@ class DeviceTableViewCell : UITableViewCell {
                 di.serialNumber, di.address,
                 di.hardwareVersion, di.osVersion)
         } else {
-            name.text = "No device"
+            name.text = "DeviceTableViewCell.noDevice".localized()
             detail.text = ""
         }
     }
@@ -72,13 +72,13 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (0, let x):
             let index = x - 1
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
-            cell.textLabel!.text = String(format: "Session %d", index)
+            cell.textLabel!.text = "LiveSessionController.sessionTitle".localized(index)
             cell.detailTextLabel!.text = "Received x B, y packets."
             return cell
         // section 2: exercise log
         case (1, _):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
-            cell.textLabel!.text = "Some exercise"
+            cell.textLabel!.text = "LiveSessionController.exercise".localized()
             return cell
         default: return UITableViewCell()
         }
@@ -86,8 +86,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 0: return "Device and session"
-        case 1: return "Exercises"
+        case 0: return "LiveSessionController.section.deviceAndSession".localized()
+        case 1: return "LiveSessionController.section.exercise".localized()
         default: return ""
         }
     }

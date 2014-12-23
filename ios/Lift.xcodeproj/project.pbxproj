@@ -51,6 +51,7 @@
 		54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD291A2E58660005E2ED /* DemoSessionController.swift */; };
 		54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
 		54DB071B1A49E65400DC1E91 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB071A1A49E65400DC1E91 /* Device.swift */; };
+		54DB7DC71A4A01290075A420 /* String+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB7DC61A4A01290075A420 /* String+Localisation.swift */; };
 		54DC83951A40ACEA006DD311 /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83941A40ACEA006DD311 /* InterfaceController.swift */; };
 		54DC83971A40ACEA006DD311 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83961A40ACEA006DD311 /* NotificationController.swift */; };
 		54DC83991A40ACEA006DD311 /* GlanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83981A40ACEA006DD311 /* GlanceController.swift */; };
@@ -164,6 +165,7 @@
 		54D8DD291A2E58660005E2ED /* DemoSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoSessionController.swift; sourceTree = "<group>"; };
 		54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSession.swift; sourceTree = "<group>"; };
 		54DB071A1A49E65400DC1E91 /* Device.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
+		54DB7DC61A4A01290075A420 /* String+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Localisation.swift"; sourceTree = "<group>"; };
 		54DC838F1A40ACEA006DD311 /* Lift WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Lift WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54DC83921A40ACEA006DD311 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54DC83931A40ACEA006DD311 /* PushNotificationPayload.apns */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationPayload.apns; sourceTree = "<group>"; };
@@ -324,6 +326,7 @@
 				546336371A338A1600004FAA /* MuscleGroupView.swift */,
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
+				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -646,6 +649,7 @@
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
 				54008B591A49EC730049A8EA /* String+MD5.swift in Sources */,
 				54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */,
+				54DB7DC71A4A01290075A420 /* String+Localisation.swift in Sources */,
 				54DB071B1A49E65400DC1E91 /* Device.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,

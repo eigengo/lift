@@ -4,3 +4,8 @@
 "user_publicprofile_get_failed"="Could not get public profile";
 "Device.Pebble.PebbleConnector.tooManyWatches"="Too many connected watches";
 "Device.Pebble.PebbleConnector.noWatches"="No connected watches";
+"DeviceTableViewCell.noDevice"="No device";
+"LiveSessionController.sessionTitle"="Session %@";
+"LiveSessionController.exercise"="Some exercise";
+"LiveSessionController.section.deviceAndSession"="Device and session";
+"LiveSessionController.section.exercise"="Exercise";
