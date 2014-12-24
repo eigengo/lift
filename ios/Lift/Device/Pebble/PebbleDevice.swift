@@ -1,12 +1,60 @@
 import Foundation
 
+internal class PebbleDeviceSession {
+    var id: NSUUID!
+    var accelerometerStats: AccelerometerSessionStats?
+    
+    required init() {
+        self.id = NSUUID()
+    }
+}
+
 class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
     private let central = PBPebbleCentral.defaultCentral()
-    private var watch: PBWatch?             // with launched app
-    private var delegate: DeviceDelegate!
+    private var deviceDelegate: DeviceDelegate!
+    private var deviceDataDelegates: DeviceDataDelegates!
+    private var updateHandler: AnyObject?
     
-    required init(delegate: DeviceDelegate) {
-        self.delegate = delegate
+    private func accelerometerDataReceived(deviceSession: PebbleDeviceSession, data: NSData) {
+        deviceDataDelegates.accelerometerDelegate.accelerometerReceiverReceived(deviceSession.id, data: data, stats: deviceSession.accelerometerStats!)
+    }
+    
+    private func appMessagesReceived(deviceSession: PebbleDeviceSession, watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
+        if let d: NSData = data[0xface0fb0] as? NSData {
+            accelerometerDataReceived(deviceSession, d)
+        }
+        return true
+    }
+    
+    private func versionInfoReceived(watch: PBWatch!, version: PBVersionInfo!) {
+        let deviceInfoDetail = DeviceInfo.Detail(
+            address: String(format: "%@", watch.versionInfo.deviceAddress),
+            hardwareVersion: version.hardwareVersion,
+            osVersion: version.systemResources.friendlyVersion)
+        
+        deviceDelegate.deviceGotDeviceInfoDetail(watch.serialNumber.md5UUID(), detail: deviceInfoDetail)
+    }
+    
+    private func appLaunched(watch: PBWatch!, error: NSError!) {
+        let deviceId = watch.serialNumber.md5UUID()
+        if error != nil {
+            deviceDelegate.deviceAppLaunchFailed(deviceId, error: error!)
+        } else {
+            updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceived(PebbleDeviceSession()))
+            watch.getVersionInfo(versionInfoReceived, onTimeout: { (watch) -> Void in /* noop */ })
+            
+            let deviceInfo = DeviceInfo(type: "pebble",
+                name: watch.name,
+                serialNumber: watch.serialNumber)
+            
+            deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
+            deviceDelegate.deviceAppLaunched(deviceId)
+        }
+    }
+    
+    required init(deviceDelegate: DeviceDelegate, deviceDataDelegates: DeviceDataDelegates) {
+        self.deviceDelegate = deviceDelegate
+        self.deviceDataDelegates = deviceDataDelegates
         super.init()
         
         let uuid = NSMutableData(length: 16)!
@@ -14,57 +62,35 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
         central.appUUID = uuid
         central.delegate = self
         
-        launch()
+        start()
     }
 
-    func launch() {
+    func start() {
         if central.connectedWatches.count > 1 {
-            delegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.tooManyWatches", code: 1))
+            deviceDelegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.tooManyWatches", code: 1))
         } else if central.connectedWatches.count == 0 {
-            delegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.noWatches", code: 2))
+            deviceDelegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.noWatches", code: 2))
         } else {
             let watch = central.connectedWatches[0] as PBWatch
-            watch.appMessagesLaunch({ (watch: PBWatch!, error: NSError!) -> Void in
-                watch.serialNumber
-                if error != nil {
-                    self.delegate.deviceAppLaunchFailed(watch.serialNumber.md5UUID(), error: error!)
-                } else {
-                    self.watch = watch
-                    watch.getVersionInfo({ (watch, version) -> Void in
-                        /*
-                            address: String(format: "%@", watch.versionInfo.deviceAddress),
-                            hardwareVersion: watch.versionInfo.hardwareVersion,
-                            osVersion: watch.versionInfo.systemResources.friendlyVersion
-                        */
-                    }, onTimeout: { (watch) -> Void in
-                        // noop
-                    })
-                    
-                    let deviceInfo = DeviceInfo(type: "Pebble",
-                        name: watch.name,
-                        serialNumber: watch.serialNumber)
-                    
-                    self.delegate.deviceGotDeviceInfo(watch.serialNumber.md5UUID(), deviceInfo: deviceInfo)
-                    self.delegate.deviceAppLaunched(watch.serialNumber.md5UUID())
-                }
-            })
+            watch.appMessagesLaunch(appLaunched)
         }
     }
     
+    // --- PBPebbleCentralDelegate implementation ---
+    
     func pebbleCentral(central: PBPebbleCentral!, watchDidConnect watch: PBWatch!, isNew: Bool) {
         NSLog("Connected %@", watch)
-        PBPebbleCentral.defaultCentral().dataLoggingService.pollForData()
     }
     
     func pebbleCentral(central: PBPebbleCentral!, watchDidDisconnect watch: PBWatch!) {
         NSLog("watchDidDisconnect %@", watch)
-        delegate.deviceDisconnected(watch.serialNumber.md5UUID())
+        deviceDelegate.deviceDisconnected(watch.serialNumber.md5UUID())
+        if let x: AnyObject = updateHandler {
+            watch.appMessagesRemoveUpdateHandler(x)
+        }
 
-        // remove our watch
-        self.watch = nil
-        
         // attempt to re-connect and launch
-        launch()
+        start()
     }
     
 }

@@ -12,6 +12,14 @@ struct DeviceInfo {
     }
 }
 
+class DeviceDataDelegates {
+    var accelerometerDelegate: AccelerometerDelegate
+    
+    required init(accelerometerDelegate: AccelerometerDelegate) {
+        self.accelerometerDelegate = accelerometerDelegate
+    }
+}
+
 protocol DeviceDelegate {
     
     func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo)

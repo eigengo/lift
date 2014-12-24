@@ -1,6 +1,6 @@
 #include "pebble.h"
 #include "../core/main/gfs.h"
-#include "../core/main/dl.h"
+#include "../core/main/am.h"
 
 #define TIMER_MS 1000
 
@@ -16,10 +16,10 @@ static void disc_layer_update_callback(Layer *me, GContext *ctx) {
     graphics_context_set_text_color(ctx, GColorWhite);
     GRect bounds = layer_get_frame(me);
 
-    char text[40];
+    char text[50];
 
-    snprintf(text, 31, "Tag: %lx\nLE: %d\nSent %d\n", 
-    	dl_tag(), dl_last_error(), dl_count());
+    snprintf(text, 49, "Tag: %lx\nLE: %d\nLED: %d\nSent %d\n",
+    	am_tag(), am_last_error(), am_last_error_distance(), am_count());
 
     graphics_draw_text(ctx,
             text,
@@ -58,14 +58,14 @@ static void init(void) {
     window_stack_push(window, true /* Animated */);
     window_set_background_color(window, GColorBlack);
 
-    gfs_start(dl_start(), GFS_SAMPLING_100HZ);
+    gfs_start(am_start(), GFS_SAMPLING_100HZ);
 
     timer = app_timer_register(TIMER_MS, timer_callback, NULL);
 }
 
 static void deinit(void) {
     gfs_stop();
-    dl_stop();
+    am_stop();
 
     window_destroy(window);
 }

@@ -1,11 +1,12 @@
+/*
 import Foundation
 
-class PebbleAccelerometerReceiver : NSObject, PBDataLoggingServiceDelegate {
+class PebbleDataLoggingAccelerometer : NSObject, PBDataLoggingServiceDelegate {
     private var sessionStats: [UInt32 : AccelerometerSessionStats] = [:]
     private var incompletePackets: [UInt32 : NSData] = [:]
-    private var delegate: AccelerometerReceiverDelegate
+    private var delegate: AccelerometerDelegate
     
-    required init(delegate: AccelerometerReceiverDelegate) {
+    required init(delegate: AccelerometerDelegate) {
         self.delegate = delegate
         super.init()
 
@@ -46,3 +47,4 @@ class PebbleAccelerometerReceiver : NSObject, PBDataLoggingServiceDelegate {
     }
     
 }
+*/

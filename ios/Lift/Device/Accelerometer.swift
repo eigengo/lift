@@ -52,7 +52,7 @@ class AccelerometerSessionStats {
 /**
  * Implement to receive data and session identities
  */
-protocol AccelerometerReceiverDelegate {
+protocol AccelerometerDelegate {
     /**
      * Called when accelerometer data (in the Lift format) is received from the device. The data is complete 
      * multiple of packets; it can be sent directly to the server for decoding.

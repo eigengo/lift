@@ -4,14 +4,8 @@
 #define E_GFS_ALREADY_RUNNING -1
 #define E_GFS_MEM -2
 
-/*
- * The messages are 304 bytes each, each containing 50 samples.
- *
- * At 100 Hz sampling rate, we expect to transmit 100 / 58 * 295 bps = 506 B/s
- *
- */
-// buffer size in B (314)
-#define GFS_BUFFER_SIZE (uint16_t)295 // 290 = 58 samples per call
+// buffer size in B
+#define GFS_BUFFER_SIZE (uint16_t)635 // 630 = 126 samples per call
 
 // power-of-two samples at a time
 #define GFS_NUM_SAMPLES 2

@@ -21,7 +21,7 @@ class DeviceTableViewCell : UITableViewCell {
 }
 
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
-    AccelerometerReceiverDelegate, DeviceDelegate {
+    AccelerometerDelegate, DeviceDelegate {
     // TODO: Move to settings
     private let showSessionDetails = true
     private var deviceInfo: DeviceInfo?
@@ -32,8 +32,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
 
     func setExerciseSession(session: ExerciseSession) {
-        PebbleAccelerometerReceiver(delegate: self)
-        PebbleDevice(delegate: self)
+        PebbleDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
         NSLog("Starting with %@", session)
     }
     
