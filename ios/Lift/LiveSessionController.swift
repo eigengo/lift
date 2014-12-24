@@ -108,9 +108,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (0, let x):
             let index = x - 1
             // TODO: iterate over all values, accelerometer now acceptable
-            let stats = deviceSession!.sessionStats()["accelerometer"]!
+            let (key, stats) = deviceSession!.sessionStats()[index]
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
-            cell.textLabel!.text = "LiveSessionController.sessionStatsTitle".localized("accelerometer")
+            cell.textLabel!.text = key.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log

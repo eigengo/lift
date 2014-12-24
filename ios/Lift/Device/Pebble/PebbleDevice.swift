@@ -8,7 +8,7 @@ import Foundation
  */
 class PebbleDeviceSession : DeviceSession {
     private var id: NSUUID!
-    private var stats: [String : DeviceSessionStats] = [:]
+    private var stats: [DeviceSessionStatsKey : DeviceSessionStats] = [:]
     private var deviceDataDelegates: DeviceDataDelegates!
     private var startTime: NSDate!
     private var updateHandler: AnyObject?
@@ -26,8 +26,12 @@ class PebbleDeviceSession : DeviceSession {
         return self.id
     }
     
-    func sessionStats() -> [String : DeviceSessionStats] {
-        return self.stats;
+    func sessionStats() -> [(DeviceSessionStatsKey, DeviceSessionStats)] {
+        var r: [(DeviceSessionStatsKey, DeviceSessionStats)] = []
+        for (k, v) in stats {
+            r += [(k, v)]
+        }
+        return r
     }
     
     // DeviceSession ---
@@ -46,7 +50,7 @@ class PebbleDeviceSession : DeviceSession {
         return true
     }
     
-    private func updateStats(key: String, update: DeviceSessionStats -> DeviceSessionStats) -> DeviceSessionStats {
+    private func updateStats(key: DeviceSessionStatsKey, update: DeviceSessionStats -> DeviceSessionStats) -> DeviceSessionStats {
         var prev: DeviceSessionStats
         let zero = DeviceSessionStats(bytes: 0, packets: 0)
         if let x = stats[key] { prev = x } else { prev = zero }
@@ -56,7 +60,7 @@ class PebbleDeviceSession : DeviceSession {
     }
 
     private func accelerometerDataReceived(data: NSData) {
-        let stats = updateStats("accelerometer", update: { prev in
+        let stats = updateStats(.Accelerometer, update: { prev in
             return DeviceSessionStats(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
