@@ -38,7 +38,7 @@ void gfs_raw_accel_data_handler(AccelRawData *data, uint32_t num_samples, uint64
     size_t len = sizeof(struct gfs_packed_accel_data) * num_samples;
     if (gfs_context.buffer_position + len >= GFS_BUFFER_SIZE) {
         struct gfs_header *header = (struct gfs_header*)gfs_context.buffer;
-        header->count  = (uint16_t)((gfs_context.buffer_position - sizeof(struct gfs_header)) / sizeof(struct gfs_packed_accel_data));
+        header->count  = (uint8_t)((gfs_context.buffer_position - sizeof(struct gfs_header)) / sizeof(struct gfs_packed_accel_data));
         gfs_context.callback(gfs_context.buffer, gfs_context.buffer_position);
         gfs_write_header();
     }

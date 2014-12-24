@@ -10,15 +10,16 @@
 // power-of-two samples at a time
 #define GFS_NUM_SAMPLES 2
 
-#define GFS_HEADER_TYPE (uint16_t)0xfefc
+#define GFS_HEADER_TYPE (uint16_t)0xad
 
 /**
  * 5 B in header
  */
 struct __attribute__((__packed__)) gfs_header {
-    uint16_t type;
-    uint16_t count;
-    uint8_t samples_per_second;
+    uint8_t type;                   // 1
+    uint8_t count;                  // 2
+    uint8_t samples_per_second;     // 3
+    uint16_t last;                  // 4
 };
 
 /**

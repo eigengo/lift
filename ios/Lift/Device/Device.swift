@@ -20,6 +20,19 @@ class DeviceDataDelegates {
     }
 }
 
+struct DeviceSessionStats {
+    var bytes: Int
+    var packets: Int
+}
+
+protocol DeviceSession {
+
+    func sessionId() -> NSUUID
+    
+    func sessionStats() -> [String : DeviceSessionStats]
+    
+}
+
 protocol DeviceDelegate {
     
     func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo)

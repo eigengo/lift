@@ -4,10 +4,14 @@ class DeviceTableViewCell : UITableViewCell {
     @IBOutlet var name: UILabel!
     @IBOutlet var detail: UILabel!
     
-    func setDeviceInfo(deviceInfo: DeviceInfo?) {
+    func setDeviceInfo(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) {
         if let di = deviceInfo {
             name.text = di.name
-            detail.text = String(format: "Serial %@", di.serialNumber)
+            if let did = deviceInfoDetail {
+                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(di.serialNumber, did.address)
+            } else {
+                detail.text = "DeviceTableViewCell.deviceInfo".localized(di.serialNumber)
+            }
         } else {
             name.text = "DeviceTableViewCell.noDevice".localized()
             detail.text = ""
@@ -25,18 +29,16 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // TODO: Move to settings
     private let showSessionDetails = true
     private var deviceInfo: DeviceInfo?
-    private var accelerometerSessionStats: [NSUUID : AccelerometerSessionStats] = [:]
+    private var deviceInfoDetail: DeviceInfo.Detail?
+    private var deviceSession: DeviceSession?
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-
+    // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         PebbleDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
         NSLog("Starting with %@", session)
     }
     
-    // #pragma mark - UITableViewDataSource
+    // MARK: UITableViewDataSource
     
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return 2 // section 1: device & session, section 2: exercise log
@@ -46,9 +48,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch section {
         // section 1: device & session
         case 0:
-            if deviceInfo != nil {
+            if deviceSession != nil {
                 // device connected
-                return showSessionDetails ? 1 + accelerometerSessionStats.count : 1
+                return showSessionDetails ? 1 + deviceSession!.sessionStats().count : 1
             } else {
                 // no device
                 return 1
@@ -64,13 +66,15 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         // section 1: device
         case (0, 0):
             let cell = tableView.dequeueReusableCellWithIdentifier("device") as DeviceTableViewCell
-            cell.setDeviceInfo(deviceInfo)
+            cell.setDeviceInfo(deviceInfo, deviceInfoDetail: deviceInfoDetail)
             return cell
         case (0, let x):
             let index = x - 1
+            // TODO: iterate over all values, accelerometer now acceptable
+            let stats = deviceSession!.sessionStats()["accelerometer"]!
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
-            cell.textLabel!.text = "LiveSessionController.sessionTitle".localized(index)
-            cell.detailTextLabel!.text = "Received x B, y packets."
+            cell.textLabel!.text = "LiveSessionController.sessionStatsTitle".localized("accelerometer")
+            cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log
         case (1, _):
@@ -90,34 +94,33 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        switch indexPath.section {
-        case 0: return 85
-        case 1: return 40
-        default: return 0
+        switch (indexPath.section, indexPath.row) {
+        case (0, 0): return 85
+        default: return 40
         }
     }
 
-    // #pragma mark - AccelerometerReceiverDelegate
+    // MARK: AccelerometerReceiverDelegate
     
-    func accelerometerReceiverReceived(deviceSession: NSUUID, data: NSData, stats: AccelerometerSessionStats) {
-        accelerometerSessionStats[deviceSession] = stats
+    func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
+        self.deviceSession = deviceSession
         tableView.reloadData()
     }
     
-    func accelerometerReceiverEnded(deviceSession: NSUUID, stats: AccelerometerSessionStats?) {
-        accelerometerSessionStats[deviceSession] = nil
+    func accelerometerDataEnded(deviceSession: DeviceSession) {
+        self.deviceSession = nil
         tableView.reloadData()
     }
-
-    // #pragma mark - DeviceDelegate
+    
+    // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo) {
         self.deviceInfo = deviceInfo
         tableView.reloadData()
     }
     
     func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail) {
-//        self.deviceInfo = deviceInfo
-//        tableView.reloadData()
+        self.deviceInfoDetail = detail
+        tableView.reloadData()
     }
     
     func deviceAppLaunched(deviceId: NSUUID) {
@@ -139,7 +142,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     func deviceDisconnected(deviceId: NSUUID) {
         NSLog("deviceDisconnected %@", deviceId)
         self.deviceInfo = nil
-        self.accelerometerSessionStats = [:]
+        self.deviceInfoDetail = nil
+        self.deviceSession = nil
         tableView.reloadData()
     }
     

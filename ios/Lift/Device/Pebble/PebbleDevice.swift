@@ -1,11 +1,64 @@
 import Foundation
 
-internal class PebbleDeviceSession {
-    var id: NSUUID!
-    var accelerometerStats: AccelerometerSessionStats?
-    
-    required init() {
+/**
+ * Session receiving app updates from the watch. When initialised with ``PBWatch``, it sets all required handlers
+ * and receives the incoming data from the device.
+ *
+ * It also maintains required stats.
+ */
+class PebbleDeviceSession : DeviceSession {
+    private var id: NSUUID!
+    private var stats: [String : DeviceSessionStats] = [:]
+    private var deviceDataDelegates: DeviceDataDelegates!
+    private var startTime: NSDate!
+    private var updateHandler: AnyObject?
+
+    required init(watch: PBWatch!, deviceDataDelegates: DeviceDataDelegates) {
         self.id = NSUUID()
+        self.startTime = NSDate()
+        self.deviceDataDelegates = deviceDataDelegates
+        self.updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceiveUpdateHandler)
+    }
+    
+    // DeviceSession ---
+    
+    func sessionId() -> NSUUID {
+        return self.id
+    }
+    
+    func sessionStats() -> [String : DeviceSessionStats] {
+        return self.stats;
+    }
+    
+    // DeviceSession ---
+    
+    internal func stop(watch: PBWatch!) {
+        if let x: AnyObject = updateHandler { watch.appMessagesRemoveUpdateHandler(x) }
+        deviceDataDelegates.accelerometerDelegate.accelerometerDataEnded(self)
+    }
+    
+    private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
+        if let d: NSData = data[0xface0fb0] as? NSData {
+            accelerometerDataReceived(d)
+        }
+        return true
+    }
+    
+    private func updateStats(key: String, update: DeviceSessionStats -> DeviceSessionStats) -> DeviceSessionStats {
+        var prev: DeviceSessionStats
+        let zero = DeviceSessionStats(bytes: 0, packets: 0)
+        if let x = stats[key] { prev = x } else { prev = zero }
+        let curr = update(prev)
+        stats[key] = curr
+        return curr
+    }
+
+    private func accelerometerDataReceived(data: NSData) {
+        let stats = updateStats("accelerometer", update: { prev in
+            return DeviceSessionStats(bytes: prev.bytes + data.length, packets: prev.packets + 1)
+        })
+        
+        deviceDataDelegates.accelerometerDelegate.accelerometerDataReceived(self, data: data)
     }
 }
 
@@ -13,18 +66,7 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
     private let central = PBPebbleCentral.defaultCentral()
     private var deviceDelegate: DeviceDelegate!
     private var deviceDataDelegates: DeviceDataDelegates!
-    private var updateHandler: AnyObject?
-    
-    private func accelerometerDataReceived(deviceSession: PebbleDeviceSession, data: NSData) {
-        deviceDataDelegates.accelerometerDelegate.accelerometerReceiverReceived(deviceSession.id, data: data, stats: deviceSession.accelerometerStats!)
-    }
-    
-    private func appMessagesReceived(deviceSession: PebbleDeviceSession, watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
-        if let d: NSData = data[0xface0fb0] as? NSData {
-            accelerometerDataReceived(deviceSession, d)
-        }
-        return true
-    }
+    private var currentDeviceSession: PebbleDeviceSession?
     
     private func versionInfoReceived(watch: PBWatch!, version: PBVersionInfo!) {
         let deviceInfoDetail = DeviceInfo.Detail(
@@ -40,15 +82,12 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
         if error != nil {
             deviceDelegate.deviceAppLaunchFailed(deviceId, error: error!)
         } else {
-            updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceived(PebbleDeviceSession()))
             watch.getVersionInfo(versionInfoReceived, onTimeout: { (watch) -> Void in /* noop */ })
-            
-            let deviceInfo = DeviceInfo(type: "pebble",
-                name: watch.name,
-                serialNumber: watch.serialNumber)
-            
+            let deviceInfo = DeviceInfo(type: "pebble", name: watch.name, serialNumber: watch.serialNumber)
             deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
             deviceDelegate.deviceAppLaunched(deviceId)
+            currentDeviceSession?.stop(watch)
+            currentDeviceSession = PebbleDeviceSession(watch: watch, deviceDataDelegates: deviceDataDelegates)
         }
     }
     
@@ -85,10 +124,7 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
     func pebbleCentral(central: PBPebbleCentral!, watchDidDisconnect watch: PBWatch!) {
         NSLog("watchDidDisconnect %@", watch)
         deviceDelegate.deviceDisconnected(watch.serialNumber.md5UUID())
-        if let x: AnyObject = updateHandler {
-            watch.appMessagesRemoveUpdateHandler(x)
-        }
-
+        currentDeviceSession?.stop(watch)
         // attempt to re-connect and launch
         start()
     }

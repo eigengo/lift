@@ -5,7 +5,10 @@
 "Device.Pebble.PebbleConnector.tooManyWatches"="Too many connected watches";
 "Device.Pebble.PebbleConnector.noWatches"="No connected watches";
 "DeviceTableViewCell.noDevice"="No device";
-"LiveSessionController.sessionTitle"="Session %@";
+"DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
+"DeviceTableViewCell.deviceInfo"="Serial %@";
+"LiveSessionController.sessionStatsTitle"="Session %@";
+"LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
 "LiveSessionController.exercise"="Some exercise";
 "LiveSessionController.section.deviceAndSession"="Device and session";
 "LiveSessionController.section.exercise"="Exercise";
