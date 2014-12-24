@@ -31,15 +31,52 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     private var deviceInfo: DeviceInfo?
     private var deviceInfoDetail: DeviceInfo.Detail?
     private var deviceSession: DeviceSession?
+    private var timer: NSTimer?
+    private var startTime: NSDate?
+    private var sessionId: NSUUID?
+    @IBOutlet var stopSessionButton: UIBarButtonItem!
+
+    // MARK: main
+    override func viewWillDisappear(animated: Bool) {
+        timer!.invalidate()
+        navigationItem.prompt = nil
+        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: sessionId!) { _ in }
+    }
     
+    @IBAction
+    func stopSession() {
+        if stopSessionButton.tag < 0 {
+            stopSessionButton.title = "Really?"
+            stopSessionButton.tag = 3
+        } else {
+            navigationController!.popToRootViewControllerAnimated(true)
+        }
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        startTime = NSDate()
+        timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
+    }
+    
+    func tick() {
+        let elapsed = Int(NSDate().timeIntervalSinceDate(startTime!))
+        let minutes: Int = elapsed / 60
+        let seconds: Int = elapsed - minutes * 60
+        navigationItem.prompt = NSString(format: "Elapsed %d:%02d", minutes, seconds)
+        stopSessionButton.tag -= 1
+        if stopSessionButton.tag < 0 {
+            stopSessionButton.title = "Stop"
+        }
+    }
+
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         PebbleDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
-        NSLog("Starting with %@", session)
+        sessionId = session.id
     }
     
     // MARK: UITableViewDataSource
-    
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return 2 // section 1: device & session, section 2: exercise log
     }
@@ -109,6 +146,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func accelerometerDataEnded(deviceSession: DeviceSession) {
         self.deviceSession = nil
+        deviceInfo = nil
+        deviceInfoDetail = nil
+        navigationController!.popToRootViewControllerAnimated(true)
         tableView.reloadData()
     }
     

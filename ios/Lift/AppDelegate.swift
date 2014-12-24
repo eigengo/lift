@@ -10,6 +10,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         registerSettingsAndDelegates()
         
+        window = UIWindow(frame: UIScreen.mainScreen().bounds)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let id = CurrentLiftUser.userId == nil ? "login" : "main"
+        window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
+        window!.makeKeyAndVisible()
+        
         return true
     }
     

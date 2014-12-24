@@ -58,7 +58,7 @@ int gfs_start(gfs_sample_callback_t callback, gfs_sampling_rate_t frequency) {
 
     gfs_context.callback = callback;
     gfs_context.samples_per_second = (uint8_t) frequency;
-    gfs_context.buffer = malloc(GFS_BUFFER_SIZE + sizeof(struct gfs_header));
+    gfs_context.buffer = malloc(GFS_BUFFER_SIZE);
 
     if (gfs_context.buffer == NULL) return E_GFS_MEM;
 

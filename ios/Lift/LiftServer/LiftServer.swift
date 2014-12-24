@@ -84,14 +84,8 @@ public class LiftServer {
         return dateFormatter
     }()
     
-    //private let baseURLString = "http://192.168.59.103:49154"
-    //private let baseURLString = "http://192.168.101.102:12551"
     private func baseURLString() -> String {
-        if let url = NSUserDefaults.standardUserDefaults().stringForKey("lift_server_url") {
-            return url
-        } else {
-            return "http://192.168.0.8:12551"
-        }
+        return LiftUserDefaults.liftServerUrl
     }
     
     

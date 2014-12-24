@@ -21,7 +21,7 @@ class DemoSessionTableModel : NSObject, UITableViewDataSource {
         super.init()
     }
     
-    // #pragma mark - UITableViewDataSource
+    // MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return 1
     }
@@ -55,54 +55,63 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     
     private var tableModel: DemoSessionTableModel?
     private var sessionId: NSUUID?
-    private let reallyStopTag = 1
     private var timer: NSTimer?
     private var startTime: NSDate?
     
+    // MARK: main
+    override func viewWillDisappear(animated: Bool) {
+        timer!.invalidate()
+        navigationItem.prompt = nil
+        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: sessionId!) { _ in }
+    }
+    
+    @IBAction
+    func stopSession() {
+        if stopSessionButton.tag < 0 {
+            stopSessionButton.title = "Really?"
+            stopSessionButton.tag = 3
+        } else {
+            navigationItem.prompt = nil
+            navigationController!.popToRootViewControllerAnimated(true)
+        }
+    }
+
     override func viewDidLoad() {
-        self.tableView.delegate = self
-        self.tableView.dataSource = tableModel!
-        self.stopSessionButton.title = "Stop"
-        self.stopSessionButton.tag = 0
-        self.startTime = NSDate()
-        self.timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
+        tableView.delegate = self
+        tableView.dataSource = tableModel!
+        stopSessionButton.title = "Stop"
+        stopSessionButton.tag = 0
+        startTime = NSDate()
+        tabBarController?.tabBar.hidden = true
+        timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }
     
     func tick() {
         let elapsed = Int(NSDate().timeIntervalSinceDate(self.startTime!))
         let minutes: Int = elapsed / 60
         let seconds: Int = elapsed - minutes * 60
-        self.navigationItem.prompt = NSString(format: "Elapsed %d:%02d", minutes, seconds)
+        navigationItem.prompt = NSString(format: "Elapsed %d:%02d", minutes, seconds)
+        stopSessionButton.tag -= 1
+        if stopSessionButton.tag < 0 {
+            stopSessionButton.title = "Stop"
+        }
     }
     
+    // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        self.sessionId = session.id
-        self.tableModel = DemoSessionTableModel(muscleGroupKeys: session.props.muscleGroupKeys)
+        sessionId = session.id
+        tableModel = DemoSessionTableModel(muscleGroupKeys: session.props.muscleGroupKeys)
     }
     
+    // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let path = self.tableModel!.filePathAtIndexPath(indexPath)
+        let path = tableModel!.filePathAtIndexPath(indexPath)
         let data = NSFileManager.defaultManager().contentsAtPath(path!)
-        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: self.sessionId!, data: data!) { x in
+        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: sessionId!, data: data!) { x in
             NSLog("Sent...")
         }
         
-        self.tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
-    
-    override func viewWillDisappear(animated: Bool) {
-        self.timer!.invalidate()
-        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: self.sessionId!) { _ in }
-    }
-    
-    @IBAction
-    func stopSession() {
-        if self.stopSessionButton.tag != reallyStopTag {
-            self.stopSessionButton.title = "Really?"
-            self.stopSessionButton.tag = reallyStopTag
-        } else {
-            self.navigationItem.prompt = nil
-            self.navigationController!.popToRootViewControllerAnimated(true)
-        }
-    }
+
 }

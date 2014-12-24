@@ -19,7 +19,7 @@ struct __attribute__((__packed__)) gfs_header {
     uint8_t type;                   // 1
     uint8_t count;                  // 2
     uint8_t samples_per_second;     // 3
-    uint16_t last;                  // 4
+    uint16_t last;                  // 4, 5
 };
 
 /**

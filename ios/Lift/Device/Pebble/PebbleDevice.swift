@@ -38,8 +38,10 @@ class PebbleDeviceSession : DeviceSession {
     }
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
-        if let d: NSData = data[0xface0fb0] as? NSData {
-            accelerometerDataReceived(d)
+        if let x = data[0xface0fb0] as? NSData {
+            accelerometerDataReceived(x)
+        } else if let x: AnyObject = data[0x0000dead] {
+            stop(watch)
         }
         return true
     }

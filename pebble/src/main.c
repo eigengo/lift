@@ -45,6 +45,7 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
+    am_stop();
     layer_destroy(disc_layer);
 }
 

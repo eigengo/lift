@@ -48,6 +48,14 @@ gfs_sample_callback_t am_start() {
 }
 
 void am_stop() {
+    for (int i = 0; i < 10; ++i) {
+        DictionaryIterator *iter;
+        if (app_message_outbox_begin(&iter) == APP_MSG_OK) {
+            dict_write_int8(iter, 0x0000dead, 1);
+            dict_write_end(iter);
+            if (app_message_outbox_send() == APP_MSG_OK) break;
+        }
+    }
     _am_last_error = 0;
     _am_last_error_distance = -1;
     _am_error_count = 0;

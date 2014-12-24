@@ -63,6 +63,7 @@
 		54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83B31A40AF82006DD311 /* NotificationModel.swift */; };
 		54DC83B51A40AF82006DD311 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83B31A40AF82006DD311 /* NotificationModel.swift */; };
 		54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
+		54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
@@ -178,6 +179,7 @@
 		54DC83A51A40ACEA006DD311 /* Interface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Interface.storyboard; sourceTree = "<group>"; };
 		54DC83A71A40ACEA006DD311 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		54DC83B31A40AF82006DD311 /* NotificationModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
+		54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftUserDefaults.swift; sourceTree = "<group>"; };
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
 		54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftAlertController.swift; sourceTree = "<group>"; };
@@ -319,7 +321,6 @@
 				54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */,
 				54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */,
 				54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */,
-				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
 				54A53EC21A2EF5EC00EDD092 /* Localizable.strings */,
 				54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */,
 				545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */,
@@ -327,6 +328,8 @@
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
+				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
+				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -679,6 +682,7 @@
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
+				54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */,
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
 			);
