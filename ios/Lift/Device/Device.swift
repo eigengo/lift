@@ -39,6 +39,23 @@ class DeviceDataDelegates {
 }
 
 /**
+ * Common device communication protocol
+ */
+protocol Device {
+    
+    /**
+     * Starts the device work; typically also starts the companion app
+     */
+    func start()
+    
+    /**
+     * Stops the device work; typically also stops the companion app
+     */
+    func stop()
+    
+}
+
+/**
  * The session statistics
  */
 struct DeviceSessionStats {

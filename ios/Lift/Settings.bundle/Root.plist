@@ -38,6 +38,16 @@
 			<key>Type</key>
 			<string>PSToggleSwitchSpecifier</string>
 		</dict>
+        <dict>
+            <key>DefaultValue</key>
+            <true/>
+            <key>Key</key>
+            <string>showSessionDetails</string>
+            <key>Title</key>
+            <string>Show session details</string>
+            <key>Type</key>
+            <string>PSToggleSwitchSpecifier</string>
+        </dict>
 	</array>
 	<key>StringsTable</key>
 	<string>Root</string>

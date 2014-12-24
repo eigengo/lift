@@ -26,8 +26,7 @@ class DeviceTableViewCell : UITableViewCell {
 
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     AccelerometerDelegate, DeviceDelegate {
-    // TODO: Move to settings
-    private let showSessionDetails = true
+    private let showSessionDetails = LiftUserDefaults.showSessionDetails
     private var deviceInfo: DeviceInfo?
     private var deviceInfoDetail: DeviceInfo.Detail?
     private var deviceSession: DeviceSession?

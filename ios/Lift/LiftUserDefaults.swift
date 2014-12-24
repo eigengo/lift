@@ -36,4 +36,10 @@ struct LiftUserDefaults {
         }
     }
     
+    static var showSessionDetails: Bool {
+        get {
+            return NSUserDefaults.standardUserDefaults().boolForKey("showSessionDetails")
+        }
+    }
+    
 }

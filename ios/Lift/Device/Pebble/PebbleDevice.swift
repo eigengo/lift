@@ -20,7 +20,7 @@ class PebbleDeviceSession : DeviceSession {
         self.updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceiveUpdateHandler)
     }
     
-    // DeviceSession ---
+    // MARK: DeviceSession
     
     func sessionId() -> NSUUID {
         return self.id
@@ -33,8 +33,8 @@ class PebbleDeviceSession : DeviceSession {
         }
         return r
     }
-    
-    // DeviceSession ---
+
+    // MARK: main
     
     internal func stop(watch: PBWatch!) {
         if let x: AnyObject = updateHandler { watch.appMessagesRemoveUpdateHandler(x) }
@@ -68,34 +68,14 @@ class PebbleDeviceSession : DeviceSession {
     }
 }
 
-class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
+/**
+ * Pebble implementation of the ``Device`` protocol
+ */
+class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate, Device {
     private let central = PBPebbleCentral.defaultCentral()
     private var deviceDelegate: DeviceDelegate!
     private var deviceDataDelegates: DeviceDataDelegates!
     private var currentDeviceSession: PebbleDeviceSession?
-    
-    private func versionInfoReceived(watch: PBWatch!, version: PBVersionInfo!) {
-        let deviceInfoDetail = DeviceInfo.Detail(
-            address: String(format: "%@", watch.versionInfo.deviceAddress),
-            hardwareVersion: version.hardwareVersion,
-            osVersion: version.systemResources.friendlyVersion)
-        
-        deviceDelegate.deviceGotDeviceInfoDetail(watch.serialNumber.md5UUID(), detail: deviceInfoDetail)
-    }
-    
-    private func appLaunched(watch: PBWatch!, error: NSError!) {
-        let deviceId = watch.serialNumber.md5UUID()
-        if error != nil {
-            deviceDelegate.deviceAppLaunchFailed(deviceId, error: error!)
-        } else {
-            watch.getVersionInfo(versionInfoReceived, onTimeout: { (watch) -> Void in /* noop */ })
-            let deviceInfo = DeviceInfo(type: "pebble", name: watch.name, serialNumber: watch.serialNumber)
-            deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
-            deviceDelegate.deviceAppLaunched(deviceId)
-            currentDeviceSession?.stop(watch)
-            currentDeviceSession = PebbleDeviceSession(watch: watch, deviceDataDelegates: deviceDataDelegates)
-        }
-    }
     
     required init(deviceDelegate: DeviceDelegate, deviceDataDelegates: DeviceDataDelegates) {
         self.deviceDelegate = deviceDelegate
@@ -110,6 +90,37 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
         start()
     }
 
+    ///
+    /// Version info callback from the watch
+    ///
+    private func versionInfoReceived(watch: PBWatch!, version: PBVersionInfo!) {
+        let deviceInfoDetail = DeviceInfo.Detail(
+            address: String(format: "%@", watch.versionInfo.deviceAddress),
+            hardwareVersion: version.hardwareVersion,
+            osVersion: version.systemResources.friendlyVersion)
+        
+        deviceDelegate.deviceGotDeviceInfoDetail(watch.serialNumber.md5UUID(), detail: deviceInfoDetail)
+    }
+    
+    ///
+    /// App launched callback from the watch
+    ///
+    private func appLaunched(watch: PBWatch!, error: NSError!) {
+        let deviceId = watch.serialNumber.md5UUID()
+        if error != nil {
+            deviceDelegate.deviceAppLaunchFailed(deviceId, error: error!)
+        } else {
+            watch.getVersionInfo(versionInfoReceived, onTimeout: { (watch) -> Void in /* noop */ })
+            let deviceInfo = DeviceInfo(type: "pebble", name: watch.name, serialNumber: watch.serialNumber)
+            deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
+            deviceDelegate.deviceAppLaunched(deviceId)
+            currentDeviceSession?.stop(watch)
+            currentDeviceSession = PebbleDeviceSession(watch: watch, deviceDataDelegates: deviceDataDelegates)
+        }
+    }
+    
+    // MARK: Device implementation
+
     func start() {
         if central.connectedWatches.count > 1 {
             deviceDelegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.tooManyWatches", code: 1))
@@ -121,7 +132,11 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate {
         }
     }
     
-    // --- PBPebbleCentralDelegate implementation ---
+    func stop() {
+        // TODO: Implement me
+    }
+    
+    // MARK: PBPebbleCentralDelegate implementation
     
     func pebbleCentral(central: PBPebbleCentral!, watchDidConnect watch: PBWatch!, isNew: Bool) {
         NSLog("Connected %@", watch)
