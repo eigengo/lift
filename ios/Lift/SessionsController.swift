@@ -105,6 +105,5 @@ class SessionsController : UITableViewController, UITableViewDataSource {
         cell.setSessionSummary(sessionSummary)
         return cell
     }
-    
 
 }

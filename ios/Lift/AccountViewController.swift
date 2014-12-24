@@ -15,12 +15,7 @@ class AccountViewController : UIViewController {
     
     @IBAction
     func login(sender: UIButton) {
-        let ln = UILocalNotification()
-        ln.category = "accept"
-
-        UIApplication.sharedApplication().scheduleLocalNotification(ln)
-        
-        self.view.endEditing(true)
+        view.endEditing(true)
         LiftServer.sharedInstance.userLogin(username.text, password: password.text) {
             $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
         }
@@ -28,7 +23,7 @@ class AccountViewController : UIViewController {
     
     @IBAction
     func register(sender: UIButton) {
-        self.view.endEditing(true)
+        view.endEditing(true)
         LiftServer.sharedInstance.userRegister(username.text, password: password.text) {
             $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
         }
