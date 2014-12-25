@@ -111,18 +111,15 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction
     func save() {
         self.view.endEditing(true)
-//        let publicProfile = User.Profile(firstName: firstName.text,
-//            lastName: lastName.text,
-//            weight: weight.text.toInt(),
-//            age: age.text.toInt())
-//        
-//        LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, publicProfile: publicProfile) {
-//            $0.cata(LiftAlertController.showError("user_publicprofile_set_failed", parent: self), { _ in })
-//        }
+        LiftServer.sharedInstance.userSetProfile(CurrentLiftUser.userId!, profile: profile) {
+            $0.cata(LiftAlertController.showError("user_publicprofile_set_failed", parent: self), { _ in })
+        }
+        saveButton.enabled = false
     }
 
     private func showProfile(profile: User.Profile?) {
         if let x = profile { self.profile = x }
+        saveButton.enabled = false
         tableView.reloadData()
     }
     
