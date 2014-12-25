@@ -32,7 +32,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 2 // background and profile
+        case 0: return 1 // profile picture
         case 1: return 4 // four user properties
         case 2: return 1 // Pebble only for the moment
         
@@ -42,9 +42,9 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0: return 80
+        case 0: return 60
         case 1: return 40
-        case 2: return 80
+        case 2: return 60
         default: fatalError("Match error")
         }
     }

@@ -10,6 +10,11 @@ class DeviceTableViewCell : UITableViewCell {
     @IBOutlet var name: UILabel!
     @IBOutlet var detail: UILabel!
     
+    required init(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        selectionStyle = UITableViewCellSelectionStyle.None
+    }
+    
     func setDeviceInfo(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) {
         if let di = deviceInfo {
             name.text = di.name

@@ -63,6 +63,11 @@ class PropertyTableViewCell : UITableViewCell {
     private var delegate: PropertyTableViewCellDelegate?
     private var property: String?
     
+    required init(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        selectionStyle = UITableViewCellSelectionStyle.None
+    }
+
     func setPropertyAndDelegate(property: String, delegate: PropertyTableViewCellDelegate) {
         self.property = property
         self.delegate = delegate
