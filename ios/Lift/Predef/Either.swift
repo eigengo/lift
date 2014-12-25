@@ -31,6 +31,13 @@ public enum Either<L, R> {
         return either({ _ in value }, { r in f(r) });
     }
     
+    public func map<S>(f: R -> S) -> Either<L, S> {
+        switch self {
+        case let x = Left(_): return x
+        case Right(Box(let v)): return .Right(f(v))
+        }
+    }
+    
     /// Named function for `>>-`. If the Either is Left, simply returns
     /// a New Left with the value of the receiver. If Right, applies the function `f`
     /// and returns the result.

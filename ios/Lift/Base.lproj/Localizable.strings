@@ -2,8 +2,10 @@
 "user_loginfailed"="Could not log in";
 "user_publicprofile_set_failed"="Could not set public profile";
 "user_publicprofile_get_failed"="Could not get public profile";
+
 "Device.Pebble.PebbleConnector.tooManyWatches"="Too many connected watches";
 "Device.Pebble.PebbleConnector.noWatches"="No connected watches";
+
 "DeviceTableViewCell.noDevice"="No device";
 "DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
 "DeviceTableViewCell.deviceInfo"="Serial %@";
@@ -12,5 +14,9 @@
 "LiveSessionController.exercise"="Some exercise";
 "LiveSessionController.section.deviceAndSession"="Device and session";
 "LiveSessionController.section.exercise"="Exercise";
+
+"ProfileController.pictures"="Pictures";
+"ProfileController.profile"="Profile";
+"ProfileController.devices"="Devices";
 
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";

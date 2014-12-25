@@ -6,7 +6,7 @@ struct User {
     ///
     /// User's public profile
     ///
-    struct PublicProfile {
+    struct Profile {
         var firstName: String
         var lastName: String
         var weight: Int?

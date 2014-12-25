@@ -1,29 +1,5 @@
 import UIKit
 
-class DeviceTableViewCell : UITableViewCell {
-    @IBOutlet var name: UILabel!
-    @IBOutlet var detail: UILabel!
-    
-    func setDeviceInfo(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) {
-        if let di = deviceInfo {
-            name.text = di.name
-            if let did = deviceInfoDetail {
-                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(di.serialNumber, did.address)
-            } else {
-                detail.text = "DeviceTableViewCell.deviceInfo".localized(di.serialNumber)
-            }
-        } else {
-            name.text = "DeviceTableViewCell.noDevice".localized()
-            detail.text = ""
-        }
-    }
-    
-    func setDeviceError(error: NSError) {
-        name.text = String(format: "%@", error)
-        detail.text = ""
-    }
-}
-
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     AccelerometerDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails

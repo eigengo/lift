@@ -44,12 +44,12 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     ///
     /// Retrieves the user's profile for the ``userId``
     ///
-    case UserGetPublicProfile(/*userId: */NSUUID)
+    case UserGetProfile(/*userId: */NSUUID)
     
     ///
     /// Sets the user's profile for the ``userId``
     ///
-    case UserSetPublicProfile(/*userId: */NSUUID)
+    case UserSetProfile(/*userId: */NSUUID)
     
     ///
     /// Get supported muscle groups
@@ -90,8 +90,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case let .UserLogin: return LiftServerRequest(path: "/user", method: Method.PUT)
                     
                 case .UserRegisterDevice(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)/device/ios", method: Method.POST)
-                case .UserGetPublicProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.GET)
-                case .UserSetPublicProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.POST)
+                case .UserGetProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.GET)
+                case .UserSetProfile(let userId): return LiftServerRequest(path: "/user/\(userId.UUIDString)", method: Method.POST)
                     
                 case .ExerciseGetMuscleGroups(): return LiftServerRequest(path: "/exercise/musclegroups", method: Method.GET)
                     

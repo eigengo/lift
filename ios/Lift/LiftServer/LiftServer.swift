@@ -153,13 +153,13 @@ public class LiftServer {
     ///
     /// Get the public profile for the given ``userId``
     ///
-    func userGetPublicProfile(userId: NSUUID, f: Result<User.PublicProfile?> -> Void) -> Void {
-        request(LiftServerURLs.UserGetPublicProfile(userId))
-            .responseAsResutlt(f) { json -> User.PublicProfile? in
+    func userGetProfile(userId: NSUUID, f: Result<User.Profile?> -> Void) -> Void {
+        request(LiftServerURLs.UserGetProfile(userId))
+            .responseAsResutlt(f) { json -> User.Profile? in
                 if json.isEmpty {
                     return nil
                 } else {
-                    return User.PublicProfile(firstName: json["firstName"].stringValue,
+                    return User.Profile(firstName: json["firstName"].stringValue,
                         lastName: json["lastName"].stringValue,
                         weight: json["weight"].int,
                         age: json["age"].int)
@@ -170,16 +170,12 @@ public class LiftServer {
     ///
     /// Sets the public profile for the given ``userId``
     ///
-    func userSetPublicProfile(userId: NSUUID, publicProfile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
-        var params: [String : AnyObject] = ["firstName": publicProfile.firstName, "lastName": publicProfile.lastName]
-        if publicProfile.age != nil {
-            params["age"] = publicProfile.age!
-        }
-        if publicProfile.weight != nil {
-            params["weight"] = publicProfile.weight!
-        }
+    func userSetProfile(userId: NSUUID, profile: User.Profile, f: Result<Void> -> Void) -> Void {
+        var params: [String : AnyObject] = ["firstName": profile.firstName, "lastName": profile.lastName]
+        params["age"] = profile.age?
+        params["weight"] = profile.weight?
         
-        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: params))
+        request(LiftServerURLs.UserSetProfile(userId), body: .Json(params: params))
             .responseAsResutlt(f) { json in }
     }
     
