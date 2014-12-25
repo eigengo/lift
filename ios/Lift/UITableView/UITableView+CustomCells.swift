@@ -20,11 +20,13 @@ extension UIViewController {
         }
     }
     
-    func dequeueReusablePropertyTableViewCell(tableView: UITableView) -> PropertyTableViewCell {
-        return doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.property) {
+    func dequeueReusablePropertyTableViewCell(tableView: UITableView, property: String, delegate: PropertyTableViewCellDelegate) -> PropertyTableViewCell {
+        var cell: PropertyTableViewCell = doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.property) {
             $0.registerNib(UINib(nibName: "PropertyTableViewCell", bundle: nil),
                 forCellReuseIdentifier: UITableViewCellReuseIdentifiers.property)
         }
+        cell.setPropertyAndDelegate(property, delegate: delegate)
+        return cell
     }
     
     func dequeueReusableDeviceTableViewCell(tableView: UITableView) -> DeviceTableViewCell {

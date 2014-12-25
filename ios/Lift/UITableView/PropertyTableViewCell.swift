@@ -15,50 +15,68 @@ enum PropertyType {
 }
 
 /**
+ * The property table cell delegate implementations must provide ways to access and set
+ * the values referenced by the given property. The implementor should perform validation
+ * and indicate validation errors as required
+ */
+protocol PropertyTableViewCellDelegate {
+    /**
+     * Called when the cell requires a value for the given property
+     *
+     * @param property the property name
+     * @return the property value as string
+     */
+    func propertyTableViewCellGetValueForProperty(property: String) -> String?
+    
+    /**
+     * Compute the title for the given property
+     *
+     * @param property the property name
+     * @return the title
+     */
+    func propertyTableViewCellGetTitleForProperty(property: String) -> String
+    
+    /**
+     * Called when the property has finished updating and now needs validation
+     *
+     * @param value the new value
+     * @param property the property that's been changed
+     * @return validation error, if any
+     */
+    func propertyTableViewCellValueValidate(value: String, property: String) -> String?
+    
+    /**
+     * Called when the cell's value has changed.
+     *
+     * @param value the new value
+     * @param property the property that's been changed
+     */
+    func propertyTableViewCellValueChanged(value: String, property: String)
+}
+
+/**
  * UITableViewCell that can edit a property and save it into a model
  */
 class PropertyTableViewCell : UITableViewCell {
     @IBOutlet var titleLabel: UILabel!
     @IBOutlet var editorTextField: UITextField!
+    private var delegate: PropertyTableViewCellDelegate?
     private var property: String?
-    private var type: PropertyType?
-    private var empty: AnyObject?
     
-    private func convertValue() -> Either<String, AnyObject> {
-        switch type! {
-        case .Text: return Either.right(editorTextField.text)
-        case .Integer(let min, let max):
-            if let i = editorTextField.text.toInt() {
-                if i >= min && i <= max {
-                    return Either.right(NSInteger(i))
-                } else {
-                    return Either.left("PropertyTableViewCell.integerOutOfRange".localized(min, max, i))
-                }
+    func setPropertyAndDelegate(property: String, delegate: PropertyTableViewCellDelegate) {
+        self.property = property
+        self.delegate = delegate
+        titleLabel.text = delegate.propertyTableViewCellGetTitleForProperty(property)
+        editorTextField.text = delegate.propertyTableViewCellGetValueForProperty(property)
+    }
+    
+    @IBAction func editorTextFieldEditingChanged() {
+        if let p = property {
+            if let x = delegate?.propertyTableViewCellValueValidate(editorTextField.text, property: p) {
+                // validation failed
             } else {
-                return Either.left("PropertyTableViewCell.integerNotInteger".localized(editorTextField.text))
+                delegate?.propertyTableViewCellValueChanged(editorTextField.text, property: p)
             }
-        case .Date:
-            return Either.left("Implement me")
         }
     }
-
-    func merge(model: [String : AnyObject]) -> Either<String, [String : AnyObject]> {
-        if (!editorTextField.text.isEmpty) {
-            return convertValue().map { x in
-                var m = model
-                m[self.property!] = x
-                return m
-            }
-        } else {
-            var m = model
-            m[property!] = empty!
-            return Either.right(m)
-        }
-    }
-    
-    func load(model: [String : AnyObject], type: PropertyType, empty: AnyObject) {
-        self.type = type
-        self.empty = empty
-    }
-    
 }

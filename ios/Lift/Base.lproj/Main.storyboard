@@ -261,28 +261,11 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="text" rowHeight="48" id="kAb-gW-UwA">
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kAb-gW-UwA" id="Fdy-ZH-jKo">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="CZP-fV-oXm">
-                                                    <rect key="frame" x="8" y="13" width="66" height="21"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
-                                                    <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                                <textField opaque="NO" clipsSubviews="YES" contentMode="left" contentHorizontalAlignment="left" contentVerticalAlignment="center" minimumFontSize="17" id="dga-82-i9o">
-                                                    <rect key="frame" x="90" y="9" width="299" height="30"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                    <textInputTraits key="textInputTraits"/>
-                                                </textField>
-                                            </subviews>
-                                        </tableViewCellContentView>
-                                    </tableViewCell>
                                 </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="ucP-LO-yqW" id="Y5m-zx-7xg"/>
+                                    <outlet property="delegate" destination="ucP-LO-yqW" id="DrT-f6-sao"/>
+                                </connections>
                             </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -290,10 +273,15 @@
                     <tabBarItem key="tabBarItem" systemItem="contacts" id="74y-O3-uDh"/>
                     <navigationItem key="navigationItem" title="Profile" id="ZvI-5j-TNx">
                         <barButtonItem key="leftBarButtonItem" title="Cancel" id="GZ0-JN-zGB"/>
-                        <barButtonItem key="rightBarButtonItem" enabled="NO" title="Save" id="5MP-d9-y4X"/>
+                        <barButtonItem key="rightBarButtonItem" enabled="NO" title="Save" id="5MP-d9-y4X">
+                            <connections>
+                                <action selector="save" destination="ucP-LO-yqW" id="0hm-yJ-IoR"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
+                        <outlet property="saveButton" destination="5MP-d9-y4X" id="znB-aA-Ahj"/>
                         <outlet property="tableView" destination="MF9-aD-laY" id="lXY-g7-1Zt"/>
                     </connections>
                 </viewController>

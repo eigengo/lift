@@ -274,8 +274,8 @@
 				54C37B7E1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift */,
 				54C37B801A4C0A9A0036C0C8 /* DeviceTableViewCell.xib */,
 				54C37B841A4C116C0036C0C8 /* PropertyTableViewCell.swift */,
-				54C37B821A4C0BD80036C0C8 /* UITableView+CustomCells.swift */,
 				54C37B861A4C1D890036C0C8 /* PropertyTableViewCell.xib */,
+				54C37B821A4C0BD80036C0C8 /* UITableView+CustomCells.swift */,
 			);
 			path = UITableView;
 			sourceTree = "<group>";

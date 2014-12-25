@@ -20,3 +20,8 @@
 "ProfileController.devices"="Devices";
 
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
+
+"Profile.firstName"="First name";
+"Profile.lastName"="Last name";
+"Profile.age"="Age";
+"Profile.weight"="Weight";
