@@ -106,18 +106,18 @@ class PropertyTableViewCell : UITableViewCell {
         case .Integer(let min, let max):
             if editorTextField.text.isEmpty && !descriptor!.noneAllowed {
                 // Empty when value needed
-                return "Property.emptyButValueNeeded".localized()
+                return "PropertyTableViewCell.emptyButValueNeeded".localized()
             }
             if !editorTextField.text.isEmpty {
                 if let x = editorTextField.text.toInt() {
                     // we have value, check range
                     if x < min || x > max {
                         // out of range
-                        return "Property.integerOutOfRange".localized(x, min, max)
+                        return "PropertyTableViewCell.integerOutOfRange".localized(x, min, max)
                     }
                 } else {
                     // not an int
-                    return "Property.integerFormatError".localized(editorTextField.text)
+                    return "PropertyTableViewCell.integerFormatError".localized(editorTextField.text)
                 }
             }
         // TODO: other input types

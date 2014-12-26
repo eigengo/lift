@@ -80,9 +80,9 @@ class PebbleDevice : NSObject, Device {
     
     internal func findWatch() -> Either<NSError, PBWatch> {
         if central.connectedWatches.count > 1 {
-            return Either.left(NSError.errorWithMessage("Device.Pebble.PebbleConnector.tooManyWatches", code: 1))
+            return Either.left(NSError.errorWithMessage("Device.Pebble.tooManyWatches".localized(), code: 1))
         } else if central.connectedWatches.count == 0 {
-            return Either.left(NSError.errorWithMessage("Device.Pebble.PebbleConnector.noWatches", code: 2))
+            return Either.left(NSError.errorWithMessage("Device.Pebble.noWatches".localized(), code: 2))
         } else {
             let watch = central.connectedWatches[0] as PBWatch
             return Either.right(watch)

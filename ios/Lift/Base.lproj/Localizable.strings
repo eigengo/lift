@@ -3,22 +3,20 @@
 "user_publicprofile_set_failed"="Could not set public profile";
 "user_publicprofile_get_failed"="Could not get public profile";
 
-"Device.Pebble.PebbleConnector.tooManyWatches"="Too many connected watches";
-"Device.Pebble.PebbleConnector.noWatches"="No connected watches";
+"Device.Pebble.tooManyWatches"="Too many connected watches";
+"Device.Pebble.noWatches"="No connected watches";
 
 "DeviceTableViewCell.noDevice"="No device";
 "DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
 "DeviceTableViewCell.deviceInfo"="Serial %@";
 "DeviceTableViewCell.disconnectedType.pebble"="Pebble";
-"DeviceTableViewCell.disconnectedType.fitbit"="Fitbit";
 "DeviceTableViewCell.disconnectedType.androidwear"="Android Wear";
 "DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch";
-"DeviceTableViewCell.disconnected"="Disconnected";
+"DeviceTableViewCell.disconnected"="%@";
 "DeviceTableViewCell.notAvailableType.pebble"="Pebble";
-"DeviceTableViewCell.notAvailableType.fitbit"="Fitbit";
 "DeviceTableViewCell.notAvailableType.androidwear"="Android Wear";
 "DeviceTableViewCell.notAvailableType.applewatch"="Apple Watch";
-"DeviceTableViewCell.notAvailable"="Not available";
+"DeviceTableViewCell.notAvailable"="%@";
 
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
@@ -37,6 +35,6 @@
 "Profile.age"="Age";
 "Profile.weight"="Weight";
 
-"Property.emptyButValueNeeded"="Value missing";
-"Property.integerOutOfRange"="Number out of range";
-"Property.integerFormatError"="Not an integer";
+"PropertyTableViewCell.emptyButValueNeeded"="Value missing";
+"PropertyTableViewCell.integerOutOfRange"="Number out of range";
+"PropertyTableViewCell.integerFormatError"="Not an integer";

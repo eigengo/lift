@@ -5,9 +5,8 @@ internal struct DeviceTableViewCellImages {
         [
             "pebble"      : UIImage(named: "pebble")!,
             "androidwear" : UIImage(named: "androidwear")!,
-            "applewatch"  : UIImage(named: "applewatch")!,
-            "fitbit"      : UIImage(named: "fitbit")!
-        ]
+            "applewatch"  : UIImage(named: "applewatch")!
+    ]
 }
 
 /**
@@ -36,16 +35,17 @@ class DeviceTableViewCell : UITableViewCell {
             } else {
                 detail.text = "DeviceTableViewCell.deviceInfo".localized(sn)
             }
-        case .DisconnectedDeviceInfo(_, let t, _):
+        case .DisconnectedDeviceInfo(_, let t, let e):
             typeImage.alpha = 0.4
             name.textColor = UIColor.grayColor()
             name.text = ("DeviceTableViewCell.disconnectedType." + t).localized()
-            detail.text = "DeviceTableViewCell.disconnected".localized()
-        case .NotAvailableDeviceInfo(let t, _):
+            let description = e != nil ? e!.localizedDescription : ""
+            detail.text = "DeviceTableViewCell.disconnected".localized(description)
+        case .NotAvailableDeviceInfo(let t, let e):
             typeImage.alpha = 0.4
             name.textColor = UIColor.grayColor()
             name.text = ("DeviceTableViewCell.notAvailableType." + t).localized()
-            detail.text = "DeviceTableViewCell.notAvailable".localized()
+            detail.text = "DeviceTableViewCell.notAvailable".localized(e.localizedDescription)
             
         }
     }

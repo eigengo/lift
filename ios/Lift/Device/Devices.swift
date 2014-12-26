@@ -7,7 +7,6 @@ struct Devices {
     internal static let devices : [Device] =
     [
         PebbleDevice(),
-        FitbitDevice(),
         AppleWatchDevice(),
         AndroidWearDevice()
     ]
