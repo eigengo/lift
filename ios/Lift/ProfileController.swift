@@ -9,6 +9,9 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet
     var saveButton: UIBarItem!
     
+    // the devices
+    private var devices: [DeviceInfo] = []
+    
     // the user's profile
     private var profile: User.Profile = User.Profile.empty()
     
@@ -22,7 +25,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         switch section {
         case 0: return 1 // profile picture
         case 1: return 4 // four user properties
-        case 2: return 1 // Pebble only for the moment
+        case 2: return 1 // Pebble,
         
         default: fatalError("Match error")
         }
@@ -109,10 +112,16 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         tableView.reloadData()
     }
     
+    private func peekDevices() {
+        Devices.peek { $0.either({ (error, type) in },
+            onR: { info in self.devices += [info]; self.tableView.reloadData() } ) }
+    }
+    
     override func viewDidAppear(animated: Bool) {
         LiftServer.sharedInstance.userGetProfile(CurrentLiftUser.userId!) {
             $0.cata(LiftAlertController.showError("user_publicprofile_get_failed", parent: self), self.showProfile)
         }
+        peekDevices()
     }
     
 }

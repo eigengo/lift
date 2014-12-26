@@ -32,11 +32,12 @@
             <connections>
                 <outlet property="detail" destination="oKN-Nk-n8E" id="SFB-Zc-cMb"/>
                 <outlet property="name" destination="ZQf-G0-qZq" id="auc-el-scP"/>
+                <outlet property="typeImage" destination="0uE-VX-2Wz" id="Vu3-QE-85q"/>
             </connections>
             <point key="canvasLocation" x="338" y="361.5"/>
         </tableViewCell>
     </objects>
     <resources>
-        <image name="pebble" width="512" height="512"/>
+        <image name="pebble" width="128" height="128"/>
     </resources>
 </document>

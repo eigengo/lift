@@ -47,7 +47,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        PebbleDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
+        PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self)).start()
         sessionId = session.id
     }
     
