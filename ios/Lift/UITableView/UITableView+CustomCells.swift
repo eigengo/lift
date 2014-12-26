@@ -9,19 +9,19 @@ struct UITableViewCellReuseIdentifiers {
  * Convenience extension to UITableViewController to allow the custom cells to be dequeued
  * by loading them from their matching nibs
  */
-extension UIViewController {
+extension UITableView {
     
-    private func doDequeue<A where A : UITableViewCell>(tableView: UITableView, reuseIdentifier: String, register: UITableView -> Void) -> A {
-        let cell = tableView.dequeueReusableCellWithIdentifier(reuseIdentifier) as A?
+    private func doDequeue<A where A : UITableViewCell>(reuseIdentifier: String, register: UITableView -> Void) -> A {
+        let cell = self.dequeueReusableCellWithIdentifier(reuseIdentifier) as A?
         
         if let x = cell { return x } else {
-            register(tableView)
-            return tableView.dequeueReusableCellWithIdentifier(reuseIdentifier) as A
+            register(self)
+            return self.dequeueReusableCellWithIdentifier(reuseIdentifier) as A
         }
     }
     
-    func dequeueReusablePropertyTableViewCell(tableView: UITableView, property: String, delegate: PropertyTableViewCellDelegate) -> PropertyTableViewCell {
-        let cell: PropertyTableViewCell = doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.property) {
+    func dequeueReusablePropertyTableViewCell(property: String, delegate: PropertyTableViewCellDelegate) -> PropertyTableViewCell {
+        let cell: PropertyTableViewCell = doDequeue(UITableViewCellReuseIdentifiers.property) {
             $0.registerNib(UINib(nibName: "PropertyTableViewCell", bundle: nil),
                 forCellReuseIdentifier: UITableViewCellReuseIdentifiers.property)
         }
@@ -29,8 +29,8 @@ extension UIViewController {
         return cell
     }
     
-    func dequeueReusableDeviceTableViewCell(tableView: UITableView, deviceInfo: DeviceInfo, deviceInfoDetail: DeviceInfo.Detail?) -> DeviceTableViewCell {
-        let cell: DeviceTableViewCell = doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.device) {
+    func dequeueReusableDeviceTableViewCell(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) -> DeviceTableViewCell {
+        let cell: DeviceTableViewCell = doDequeue(UITableViewCellReuseIdentifiers.device) {
             $0.registerNib(UINib(nibName: "DeviceTableViewCell", bundle: nil),
                 forCellReuseIdentifier: UITableViewCellReuseIdentifiers.device)
         }

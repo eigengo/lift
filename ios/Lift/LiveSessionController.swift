@@ -77,9 +77,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch (indexPath.section, indexPath.row) {
         // section 1: device
         case (0, 0):
-            let cell = tableView.dequeueReusableCellWithIdentifier("device") as DeviceTableViewCell
-            cell.setDeviceInfo(deviceInfo, deviceInfoDetail: deviceInfoDetail)
-            return cell
+            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail)
         case (0, let x):
             let index = x - 1
             // TODO: iterate over all values, accelerometer now acceptable

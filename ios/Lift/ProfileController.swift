@@ -43,11 +43,11 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         switch (indexPath.section, indexPath.row) {
         case (0, _): return tableView.dequeueReusableCellWithIdentifier("image") as UITableViewCell
-        case (1, 0): return dequeueReusablePropertyTableViewCell(tableView, property: "firstName", delegate: self)
-        case (1, 1): return dequeueReusablePropertyTableViewCell(tableView, property: "lastName", delegate: self)
-        case (1, 2): return dequeueReusablePropertyTableViewCell(tableView, property: "age", delegate: self)
-        case (1, 3): return dequeueReusablePropertyTableViewCell(tableView, property: "weight", delegate: self)
-        case (2, let x): return dequeueReusableDeviceTableViewCell(tableView, deviceInfo: deviceInfos[x], deviceInfoDetail: nil)
+        case (1, 0): return tableView.dequeueReusablePropertyTableViewCell("firstName", delegate: self)
+        case (1, 1): return tableView.dequeueReusablePropertyTableViewCell("lastName", delegate: self)
+        case (1, 2): return tableView.dequeueReusablePropertyTableViewCell("age", delegate: self)
+        case (1, 3): return tableView.dequeueReusablePropertyTableViewCell("weight", delegate: self)
+        case (2, let x): return tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil)
         // cannot happen
         default: fatalError("Match error")
         }
