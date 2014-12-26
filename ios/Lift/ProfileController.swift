@@ -1,17 +1,5 @@
 import Foundation
 
-class ProfileControllerImageTableViewCell : UITableViewCell {
-    
-}
-
-class ProfileControllerTextTableViewCell : UITableViewCell {
-    
-}
-
-class ProfileControllerDeviceTableViewCell : UITableViewCell {
-    
-}
-
 /*
  * Handles public profile, which includes public picture, name & other details and devices
  */
@@ -72,17 +60,19 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    
-    
     // MARK: UITableViewDelegate implementation
     
     // MARK: PropertyTableViewCellDelegate implementation
-    func propertyTableViewCellGetValueForProperty(property: String) -> String? {
+    private func optIntToString(i: Int?) -> String? {
+        if let x = i { return String(x) } else { return nil }
+    }
+    
+    func propertyTableViewCellGetProperty(property: String) -> PropertyDescriptor {
         switch property {
-        case "firstName": return profile.firstName
-        case "lastName": return profile.lastName
-        case "age": if let x = profile.age { return String(x) } else { return nil }
-        case "weight": if let x = profile.weight { return String(x) } else { return nil }
+        case "firstName": return PropertyDescriptor(title: "Profile.firstName".localized(), value: profile.firstName)
+        case "lastName": return PropertyDescriptor(title: "Profile.lastName".localized(), value: profile.lastName)
+        case "age": return PropertyDescriptor(title: "Profile.age".localized(), type: .Integer(0, 150)).fold(profile.age, optIntToString)
+        case "weight": return PropertyDescriptor(title: "Profile.weight".localized(), type: .Integer(0, 400)).fold(profile.weight, optIntToString)
         default: fatalError("Match error")
         }
     }
@@ -100,10 +90,6 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         case "weight": profile.weight = value.toInt()
         default: fatalError("Match error")
         }
-    }
-    
-    func propertyTableViewCellGetTitleForProperty(property: String) -> String {
-        return "Profile.\(property)".localized()
     }
     
     // MARK: main

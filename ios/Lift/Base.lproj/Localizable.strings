@@ -25,3 +25,7 @@
 "Profile.lastName"="Last name";
 "Profile.age"="Age";
 "Profile.weight"="Weight";
+
+"Property.emptyButValueNeeded"="Value missing";
+"Property.integerOutOfRange"="Number out of range";
+"Property.integerFormatError"="Not an integer";
