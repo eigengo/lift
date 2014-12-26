@@ -10,7 +10,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     var saveButton: UIBarItem!
     
     // the devices
-    private var devices: [DeviceInfo] = []
+    private var deviceInfos: [DeviceInfo] = []
     
     // the user's profile
     private var profile: User.Profile = User.Profile.empty()
@@ -25,7 +25,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         switch section {
         case 0: return 1 // profile picture
         case 1: return 4 // four user properties
-        case 2: return 1 // Pebble,
+        case 2: return deviceInfos.count
         
         default: fatalError("Match error")
         }
@@ -47,7 +47,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         case (1, 1): return dequeueReusablePropertyTableViewCell(tableView, property: "lastName", delegate: self)
         case (1, 2): return dequeueReusablePropertyTableViewCell(tableView, property: "age", delegate: self)
         case (1, 3): return dequeueReusablePropertyTableViewCell(tableView, property: "weight", delegate: self)
-        case (2, _): return dequeueReusableDeviceTableViewCell(tableView)
+        case (2, let x): return dequeueReusableDeviceTableViewCell(tableView, deviceInfo: deviceInfos[x], deviceInfoDetail: nil)
         // cannot happen
         default: fatalError("Match error")
         }
@@ -113,8 +113,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     private func peekDevices() {
-        Devices.peek { $0.either({ (error, type) in },
-            onR: { info in self.devices += [info]; self.tableView.reloadData() } ) }
+        Devices.peek { x in self.deviceInfos += [x]; self.tableView.reloadData() }
     }
     
     override func viewDidAppear(animated: Bool) {

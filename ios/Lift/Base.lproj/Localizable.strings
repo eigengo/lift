@@ -9,6 +9,12 @@
 "DeviceTableViewCell.noDevice"="No device";
 "DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
 "DeviceTableViewCell.deviceInfo"="Serial %@";
+"DeviceTableViewCell.disconnectedType.pebble"="Pebble - disconnected";
+"DeviceTableViewCell.disconnectedType.fitbit"="Fitbit - disconnected";
+"DeviceTableViewCell.disconnectedType.androidwear"="Android Wear - disconnected";
+"DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch - disconnected";
+
+
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
 "LiveSessionController.exercise"="Some exercise";

@@ -21,7 +21,7 @@ extension UIViewController {
     }
     
     func dequeueReusablePropertyTableViewCell(tableView: UITableView, property: String, delegate: PropertyTableViewCellDelegate) -> PropertyTableViewCell {
-        var cell: PropertyTableViewCell = doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.property) {
+        let cell: PropertyTableViewCell = doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.property) {
             $0.registerNib(UINib(nibName: "PropertyTableViewCell", bundle: nil),
                 forCellReuseIdentifier: UITableViewCellReuseIdentifiers.property)
         }
@@ -29,11 +29,13 @@ extension UIViewController {
         return cell
     }
     
-    func dequeueReusableDeviceTableViewCell(tableView: UITableView) -> DeviceTableViewCell {
-        return doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.device) {
+    func dequeueReusableDeviceTableViewCell(tableView: UITableView, deviceInfo: DeviceInfo, deviceInfoDetail: DeviceInfo.Detail?) -> DeviceTableViewCell {
+        let cell: DeviceTableViewCell = doDequeue(tableView, reuseIdentifier: UITableViewCellReuseIdentifiers.device) {
             $0.registerNib(UINib(nibName: "DeviceTableViewCell", bundle: nil),
                 forCellReuseIdentifier: UITableViewCellReuseIdentifiers.device)
         }
+        cell.setDeviceInfo(deviceInfo, deviceInfoDetail: deviceInfoDetail)
+        return cell
     }
     
 }

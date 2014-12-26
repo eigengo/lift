@@ -7,7 +7,7 @@ class AndroidWearDevice : Device {
         // TODO: implement me
     }
     
-    func peek(onDone: (Either<(NSError, DeviceType), DeviceInfo>) -> Void) {
-        onDone(Either.left(NSError.errorWithMessage("Not implemented", code: 666), "androidwear"))
+    func peek(onDone: DeviceInfo -> Void) {
+        onDone(DeviceInfo.NotAvailableDeviceInfo(type: "androidwear", error: NSError.errorWithMessage("Not implemented", code: 666)))
     }
 }

@@ -14,7 +14,6 @@ internal struct DeviceTableViewCellImages {
  * Implementation of a UITableViewCell for displaying information about a device.
  * 
  * TODO: Toggle optional edit / remove
- * TODO: Resolve image based on ``DeviceInfo.type``
  */
 class DeviceTableViewCell : UITableViewCell {
     @IBOutlet var name: UILabel!
@@ -26,15 +25,27 @@ class DeviceTableViewCell : UITableViewCell {
         selectionStyle = UITableViewCellSelectionStyle.None
     }
     
+    private func setDeviceInfo(deviceInfo: DeviceInfo, deviceInfoDetail: DeviceInfo.Detail?) {
+        typeImage.image = DeviceTableViewCellImages.images[deviceInfo.type]
+        switch deviceInfo {
+        case .ConnectedDeviceInfo(_, let t, let n, let sn):
+            name.text = n
+            if let did = deviceInfoDetail {
+                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(sn, did.address)
+            } else {
+                detail.text = "DeviceTableViewCell.deviceInfo".localized(sn)
+            }
+        case .DisconnectedDeviceInfo(_, let t, _):
+            name.text = "DeviceTableViewCell.disconnectedType." + t
+        case .NotAvailableDeviceInfo(let t, _):
+            name.text = "DeviceTableViewCell.notAvailableType." + t
+            
+        }
+    }
+    
     func setDeviceInfo(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) {
         if let di = deviceInfo {
-            typeImage.image = DeviceTableViewCellImages.images[di.type]
-            name.text = di.name
-            if let did = deviceInfoDetail {
-                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(di.serialNumber, did.address)
-            } else {
-                detail.text = "DeviceTableViewCell.deviceInfo".localized(di.serialNumber)
-            }
+            setDeviceInfo(di, deviceInfoDetail: deviceInfoDetail)
         } else {
             name.text = "DeviceTableViewCell.noDevice".localized()
             detail.text = ""

@@ -7,7 +7,7 @@ class AppleWatchDevice : Device {
         // TODO: implement me
     }
     
-    func peek(onDone: (Either<(NSError, DeviceType), DeviceInfo>) -> Void) {
-        onDone(Either.left(NSError.errorWithMessage("Not implemented", code: 666), "applewatch"))
+    func peek(onDone: DeviceInfo -> Void) {
+        onDone(DeviceInfo.NotAvailableDeviceInfo(type: "applewatch", error: NSError.errorWithMessage("Not implemented", code: 666)))
     }
 }

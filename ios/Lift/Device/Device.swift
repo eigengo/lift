@@ -2,19 +2,27 @@ import Foundation
 
 typealias DeviceType = String
 
-/**
-* Device information structure
-*/
-struct DeviceInfo {
-    /// the device id
-    var id: NSUUID
+enum DeviceInfo {
     /// type of device: pebble, applewatch, androidwear,...
-    var type: String
-    /// the device name, as reported by the device. Human readable: Pebble 4124, Apple Watch, ...
-    var name: String
-    /// the device serial or other identifier
-    var serialNumber: String
+    var type: DeviceType {
+        get {
+            switch self {
+            case .ConnectedDeviceInfo(id: _, let t, _, _): return t
+            case .DisconnectedDeviceInfo(_, let t, _): return t
+            case .NotAvailableDeviceInfo(let t, _): return t
+            }
+        }
+    }
     
+    case ConnectedDeviceInfo(id: NSUUID, type: DeviceType, name: String, serialNumber: String)
+    
+    case DisconnectedDeviceInfo(id: NSUUID, type: DeviceType, error: NSError?)
+    
+    case NotAvailableDeviceInfo(type: DeviceType, error: NSError)
+    
+    ///TODO: Hmm!  
+    ///case NotBoughtDeviceInfo(id: NSUUID, type: DeviceType, name: String, serialNumber: String)
+
     /**
     * The device details
     */
@@ -27,43 +35,6 @@ struct DeviceInfo {
         var osVersion: String
     }
 }
-
-//enum DeviceInfo {
-//    /// identity of the device
-//    var id: NSUUID {
-//        get {
-//            switch self {
-//            case .ConnectedDeviceInfo(let id, _, _, _): return id
-//            case .DisconnectedDeviceInfo(let id, _): return id
-//            }
-//        }
-//    }
-//    /// type of device: pebble, applewatch, androidwear,...
-//    var type: DeviceType {
-//        get {
-//            switch self {
-//            case .ConnectedDeviceInfo(id: _, let t, _, _): return t
-//            case .DisconnectedDeviceInfo(id: _, let t): return t
-//            }
-//        }
-//    }
-//    
-//    case ConnectedDeviceInfo(id: NSUUID, type: DeviceType, name: String, serialNumber: String)
-//    
-//    case DisconnectedDeviceInfo(id: NSUUID, type: DeviceType)
-//
-//    /**
-//    * The device details
-//    */
-//    struct Detail {
-//        /// typically BT address
-//        var address: String
-//        /// hardware version string
-//        var hardwareVersion: String
-//        /// OS version string
-//        var osVersion: String
-//    }
-//}
 
 /**
  * Holds the delegates that react to the data received from the device. At the very least,
@@ -90,7 +61,7 @@ protocol Device {
     *
     * @param onDone the function that will be called when the device information is available
     */
-    func peek(onDone: (Either<(NSError, DeviceType), DeviceInfo>) -> Void)
+    func peek(onDone: DeviceInfo -> Void)
     
 }
 

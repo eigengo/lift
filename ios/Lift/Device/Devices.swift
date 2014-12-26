@@ -12,7 +12,7 @@ struct Devices {
         AndroidWearDevice()
     ]
     
-    static func peek(onDone: (Either<(NSError, DeviceType), DeviceInfo>) -> Void) {
+    static func peek(onDone: DeviceInfo -> Void) {
         for d in devices { d.peek(onDone) }
     }
     

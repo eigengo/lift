@@ -73,7 +73,7 @@ class PebbleDevice : NSObject, Device {
     internal let pebbleDeviceType = "pebble"
     
     private func getDeviceInfo(watch: PBWatch) -> DeviceInfo {
-        return DeviceInfo(id: watch.serialNumber.md5UUID(), type: pebbleDeviceType, name: watch.name, serialNumber: watch.serialNumber)
+        return DeviceInfo.ConnectedDeviceInfo(id: watch.serialNumber.md5UUID(), type: pebbleDeviceType, name: watch.name, serialNumber: watch.serialNumber)
     }
     
     // MARK: Device implementation
@@ -89,8 +89,9 @@ class PebbleDevice : NSObject, Device {
         }
     }
     
-    func peek(onDone: (Either<(NSError, DeviceType), DeviceInfo>) -> Void) {
-        findWatch().either({ err in onDone(Either.left(err, self.pebbleDeviceType)) }, onR: { watch in onDone(Either.right(self.getDeviceInfo(watch))) })
+    func peek(onDone: DeviceInfo -> Void) {
+        findWatch().either({ err in onDone(DeviceInfo.NotAvailableDeviceInfo(type: self.pebbleDeviceType, error: err)) },
+            onR: { watch in onDone(self.getDeviceInfo(watch)) })
     }
     
 }
