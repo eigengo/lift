@@ -1,6 +1,12 @@
 import Foundation
 import MobileCoreServices
 
+class ProfileImageTableViewCell : UITableViewCell {
+    @IBOutlet
+    var profileImageView: UIImageView!
+    
+}
+
 /*
  * Handles public profile, which includes public picture, name & other details and devices
  */
@@ -43,7 +49,10 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         switch (indexPath.section, indexPath.row) {
-        case (0, _): return tableView.dequeueReusableCellWithIdentifier("image") as UITableViewCell
+        case (0, _):
+            let cell = tableView.dequeueReusableCellWithIdentifier("image") as ProfileImageTableViewCell
+            // if let x = profile.image { cell.profileImageView.image = UIImage(data: profile.image!) }
+            return cell
         case (1, 0): return tableView.dequeueReusablePropertyTableViewCell("firstName", delegate: self)
         case (1, 1): return tableView.dequeueReusablePropertyTableViewCell("lastName", delegate: self)
         case (1, 2): return tableView.dequeueReusablePropertyTableViewCell("age", delegate: self)
@@ -88,6 +97,7 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func imagePickerController(picker: UIImagePickerController!, didFinishPickingImage image: UIImage!, editingInfo: [NSObject : AnyObject]!) {
         // noop
+        // profile.image = UIImagePNGRepresentation(image)
         picker.dismissViewControllerAnimated(true, completion: nil)
     }
     

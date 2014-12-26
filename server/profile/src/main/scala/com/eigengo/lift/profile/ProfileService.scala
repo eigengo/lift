@@ -7,7 +7,7 @@ import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
 import com.eigengo.lift.notification.NotificationProtocol.{AndroidDevice, IOSDevice}
 import com.eigengo.lift.profile.UserProfileProcessor._
 import com.eigengo.lift.profile.UserProfileProtocol._
-import spray.http.{StatusCodes, HttpResponse}
+import spray.http._
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -47,6 +47,20 @@ trait ProfileService extends Directives with CommonMarshallers with CommonPathDi
           (userProfileProcessor ? UserCheckAccount(userId)).mapTo[Boolean].map { x ⇒
             if (x) HttpResponse(StatusCodes.OK) else HttpResponse(StatusCodes.NotFound)
           }
+        }
+      }
+    } ~
+    path("user" / UserIdValue / "image") { userId ⇒
+      get {
+        complete {
+          (userProfile ? UserGetProfileImage(userId)).mapTo[Option[Array[Byte]]].map { x ⇒
+            HttpEntity(contentType = ContentType(MediaTypes.`image/png`), bytes = x.getOrElse(Array.empty))
+          }
+        }
+      } ~
+      post {
+        handleWith { profileImage: Array[Byte] ⇒
+          (userProfileProcessor ? UserSetProfileImage(userId, profileImage)).mapRight[Unit]
         }
       }
     } ~

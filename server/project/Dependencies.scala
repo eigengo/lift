@@ -52,7 +52,7 @@ object Dependencies {
   val scodec_bits  = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
 
   // Scala reflect
-  val scala_reflect = "org.scala-lang" %% "scala-reflect" % "2.11.4"
+  val scala_reflect = "org.scala-lang" % "scala-reflect" % "2.11.4"
 
   // Apple push notifications
   val apns         = "com.notnoop.apns"  % "apns"         % "0.1.6"

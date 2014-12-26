@@ -18,6 +18,8 @@ object UserProfile {
     case UserPublicProfileSet(userId, profile) ⇒ (userId.toString, profile)
     case UserGetDevices(userId)                ⇒ (userId.toString, GetDevices)
     case UserDeviceSet(userId, device)         ⇒ (userId.toString, DeviceSet(device))
+    case UserGetProfileImage(userId)           ⇒ (userId.toString, GetProfileImage)
+    case UserProfileImageSet(userId, image)    ⇒ (userId.toString, image)
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
@@ -27,6 +29,8 @@ object UserProfile {
     case UserDeviceSet(userId, _)        ⇒ s"${userId.hashCode() % 10}"
     case UserGetPublicProfile(userId)    ⇒ s"${userId.hashCode() % 10}"
     case UserPublicProfileSet(userId, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserProfileImageSet(userId, _)  ⇒ s"${userId.hashCode() % 10}"
+    case UserGetProfileImage(userId)     ⇒ s"${userId.hashCode() % 10}"
   }
 
   /**
@@ -58,6 +62,11 @@ object UserProfile {
    * Get public profile
    */
   private case object GetPublicProfile
+
+  /**
+   * Get profile image
+   */
+  private case object GetProfileImage
 
   /**
    * Get all devices
@@ -93,7 +102,7 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
     case cmd: Account ⇒
       persist(cmd) { acc ⇒
         log.info("Account: not registered -> registered.")
-        profile = Profile(acc, Devices.empty, None)
+        profile = Profile(acc, Devices.empty, None, None)
         saveSnapshot(profile)
         context.become(registered)
       }
@@ -101,15 +110,20 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
 
   private def registered: Receive = withPassivation {
     case ds: DeviceSet ⇒ persist(ds) { evt ⇒
-        log.info("DeviceSet: registered -> registered.")
-        profile = profile.withDevice(evt.device)
-        saveSnapshot(profile)
-      }
+      log.info("DeviceSet: registered -> registered.")
+      profile = profile.withDevice(evt.device)
+      saveSnapshot(profile)
+    }
     case pp: PublicProfile ⇒ persist(pp) { evt ⇒
-        log.info("PublicProfile: registered -> registered.")
-        profile = profile.withPublicProfile(evt)
-        saveSnapshot(profile)
-      }
+      log.info("PublicProfile: registered -> registered.")
+      profile = profile.withPublicProfile(evt)
+      saveSnapshot(profile)
+    }
+    case pi: Array[Byte] ⇒ persist(pi) { evt ⇒
+      log.info("PublicProfile: registered -> registered.")
+      profile = profile.withProfileImage(evt)
+      saveSnapshot(profile)
+    }
 
     case GetPublicProfile ⇒
       log.info("GetPublicProfile: registered -> registered.")
@@ -120,6 +134,9 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
     case GetDevices ⇒
       log.info("GetDevices: registered -> registered.")
       sender() ! profile.devices
+    case GetProfileImage ⇒
+      log.info("GetProfileImage: registered -> registered.")
+      sender() ! profile.profileImage
   }
 
 }

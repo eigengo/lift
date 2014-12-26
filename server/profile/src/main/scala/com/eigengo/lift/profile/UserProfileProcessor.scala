@@ -49,6 +49,13 @@ object UserProfileProcessor {
   case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
 
   /**
+   * Sets the user's profile image
+   * @param userId the user identity
+   * @param profileImage the profile image
+   */
+  case class UserSetProfileImage(userId: UserId, profileImage: Array[Byte])
+
+  /**
    * Checks that the account exists and that it is valid
    * @param userId the user identity
    */
@@ -137,6 +144,11 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
     case UserSetPublicProfile(userId, publicProfile) ⇒
       log.info("UserSetPublicProfile.")
       userProfile ! UserPublicProfileSet(userId, publicProfile)
+      sender() ! \/.right(())
+
+    case UserSetProfileImage(userId, profileImage) ⇒
+      log.info("UserSetProfileImage.")
+      userProfile ! UserProfileImageSet(userId, profileImage)
       sender() ! \/.right(())
   }
 

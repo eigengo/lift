@@ -162,17 +162,26 @@ public class LiftServer {
     /// Sets the public profile for the given ``userId``
     ///
     func userSetPublicProfile(userId: NSUUID, profile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
-        var params: [String : AnyObject] = ["firstName": profile.firstName, "lastName": profile.lastName]
-        params["age"] = profile.age?
-        params["weight"] = profile.weight?
-        
-        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: params))
+        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: profile.marshal()))
             .responseAsResutlt(f, const())
     }
     
+    ///
+    /// Checks that the account is still valid
+    ///
     func userCheckAccount(userId: NSUUID, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.UserCheckAccount(userId))
             .responseAsResutlt(f, const(()))
+    }
+    
+    func userGetProfileImage(userId: NSUUID, f: Result<NSData> -> Void) -> Void {
+        request(LiftServerURLs.UserGetProfileImage(userId))
+            .response { (_, xx, _, err) -> Void in
+        }
+    }
+    
+    func userSetProfileImage(userId: NSUUID, image: NSData, f: Result<Void> -> Void) -> Void {
+        
     }
     
     // MARK: - Classifiers
