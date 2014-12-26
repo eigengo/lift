@@ -9,11 +9,16 @@
 "DeviceTableViewCell.noDevice"="No device";
 "DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
 "DeviceTableViewCell.deviceInfo"="Serial %@";
-"DeviceTableViewCell.disconnectedType.pebble"="Pebble - disconnected";
-"DeviceTableViewCell.disconnectedType.fitbit"="Fitbit - disconnected";
-"DeviceTableViewCell.disconnectedType.androidwear"="Android Wear - disconnected";
-"DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch - disconnected";
-
+"DeviceTableViewCell.disconnectedType.pebble"="Pebble";
+"DeviceTableViewCell.disconnectedType.fitbit"="Fitbit";
+"DeviceTableViewCell.disconnectedType.androidwear"="Android Wear";
+"DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch";
+"DeviceTableViewCell.disconnected"="Disconnected";
+"DeviceTableViewCell.notAvailableType.pebble"="Pebble";
+"DeviceTableViewCell.notAvailableType.fitbit"="Fitbit";
+"DeviceTableViewCell.notAvailableType.androidwear"="Android Wear";
+"DeviceTableViewCell.notAvailableType.applewatch"="Apple Watch";
+"DeviceTableViewCell.notAvailable"="Not available";
 
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";

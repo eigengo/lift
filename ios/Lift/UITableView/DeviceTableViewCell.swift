@@ -30,15 +30,22 @@ class DeviceTableViewCell : UITableViewCell {
         switch deviceInfo {
         case .ConnectedDeviceInfo(_, let t, let n, let sn):
             name.text = n
+            name.textColor = tintColor
             if let did = deviceInfoDetail {
                 detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(sn, did.address)
             } else {
                 detail.text = "DeviceTableViewCell.deviceInfo".localized(sn)
             }
         case .DisconnectedDeviceInfo(_, let t, _):
-            name.text = "DeviceTableViewCell.disconnectedType." + t
+            typeImage.alpha = 0.4
+            name.textColor = UIColor.grayColor()
+            name.text = ("DeviceTableViewCell.disconnectedType." + t).localized()
+            detail.text = "DeviceTableViewCell.disconnected".localized()
         case .NotAvailableDeviceInfo(let t, _):
-            name.text = "DeviceTableViewCell.notAvailableType." + t
+            typeImage.alpha = 0.4
+            name.textColor = UIColor.grayColor()
+            name.text = ("DeviceTableViewCell.notAvailableType." + t).localized()
+            detail.text = "DeviceTableViewCell.notAvailable".localized()
             
         }
     }

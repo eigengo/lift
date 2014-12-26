@@ -6,8 +6,8 @@ import Foundation
 struct Devices {
     internal static let devices : [Device] =
     [
-        FitbitDevice(),
         PebbleDevice(),
+        FitbitDevice(),
         AppleWatchDevice(),
         AndroidWearDevice()
     ]
