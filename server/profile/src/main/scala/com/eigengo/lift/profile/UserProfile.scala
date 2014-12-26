@@ -71,15 +71,14 @@ object UserProfile {
 class UserProfile extends PersistentActor with ActorLogging with AutoPassivation {
   import com.eigengo.lift.profile.UserProfile._
   import com.eigengo.lift.profile.UserProfileProtocol._
-
-import scala.concurrent.duration._
+  import scala.concurrent.duration._
 
   private var profile: Profile = _
 
   override def persistenceId: String = s"user-profile-${self.path.name}"
 
   // the shard lives for the specified timeout seconds before passivating
-  context.setReceiveTimeout(10.seconds)
+  context.setReceiveTimeout(360.seconds)
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Profile) ⇒

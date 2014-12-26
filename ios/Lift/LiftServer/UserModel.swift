@@ -6,14 +6,15 @@ struct User {
     ///
     /// User's public profile
     ///
-    struct Profile {
+    struct PublicProfile {
         var firstName: String
         var lastName: String
         var weight: Int?
         var age: Int?
+        var image: [Byte]?
         
-        static func empty() -> Profile {
-            return Profile(firstName: "", lastName: "", weight: nil, age: nil)
+        static func empty() -> PublicProfile {
+            return PublicProfile(firstName: "", lastName: "", weight: nil, age: nil, image: nil)
         }
     }
 }

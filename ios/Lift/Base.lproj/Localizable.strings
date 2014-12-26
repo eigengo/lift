@@ -38,3 +38,5 @@
 "PropertyTableViewCell.emptyButValueNeeded"="Value missing";
 "PropertyTableViewCell.integerOutOfRange"="Number out of range";
 "PropertyTableViewCell.integerFormatError"="Not an integer";
+
+"NSError.notImplemented"="Not implemented";

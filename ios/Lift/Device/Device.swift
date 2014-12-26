@@ -2,6 +2,8 @@ import Foundation
 
 typealias DeviceType = String
 
+typealias DeviceId = NSUUID
+
 enum DeviceInfo {
     /// type of device: pebble, applewatch, androidwear,...
     var type: DeviceType {
@@ -14,9 +16,9 @@ enum DeviceInfo {
         }
     }
     
-    case ConnectedDeviceInfo(id: NSUUID, type: DeviceType, name: String, serialNumber: String)
+    case ConnectedDeviceInfo(id: DeviceId, type: DeviceType, name: String, serialNumber: String)
     
-    case DisconnectedDeviceInfo(id: NSUUID, type: DeviceType, error: NSError?)
+    case DisconnectedDeviceInfo(id: DeviceId, type: DeviceType, error: NSError?)
     
     case NotAvailableDeviceInfo(type: DeviceType, error: NSError)
     
@@ -129,7 +131,7 @@ protocol DeviceDelegate {
      * @param deviceId the device identity
      * @param deviceInfo the device information
      */
-    func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo)
+    func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo)
     
     /**
      * Detailed information about the device is now available
@@ -137,7 +139,7 @@ protocol DeviceDelegate {
      * @param deviceId the device identity
      * @param detail the detailed device information
      */
-    func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail)
+    func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail)
     
     /**
      * The device could not be connected. Maybe it's not registered, out of range, or anything
@@ -153,20 +155,20 @@ protocol DeviceDelegate {
      * @param deviceId the device identity
      * @param error the failure detail
      */
-    func deviceAppLaunchFailed(deviceId: NSUUID, error: NSError)
+    func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError)
     
     /**
      * The device is connected and successfully launched the companion app.
      *
      * @param deviceId the device identity
      */
-    func deviceAppLaunched(deviceId: NSUUID)
+    func deviceAppLaunched(deviceId: DeviceId)
     
     /**
      * A previously connected device disconnected unexpectedly. Out of range, batteries, ...
      *
      * @param deviceId the device identity
      */
-    func deviceDisconnected(deviceId: NSUUID)
+    func deviceDisconnected(deviceId: DeviceId)
     
 }

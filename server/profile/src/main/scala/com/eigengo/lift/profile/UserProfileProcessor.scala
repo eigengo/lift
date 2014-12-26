@@ -12,6 +12,7 @@ import com.eigengo.lift.notification.NotificationProtocol.Device
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
 import com.eigengo.lift.profile.UserProfileProtocol._
 
+import scala.language.postfixOps
 import scala.util.Random
 import scalaz.\/
 
@@ -47,9 +48,16 @@ object UserProfileProcessor {
    */
   case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
 
+  /**
+   * Checks that the account exists and that it is valid
+   * @param userId the user identity
+   */
+  case class UserCheckAccount(userId: UserId)
+
   private case class KnownAccounts(accounts: Map[String, UserId]) {
     def contains(email: String): Boolean = accounts.contains(email)
     def get(email: String): Option[UserId] = accounts.get(email)
+    def hasUserId(userId: UserId): Boolean = accounts.values.exists(userId ==)
     def withNewAccount(email: String, userId: UserId): KnownAccounts = copy(accounts = accounts + (email → userId))
   }
   private object KnownAccounts {
@@ -117,6 +125,9 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
     case UserLogin(email, password) ⇒
       log.info("UserLogin.")
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
+
+    case UserCheckAccount(userId) ⇒
+      sender ! knownAccounts.hasUserId(userId)
 
     case UserSetDevice(userId, device) ⇒
       log.info("UserSetDevice.")

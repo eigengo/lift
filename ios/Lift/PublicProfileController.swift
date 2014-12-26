@@ -1,9 +1,10 @@
 import Foundation
+import MobileCoreServices
 
 /*
  * Handles public profile, which includes public picture, name & other details and devices
  */
-class ProfileController : UIViewController, UITableViewDataSource, UITableViewDelegate, PropertyTableViewCellDelegate {
+class PublicProfileController : UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PropertyTableViewCellDelegate, DeviceTableViewCellDelegate {
     @IBOutlet
     var tableView: UITableView!
     @IBOutlet
@@ -13,7 +14,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     private var deviceInfos: [DeviceInfo] = []
     
     // the user's profile
-    private var profile: User.Profile = User.Profile.empty()
+    private var profile: User.PublicProfile = User.PublicProfile.empty()
     
     // MARK: UITableViewDataSource implementation
     
@@ -47,7 +48,7 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
         case (1, 1): return tableView.dequeueReusablePropertyTableViewCell("lastName", delegate: self)
         case (1, 2): return tableView.dequeueReusablePropertyTableViewCell("age", delegate: self)
         case (1, 3): return tableView.dequeueReusablePropertyTableViewCell("weight", delegate: self)
-        case (2, let x): return tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil)
+        case (2, let x): return tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil, delegate: self)
         // cannot happen
         default: fatalError("Match error")
         }
@@ -64,6 +65,49 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // MARK: UITableViewDelegate implementation
+    
+    private func setProfilePicture() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        //imagePicker.sourceType = UIImagePickerControllerSourceType.Camera
+        imagePicker.mediaTypes = [kUTTypeImage]
+        imagePicker.allowsEditing = true
+        presentViewController(imagePicker, animated: true, completion: nil)
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        switch (indexPath.section, indexPath.row) {
+        case (0, 0):
+            tableView.deselectRowAtIndexPath(indexPath, animated: true)
+            setProfilePicture()
+        default: return // noop
+        }
+    }
+    
+    // MARK: UIImagePickerControllerDelegate implementation
+    
+    func imagePickerController(picker: UIImagePickerController!, didFinishPickingImage image: UIImage!, editingInfo: [NSObject : AnyObject]!) {
+        // noop
+        picker.dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
+        picker.dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    // MARK: DeviceTableViewCellDelegate implementaion
+    
+    func deviceTableViewCellAccessorySwitchValue(deviceId: DeviceId) -> Bool {
+        return true
+    }
+    
+    func deviceTableViewCellAccessorySwitchValueChanged(deviceId: DeviceId, value: Bool) -> Bool {
+        return value
+    }
+    
+    func deviceTableViewCellShowAccessorySwitch(deviceId: DeviceId) -> Bool {
+        return true
+    }
     
     // MARK: PropertyTableViewCellDelegate implementation
     private func optIntToString(i: Int?) -> String? {
@@ -100,24 +144,25 @@ class ProfileController : UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction
     func save() {
         self.view.endEditing(true)
-        LiftServer.sharedInstance.userSetProfile(CurrentLiftUser.userId!, profile: profile) {
+        LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, profile: profile) {
             $0.cata(LiftAlertController.showError("user_publicprofile_set_failed", parent: self), { _ in })
         }
         saveButton.enabled = false
     }
 
-    private func showProfile(profile: User.Profile?) {
+    private func showProfile(profile: User.PublicProfile?) {
         if let x = profile { self.profile = x }
         saveButton.enabled = false
         tableView.reloadData()
     }
     
     private func peekDevices() {
+        self.deviceInfos = []
         Devices.peek { x in self.deviceInfos += [x]; self.tableView.reloadData() }
     }
     
     override func viewDidAppear(animated: Bool) {
-        LiftServer.sharedInstance.userGetProfile(CurrentLiftUser.userId!) {
+        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
             $0.cata(LiftAlertController.showError("user_publicprofile_get_failed", parent: self), self.showProfile)
         }
         peekDevices()

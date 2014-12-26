@@ -77,7 +77,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch (indexPath.section, indexPath.row) {
         // section 1: device
         case (0, 0):
-            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail)
+            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
         case (0, let x):
             let index = x - 1
             // TODO: iterate over all values, accelerometer now acceptable
@@ -126,21 +126,21 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     // MARK: DeviceDelegate
-    func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo) {
+    func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
         self.deviceInfo = deviceInfo
         tableView.reloadData()
     }
     
-    func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail) {
+    func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
         self.deviceInfoDetail = detail
         tableView.reloadData()
     }
     
-    func deviceAppLaunched(deviceId: NSUUID) {
+    func deviceAppLaunched(deviceId: DeviceId) {
         tableView.reloadData()
     }
     
-    func deviceAppLaunchFailed(deviceId: NSUUID, error: NSError) {
+    func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
         NSLog("deviceAppLaunchFailed %@ -> %@", deviceId, error)
         self.deviceInfo = nil
         tableView.reloadData()
@@ -152,7 +152,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         tableView.reloadData()
     }
     
-    func deviceDisconnected(deviceId: NSUUID) {
+    func deviceDisconnected(deviceId: DeviceId) {
         NSLog("deviceDisconnected %@", deviceId)
         self.deviceInfo = nil
         self.deviceInfoDetail = nil

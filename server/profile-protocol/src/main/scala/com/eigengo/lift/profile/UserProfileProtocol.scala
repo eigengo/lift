@@ -42,8 +42,9 @@ object UserProfileProtocol {
    * @param lastName last name
    * @param weight weight
    * @param age age
+   * @param image the profile image as array of bytes representing a PNG image
    */
-  case class PublicProfile(firstName: String, lastName: String, weight: Option[Int], age: Option[Int])
+  case class PublicProfile(firstName: String, lastName: String, weight: Option[Int], age: Option[Int], image: Option[Array[Byte]])
 
   /**
    * Get profile query for the given ``userId``

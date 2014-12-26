@@ -7,19 +7,19 @@ extension Request {
     
     public func responseAsResutlt<A, U>(f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
         responseSwiftyJSON { (request, response, json, error) -> Void in
-            if error != nil {
-                let r = response != nil ? response! : ""
-                NSLog("Failed with %@ -> %@", request, r)
-                f(Result.error(error!))
-            } else if response != nil {
-                if response!.statusCode != 200 {
+            if let x = response {
+                if x.statusCode != 200 {
                     let userInfo = [NSLocalizedDescriptionKey : json.stringValue]
-                    let err = NSError(domain: "com.eigengo.lift", code: response!.statusCode, userInfo: userInfo)
+                    let err = NSError(domain: "com.eigengo.lift", code: x.statusCode, userInfo: userInfo)
+                    NSLog("Failed with %@ -> %@", request, x)
                     f(Result.error(err))
                 } else {
                     let val = completionHandler(json)
                     f(Result.value(val))
                 }
+            } else if let x = error {
+                NSLog("Failed with %@", x)
+                f(Result.error(x))
             }
         }
     }
@@ -153,30 +153,26 @@ public class LiftServer {
     ///
     /// Get the public profile for the given ``userId``
     ///
-    func userGetProfile(userId: NSUUID, f: Result<User.Profile?> -> Void) -> Void {
-        request(LiftServerURLs.UserGetProfile(userId))
-            .responseAsResutlt(f) { json -> User.Profile? in
-                if json.isEmpty {
-                    return nil
-                } else {
-                    return User.Profile(firstName: json["firstName"].stringValue,
-                        lastName: json["lastName"].stringValue,
-                        weight: json["weight"].int,
-                        age: json["age"].int)
-                }
-            }
+    func userGetPublicProfile(userId: NSUUID, f: Result<User.PublicProfile?> -> Void) -> Void {
+        request(LiftServerURLs.UserGetPublicProfile(userId))
+            .responseAsResutlt(f, User.PublicProfile.unmarshal)
     }
     
     ///
     /// Sets the public profile for the given ``userId``
     ///
-    func userSetProfile(userId: NSUUID, profile: User.Profile, f: Result<Void> -> Void) -> Void {
+    func userSetPublicProfile(userId: NSUUID, profile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
         var params: [String : AnyObject] = ["firstName": profile.firstName, "lastName": profile.lastName]
         params["age"] = profile.age?
         params["weight"] = profile.weight?
         
-        request(LiftServerURLs.UserSetProfile(userId), body: .Json(params: params))
-            .responseAsResutlt(f) { json in }
+        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: params))
+            .responseAsResutlt(f, const())
+    }
+    
+    func userCheckAccount(userId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.UserCheckAccount(userId))
+            .responseAsResutlt(f, const(()))
     }
     
     // MARK: - Classifiers
@@ -205,7 +201,6 @@ public class LiftServer {
         ]
         request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: params))
             .responseAsResutlt(f) { json in
-                println(json)
                 return NSUUID(UUIDString: json["id"].stringValue)!
             }
     }
@@ -215,7 +210,7 @@ public class LiftServer {
     ///
     func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data))
-            .responseAsResutlt(f) { json in }
+            .responseAsResutlt(f, const(()))
     }
     
     ///
@@ -223,7 +218,7 @@ public class LiftServer {
     ///
     func exerciseSessionEnd(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionEnd(userId, sessionId))
-            .responseAsResutlt(f) { json in }
+            .responseAsResutlt(f, const(()))
     }
     
     ///
@@ -241,8 +236,6 @@ public class LiftServer {
     ///
     func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Exercise.ExerciseSession> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetExerciseSession(userId, sessionId))
-            .responseAsResutlt(f) { json in
-                return Exercise.ExerciseSession.unmarshal(json)
-        }
+            .responseAsResutlt(f, Exercise.ExerciseSession.unmarshal)
     }
 }

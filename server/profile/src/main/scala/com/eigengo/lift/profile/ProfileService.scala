@@ -5,8 +5,9 @@ import java.util.UUID
 import akka.actor.ActorRef
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
 import com.eigengo.lift.notification.NotificationProtocol.{AndroidDevice, IOSDevice}
-import com.eigengo.lift.profile.UserProfileProcessor.{UserLogin, UserRegister, UserSetDevice, UserSetPublicProfile}
+import com.eigengo.lift.profile.UserProfileProcessor._
 import com.eigengo.lift.profile.UserProfileProtocol._
+import spray.http.{StatusCodes, HttpResponse}
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -37,6 +38,15 @@ trait ProfileService extends Directives with CommonMarshallers with CommonPathDi
       post {
         handleWith { publicProfile: PublicProfile ⇒
           (userProfileProcessor ? UserSetPublicProfile(userId, publicProfile)).mapRight[Unit]
+        }
+      }
+    } ~
+    path("user" / UserIdValue / "check") { userId ⇒
+      get {
+        complete {
+          (userProfileProcessor ? UserCheckAccount(userId)).mapTo[Boolean].map { x ⇒
+            if (x) HttpResponse(StatusCodes.OK) else HttpResponse(StatusCodes.NotFound)
+          }
         }
       }
     } ~
