@@ -176,12 +176,23 @@ public class LiftServer {
     
     func userGetProfileImage(userId: NSUUID, f: Result<NSData> -> Void) -> Void {
         request(LiftServerURLs.UserGetProfileImage(userId))
-            .response { (_, xx, _, err) -> Void in
-        }
+            .response { (_, response: NSHTTPURLResponse?, responseBody, err) in
+                let body = responseBody as? NSData
+                if let x = response {
+                    if x.statusCode != 200 {
+                        f(Result.error(NSError.errorWithMessage("Request failed", code: x.statusCode)))
+                    } else {
+                        if let b = body { f(Result.value(b)) } else { f(Result.error(NSError.errorWithMessage("No body", code: x.statusCode)))}
+                    }
+                } else if let e = err {
+                    f(Result.error(e))
+                }
+            }
     }
     
     func userSetProfileImage(userId: NSUUID, image: NSData, f: Result<Void> -> Void) -> Void {
-        
+        request(LiftServerURLs.UserSetProfileImage(userId), body: .Data(data: image))
+            .responseAsResutlt(f, const(()))
     }
     
     // MARK: - Classifiers

@@ -19,6 +19,9 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     // the devices
     private var deviceInfos: [DeviceInfo] = []
     
+    // the user's image
+    private var profileImage: NSData?
+    
     // the user's profile
     private var profile: User.PublicProfile = User.PublicProfile.empty()
     
@@ -51,7 +54,7 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         switch (indexPath.section, indexPath.row) {
         case (0, _):
             let cell = tableView.dequeueReusableCellWithIdentifier("image") as ProfileImageTableViewCell
-            // if let x = profile.image { cell.profileImageView.image = UIImage(data: profile.image!) }
+            if let x = profileImage { cell.profileImageView.image = UIImage(data: x) }
             return cell
         case (1, 0): return tableView.dequeueReusablePropertyTableViewCell("firstName", delegate: self)
         case (1, 1): return tableView.dequeueReusablePropertyTableViewCell("lastName", delegate: self)
@@ -96,8 +99,23 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     // MARK: UIImagePickerControllerDelegate implementation
     
     func imagePickerController(picker: UIImagePickerController!, didFinishPickingImage image: UIImage!, editingInfo: [NSObject : AnyObject]!) {
-        // noop
-        // profile.image = UIImagePNGRepresentation(image)
+        let w: CGFloat = 200.0
+        let h: CGFloat = 200.0
+        if image.size.width > w || image.size.height > h {
+            let sx = w / CGFloat(image.size.width)
+            let sy = h / CGFloat(image.size.height)
+            let size = CGSizeApplyAffineTransform(image.size, CGAffineTransformMakeScale(sx, sy))
+            let hasAlpha = false
+            let scale: CGFloat = 0.0
+            
+            UIGraphicsBeginImageContextWithOptions(size, !hasAlpha, scale)
+            image.drawInRect(CGRect(origin: CGPointZero, size: size))
+            profileImage = UIImageJPEGRepresentation(UIGraphicsGetImageFromCurrentImageContext(), 0.6)
+        } else {
+            profileImage = UIImageJPEGRepresentation(image, 0.6)
+        }
+        
+        LiftServer.sharedInstance.userSetProfileImage(CurrentLiftUser.userId!, image: profileImage!, const(()))
         picker.dismissViewControllerAnimated(true, completion: nil)
     }
     
@@ -174,6 +192,9 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     override func viewDidAppear(animated: Bool) {
         LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
             $0.cata(LiftAlertController.showError("user_publicprofile_get_failed", parent: self), self.showProfile)
+        }
+        LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!) {
+            $0.cata({ err in }, { image in self.profileImage = image; self.tableView.reloadData() })
         }
         peekDevices()
     }

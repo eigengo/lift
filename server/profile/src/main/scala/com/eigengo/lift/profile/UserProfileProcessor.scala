@@ -1,5 +1,7 @@
 package com.eigengo.lift.profile
 
+import java.awt.{RenderingHints, AlphaComposite}
+import java.awt.image.BufferedImage
 import java.security.MessageDigest
 import java.util
 
@@ -148,8 +150,22 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
 
     case UserSetProfileImage(userId, profileImage) ⇒
       log.info("UserSetProfileImage.")
-      userProfile ! UserProfileImageSet(userId, profileImage)
-      sender() ! \/.right(())
+      if (profileImage.length > 128000) {
+        /*
+        val resizedImage = new BufferedImage(256, 256, BufferedImage.TYPE_3BYTE_BGR)
+        val g = resizedImage.createGraphics()
+        g.drawImage(originalImage, 0, 0, IMG_WIDTH, IMG_HEIGHT, null)
+        g.dispose()
+        g.setComposite(AlphaComposite.Src)
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY)
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON)
+        */
+        sender() ! \/.left("Image too big")
+      } else {
+        userProfile ! UserProfileImageSet(userId, profileImage)
+        sender() ! \/.right(())
+      }
   }
 
   override def persistenceId: String = "user-profile-processor"

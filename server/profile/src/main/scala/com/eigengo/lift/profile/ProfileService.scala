@@ -11,6 +11,7 @@ import spray.http._
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 trait ProfileService extends Directives with CommonMarshallers with CommonPathDirectives {
   import akka.pattern.ask
@@ -54,14 +55,17 @@ trait ProfileService extends Directives with CommonMarshallers with CommonPathDi
       get {
         complete {
           (userProfile ? UserGetProfileImage(userId)).mapTo[Option[Array[Byte]]].map { x ⇒
-            HttpEntity(contentType = ContentType(MediaTypes.`image/png`), bytes = x.getOrElse(Array.empty))
+            HttpResponse(entity = HttpEntity(contentType = ContentType(MediaTypes.`image/png`), bytes = x.getOrElse(Array.empty)))
           }
         }
       } ~
       post {
-        handleWith { profileImage: Array[Byte] ⇒
-          (userProfileProcessor ? UserSetProfileImage(userId, profileImage)).mapRight[Unit]
-        }
+        ctx ⇒
+          val image = ctx.request.entity.data.toByteArray
+          (userProfileProcessor ? UserSetProfileImage(userId, image)).onComplete {
+            case Success(_) ⇒ ctx.complete(HttpResponse(StatusCodes.OK))
+            case Failure(_) ⇒ ctx.complete(HttpResponse(StatusCodes.InternalServerError))
+          }
       }
     } ~
     path("user" / UserIdValue / "device" / "ios") { userId ⇒
