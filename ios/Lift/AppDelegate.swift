@@ -12,9 +12,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window = UIWindow(frame: UIScreen.mainScreen().bounds)
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let id = CurrentLiftUser.userId == nil ? "login" : "main"
-        window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
-        window!.makeKeyAndVisible()
+        if let x = CurrentLiftUser.userId {
+            // We have previously-known user id. But is the account still there?
+            LiftServer.sharedInstance.userCheckAccount(CurrentLiftUser.userId!) { r in
+                let id: String = r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" })
+                
+                self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
+                self.window!.makeKeyAndVisible()
+            }
+        }
         
         return true
     }

@@ -68,11 +68,38 @@ class PebbleDeviceSession : DeviceSession {
     }
 }
 
+class PebbleDevice : NSObject, Device {
+    internal let central = PBPebbleCentral.defaultCentral()
+    internal let pebbleDeviceType = "pebble"
+    
+    private func getDeviceInfo(watch: PBWatch) -> DeviceInfo {
+        return DeviceInfo.ConnectedDeviceInfo(id: watch.serialNumber.md5UUID(), type: pebbleDeviceType, name: watch.name, serialNumber: watch.serialNumber)
+    }
+    
+    // MARK: Device implementation
+    
+    internal func findWatch() -> Either<NSError, PBWatch> {
+        if central.connectedWatches.count > 1 {
+            return Either.left(NSError.errorWithMessage("Device.Pebble.tooManyWatches".localized(), code: 1))
+        } else if central.connectedWatches.count == 0 {
+            return Either.left(NSError.errorWithMessage("Device.Pebble.noWatches".localized(), code: 2))
+        } else {
+            let watch = central.connectedWatches[0] as PBWatch
+            return Either.right(watch)
+        }
+    }
+    
+    func peek(onDone: DeviceInfo -> Void) {
+        findWatch().either({ err in onDone(DeviceInfo.NotAvailableDeviceInfo(type: self.pebbleDeviceType, error: err)) },
+            onR: { watch in onDone(self.getDeviceInfo(watch)) })
+    }
+    
+}
+
 /**
  * Pebble implementation of the ``Device`` protocol
  */
-class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate, Device {
-    private let central = PBPebbleCentral.defaultCentral()
+class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDelegate, ConnectedDevice {
     private var deviceDelegate: DeviceDelegate!
     private var deviceDataDelegates: DeviceDataDelegates!
     private var currentDeviceSession: PebbleDeviceSession?
@@ -86,8 +113,6 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate, Device 
         NSUUID(UUIDString: "E113DED8-0EA6-4397-90FA-CE40941F7CBC")!.getUUIDBytes(UnsafeMutablePointer(uuid.mutableBytes))
         central.appUUID = uuid
         central.delegate = self
-        
-        start()
     }
 
     ///
@@ -111,8 +136,7 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate, Device 
             deviceDelegate.deviceAppLaunchFailed(deviceId, error: error!)
         } else {
             watch.getVersionInfo(versionInfoReceived, onTimeout: { (watch) -> Void in /* noop */ })
-            let deviceInfo = DeviceInfo(type: "pebble", name: watch.name, serialNumber: watch.serialNumber)
-            deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
+            deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: getDeviceInfo(watch))
             deviceDelegate.deviceAppLaunched(deviceId)
             currentDeviceSession?.stop(watch)
             currentDeviceSession = PebbleDeviceSession(watch: watch, deviceDataDelegates: deviceDataDelegates)
@@ -122,14 +146,7 @@ class PebbleDevice : NSObject, PBPebbleCentralDelegate, PBWatchDelegate, Device 
     // MARK: Device implementation
 
     func start() {
-        if central.connectedWatches.count > 1 {
-            deviceDelegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.tooManyWatches", code: 1))
-        } else if central.connectedWatches.count == 0 {
-            deviceDelegate.deviceDidNotConnect(NSError.errorWithMessage("Device.Pebble.PebbleConnector.noWatches", code: 2))
-        } else {
-            let watch = central.connectedWatches[0] as PBWatch
-            watch.appMessagesLaunch(appLaunched)
-        }
+        findWatch().either({ x in self.deviceDelegate.deviceDidNotConnect(x) }, onR: { $0.appMessagesLaunch(self.appLaunched) })
     }
     
     func stop() {

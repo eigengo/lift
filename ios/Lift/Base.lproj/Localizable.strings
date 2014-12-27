@@ -2,15 +2,46 @@
 "user_loginfailed"="Could not log in";
 "user_publicprofile_set_failed"="Could not set public profile";
 "user_publicprofile_get_failed"="Could not get public profile";
-"Device.Pebble.PebbleConnector.tooManyWatches"="Too many connected watches";
-"Device.Pebble.PebbleConnector.noWatches"="No connected watches";
+
+"Device.Pebble.tooManyWatches"="Too many connected watches";
+"Device.Pebble.noWatches"="No connected watches";
+
 "DeviceTableViewCell.noDevice"="No device";
 "DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
 "DeviceTableViewCell.deviceInfo"="Serial %@";
+"DeviceTableViewCell.disconnectedType.pebble"="Pebble";
+"DeviceTableViewCell.disconnectedType.androidwear"="Android Wear";
+"DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch";
+"DeviceTableViewCell.disconnected"="%@";
+"DeviceTableViewCell.notAvailableType.pebble"="Pebble";
+"DeviceTableViewCell.notAvailableType.androidwear"="Android Wear";
+"DeviceTableViewCell.notAvailableType.applewatch"="Apple Watch";
+"DeviceTableViewCell.notAvailable"="%@";
+
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
 "LiveSessionController.exercise"="Some exercise";
 "LiveSessionController.section.deviceAndSession"="Device and session";
 "LiveSessionController.section.exercise"="Exercise";
 
+"PublicProfileController.pictures"="Pictures";
+"PublicProfileController.profile"="Profile";
+"PublicProfileController.devices"="Devices";
+"PublicProfileController.social"="Social";
+"PublicProfileController.followingText"="Following";
+"PublicProfileController.followingDetail"="%d users";
+"PublicProfileController.followersText"="Followers";
+"PublicProfileController.followersDetail"="%d users";
+
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
+
+"Profile.firstName"="First name";
+"Profile.lastName"="Last name";
+"Profile.age"="Age";
+"Profile.weight"="Weight";
+
+"PropertyTableViewCell.emptyButValueNeeded"="Value missing";
+"PropertyTableViewCell.integerOutOfRange"="Number out of range";
+"PropertyTableViewCell.integerFormatError"="Not an integer";
+
+"NSError.notImplemented"="Not implemented";

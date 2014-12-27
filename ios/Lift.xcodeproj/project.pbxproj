@@ -12,6 +12,7 @@
 		5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894471A2F4E18009FDD10 /* arms2.adv1 */; };
 		5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894481A2F4E18009FDD10 /* arms3.adv1 */; };
 		5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894491A2F4E18009FDD10 /* chest1.adv1 */; };
+		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
@@ -27,13 +28,21 @@
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
-		547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* LiftServerMarshallers.swift */; };
+		547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */; };
 		547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
 		547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64791A2E4FB400F887EE /* PublicProfileController.swift */; };
+		5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */; };
+		5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */; };
+		548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5482963F1A4D7F3A00EDCAF0 /* Devices.swift */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
+		54C37B7F1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C37B7E1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift */; };
+		54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54C37B801A4C0A9A0036C0C8 /* DeviceTableViewCell.xib */; };
+		54C37B831A4C0BD80036C0C8 /* UITableView+CustomCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C37B821A4C0BD80036C0C8 /* UITableView+CustomCells.swift */; };
+		54C37B851A4C116C0036C0C8 /* PropertyTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C37B841A4C116C0036C0C8 /* PropertyTableViewCell.swift */; };
+		54C37B871A4C1D890036C0C8 /* PropertyTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54C37B861A4C1D890036C0C8 /* PropertyTableViewCell.xib */; };
 		54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD41A2F5E650044BDAB /* Box.swift */; };
 		54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD51A2F5E650044BDAB /* Either.swift */; };
 		54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
@@ -117,6 +126,7 @@
 		540894471A2F4E18009FDD10 /* arms2.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms2.adv1; sourceTree = "<group>"; };
 		540894481A2F4E18009FDD10 /* arms3.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms3.adv1; sourceTree = "<group>"; };
 		540894491A2F4E18009FDD10 /* chest1.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = chest1.adv1; sourceTree = "<group>"; };
+		54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserModel+Marshalling.swift"; sourceTree = "<group>"; };
 		54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSError+Convenience.swift"; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
@@ -134,9 +144,12 @@
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
-		547D51531A3061800055EB35 /* LiftServerMarshallers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerMarshallers.swift; sourceTree = "<group>"; };
+		547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseModel+Marshalling.swift"; sourceTree = "<group>"; };
 		547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentLiftUser.swift; sourceTree = "<group>"; };
 		547F64791A2E4FB400F887EE /* PublicProfileController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicProfileController.swift; sourceTree = "<group>"; };
+		548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AndroidWearDevice.swift; sourceTree = "<group>"; };
+		548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppleWatchDevice.swift; sourceTree = "<group>"; };
+		5482963F1A4D7F3A00EDCAF0 /* Devices.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Devices.swift; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
@@ -144,6 +157,11 @@
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
 		54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
+		54C37B7E1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceTableViewCell.swift; sourceTree = "<group>"; };
+		54C37B801A4C0A9A0036C0C8 /* DeviceTableViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = DeviceTableViewCell.xib; sourceTree = "<group>"; };
+		54C37B821A4C0BD80036C0C8 /* UITableView+CustomCells.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UITableView+CustomCells.swift"; sourceTree = "<group>"; };
+		54C37B841A4C116C0036C0C8 /* PropertyTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PropertyTableViewCell.swift; sourceTree = "<group>"; };
+		54C37B861A4C1D890036C0C8 /* PropertyTableViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PropertyTableViewCell.xib; sourceTree = "<group>"; };
 		54C6EFD41A2F5E650044BDAB /* Box.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		54C6EFD51A2F5E650044BDAB /* Either.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Either.swift; sourceTree = "<group>"; };
 		54C6EFD61A2F5E650044BDAB /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
@@ -242,9 +260,12 @@
 		543B26FB1A49D18800381298 /* Device */ = {
 			isa = PBXGroup;
 			children = (
+				548296361A4D792D00EDCAF0 /* AndroidWear */,
+				548296381A4D792D00EDCAF0 /* AppleWatch */,
 				543B26FE1A49D1A800381298 /* Pebble */,
 				543B26FC1A49D18800381298 /* Accelerometer.swift */,
 				54DB071A1A49E65400DC1E91 /* Device.swift */,
+				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -256,6 +277,34 @@
 				543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */,
 			);
 			path = Pebble;
+			sourceTree = "<group>";
+		};
+		548296361A4D792D00EDCAF0 /* AndroidWear */ = {
+			isa = PBXGroup;
+			children = (
+				548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */,
+			);
+			path = AndroidWear;
+			sourceTree = "<group>";
+		};
+		548296381A4D792D00EDCAF0 /* AppleWatch */ = {
+			isa = PBXGroup;
+			children = (
+				548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */,
+			);
+			path = AppleWatch;
+			sourceTree = "<group>";
+		};
+		54C37B7D1A4BFD7E0036C0C8 /* UITableView */ = {
+			isa = PBXGroup;
+			children = (
+				54C37B7E1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift */,
+				54C37B801A4C0A9A0036C0C8 /* DeviceTableViewCell.xib */,
+				54C37B841A4C116C0036C0C8 /* PropertyTableViewCell.swift */,
+				54C37B861A4C1D890036C0C8 /* PropertyTableViewCell.xib */,
+				54C37B821A4C0BD80036C0C8 /* UITableView+CustomCells.swift */,
+			);
+			path = UITableView;
 			sourceTree = "<group>";
 		};
 		54C6EFD31A2F5E650044BDAB /* Predef */ = {
@@ -307,6 +356,7 @@
 				54C6EFD31A2F5E650044BDAB /* Predef */,
 				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
 				54F780B71A278EFC00E4F3C5 /* LiftServer */,
+				54C37B7D1A4BFD7E0036C0C8 /* UITableView */,
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
@@ -420,9 +470,10 @@
 				54F780B81A278EFC00E4F3C5 /* LiftServer.swift */,
 				54680BA21A332DE0004FC897 /* LiftServerCache.swift */,
 				545E06071A304D3100AB633B /* LiftServerURLs.swift */,
-				547D51531A3061800055EB35 /* LiftServerMarshallers.swift */,
 				545E06031A304CB500AB633B /* UserModel.swift */,
+				54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */,
 				545E06051A304CBD00AB633B /* ExerciseModel.swift */,
+				547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */,
 				54DC83B31A40AF82006DD311 /* NotificationModel.swift */,
 			);
 			path = LiftServer;
@@ -573,11 +624,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */,
 				5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */,
 				54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */,
 				5475FA301A31E9D200877655 /* Settings.bundle in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
 				54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */,
+				54C37B871A4C1D890036C0C8 /* PropertyTableViewCell.xib in Resources */,
 				54CC69A419C4AD8E00B29EC8 /* Images.xcassets in Resources */,
 				5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */,
 				5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */,
@@ -653,10 +706,13 @@
 			files = (
 				54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */,
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
+				548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */,
+				54C37B831A4C0BD80036C0C8 /* UITableView+CustomCells.swift in Sources */,
 				54008B591A49EC730049A8EA /* String+MD5.swift in Sources */,
 				54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */,
 				54DB7DC71A4A01290075A420 /* String+Localisation.swift in Sources */,
 				54DB071B1A49E65400DC1E91 /* Device.swift in Sources */,
+				54C37B851A4C116C0036C0C8 /* PropertyTableViewCell.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
 				54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */,
@@ -668,6 +724,7 @@
 				543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
 				54C6EFE41A2F899A0044BDAB /* SessionsController.swift in Sources */,
+				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
@@ -679,15 +736,18 @@
 				54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */,
 				545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */,
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
-				547D51541A3061800055EB35 /* LiftServerMarshallers.swift in Sources */,
+				54C37B7F1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift in Sources */,
+				547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */,
 				54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */,
 				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
 				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,
 				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
+				5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
 				54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */,
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
+				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

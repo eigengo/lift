@@ -1,5 +1,7 @@
 package com.eigengo.lift.profile
 
+import java.awt.{RenderingHints, AlphaComposite}
+import java.awt.image.BufferedImage
 import java.security.MessageDigest
 import java.util
 
@@ -12,6 +14,7 @@ import com.eigengo.lift.notification.NotificationProtocol.Device
 import com.eigengo.lift.profile.UserProfile.{UserDeviceSet, UserRegistered}
 import com.eigengo.lift.profile.UserProfileProtocol._
 
+import scala.language.postfixOps
 import scala.util.Random
 import scalaz.\/
 
@@ -47,9 +50,23 @@ object UserProfileProcessor {
    */
   case class UserSetPublicProfile(userId: UserId, publicProfile: PublicProfile)
 
+  /**
+   * Sets the user's profile image
+   * @param userId the user identity
+   * @param profileImage the profile image
+   */
+  case class UserSetProfileImage(userId: UserId, profileImage: Array[Byte])
+
+  /**
+   * Checks that the account exists and that it is valid
+   * @param userId the user identity
+   */
+  case class UserCheckAccount(userId: UserId)
+
   private case class KnownAccounts(accounts: Map[String, UserId]) {
     def contains(email: String): Boolean = accounts.contains(email)
     def get(email: String): Option[UserId] = accounts.get(email)
+    def hasUserId(userId: UserId): Boolean = accounts.values.exists(userId ==)
     def withNewAccount(email: String, userId: UserId): KnownAccounts = copy(accounts = accounts + (email → userId))
   }
   private object KnownAccounts {
@@ -118,6 +135,9 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       log.info("UserLogin.")
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
 
+    case UserCheckAccount(userId) ⇒
+      sender ! knownAccounts.hasUserId(userId)
+
     case UserSetDevice(userId, device) ⇒
       log.info("UserSetDevice.")
       userProfile ! UserDeviceSet(userId, device)
@@ -127,6 +147,25 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       log.info("UserSetPublicProfile.")
       userProfile ! UserPublicProfileSet(userId, publicProfile)
       sender() ! \/.right(())
+
+    case UserSetProfileImage(userId, profileImage) ⇒
+      log.info("UserSetProfileImage.")
+      if (profileImage.length > 128000) {
+        /*
+        val resizedImage = new BufferedImage(256, 256, BufferedImage.TYPE_3BYTE_BGR)
+        val g = resizedImage.createGraphics()
+        g.drawImage(originalImage, 0, 0, IMG_WIDTH, IMG_HEIGHT, null)
+        g.dispose()
+        g.setComposite(AlphaComposite.Src)
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY)
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON)
+        */
+        sender() ! \/.left("Image too big")
+      } else {
+        userProfile ! UserProfileImageSet(userId, profileImage)
+        sender() ! \/.right(())
+      }
   }
 
   override def persistenceId: String = "user-profile-processor"

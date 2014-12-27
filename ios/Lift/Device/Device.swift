@@ -1,19 +1,33 @@
 import Foundation
 
-/**
- * Device information structure
- */
-struct DeviceInfo {
+typealias DeviceType = String
+
+typealias DeviceId = NSUUID
+
+enum DeviceInfo {
     /// type of device: pebble, applewatch, androidwear,...
-    var type: String
-    /// the device name, as reported by the device. Human readable: Pebble 4124, Apple Watch, ...
-    var name: String
-    /// the device serial or other identifier
-    var serialNumber: String
+    var type: DeviceType {
+        get {
+            switch self {
+            case .ConnectedDeviceInfo(id: _, let t, _, _): return t
+            case .DisconnectedDeviceInfo(_, let t, _): return t
+            case .NotAvailableDeviceInfo(let t, _): return t
+            }
+        }
+    }
     
+    case ConnectedDeviceInfo(id: DeviceId, type: DeviceType, name: String, serialNumber: String)
+    
+    case DisconnectedDeviceInfo(id: DeviceId, type: DeviceType, error: NSError?)
+    
+    case NotAvailableDeviceInfo(type: DeviceType, error: NSError)
+    
+    ///TODO: Hmm!  
+    ///case NotBoughtDeviceInfo(id: NSUUID, type: DeviceType, name: String, serialNumber: String)
+
     /**
-     * The device details
-     */
+    * The device details
+    */
     struct Detail {
         /// typically BT address
         var address: String
@@ -39,9 +53,24 @@ class DeviceDataDelegates {
 }
 
 /**
+* Common device communication protocol
+*/
+protocol Device {
+    
+    /**
+    * Peeks the device for connectivity and information, potentially on another
+    * queue, and calls ``onDone`` with the available information.
+    *
+    * @param onDone the function that will be called when the device information is available
+    */
+    func peek(onDone: DeviceInfo -> Void)
+    
+}
+
+/**
  * Common device communication protocol
  */
-protocol Device {
+protocol ConnectedDevice {
     
     /**
      * Starts the device work; typically also starts the companion app
@@ -52,6 +81,7 @@ protocol Device {
      * Stops the device work; typically also stops the companion app
      */
     func stop()
+    
     
 }
 
@@ -101,7 +131,7 @@ protocol DeviceDelegate {
      * @param deviceId the device identity
      * @param deviceInfo the device information
      */
-    func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo)
+    func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo)
     
     /**
      * Detailed information about the device is now available
@@ -109,7 +139,7 @@ protocol DeviceDelegate {
      * @param deviceId the device identity
      * @param detail the detailed device information
      */
-    func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail)
+    func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail)
     
     /**
      * The device could not be connected. Maybe it's not registered, out of range, or anything
@@ -125,20 +155,20 @@ protocol DeviceDelegate {
      * @param deviceId the device identity
      * @param error the failure detail
      */
-    func deviceAppLaunchFailed(deviceId: NSUUID, error: NSError)
+    func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError)
     
     /**
      * The device is connected and successfully launched the companion app.
      *
      * @param deviceId the device identity
      */
-    func deviceAppLaunched(deviceId: NSUUID)
+    func deviceAppLaunched(deviceId: DeviceId)
     
     /**
      * A previously connected device disconnected unexpectedly. Out of range, batteries, ...
      *
      * @param deviceId the device identity
      */
-    func deviceDisconnected(deviceId: NSUUID)
+    func deviceDisconnected(deviceId: DeviceId)
     
 }

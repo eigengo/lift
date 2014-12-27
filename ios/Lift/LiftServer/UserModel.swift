@@ -11,6 +11,10 @@ struct User {
         var lastName: String
         var weight: Int?
         var age: Int?
+        
+        static func empty() -> PublicProfile {
+            return PublicProfile(firstName: "", lastName: "", weight: nil, age: nil)
+        }
     }
 }
 

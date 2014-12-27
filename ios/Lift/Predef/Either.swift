@@ -30,7 +30,7 @@ public enum Either<L, R> {
     public func fold<B>(value: B, f: R -> B) -> B {
         return either({ _ in value }, { r in f(r) });
     }
-    
+        
     /// Named function for `>>-`. If the Either is Left, simply returns
     /// a New Left with the value of the receiver. If Right, applies the function `f`
     /// and returns the result.

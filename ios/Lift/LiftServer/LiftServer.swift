@@ -7,19 +7,19 @@ extension Request {
     
     public func responseAsResutlt<A, U>(f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
         responseSwiftyJSON { (request, response, json, error) -> Void in
-            if error != nil {
-                let r = response != nil ? response! : ""
-                NSLog("Failed with %@ -> %@", request, r)
-                f(Result.error(error!))
-            } else if response != nil {
-                if response!.statusCode != 200 {
+            if let x = response {
+                if x.statusCode != 200 {
                     let userInfo = [NSLocalizedDescriptionKey : json.stringValue]
-                    let err = NSError(domain: "com.eigengo.lift", code: response!.statusCode, userInfo: userInfo)
+                    let err = NSError(domain: "com.eigengo.lift", code: x.statusCode, userInfo: userInfo)
+                    NSLog("Failed with %@ -> %@", request, x)
                     f(Result.error(err))
                 } else {
                     let val = completionHandler(json)
                     f(Result.value(val))
                 }
+            } else if let x = error {
+                NSLog("Failed with %@", x)
+                f(Result.error(x))
             }
         }
     }
@@ -155,32 +155,44 @@ public class LiftServer {
     ///
     func userGetPublicProfile(userId: NSUUID, f: Result<User.PublicProfile?> -> Void) -> Void {
         request(LiftServerURLs.UserGetPublicProfile(userId))
-            .responseAsResutlt(f) { json -> User.PublicProfile? in
-                if json.isEmpty {
-                    return nil
-                } else {
-                    return User.PublicProfile(firstName: json["firstName"].stringValue,
-                        lastName: json["lastName"].stringValue,
-                        weight: json["weight"].int,
-                        age: json["age"].int)
-                }
-            }
+            .responseAsResutlt(f, User.PublicProfile.unmarshal)
     }
     
     ///
     /// Sets the public profile for the given ``userId``
     ///
-    func userSetPublicProfile(userId: NSUUID, publicProfile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
-        var params: [String : AnyObject] = ["firstName": publicProfile.firstName, "lastName": publicProfile.lastName]
-        if publicProfile.age != nil {
-            params["age"] = publicProfile.age!
-        }
-        if publicProfile.weight != nil {
-            params["weight"] = publicProfile.weight!
-        }
-        
-        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: params))
-            .responseAsResutlt(f) { json in }
+    func userSetPublicProfile(userId: NSUUID, profile: User.PublicProfile, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.UserSetPublicProfile(userId), body: .Json(params: profile.marshal()))
+            .responseAsResutlt(f, const())
+    }
+    
+    ///
+    /// Checks that the account is still valid
+    ///
+    func userCheckAccount(userId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.UserCheckAccount(userId))
+            .responseAsResutlt(f, const(()))
+    }
+    
+    func userGetProfileImage(userId: NSUUID, f: Result<NSData> -> Void) -> Void {
+        request(LiftServerURLs.UserGetProfileImage(userId))
+            .response { (_, response: NSHTTPURLResponse?, responseBody, err) in
+                let body = responseBody as? NSData
+                if let x = response {
+                    if x.statusCode != 200 {
+                        f(Result.error(NSError.errorWithMessage("Request failed", code: x.statusCode)))
+                    } else {
+                        if let b = body { f(Result.value(b)) } else { f(Result.error(NSError.errorWithMessage("No body", code: x.statusCode)))}
+                    }
+                } else if let e = err {
+                    f(Result.error(e))
+                }
+            }
+    }
+    
+    func userSetProfileImage(userId: NSUUID, image: NSData, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.UserSetProfileImage(userId), body: .Data(data: image))
+            .responseAsResutlt(f, const(()))
     }
     
     // MARK: - Classifiers
@@ -209,7 +221,6 @@ public class LiftServer {
         ]
         request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: params))
             .responseAsResutlt(f) { json in
-                println(json)
                 return NSUUID(UUIDString: json["id"].stringValue)!
             }
     }
@@ -219,7 +230,7 @@ public class LiftServer {
     ///
     func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data))
-            .responseAsResutlt(f) { json in }
+            .responseAsResutlt(f, const(()))
     }
     
     ///
@@ -227,7 +238,7 @@ public class LiftServer {
     ///
     func exerciseSessionEnd(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
         request(LiftServerURLs.ExerciseSessionEnd(userId, sessionId))
-            .responseAsResutlt(f) { json in }
+            .responseAsResutlt(f, const(()))
     }
     
     ///
@@ -245,8 +256,6 @@ public class LiftServer {
     ///
     func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Exercise.ExerciseSession> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetExerciseSession(userId, sessionId))
-            .responseAsResutlt(f) { json in
-                return Exercise.ExerciseSession.unmarshal(json)
-        }
+            .responseAsResutlt(f, Exercise.ExerciseSession.unmarshal)
     }
 }

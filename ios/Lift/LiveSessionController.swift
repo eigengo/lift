@@ -1,29 +1,5 @@
 import UIKit
 
-class DeviceTableViewCell : UITableViewCell {
-    @IBOutlet var name: UILabel!
-    @IBOutlet var detail: UILabel!
-    
-    func setDeviceInfo(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) {
-        if let di = deviceInfo {
-            name.text = di.name
-            if let did = deviceInfoDetail {
-                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(di.serialNumber, did.address)
-            } else {
-                detail.text = "DeviceTableViewCell.deviceInfo".localized(di.serialNumber)
-            }
-        } else {
-            name.text = "DeviceTableViewCell.noDevice".localized()
-            detail.text = ""
-        }
-    }
-    
-    func setDeviceError(error: NSError) {
-        name.text = String(format: "%@", error)
-        detail.text = ""
-    }
-}
-
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     AccelerometerDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
@@ -71,7 +47,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        PebbleDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
+        PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self)).start()
         sessionId = session.id
     }
     
@@ -101,9 +77,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch (indexPath.section, indexPath.row) {
         // section 1: device
         case (0, 0):
-            let cell = tableView.dequeueReusableCellWithIdentifier("device") as DeviceTableViewCell
-            cell.setDeviceInfo(deviceInfo, deviceInfoDetail: deviceInfoDetail)
-            return cell
+            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
         case (0, let x):
             let index = x - 1
             // TODO: iterate over all values, accelerometer now acceptable
@@ -131,7 +105,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch (indexPath.section, indexPath.row) {
-        case (0, 0): return 85
+        case (0, 0): return 60
         default: return 40
         }
     }
@@ -152,21 +126,21 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     // MARK: DeviceDelegate
-    func deviceGotDeviceInfo(deviceId: NSUUID, deviceInfo: DeviceInfo) {
+    func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
         self.deviceInfo = deviceInfo
         tableView.reloadData()
     }
     
-    func deviceGotDeviceInfoDetail(deviceId: NSUUID, detail: DeviceInfo.Detail) {
+    func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
         self.deviceInfoDetail = detail
         tableView.reloadData()
     }
     
-    func deviceAppLaunched(deviceId: NSUUID) {
+    func deviceAppLaunched(deviceId: DeviceId) {
         tableView.reloadData()
     }
     
-    func deviceAppLaunchFailed(deviceId: NSUUID, error: NSError) {
+    func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
         NSLog("deviceAppLaunchFailed %@ -> %@", deviceId, error)
         self.deviceInfo = nil
         tableView.reloadData()
@@ -178,7 +152,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         tableView.reloadData()
     }
     
-    func deviceDisconnected(deviceId: NSUUID) {
+    func deviceDisconnected(deviceId: DeviceId) {
         NSLog("deviceDisconnected %@", deviceId)
         self.deviceInfo = nil
         self.deviceInfoDetail = nil
