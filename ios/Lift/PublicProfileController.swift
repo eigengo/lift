@@ -1,6 +1,9 @@
 import Foundation
 import MobileCoreServices
 
+/**
+ * Profile cell shows the user's picture
+ */
 class ProfileImageTableViewCell : UITableViewCell {
     @IBOutlet
     var profileImageView: UIImageView!
@@ -25,17 +28,27 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     // the user's profile
     private var profile: User.PublicProfile = User.PublicProfile.empty()
     
+    // followers
+    private var followersCount = 0
+    private var followingCount = 0
+    
     // MARK: UITableViewDataSource implementation
     
+    // We have four sections
+    // * profile picture
+    // * public profile
+    // * following
+    // * devices
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 3 
+        return 4
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 1 // profile picture
-        case 1: return 4 // four user properties
-        case 2: return deviceInfos.count
+        case 0: return 1                 // profile picture
+        case 1: return 4                 // four user properties
+        case 2: return 2                 // followers
+        case 3: return deviceInfos.count // devices
         
         default: fatalError("Match error")
         }
@@ -43,9 +56,11 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0: return 60
-        case 1: return 40
-        case 2: return 60
+        case 0: return 60   // profile picture
+        case 1: return 40   // four user properties
+        case 2: return 40   // followers
+        case 3: return 60   // devices
+            
         default: fatalError("Match error")
         }
     }
@@ -60,7 +75,17 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         case (1, 1): return tableView.dequeueReusablePropertyTableViewCell("lastName", delegate: self)
         case (1, 2): return tableView.dequeueReusablePropertyTableViewCell("age", delegate: self)
         case (1, 3): return tableView.dequeueReusablePropertyTableViewCell("weight", delegate: self)
-        case (2, let x): return tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil, delegate: self)
+        case (2, 0):
+            let cell = tableView.dequeueReusableCellWithIdentifier("following") as UITableViewCell
+            cell.textLabel!.text = "PublicProfileController.followingText".localized()
+            cell.detailTextLabel!.text = "PublicProfileController.followingDetail".localized(followingCount)
+            return cell
+        case (2, 1):
+            let cell = tableView.dequeueReusableCellWithIdentifier("following") as UITableViewCell
+            cell.textLabel!.text = "PublicProfileController.followersText".localized()
+            cell.detailTextLabel!.text = "PublicProfileController.followersDetail".localized(followersCount)
+            return cell
+        case (3, let x): return tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil, delegate: self)
         // cannot happen
         default: fatalError("Match error")
         }
@@ -68,9 +93,10 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 0: return "ProfileController.pictures".localized()
-        case 1: return "ProfileController.profile".localized()
-        case 2: return "ProfileController.devices".localized()
+        case 0: return "PublicProfileController.pictures".localized()
+        case 1: return "PublicProfileController.profile".localized()
+        case 2: return "PublicProfileController.social".localized()
+        case 3: return "PublicProfileController.devices".localized()
             
         default: fatalError("Match error")
         }
@@ -104,13 +130,13 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         if image.size.width > w || image.size.height > h {
             let sx = w / CGFloat(image.size.width)
             let sy = h / CGFloat(image.size.height)
-            let size = CGSizeApplyAffineTransform(image.size, CGAffineTransformMakeScale(sx, sy))
-            let hasAlpha = false
-            let scale: CGFloat = 0.0
-            
-            UIGraphicsBeginImageContextWithOptions(size, !hasAlpha, scale)
-            image.drawInRect(CGRect(origin: CGPointZero, size: size))
-            profileImage = UIImageJPEGRepresentation(UIGraphicsGetImageFromCurrentImageContext(), 0.6)
+            let s = min(sx, sy)
+            let newSize = CGSizeMake(image.size.width * s, image.size.height * s)
+            UIGraphicsBeginImageContext(newSize)
+            image.drawInRect(CGRectMake(0, 0, newSize.width, newSize.height))
+            let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            profileImage = UIImageJPEGRepresentation(scaledImage, 0.6)
         } else {
             profileImage = UIImageJPEGRepresentation(image, 0.6)
         }

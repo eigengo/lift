@@ -24,9 +24,14 @@
 "LiveSessionController.section.deviceAndSession"="Device and session";
 "LiveSessionController.section.exercise"="Exercise";
 
-"ProfileController.pictures"="Pictures";
-"ProfileController.profile"="Profile";
-"ProfileController.devices"="Devices";
+"PublicProfileController.pictures"="Pictures";
+"PublicProfileController.profile"="Profile";
+"PublicProfileController.devices"="Devices";
+"PublicProfileController.social"="Social";
+"PublicProfileController.followingText"="Following";
+"PublicProfileController.followingDetail"="%d users";
+"PublicProfileController.followersText"="Followers";
+"PublicProfileController.followersDetail"="%d users";
 
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
 
