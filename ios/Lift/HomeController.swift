@@ -69,13 +69,13 @@ class HomeController : JPBParallaxBlurViewController, UITableViewDataSource, UIT
         return tableView
     }
     
-    override func mainScrollView() -> UIScrollView! {
-        return tableView
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        //navigationController!.navigationBarHidden = true
+        tableView.scrollEnabled = false
         let view = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as UIView
+        view.backgroundColor = UIColor.clearColor()
+        view.alpha = 1
         setHeaderImage(UIImage(named: "user1"))
         addHeaderOverlayView(view)
     }
