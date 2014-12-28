@@ -20,6 +20,7 @@
 		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */; };
+		544C79851A5070CF00E88F42 /* HomeControllerHeader.xib in Resources */ = {isa = PBXBuildFile; fileRef = 544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
@@ -27,9 +28,6 @@
 		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
-		546BEDE71A502B4E0053F923 /* UserHeaderCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 546BEDE61A502B4E0053F923 /* UserHeaderCollectionViewCell.xib */; };
-		546BEDE91A502C980053F923 /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546BEDE81A502C980053F923 /* HomeController.swift */; };
-		546BEDEC1A505BD10053F923 /* UserHeaderCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546BEDEB1A505BD10053F923 /* UserHeaderCollectionViewCell.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
 		547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */; };
 		547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
@@ -51,7 +49,7 @@
 		54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
 		54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
 		54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
-		54C6EFE41A2F899A0044BDAB /* OldHomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* OldHomeController.swift */; };
+		54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* HomeController.swift */; };
 		54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */; };
@@ -139,6 +137,7 @@
 		543B26FC1A49D18800381298 /* Accelerometer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accelerometer.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleAccelerometerRecorder.swift; sourceTree = "<group>"; };
+		544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HomeControllerHeader.xib; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
@@ -146,9 +145,6 @@
 		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
-		546BEDE61A502B4E0053F923 /* UserHeaderCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = UserHeaderCollectionViewCell.xib; path = ../UserHeaderCollectionViewCell.xib; sourceTree = "<group>"; };
-		546BEDE81A502C980053F923 /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
-		546BEDEB1A505BD10053F923 /* UserHeaderCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserHeaderCollectionViewCell.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseModel+Marshalling.swift"; sourceTree = "<group>"; };
 		547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentLiftUser.swift; sourceTree = "<group>"; };
@@ -173,7 +169,7 @@
 		54C6EFD61A2F5E650044BDAB /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
 		54C6EFD71A2F5E650044BDAB /* Predef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predef.swift; sourceTree = "<group>"; };
 		54C6EFD81A2F5E650044BDAB /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		54C6EFE31A2F899A0044BDAB /* OldHomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OldHomeController.swift; sourceTree = "<group>"; };
+		54C6EFE31A2F899A0044BDAB /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
 		54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionDetailController.swift; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -288,8 +284,6 @@
 		546BEDEA1A505BD10053F923 /* UICollectionView */ = {
 			isa = PBXGroup;
 			children = (
-				546BEDE61A502B4E0053F923 /* UserHeaderCollectionViewCell.xib */,
-				546BEDEB1A505BD10053F923 /* UserHeaderCollectionViewCell.swift */,
 			);
 			path = UICollectionView;
 			sourceTree = "<group>";
@@ -377,13 +371,13 @@
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
 				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
-				54C6EFE31A2F899A0044BDAB /* OldHomeController.swift */,
+				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
+				544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */,
 				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
 				54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */,
 				547F64791A2E4FB400F887EE /* PublicProfileController.swift */,
-				546BEDE81A502C980053F923 /* HomeController.swift */,
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
@@ -642,8 +636,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */,
+				544C79851A5070CF00E88F42 /* HomeControllerHeader.xib in Resources */,
 				5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */,
-				546BEDE71A502B4E0053F923 /* UserHeaderCollectionViewCell.xib in Resources */,
 				54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */,
 				5475FA301A31E9D200877655 /* Settings.bundle in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
@@ -741,14 +735,12 @@
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
 				543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
-				54C6EFE41A2F899A0044BDAB /* OldHomeController.swift in Sources */,
-				546BEDE91A502C980053F923 /* HomeController.swift in Sources */,
+				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
-				546BEDEC1A505BD10053F923 /* UserHeaderCollectionViewCell.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
