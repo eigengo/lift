@@ -48,7 +48,7 @@
 		54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
 		54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
 		54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
-		54C6EFE41A2F899A0044BDAB /* SessionsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* SessionsController.swift */; };
+		54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* HomeController.swift */; };
 		54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */; };
@@ -167,7 +167,7 @@
 		54C6EFD61A2F5E650044BDAB /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
 		54C6EFD71A2F5E650044BDAB /* Predef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predef.swift; sourceTree = "<group>"; };
 		54C6EFD81A2F5E650044BDAB /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		54C6EFE31A2F899A0044BDAB /* SessionsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionsController.swift; sourceTree = "<group>"; };
+		54C6EFE31A2F899A0044BDAB /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
 		54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionDetailController.swift; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -361,7 +361,7 @@
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
 				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
-				54C6EFE31A2F899A0044BDAB /* SessionsController.swift */,
+				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
 				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
@@ -723,7 +723,7 @@
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
 				543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
-				54C6EFE41A2F899A0044BDAB /* SessionsController.swift in Sources */,
+				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,

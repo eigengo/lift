@@ -24,7 +24,7 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
     
     override func layoutSubviews() {
-        self.chartView.frame = CGRectMake(15, 56, self.frame.width - 40, 65)
+        self.chartView.frame = CGRectMake(15, 40, self.frame.width - 40, 45)
         self.intensityChart!.frame = self.chartView.bounds
         self.intensityChart!.reloadData()
     }
@@ -61,7 +61,7 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
-class SessionsController : UITableViewController, UITableViewDataSource {
+class HomeController : UITableViewController, UITableViewDataSource {
     private var sessionSummaries: [Exercise.SessionSummary] = []
     
     override func viewDidAppear(animated: Bool) {
@@ -97,6 +97,10 @@ class SessionsController : UITableViewController, UITableViewDataSource {
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return sessionSummaries.count
+    }
+    
+    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        return 90
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
