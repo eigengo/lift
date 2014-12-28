@@ -65,9 +65,18 @@ class HomeController : JPBParallaxBlurViewController, UITableViewDataSource, UIT
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
     
+    func contentView() -> UIScrollView {
+        return tableView
+    }
+    
+    override func mainScrollView() -> UIScrollView! {
+        return tableView
+    }
+    
     override func viewDidLoad() {
+        super.viewDidLoad()
         let view = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as UIView
-        view.frame = CGRectMake(0, 0, 300, 200)
+        setHeaderImage(UIImage(named: "user1"))
         addHeaderOverlayView(view)
     }
     

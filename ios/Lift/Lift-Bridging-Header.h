@@ -9,3 +9,4 @@
 #import "JBChartView/JBBarChartView.h"
 #import "JBChartView/JBLineChartView.h"
 #import "ParallaxBlur/JPBFloatingTextViewController.h"
+#import "ParallaxBlur/JPBParallaxTableViewController.h"
