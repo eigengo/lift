@@ -27,8 +27,9 @@
 		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
-		546BEDE71A502B4E0053F923 /* HomeHeader.xib in Resources */ = {isa = PBXBuildFile; fileRef = 546BEDE61A502B4E0053F923 /* HomeHeader.xib */; };
+		546BEDE71A502B4E0053F923 /* UserHeaderCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 546BEDE61A502B4E0053F923 /* UserHeaderCollectionViewCell.xib */; };
 		546BEDE91A502C980053F923 /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546BEDE81A502C980053F923 /* HomeController.swift */; };
+		546BEDEC1A505BD10053F923 /* UserHeaderCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546BEDEB1A505BD10053F923 /* UserHeaderCollectionViewCell.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
 		547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */; };
 		547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
@@ -145,8 +146,9 @@
 		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
-		546BEDE61A502B4E0053F923 /* HomeHeader.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HomeHeader.xib; sourceTree = "<group>"; };
+		546BEDE61A502B4E0053F923 /* UserHeaderCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = UserHeaderCollectionViewCell.xib; path = ../UserHeaderCollectionViewCell.xib; sourceTree = "<group>"; };
 		546BEDE81A502C980053F923 /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
+		546BEDEB1A505BD10053F923 /* UserHeaderCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserHeaderCollectionViewCell.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseModel+Marshalling.swift"; sourceTree = "<group>"; };
 		547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentLiftUser.swift; sourceTree = "<group>"; };
@@ -283,6 +285,15 @@
 			path = Pebble;
 			sourceTree = "<group>";
 		};
+		546BEDEA1A505BD10053F923 /* UICollectionView */ = {
+			isa = PBXGroup;
+			children = (
+				546BEDE61A502B4E0053F923 /* UserHeaderCollectionViewCell.xib */,
+				546BEDEB1A505BD10053F923 /* UserHeaderCollectionViewCell.swift */,
+			);
+			path = UICollectionView;
+			sourceTree = "<group>";
+		};
 		548296361A4D792D00EDCAF0 /* AndroidWear */ = {
 			isa = PBXGroup;
 			children = (
@@ -360,6 +371,7 @@
 				54C6EFD31A2F5E650044BDAB /* Predef */,
 				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
 				54F780B71A278EFC00E4F3C5 /* LiftServer */,
+				546BEDEA1A505BD10053F923 /* UICollectionView */,
 				54C37B7D1A4BFD7E0036C0C8 /* UITableView */,
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
@@ -372,7 +384,6 @@
 				54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */,
 				547F64791A2E4FB400F887EE /* PublicProfileController.swift */,
 				546BEDE81A502C980053F923 /* HomeController.swift */,
-				546BEDE61A502B4E0053F923 /* HomeHeader.xib */,
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
@@ -632,7 +643,7 @@
 			files = (
 				54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */,
 				5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */,
-				546BEDE71A502B4E0053F923 /* HomeHeader.xib in Resources */,
+				546BEDE71A502B4E0053F923 /* UserHeaderCollectionViewCell.xib in Resources */,
 				54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */,
 				5475FA301A31E9D200877655 /* Settings.bundle in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
@@ -737,6 +748,7 @@
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
+				546BEDEC1A505BD10053F923 /* UserHeaderCollectionViewCell.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,

@@ -5,14 +5,16 @@ class CSCell : UICollectionViewCell {
 }
 
 class HomeController : UICollectionViewController {
-    private let sections = [["Arms", "Arms", "Chest", "Arms", "Chest", "Core", "Chest", "Core"]]
-    private let headerNib = UINib(nibName: "HomeHeader", bundle: nil)
+    private let sections = [
+        ["Arms", "Arms", "Chest", "Arms", "Chest", "Core", "Chest", "Core", "Legs", "Arms", "Core", "Chest", "Arms", "Core", "Legs"]
+    ]
+    private let headerNib = UINib(nibName: "UserHeaderCollectionViewCell", bundle: nil)
 
     override func viewDidLoad() {
         navigationController?.navigationBarHidden = true
         if let x = collectionViewLayout as? CSStickyHeaderFlowLayout {
-            x.parallaxHeaderReferenceSize = CGSizeMake(self.view.frame.size.width, 426)
-            x.parallaxHeaderMinimumReferenceSize = CGSizeMake(self.view.frame.size.width, 110)
+            x.parallaxHeaderReferenceSize = CGSizeMake(self.view.frame.size.width, 330)
+            x.parallaxHeaderMinimumReferenceSize = CGSizeMake(self.view.frame.size.width, 100)
             x.itemSize = CGSizeMake(self.view.frame.size.width, x.itemSize.height)
             x.parallaxHeaderAlwaysOnTop = true
             x.disableStickyHeaders = true
