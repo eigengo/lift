@@ -61,11 +61,11 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
-class HomeController : JPBParallaxBlurViewController, UITableViewDataSource, UITableViewDelegate {
+class HomeController : UIParallaxViewController, UITableViewDataSource, UITableViewDelegate {
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
     
-    func contentView() -> UIScrollView {
+    override func contentView() -> UIScrollView {
         return tableView
     }
     
@@ -76,7 +76,7 @@ class HomeController : JPBParallaxBlurViewController, UITableViewDataSource, UIT
         let view = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as UIView
         view.backgroundColor = UIColor.clearColor()
         view.alpha = 1
-        setHeaderImage(UIImage(named: "user1"))
+        setHeaderImage(UIImage(named: "user1")!)
         addHeaderOverlayView(view)
     }
     
