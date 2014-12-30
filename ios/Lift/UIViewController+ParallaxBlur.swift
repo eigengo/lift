@@ -62,13 +62,13 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         // set our view to be the scroll view
         mainScrollView.contentSize = CGSizeMake(view.frame.size.width, 1000)
         mainScrollView.delegate = self
+        mainScrollView.frame = view.frame
         view = mainScrollView
         
         // background scroll view
         backgroundScrollView.contentSize = CGSizeMake(view.frame.size.width, 1000)
 
         // set up frames
-        mainScrollView.frame = view.frame
         backgroundScrollView.frame = CGRectMake(0, 0, CGRectGetWidth(view.frame), imageHeight)
         headerImageView.frame = CGRectMake(0, 0, CGRectGetWidth(backgroundScrollView.frame), CGRectGetHeight(backgroundScrollView.frame))
         blurredImageView.frame = CGRectMake(0, 0, CGRectGetWidth(backgroundScrollView.frame), CGRectGetHeight(backgroundScrollView.frame))
