@@ -4,7 +4,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     private var headerOverlayView: UIView?
     // TODO: height here
     private let imageHeight: CGFloat = 320.0
-//    private let headerHeight: CGFloat = 60.0
+    private let headerHeight: CGFloat = 60.0
     private let invisDelta: CGFloat = 50.0
     private let blurDistance: CGFloat = 200.0
 
@@ -57,7 +57,6 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         cv.autoresizingMask = UIViewAutoresizing.FlexibleWidth
         
         // set our view to be the scroll view
-        mainScrollView.frame = view.frame
         mainScrollView.contentSize = CGSizeMake(view.frame.size.width, 1000)
         mainScrollView.delegate = self
         view = mainScrollView
@@ -66,6 +65,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         backgroundScrollView.contentSize = CGSizeMake(view.frame.size.width, 1000)
 
         // set up frames
+        mainScrollView.frame = view.frame
         backgroundScrollView.frame = CGRectMake(0, 0, CGRectGetWidth(view.frame), imageHeight)
         headerImageView.frame = CGRectMake(0, 0, CGRectGetWidth(backgroundScrollView.frame), CGRectGetHeight(backgroundScrollView.frame))
         blurredImageView.frame = CGRectMake(0, 0, CGRectGetWidth(backgroundScrollView.frame), CGRectGetHeight(backgroundScrollView.frame))
@@ -91,19 +91,15 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     
     func navBarHeight() -> CGFloat {
         if let x = navigationController {
-            if x.navigationBarHidden {
+            if !x.navigationBarHidden {
                 return CGRectGetHeight(x.navigationBar.frame) + 20
             }
         }
         return 0
     }
 
-    func headerHeight() -> CGFloat {
-        return CGRectGetHeight(backgroundScrollView.frame)
-    }
-    
     func offsetHeight() -> CGFloat {
-        return headerHeight() + navBarHeight();
+        return headerHeight + navBarHeight();
     }
     
     func contentView() -> UIScrollView {
@@ -134,11 +130,10 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
             // Here I check whether or not the user has scrolled passed the limit where I want to stick the header, if they have then I move the frame with the scroll view
             // to give it the sticky header look
             if (delta > backgroundScrollViewLimit) {
-                
                 backgroundScrollView.frame = CGRect(origin: CGPoint(x: 0, y: delta - backgroundScrollView.frame.size.height + offsetHeight()), size: CGSize(width: CGRectGetWidth(scrollViewContainer.frame), height: imageHeight))
                 floatingHeaderView.frame = CGRect(origin: CGPoint(x: 0, y: delta - floatingHeaderView.frame.size.height + offsetHeight()), size: CGSize(width: CGRectGetWidth(scrollViewContainer.frame), height: imageHeight))
                 scrollViewContainer.frame = CGRect(origin: CGPoint(x: 0, y: CGRectGetMinY(backgroundScrollView.frame) + CGRectGetHeight(backgroundScrollView.frame)), size: scrollViewContainer.frame.size)
-                cv.contentOffset = CGPointMake (0, delta - backgroundScrollViewLimit)
+                cv.contentOffset = CGPointMake(0, delta - backgroundScrollViewLimit)
                 let contentOffsetY = -backgroundScrollViewLimit * 0.5
                 backgroundScrollView.contentOffset = CGPoint(x: 0, y: contentOffsetY)
             } else {
