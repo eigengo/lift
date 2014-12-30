@@ -31,7 +31,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         return imageView
     }()
     private let blurredImageView: UIImageView = {
-       let imageView = UIImageView()
+        let imageView = UIImageView()
         imageView.contentMode = UIViewContentMode.ScaleAspectFill
         imageView.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight
         imageView.alpha = 0
@@ -40,7 +40,10 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     private let floatingHeaderView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.clearColor()
-        return view
+        let be = UIBlurEffect(style: UIBlurEffectStyle.Light)
+        let ve = UIVibrancyEffect(forBlurEffect: be)
+        let vew = UIVisualEffectView(effect: ve)
+        return vew
     }()
     private let scrollViewContainer: UIView = {
         let svc = UIView()
