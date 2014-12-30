@@ -31,7 +31,10 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         return imageView
     }()
     private let floatingHeaderView: UIView = {
-        return UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.Light))
+        let view = UIView()
+        view.backgroundColor = UIColor.clearColor()
+        return view
+        //return UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.Light))
     }()
     private let scrollViewContainer: UIView = {
         let svc = UIView()
@@ -133,7 +136,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     // MARK: Public methods
     
     func setHeaderImage(headerImage: UIImage) {
-        headerImageView.image = headerImage
+        headerImageView.image = headerImage.applyLightEffect()
     }
     
     func addHeaderOverlayView(overlayView: UIView) {
