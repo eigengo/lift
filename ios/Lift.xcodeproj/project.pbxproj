@@ -36,6 +36,7 @@
 		5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */; };
 		5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */; };
 		548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5482963F1A4D7F3A00EDCAF0 /* Devices.swift */; };
+		54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
@@ -154,6 +155,7 @@
 		548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AndroidWearDevice.swift; sourceTree = "<group>"; };
 		548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppleWatchDevice.swift; sourceTree = "<group>"; };
 		5482963F1A4D7F3A00EDCAF0 /* Devices.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Devices.swift; sourceTree = "<group>"; };
+		54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Effects.swift"; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
@@ -397,6 +399,7 @@
 				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
 				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
 				5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */,
+				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -765,6 +768,7 @@
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
+				54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

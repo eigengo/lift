@@ -10,7 +10,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
 
     private let mainScrollView: UIScrollView = {
         let scrollView = UIScrollView()
-        scrollView.bounces = true
+        scrollView.bounces = false
         scrollView.alwaysBounceVertical = true
         scrollView.showsVerticalScrollIndicator = true
         scrollView.autoresizingMask = UIViewAutoresizing.FlexibleHeight | UIViewAutoresizing.FlexibleWidth
@@ -30,20 +30,8 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         imageView.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight
         return imageView
     }()
-    private let blurredImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = UIViewContentMode.ScaleAspectFill
-        imageView.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight
-        imageView.alpha = 0
-        return imageView
-    }()
     private let floatingHeaderView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.clearColor()
-        let be = UIBlurEffect(style: UIBlurEffectStyle.Light)
-        let ve = UIVibrancyEffect(forBlurEffect: be)
-        let vew = UIVisualEffectView(effect: ve)
-        return vew
+        return UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.Light))
     }()
     private let scrollViewContainer: UIView = {
         let svc = UIView()
@@ -71,13 +59,11 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         // set up frames
         backgroundScrollView.frame = CGRectMake(0, 0, CGRectGetWidth(view.frame), imageHeight)
         headerImageView.frame = CGRectMake(0, 0, CGRectGetWidth(backgroundScrollView.frame), CGRectGetHeight(backgroundScrollView.frame))
-        blurredImageView.frame = CGRectMake(0, 0, CGRectGetWidth(backgroundScrollView.frame), CGRectGetHeight(backgroundScrollView.frame))
         floatingHeaderView.frame = backgroundScrollView.frame
         scrollViewContainer.frame = CGRectMake(0, CGRectGetHeight(backgroundScrollView.frame), CGRectGetWidth(view.frame), CGRectGetHeight(view.frame) - offsetHeight())
         
         // set up the view structure
         backgroundScrollView.addSubview(headerImageView)
-        backgroundScrollView.addSubview(blurredImageView)
         scrollViewContainer.addSubview(cv!)
         mainScrollView.addSubview(backgroundScrollView)
         mainScrollView.addSubview(floatingHeaderView)
@@ -125,11 +111,6 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         } else {
             delta = mainScrollView.contentOffset.y;
             
-            //set alfas
-            let newAlpha = 1 - ((blurDistance - delta) / blurDistance);
-            blurredImageView.alpha = newAlpha
-            floatingHeaderView.alpha = 1
-            
             // Here I check whether or not the user has scrolled passed the limit where I want to stick the header, if they have then I move the frame with the scroll view
             // to give it the sticky header look
             if (delta > backgroundScrollViewLimit) {
@@ -153,7 +134,6 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     
     func setHeaderImage(headerImage: UIImage) {
         headerImageView.image = headerImage
-        blurredImageView.image = headerImage //.blurredImageWithRadius(40.0, iterations: 4, tintColor: UIColor.clearColor)
     }
     
     func addHeaderOverlayView(overlayView: UIView) {
