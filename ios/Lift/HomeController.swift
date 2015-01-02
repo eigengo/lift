@@ -64,6 +64,7 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
 class HomeController : UIParallaxViewController, UITableViewDataSource, UITableViewDelegate {
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
+    private var headerView: HomeControllerHeaderView!
     
     override func contentView() -> UIScrollView {
         return tableView
@@ -71,16 +72,23 @@ class HomeController : UIParallaxViewController, UITableViewDataSource, UITableV
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //navigationController!.navigationBarHidden = true
         tableView.scrollEnabled = false
-        let view = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as UIView
-        view.backgroundColor = UIColor.clearColor()
-        view.alpha = 1
-        setHeaderImage(UIImage(named: "user1")!)
-        addHeaderOverlayView(view)
+        headerView = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as HomeControllerHeaderView
+        addHeaderOverlayView(headerView)
     }
     
     override func viewDidAppear(animated: Bool) {
+        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
+            $0.ddv(self.headerView.setPublicProfile)
+        }
+        LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!) {
+            $0.ddv { data in
+                if let image = UIImage(data: data) {
+                    self.setHeaderImage(image)
+                    self.headerView.setProfileImage(image)
+                }
+            }
+        }
         LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!) {
             self.sessionSummaries = $0.fold([], identity)
             self.tableView.reloadData()

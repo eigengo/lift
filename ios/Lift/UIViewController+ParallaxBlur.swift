@@ -10,7 +10,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
 
     private let mainScrollView: UIScrollView = {
         let scrollView = UIScrollView()
-        scrollView.bounces = false
+        scrollView.bounces = true
         scrollView.alwaysBounceVertical = true
         scrollView.showsVerticalScrollIndicator = true
         scrollView.autoresizingMask = UIViewAutoresizing.FlexibleHeight | UIViewAutoresizing.FlexibleWidth
@@ -28,13 +28,14 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         let imageView = UIImageView()
         imageView.contentMode = UIViewContentMode.ScaleAspectFill
         imageView.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight
+        imageView.backgroundColor = UIColor.whiteColor()
         return imageView
     }()
     private let floatingHeaderView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.clearColor()
         return view
-        //return UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.Light))
+        //return UIVisualEffectView(effect: UIVibrancyEffect()).cont
     }()
     private let scrollViewContainer: UIView = {
         let svc = UIView()
@@ -110,7 +111,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
             delta = abs(min(0.0, mainScrollView.contentOffset.y + navBarHeight()))
             backgroundScrollView.frame = CGRectMake(CGRectGetMinX(rect) - delta / 2.0, CGRectGetMinY(rect) - delta,
                 CGRectGetWidth(scrollViewContainer.frame) + delta, CGRectGetHeight(rect) + delta)
-            floatingHeaderView.alpha = (invisDelta - delta) / invisDelta
+            //floatingHeaderView.alpha = (invisDelta - delta) / invisDelta
         } else {
             delta = mainScrollView.contentOffset.y;
             
@@ -136,7 +137,12 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     // MARK: Public methods
     
     func setHeaderImage(headerImage: UIImage) {
-        headerImageView.image = headerImage.applyLightEffect()
+        if let x = headerImage.applyExtraLightEffect() {
+            headerImageView.image = x
+            if let nb = navigationController?.navigationBar {
+                nb.tintColor = headerImage.averageColor()
+            }
+        }
     }
     
     func addHeaderOverlayView(overlayView: UIView) {

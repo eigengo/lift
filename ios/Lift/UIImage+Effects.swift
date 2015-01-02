@@ -105,6 +105,19 @@ import UIKit
 import Accelerate
 
 public extension UIImage {
+
+    func averageColor() -> UIColor {
+        let size = CGSize(width: 1, height: 1)
+        UIGraphicsBeginImageContext(size)
+        let ctx = UIGraphicsGetCurrentContext()
+        CGContextSetInterpolationQuality(ctx, kCGInterpolationMedium)
+        drawInRect(CGRect(origin: CGPoint(x: 0, y: 0), size: size), blendMode:kCGBlendModeCopy, alpha:1)
+        let data = UnsafeMutablePointer<CGFloat>(CGBitmapContextGetData(ctx))
+        let color = UIColor(red: data[0] / 255, green: data[1] / 255, blue: data[2] / 255, alpha: 1)
+        UIGraphicsEndImageContext()
+        return color
+    }
+    
     public func applyLightEffect() -> UIImage? {
         return applyBlurWithRadius(30, tintColor: UIColor(white: 1.0, alpha: 0.3), saturationDeltaFactor: 1.8)
     }

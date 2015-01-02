@@ -307,7 +307,7 @@
             </objects>
             <point key="canvasLocation" x="-646" y="228"/>
         </scene>
-        <!--Home Controller-->
+        <!--Home-->
         <scene sceneID="yPh-eV-hHt">
             <objects>
                 <viewController id="7ml-CA-58H" customClass="HomeController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
@@ -364,7 +364,7 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="Pap-19-p9f"/>
+                    <navigationItem key="navigationItem" title="Home" id="Pap-19-p9f"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
                         <outlet property="tableView" destination="9qo-lk-hsU" id="1dT-bq-kLX"/>
@@ -440,10 +440,10 @@
             </objects>
             <point key="canvasLocation" x="1929" y="294"/>
         </scene>
-        <!--History-->
+        <!--Home-->
         <scene sceneID="OPz-OZ-a7P">
             <objects>
-                <navigationController id="tiz-gY-thd" sceneMemberID="viewController">
+                <navigationController title="Home" id="tiz-gY-thd" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="History" image="sessions" id="27P-o9-fDU"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="WxR-xO-OUZ">

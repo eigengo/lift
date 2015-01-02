@@ -27,6 +27,8 @@
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
+		54618F7C1A5740740017CA2D /* HomeControllerHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */; };
+		54618F7E1A5744710017CA2D /* Result+DropdownAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7D1A5744710017CA2D /* Result+DropdownAlert.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
@@ -146,6 +148,8 @@
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
 		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
+		54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeControllerHeaderView.swift; sourceTree = "<group>"; };
+		54618F7D1A5744710017CA2D /* Result+DropdownAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Result+DropdownAlert.swift"; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -376,6 +380,7 @@
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
 				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
 				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
+				54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */,
 				544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */,
 				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
@@ -400,6 +405,7 @@
 				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
 				5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */,
 				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
+				54618F7D1A5744710017CA2D /* Result+DropdownAlert.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -747,6 +753,7 @@
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
+				54618F7E1A5744710017CA2D /* Result+DropdownAlert.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
 				5429608E1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
@@ -764,6 +771,7 @@
 				5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
+				54618F7C1A5740740017CA2D /* HomeControllerHeaderView.swift in Sources */,
 				54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */,
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
