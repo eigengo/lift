@@ -1,10 +1,19 @@
 import Foundation
 
+protocol HomeControllerHeaderViewDelegate {
+    
+    func editProfile()
+    
+    func settings()
+    
+}
+
 class HomeControllerHeaderView : UIView {
     @IBOutlet var profileImageView: UIImageView!
     @IBOutlet var bottomView: UIView!
     @IBOutlet var editProfileButton: UIButton!
     @IBOutlet var settingsButton: UIButton!
+    private var delegate: HomeControllerHeaderViewDelegate?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -19,6 +28,10 @@ class HomeControllerHeaderView : UIView {
         
         backgroundColor = UIColor.clearColor()
         alpha = 1
+    }
+    
+    func setDelegate(delegate: HomeControllerHeaderViewDelegate) {
+        self.delegate = delegate
     }
     
     func setPublicProfile(profile: User.PublicProfile?) {
@@ -45,5 +58,15 @@ class HomeControllerHeaderView : UIView {
         CGContextStrokePath(ctx)
         
         super.drawRect(rect)
+    }
+    
+    // MARK: Actions
+    
+    @IBAction func editProfile() {
+        delegate?.editProfile()
+    }
+    
+    @IBAction func settings() {
+        delegate?.settings()
     }
 }

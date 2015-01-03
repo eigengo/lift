@@ -209,7 +209,7 @@
         <!--Profile-->
         <scene sceneID="Dfb-qx-PZq">
             <objects>
-                <viewController id="ucP-LO-yqW" customClass="PublicProfileController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController hidesBottomBarWhenPushed="YES" id="ucP-LO-yqW" customClass="PublicProfileController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="oyF-bU-vjM">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -272,7 +272,11 @@
                     </view>
                     <tabBarItem key="tabBarItem" systemItem="contacts" id="74y-O3-uDh"/>
                     <navigationItem key="navigationItem" title="Profile" id="ZvI-5j-TNx">
-                        <barButtonItem key="leftBarButtonItem" title="Cancel" id="GZ0-JN-zGB"/>
+                        <barButtonItem key="leftBarButtonItem" title="Cancel" id="GZ0-JN-zGB">
+                            <connections>
+                                <action selector="cancel" destination="ucP-LO-yqW" id="EpN-Ly-4Y6"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" enabled="NO" title="Save" id="5MP-d9-y4X">
                             <connections>
                                 <action selector="save" destination="ucP-LO-yqW" id="0hm-yJ-IoR"/>
@@ -287,7 +291,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="le9-4a-gVo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-646" y="1158"/>
+            <point key="canvasLocation" x="1224" y="1219"/>
         </scene>
         <!--Profile-->
         <scene sceneID="0vG-rn-hru">
@@ -299,9 +303,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
-                    <connections>
-                        <segue destination="ucP-LO-yqW" kind="relationship" relationship="rootViewController" id="hAg-14-Nsd"/>
-                    </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2EU-1W-WsW" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -368,12 +369,13 @@
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
                         <outlet property="tableView" destination="9qo-lk-hsU" id="1dT-bq-kLX"/>
-                        <segue destination="DyL-Am-q2t" kind="push" identifier="detail" id="db4-ms-6cg"/>
+                        <segue destination="DyL-Am-q2t" kind="push" identifier="sessionDetail" id="db4-ms-6cg"/>
+                        <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kh0-A3-T6m" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1231" y="302"/>
+            <point key="canvasLocation" x="1224" y="275"/>
         </scene>
         <!--Session Detail Controller-->
         <scene sceneID="n01-7B-E8y">

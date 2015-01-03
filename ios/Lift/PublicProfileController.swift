@@ -211,7 +211,12 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         ResultContext.run { ctx in
             LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, profile: self.profile, ctx.unit())
         }
-        saveButton.enabled = false
+        navigationController?.popViewControllerAnimated(true)
+    }
+    
+    @IBAction
+    func cancel() {
+        navigationController?.popViewControllerAnimated(true)
     }
 
     private func showProfile(profile: User.PublicProfile?) {
@@ -224,7 +229,7 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         self.deviceInfos = []
         Devices.peek { x in self.deviceInfos += [x]; self.tableView.reloadData() }
     }
-    
+        
     override func viewDidAppear(animated: Bool) {
         ResultContext.run { ctx in
             LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply(self.showProfile))

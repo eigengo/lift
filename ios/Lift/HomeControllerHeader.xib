@@ -28,6 +28,9 @@
                     <state key="normal" title="Edit Profile">
                         <color key="titleShadowColor" cocoaTouchSystemColor="tableCellGroupedBackgroundColor"/>
                     </state>
+                    <connections>
+                        <action selector="editProfile" destination="app-dv-863" eventType="touchUpInside" id="gEZ-Tf-W9a"/>
+                    </connections>
                 </button>
                 <view contentMode="scaleToFill" id="bbT-TR-78D">
                     <rect key="frame" x="0.0" y="249" width="414" height="71"/>
@@ -56,6 +59,9 @@
                     <state key="normal" title="(*)">
                         <color key="titleShadowColor" cocoaTouchSystemColor="tableCellGroupedBackgroundColor"/>
                     </state>
+                    <connections>
+                        <action selector="settings" destination="app-dv-863" eventType="touchUpInside" id="x86-xf-qJk"/>
+                    </connections>
                 </button>
             </subviews>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>

@@ -61,7 +61,7 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
-class HomeController : UIParallaxViewController, UITableViewDataSource, UITableViewDelegate {
+class HomeController : UIParallaxViewController, UITableViewDataSource, UITableViewDelegate, HomeControllerHeaderViewDelegate {
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
     private var headerView: HomeControllerHeaderView!
@@ -74,6 +74,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource, UITableV
         super.viewDidLoad()
         tableView.scrollEnabled = false
         headerView = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as HomeControllerHeaderView
+        headerView.setDelegate(self)
         addHeaderOverlayView(headerView)
     }
     
@@ -98,13 +99,17 @@ class HomeController : UIParallaxViewController, UITableViewDataSource, UITableV
     }
         
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
-                if let ctrl = segue.destinationViewController as? SessionDetailController {
-                    ctrl.setExerciseSession(x)
-                }
-            })
+        switch segue.identifier {
+        case .Some("sessionDetail"):
+            let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
+            ResultContext.run { ctx in
+                LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
+                    if let ctrl = segue.destinationViewController as? SessionDetailController {
+                        ctrl.setExerciseSession(x)
+                    }
+                })
+            }
+        default: return
         }
     }
 
@@ -128,4 +133,14 @@ class HomeController : UIParallaxViewController, UITableViewDataSource, UITableV
         return cell
     }
 
+    // MARK: HomeControllerHeaderViewDelegate
+    
+    func settings() {
+    
+    }
+    
+    func editProfile() {
+        performSegueWithIdentifier("profile", sender: self)
+    }
+    
 }
