@@ -8,6 +8,16 @@ class ProfileImageTableViewCell : UITableViewCell {
     @IBOutlet
     var profileImageView: UIImageView!
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        if profileImageView == nil { return }
+            
+        profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
+        profileImageView.layer.borderColor = tintColor.CGColor
+        profileImageView.layer.borderWidth = 2
+        profileImageView.clipsToBounds = true
+    }
 }
 
 /*
@@ -56,7 +66,7 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0: return 60   // profile picture
+        case 0: return 100   // profile picture
         case 1: return 40   // four user properties
         case 2: return 40   // followers
         case 3: return 60   // devices
