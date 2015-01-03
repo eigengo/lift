@@ -25,7 +25,7 @@
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
-		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
+		545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */; };
 		54618F7C1A5740740017CA2D /* HomeControllerHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */; };
 		54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7D1A5744710017CA2D /* ResultContext.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
@@ -54,6 +54,7 @@
 		54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
 		54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* HomeController.swift */; };
 		54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */; };
+		54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */; };
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
@@ -143,7 +144,7 @@
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
-		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
+		545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseIntensityKey+Color.swift"; sourceTree = "<group>"; };
 		54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeControllerHeaderView.swift; sourceTree = "<group>"; };
 		54618F7D1A5744710017CA2D /* ResultContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultContext.swift; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
@@ -175,6 +176,7 @@
 		54C6EFD81A2F5E650044BDAB /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		54C6EFE31A2F899A0044BDAB /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
 		54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionDetailController.swift; sourceTree = "<group>"; };
+		54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+Rounded.swift"; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC699B19C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -386,17 +388,18 @@
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
 				54A53EC21A2EF5EC00EDD092 /* Localizable.strings */,
 				54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */,
-				545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */,
 				546336371A338A1600004FAA /* MuscleGroupView.swift */,
+				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
+				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
+				545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */,
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
-				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
-				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
+				54618F7D1A5744710017CA2D /* ResultContext.swift */,
 				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
 				5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */,
 				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
-				54618F7D1A5744710017CA2D /* ResultContext.swift */,
+				54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -738,6 +741,7 @@
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
 				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
+				54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
@@ -749,7 +753,7 @@
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,
 				54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */,
-				545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */,
+				545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */,
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
 				54C37B7F1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift in Sources */,
 				547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */,
