@@ -140,7 +140,8 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         if let x = headerImage.applyExtraLightEffect() {
             headerImageView.image = x
             if let nb = navigationController?.navigationBar {
-                nb.tintColor = headerImage.averageColor()
+                let ac = x.averageColor()
+                nb.barTintColor = ac
             }
         }
     }

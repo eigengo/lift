@@ -112,8 +112,8 @@ public extension UIImage {
         let ctx = UIGraphicsGetCurrentContext()
         CGContextSetInterpolationQuality(ctx, kCGInterpolationMedium)
         drawInRect(CGRect(origin: CGPoint(x: 0, y: 0), size: size), blendMode:kCGBlendModeCopy, alpha:1)
-        let data = UnsafeMutablePointer<CGFloat>(CGBitmapContextGetData(ctx))
-        let color = UIColor(red: data[0] / 255, green: data[1] / 255, blue: data[2] / 255, alpha: 1)
+        let data = UnsafeMutablePointer<UInt8>(CGBitmapContextGetData(ctx))
+        let color = UIColor(red: CGFloat(data[2]) / 255.0, green: CGFloat(data[1]) / 255.0, blue: CGFloat(data[0]) / 255.0, alpha: 1)
         UIGraphicsEndImageContext()
         return color
     }
