@@ -78,39 +78,33 @@ class HomeController : UIParallaxViewController, UITableViewDataSource, UITableV
     }
     
     override func viewDidAppear(animated: Bool) {
-        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
-            $0.ddv(self.headerView.setPublicProfile)
-        }
-        LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!) {
-            $0.ddv { data in
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply(self.headerView.setPublicProfile))
+            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
                 if let image = UIImage(data: data) {
                     self.setHeaderImage(image)
                     self.headerView.setProfileImage(image)
                 }
-            }
-        }
-        LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!) {
-            self.sessionSummaries = $0.fold([], identity)
-            self.tableView.reloadData()
+            })
+            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, ctx.apply { x in
+                self.sessionSummaries = x
+                self.tableView.reloadData()
+            })
         }
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         performSegueWithIdentifier("detail", sender: self)
     }
-    
-    func showSessionDetail(segue: UIStoryboardSegue) -> Exercise.ExerciseSession -> Void {
-        return { exerciseSession in
-            if let ctrl = segue.destinationViewController as? SessionDetailController {
-                ctrl.setExerciseSession(exerciseSession)
-            }
-        }
-    }
-    
+        
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
-        LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id) {
-            $0.cata(LiftAlertController.showError("session_detail_failed", parent: self), self.showSessionDetail(segue))
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
+                if let ctrl = segue.destinationViewController as? SessionDetailController {
+                    ctrl.setExerciseSession(x)
+                }
+            })
         }
     }
 

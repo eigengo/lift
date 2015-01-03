@@ -198,8 +198,8 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     @IBAction
     func save() {
         self.view.endEditing(true)
-        LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, profile: profile) {
-            $0.cata(LiftAlertController.showError("user_publicprofile_set_failed", parent: self), { _ in })
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, profile: self.profile, ctx.unit())
         }
         saveButton.enabled = false
     }
@@ -216,11 +216,12 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     }
     
     override func viewDidAppear(animated: Bool) {
-        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
-            $0.cata(LiftAlertController.showError("user_publicprofile_get_failed", parent: self), self.showProfile)
-        }
-        LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!) {
-            $0.cata({ err in }, { image in self.profileImage = image; self.tableView.reloadData() })
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply(self.showProfile))
+            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { image in
+                self.profileImage = image
+                self.tableView.reloadData()
+            })
         }
         peekDevices()
     }

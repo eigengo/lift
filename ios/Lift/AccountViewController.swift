@@ -16,16 +16,16 @@ class AccountViewController : UIViewController {
     @IBAction
     func login(sender: UIButton) {
         view.endEditing(true)
-        LiftServer.sharedInstance.userLogin(username.text, password: password.text) {
-            $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userLogin(self.username.text, password: self.password.text, ctx.apply(self.showAccount))
         }
     }
     
     @IBAction
     func register(sender: UIButton) {
         view.endEditing(true)
-        LiftServer.sharedInstance.userRegister(username.text, password: password.text) {
-            $0.cata(LiftAlertController.showError("user_loginfailed", parent: self), self.showAccount)
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userRegister(self.username.text, password: self.password.text, ctx.apply(self.showAccount))
         }
     }
 }
