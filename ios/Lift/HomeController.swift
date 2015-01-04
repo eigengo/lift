@@ -97,7 +97,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        performSegueWithIdentifier("detail", sender: self)
+        performSegueWithIdentifier("sessionDetail", sender: self)
     }
         
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
