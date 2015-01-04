@@ -13,6 +13,7 @@ class HomeControllerHeaderView : UIView {
     @IBOutlet var bottomView: UIView!
     @IBOutlet var editProfileButton: UIButton!
     @IBOutlet var settingsButton: UIButton!
+    @IBOutlet var nameLabel: UILabel!
     private var delegate: HomeControllerHeaderViewDelegate?
     
     override func awakeFromNib() {
@@ -27,7 +28,6 @@ class HomeControllerHeaderView : UIView {
         settingsButton.roundedBorder(tintColor)
         
         backgroundColor = UIColor.clearColor()
-        alpha = 1
     }
     
     func setDelegate(delegate: HomeControllerHeaderViewDelegate) {
@@ -35,7 +35,11 @@ class HomeControllerHeaderView : UIView {
     }
     
     func setPublicProfile(profile: User.PublicProfile?) {
-        
+        if let x = profile {
+            nameLabel.text = x.firstName + " " + x.lastName
+        } else {
+            nameLabel.text = "User"
+        }
     }
     
     func setProfileImage(image: UIImage) {

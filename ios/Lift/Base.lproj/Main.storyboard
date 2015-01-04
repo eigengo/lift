@@ -293,21 +293,6 @@
             </objects>
             <point key="canvasLocation" x="1224" y="1219"/>
         </scene>
-        <!--Profile-->
-        <scene sceneID="0vG-rn-hru">
-            <objects>
-                <navigationController id="pC7-9I-bcV" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Profile" image="profile" id="mNb-pG-LaM"/>
-                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="E8C-pT-fKC">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="2EU-1W-WsW" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-646" y="228"/>
-        </scene>
         <!--Home-->
         <scene sceneID="yPh-eV-hHt">
             <objects>
@@ -371,6 +356,7 @@
                         <outlet property="tableView" destination="9qo-lk-hsU" id="1dT-bq-kLX"/>
                         <segue destination="DyL-Am-q2t" kind="push" identifier="sessionDetail" id="db4-ms-6cg"/>
                         <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>
+                        <segue destination="yku-b7-2Yv" kind="modal" identifier="logout" id="chT-fI-k57"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kh0-A3-T6m" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -440,13 +426,13 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ivZ-cg-0Aq" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1929" y="294"/>
+            <point key="canvasLocation" x="1929" y="275"/>
         </scene>
         <!--Home-->
         <scene sceneID="OPz-OZ-a7P">
             <objects>
                 <navigationController title="Home" id="tiz-gY-thd" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="History" image="sessions" id="27P-o9-fDU"/>
+                    <tabBarItem key="tabBarItem" title="Me" image="profile" id="27P-o9-fDU"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="WxR-xO-OUZ">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -666,9 +652,8 @@
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </tabBar>
                     <connections>
-                        <segue destination="tiz-gY-thd" kind="relationship" relationship="viewControllers" id="GtU-hg-jWh"/>
                         <segue destination="Jfa-49-1eG" kind="relationship" relationship="viewControllers" id="eie-8q-Vdc"/>
-                        <segue destination="pC7-9I-bcV" kind="relationship" relationship="viewControllers" id="ZVs-Jl-Y6a"/>
+                        <segue destination="tiz-gY-thd" kind="relationship" relationship="viewControllers" id="GtU-hg-jWh"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="n1a-JG-wxr" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -679,11 +664,13 @@
     <resources>
         <image name="exercise" width="25" height="25"/>
         <image name="profile" width="25" height="25"/>
-        <image name="sessions" width="25" height="25"/>
     </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
+    <inferredMetricsTieBreakers>
+        <segue reference="chT-fI-k57"/>
+    </inferredMetricsTieBreakers>
 </document>

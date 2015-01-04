@@ -10,7 +10,7 @@
             <rect key="frame" x="0.0" y="0.0" width="414" height="260"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Jan Machacek" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="sb1-XO-tAA">
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="sb1-XO-tAA">
                     <rect key="frame" x="11" y="8" width="392" height="37"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <fontDescription key="fontDescription" type="system" pointSize="27"/>
@@ -26,7 +26,7 @@
                         <action selector="editProfile" destination="app-dv-863" eventType="touchUpInside" id="gEZ-Tf-W9a"/>
                     </connections>
                 </button>
-                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="user1" id="bhC-bN-BdA">
+                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="bhC-bN-BdA">
                     <rect key="frame" x="11" y="53" width="100" height="100"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 </imageView>
@@ -63,15 +63,13 @@
             <connections>
                 <outlet property="bottomView" destination="bbT-TR-78D" id="jF9-Dr-cOV"/>
                 <outlet property="editProfileButton" destination="Yai-cU-ozu" id="i5z-9E-jxj"/>
+                <outlet property="nameLabel" destination="sb1-XO-tAA" id="RhF-Ll-4QZ"/>
                 <outlet property="profileImageView" destination="bhC-bN-BdA" id="XdG-hw-2dD"/>
                 <outlet property="settingsButton" destination="HtB-le-cGr" id="ttN-wS-Nmh"/>
             </connections>
             <point key="canvasLocation" x="-937" y="-133"/>
         </view>
     </objects>
-    <resources>
-        <image name="user1" width="266" height="266"/>
-    </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>

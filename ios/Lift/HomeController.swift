@@ -137,13 +137,15 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     // MARK: UIActionSheetDelegate
     func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
-        
+        if buttonIndex == 0 {
+            performSegueWithIdentifier("logout", sender: self)
+        }
     }
-
+    
     // MARK: HomeControllerHeaderViewDelegate
     
     func settings() {
-        let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel", destructiveButtonTitle: "Logout")
+        let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel".localized(), destructiveButtonTitle: "Logout".localized())
         menu.showFromTabBar(tabBarController?.tabBar)
     }
     
