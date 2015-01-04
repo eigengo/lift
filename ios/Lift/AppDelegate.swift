@@ -8,6 +8,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var alertView: UIAlertView? = nil
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        let splashImage = UIImage(named: "user1")
+        let splashColor = UIColor.whiteColor()
+        let splashView = CBZSplashView(icon: splashImage, backgroundColor: splashColor)
+        
         registerSettingsAndDelegates()
         
         window = UIWindow(frame: UIScreen.mainScreen().bounds)
@@ -20,6 +24,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
                 self.window!.makeKeyAndVisible()
             }
+        } else {
+            self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier("login") as? UIViewController!
+            self.window!.makeKeyAndVisible()
         }
         
         return true
@@ -92,5 +99,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
         LiftServerCache.sharedInstance.clean()
     }
+
 }
 

@@ -9,3 +9,4 @@
 #import "JBChartView/JBBarChartView.h"
 #import "JBChartView/JBLineChartView.h"
 #import "RKDropdownAlert/RKDropdownAlert.h"
+#import "CBZSplashView/CBZSplashView.h"

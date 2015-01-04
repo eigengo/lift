@@ -148,6 +148,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     
     func addHeaderOverlayView(overlayView: UIView) {
         headerOverlayView = overlayView
+        headerOverlayView!.frame = headerImageView.frame
         floatingHeaderView.addSubview(overlayView)
     }
     
