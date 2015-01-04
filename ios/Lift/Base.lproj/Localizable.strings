@@ -1,8 +1,3 @@
-"user_registerfailed"="Could not register";
-"user_loginfailed"="Could not log in";
-"user_publicprofile_set_failed"="Could not set public profile";
-"user_publicprofile_get_failed"="Could not get public profile";
-
 "Device.Pebble.tooManyWatches"="Too many connected watches";
 "Device.Pebble.noWatches"="No connected watches";
 
@@ -45,3 +40,6 @@
 "PropertyTableViewCell.integerFormatError"="Not an integer";
 
 "NSError.notImplemented"="Not implemented";
+
+"Cancel"="Cancel";
+"Logout"="Logout";

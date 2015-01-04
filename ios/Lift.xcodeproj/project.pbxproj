@@ -15,16 +15,19 @@
 		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
-		54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */; };
+		5429608E1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */; };
+		544C79851A5070CF00E88F42 /* HomeControllerHeader.xib in Resources */ = {isa = PBXBuildFile; fileRef = 544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
-		545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */; };
+		545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */; };
+		54618F7C1A5740740017CA2D /* HomeControllerHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */; };
+		54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7D1A5744710017CA2D /* ResultContext.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
@@ -34,6 +37,7 @@
 		5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */; };
 		5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */; };
 		548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5482963F1A4D7F3A00EDCAF0 /* Devices.swift */; };
+		54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
@@ -48,8 +52,9 @@
 		54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD61A2F5E650044BDAB /* Operators.swift */; };
 		54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD71A2F5E650044BDAB /* Predef.swift */; };
 		54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFD81A2F5E650044BDAB /* Result.swift */; };
-		54C6EFE41A2F899A0044BDAB /* SessionsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* SessionsController.swift */; };
+		54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE31A2F899A0044BDAB /* HomeController.swift */; };
 		54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */; };
+		54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */; };
 		54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */; };
 		54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */; };
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
@@ -76,8 +81,6 @@
 		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
-		54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */; };
-		54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -131,16 +134,19 @@
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
-		54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftViewController.swift; sourceTree = "<group>"; };
+		5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+ParallaxBlur.swift"; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
 		543B26FC1A49D18800381298 /* Accelerometer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accelerometer.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleAccelerometerRecorder.swift; sourceTree = "<group>"; };
+		544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HomeControllerHeader.xib; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
-		545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseIntensityKeyView.swift; sourceTree = "<group>"; };
+		545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseIntensityKey+Color.swift"; sourceTree = "<group>"; };
+		54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeControllerHeaderView.swift; sourceTree = "<group>"; };
+		54618F7D1A5744710017CA2D /* ResultContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultContext.swift; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -150,6 +156,7 @@
 		548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AndroidWearDevice.swift; sourceTree = "<group>"; };
 		548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppleWatchDevice.swift; sourceTree = "<group>"; };
 		5482963F1A4D7F3A00EDCAF0 /* Devices.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Devices.swift; sourceTree = "<group>"; };
+		54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Effects.swift"; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
@@ -167,8 +174,9 @@
 		54C6EFD61A2F5E650044BDAB /* Operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
 		54C6EFD71A2F5E650044BDAB /* Predef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predef.swift; sourceTree = "<group>"; };
 		54C6EFD81A2F5E650044BDAB /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		54C6EFE31A2F899A0044BDAB /* SessionsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionsController.swift; sourceTree = "<group>"; };
+		54C6EFE31A2F899A0044BDAB /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
 		54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionDetailController.swift; sourceTree = "<group>"; };
+		54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+Rounded.swift"; sourceTree = "<group>"; };
 		54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lift-Bridging-Header.h"; sourceTree = "<group>"; };
 		54CC699719C4AD8E00B29EC8 /* Lift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC699B19C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -202,8 +210,6 @@
 		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
-		54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftAlertController.swift; sourceTree = "<group>"; };
-		54F780D81A28A29D00E4F3C5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LiftAlertController.xib; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		604C4FB0BC879EB56AD28A81 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -277,6 +283,13 @@
 				543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */,
 			);
 			path = Pebble;
+			sourceTree = "<group>";
+		};
+		546BEDEA1A505BD10053F923 /* UICollectionView */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = UICollectionView;
 			sourceTree = "<group>";
 		};
 		548296361A4D792D00EDCAF0 /* AndroidWear */ = {
@@ -356,12 +369,15 @@
 				54C6EFD31A2F5E650044BDAB /* Predef */,
 				54CC699A19C4AD8E00B29EC8 /* Supporting Files */,
 				54F780B71A278EFC00E4F3C5 /* LiftServer */,
+				546BEDEA1A505BD10053F923 /* UICollectionView */,
 				54C37B7D1A4BFD7E0036C0C8 /* UITableView */,
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
 				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
-				54C6EFE31A2F899A0044BDAB /* SessionsController.swift */,
+				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
+				54618F7B1A5740740017CA2D /* HomeControllerHeaderView.swift */,
+				544C79841A5070CF00E88F42 /* HomeControllerHeader.xib */,
 				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
@@ -370,19 +386,20 @@
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
-				54F780D11A28A0C000E4F3C5 /* LiftAlertController.swift */,
-				54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */,
-				54306B6D1A2A2317005D6BC9 /* LiftViewController.swift */,
 				54A53EC21A2EF5EC00EDD092 /* Localizable.strings */,
 				54A53EC71A2EFECA00EDD092 /* LaunchScreen.xib */,
-				545E060F1A30540A00AB633B /* ExerciseIntensityKeyView.swift */,
 				546336371A338A1600004FAA /* MuscleGroupView.swift */,
+				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
+				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
+				545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */,
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
-				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
-				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
+				54618F7D1A5744710017CA2D /* ResultContext.swift */,
 				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
+				5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */,
+				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
+				54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -625,6 +642,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */,
+				544C79851A5070CF00E88F42 /* HomeControllerHeader.xib in Resources */,
 				5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */,
 				54A53EC81A2EFECA00EDD092 /* LaunchScreen.xib in Resources */,
 				5475FA301A31E9D200877655 /* Settings.bundle in Resources */,
@@ -635,7 +653,6 @@
 				5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */,
 				5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */,
 				5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */,
-				54F780D91A28A29D00E4F3C5 /* LiftAlertController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -704,7 +721,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54F780D31A28A0C000E4F3C5 /* LiftAlertController.swift in Sources */,
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
 				548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */,
 				54C37B831A4C0BD80036C0C8 /* UITableView+CustomCells.swift in Sources */,
@@ -723,32 +739,36 @@
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
 				543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
-				54C6EFE41A2F899A0044BDAB /* SessionsController.swift in Sources */,
+				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
+				54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
+				54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
+				5429608E1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,
 				54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */,
-				545E06101A30540A00AB633B /* ExerciseIntensityKeyView.swift in Sources */,
+				545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */,
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
 				54C37B7F1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift in Sources */,
 				547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */,
 				54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */,
 				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
 				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,
-				54306B6E1A2A2317005D6BC9 /* LiftViewController.swift in Sources */,
 				5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
+				54618F7C1A5740740017CA2D /* HomeControllerHeaderView.swift in Sources */,
 				54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */,
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
+				54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -807,14 +827,6 @@
 				54CC69A119C4AD8E00B29EC8 /* Base */,
 			);
 			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		54F780D71A28A29D00E4F3C5 /* LiftAlertController.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				54F780D81A28A29D00E4F3C5 /* Base */,
-			);
-			name = LiftAlertController.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

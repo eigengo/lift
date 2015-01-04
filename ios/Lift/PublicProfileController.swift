@@ -8,6 +8,16 @@ class ProfileImageTableViewCell : UITableViewCell {
     @IBOutlet
     var profileImageView: UIImageView!
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        if profileImageView == nil { return }
+            
+        profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
+        profileImageView.layer.borderColor = tintColor.CGColor
+        profileImageView.layer.borderWidth = 2
+        profileImageView.clipsToBounds = true
+    }
 }
 
 /*
@@ -56,7 +66,7 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0: return 60   // profile picture
+        case 0: return 100   // profile picture
         case 1: return 40   // four user properties
         case 2: return 40   // followers
         case 3: return 60   // devices
@@ -198,10 +208,15 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     @IBAction
     func save() {
         self.view.endEditing(true)
-        LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, profile: profile) {
-            $0.cata(LiftAlertController.showError("user_publicprofile_set_failed", parent: self), { _ in })
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userSetPublicProfile(CurrentLiftUser.userId!, profile: self.profile, ctx.unit())
         }
-        saveButton.enabled = false
+        navigationController?.popViewControllerAnimated(true)
+    }
+    
+    @IBAction
+    func cancel() {
+        navigationController?.popViewControllerAnimated(true)
     }
 
     private func showProfile(profile: User.PublicProfile?) {
@@ -214,13 +229,14 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         self.deviceInfos = []
         Devices.peek { x in self.deviceInfos += [x]; self.tableView.reloadData() }
     }
-    
+        
     override func viewDidAppear(animated: Bool) {
-        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) {
-            $0.cata(LiftAlertController.showError("user_publicprofile_get_failed", parent: self), self.showProfile)
-        }
-        LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!) {
-            $0.cata({ err in }, { image in self.profileImage = image; self.tableView.reloadData() })
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply(self.showProfile))
+            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { image in
+                self.profileImage = image
+                self.tableView.reloadData()
+            })
         }
         peekDevices()
     }

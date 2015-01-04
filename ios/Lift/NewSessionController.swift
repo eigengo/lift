@@ -107,17 +107,15 @@ class NewSessionPropsController : UIViewController, UITableViewDelegate, UITable
     
     func startSession(muscleGroupKeys: [Exercise.MuscleGroupKey], intensity: Exercise.ExerciseIntensity) -> Void {
         let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: muscleGroupKeys, intendedIntensity: intensity.intensity)
-        LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) {
-            $0.cata(LiftAlertController.showError("startsession_failed", parent: self), self.segueToStartedSession(props))
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { x in self.segueToStartedSession(props, sessionId: x) })
         }
     }
     
-    func segueToStartedSession(props: Exercise.SessionProps) -> NSUUID -> Void {
-        return { sessionId -> Void in
-            let segueName = self.demoMode ? "demo" : "live"
-            let session = ExerciseSession(id: sessionId, props: props)
-            self.performSegueWithIdentifier(segueName, sender: session)
-        }
+    func segueToStartedSession(props: Exercise.SessionProps, sessionId: NSUUID) -> Void {
+        let segueName = self.demoMode ? "demo" : "live"
+        let session = ExerciseSession(id: sessionId, props: props)
+        self.performSegueWithIdentifier(segueName, sender: session)
     }
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
