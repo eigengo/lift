@@ -8,27 +8,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var alertView: UIAlertView? = nil
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        // set up splash screen
         let splashImage = UIImage(named: "user1")
-        let splashColor = UIColor.whiteColor()
+        let splashColor = UIColor.blueColor()
         let splashView = CBZSplashView(icon: splashImage, backgroundColor: splashColor)
-        
-        registerSettingsAndDelegates()
-        
+        let animationDuration: CGFloat = 1.2
+        splashView.animationDuration = animationDuration
         window = UIWindow(frame: UIScreen.mainScreen().bounds)
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let x = CurrentLiftUser.userId {
-            // We have previously-known user id. But is the account still there?
-            LiftServer.sharedInstance.userCheckAccount(CurrentLiftUser.userId!) { r in
-                let id: String = r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" })
-                
-                self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
-                self.window!.makeKeyAndVisible()
-            }
-        } else {
-            self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier("login") as? UIViewController!
-            self.window!.makeKeyAndVisible()
-        }
+        window!.makeKeyAndVisible()
+        window!.addSubview(splashView)
+        splashView.startAnimation()
         
+        // notifications et al
+        registerSettingsAndDelegates()
+
+        // perform initialization
+        dispatch_async(dispatch_queue_create("animate", nil), {
+            // main initialization
+            let start = NSDate()
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let x = CurrentLiftUser.userId {
+                // We have previously-known user id. But is the account still there?
+                LiftServer.sharedInstance.userCheckAccount(CurrentLiftUser.userId!) { r in
+                    let id: String = r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" })
+                    let animationDurationLeft = NSTimeInterval(animationDuration) - NSDate().timeIntervalSinceDate(start)
+                    if animationDurationLeft > 0 { NSThread.sleepForTimeInterval(animationDurationLeft) }
+                    
+                    self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
+                }
+            } else {
+                let animationDurationLeft = NSTimeInterval(animationDuration) - NSDate().timeIntervalSinceDate(start)
+                if animationDurationLeft > 0 { NSThread.sleepForTimeInterval(animationDurationLeft) }
+                
+                self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier("login") as? UIViewController!
+            }
+        })
+
         return true
     }
     
