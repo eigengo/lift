@@ -61,7 +61,9 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
-class HomeController : UIParallaxViewController, UITableViewDataSource, UITableViewDelegate, HomeControllerHeaderViewDelegate {
+class HomeController : UIParallaxViewController, UITableViewDataSource,
+    UITableViewDelegate, HomeControllerHeaderViewDelegate, UIActionSheetDelegate {
+    
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
     private var headerView: HomeControllerHeaderView!
@@ -132,11 +134,17 @@ class HomeController : UIParallaxViewController, UITableViewDataSource, UITableV
         cell.setSessionSummary(sessionSummary)
         return cell
     }
+    
+    // MARK: UIActionSheetDelegate
+    func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
+        
+    }
 
     // MARK: HomeControllerHeaderViewDelegate
     
     func settings() {
-    
+        let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel", destructiveButtonTitle: "Logout")
+        menu.showFromTabBar(tabBarController?.tabBar)
     }
     
     func editProfile() {
