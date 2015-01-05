@@ -8,9 +8,11 @@ class NewSessionMuscleGroupsController : UIViewController, UITableViewDelegate, 
     private var muscleGroups: [Exercise.MuscleGroup] = []
 
     override func viewDidAppear(animated: Bool) {
-        LiftServer.sharedInstance.exerciseGetMuscleGroups {
-            self.muscleGroups = $0.cata(const([]), identity)
-            self.tableView.reloadData()
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.exerciseGetMuscleGroups(ctx.apply { x in
+                self.muscleGroups = x
+                self.tableView.reloadData()
+            })
         }
     }
     

@@ -377,6 +377,7 @@
                         <segue destination="DyL-Am-q2t" kind="push" identifier="sessionDetail" id="db4-ms-6cg"/>
                         <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>
                         <segue destination="yku-b7-2Yv" kind="modal" identifier="logout" id="chT-fI-k57"/>
+                        <segue destination="rWr-64-kYJ" kind="push" identifier="startSession" id="AWT-28-pzF"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kh0-A3-T6m" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -692,5 +693,6 @@
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
         <segue reference="chT-fI-k57"/>
+        <segue reference="AWT-28-pzF"/>
     </inferredMetricsTieBreakers>
 </document>

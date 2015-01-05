@@ -111,6 +111,12 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
                     }
                     })
             }
+        case .Some("startSession"):
+            if let ctrl = segue.destinationViewController as? ExerciseSessionSettable {
+                if let session = sender as? ExerciseSession {
+                    ctrl.setExerciseSession(session)
+                }
+            }
         default: return
         }
     }
@@ -126,7 +132,15 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         switch indexPath.section {
-        case 0: return // TODO: performSegueWithIdentifier("startExercise", sender: self)
+        case 0:
+            let sessionSuggestion = sessionSuggestionsForDate(NSDate())[tableView.indexPathForSelectedRow()!.row]
+            let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: sessionSuggestion.muscleGroupKeys, intendedIntensity: sessionSuggestion.intendedIntensity)
+            ResultContext.run { ctx in
+                LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { sessionId in
+                    let session = ExerciseSession(id: sessionId, props: props)
+                    self.performSegueWithIdentifier("startSession", sender: session)
+                    })
+            }
         case 1: performSegueWithIdentifier("sessionDetail", sender: self)
         default: fatalError("Match error")
         }
@@ -155,7 +169,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0: return 30
+        case 0: return 40
         case 1: return 90
         default: fatalError("Match error")
         }

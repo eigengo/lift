@@ -21,7 +21,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     @IBAction
     func stopSession() {
         if stopSessionButton.tag < 0 {
-            stopSessionButton.title = "Really?"
+            stopSessionButton.title = "Really?".localized()
             stopSessionButton.tag = 3
         } else {
             navigationController!.popToRootViewControllerAnimated(true)
@@ -38,10 +38,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         let elapsed = Int(NSDate().timeIntervalSinceDate(startTime!))
         let minutes: Int = elapsed / 60
         let seconds: Int = elapsed - minutes * 60
-        navigationItem.prompt = NSString(format: "Elapsed %d:%02d", minutes, seconds)
+        navigationItem.prompt = "LiveSessionController.elapsed".localized(minutes, seconds)
         stopSessionButton.tag -= 1
         if stopSessionButton.tag < 0 {
-            stopSessionButton.title = "Stop"
+            stopSessionButton.title = "Stop".localized()
         }
     }
 
@@ -132,7 +132,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        self.deviceInfoDetail = detail
+        deviceInfoDetail = detail
         tableView.reloadData()
     }
     
@@ -142,21 +142,21 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
         NSLog("deviceAppLaunchFailed %@ -> %@", deviceId, error)
-        self.deviceInfo = nil
+        deviceInfo = nil
         tableView.reloadData()
     }
     
     func deviceDidNotConnect(error: NSError) {
         NSLog("deviceDidNotConnect %@", error)
-        self.deviceInfo = nil
+        deviceInfo = nil
         tableView.reloadData()
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
         NSLog("deviceDisconnected %@", deviceId)
-        self.deviceInfo = nil
-        self.deviceInfoDetail = nil
-        self.deviceSession = nil
+        deviceInfo = nil
+        deviceInfoDetail = nil
+        deviceSession = nil
         tableView.reloadData()
     }
     

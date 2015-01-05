@@ -18,6 +18,7 @@
 "LiveSessionController.exercise"="Some exercise";
 "LiveSessionController.section.deviceAndSession"="Device and session";
 "LiveSessionController.section.exercise"="Exercise";
+"LiveSessionController.elapsed"="Elapsed %d:%02d";
 
 "PublicProfileController.pictures"="Pictures";
 "PublicProfileController.profile"="Profile";
@@ -47,3 +48,5 @@
 
 "Cancel"="Cancel";
 "Logout"="Logout";
+"Stop"="Stop";
+"Really?"="Really ?";
