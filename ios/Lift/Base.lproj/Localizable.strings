@@ -28,6 +28,10 @@
 "PublicProfileController.followersText"="Followers";
 "PublicProfileController.followersDetail"="%d users";
 
+"HomeController.SessionSuggestions"="Suggestions";
+"HomeController.SessionSummaries"="Sessions";
+
+
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
 
 "Profile.firstName"="First name";

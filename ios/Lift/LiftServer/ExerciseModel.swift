@@ -78,6 +78,16 @@ struct Exercise {
     }
     
     ///
+    /// Session suggestions
+    ///
+    struct SessionSuggestion {
+        /// the target muscle groups
+        var muscleGroupKeys: [String]
+        /// the intended intensity
+        var intendedIntensity: ExerciseIntensityKey
+    }
+    
+    ///
     /// Association of list of exercise with a particular session props
     ///
     struct ExerciseSession {

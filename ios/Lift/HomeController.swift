@@ -66,6 +66,10 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
+    private var sessionSuggestions: [Exercise.SessionSuggestion] = [
+        Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
+        Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
+    ]
     private var headerView: HomeControllerHeaderView!
     
     override func contentView() -> UIScrollView {
@@ -96,43 +100,83 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         }
     }
     
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        performSegueWithIdentifier("sessionDetail", sender: self)
-    }
-        
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         switch segue.identifier {
         case .Some("sessionDetail"):
-            let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
+            let summary = sessionSummariesForDate(NSDate())[tableView.indexPathForSelectedRow()!.row]
             ResultContext.run { ctx in
                 LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
                     if let ctrl = segue.destinationViewController as? SessionDetailController {
                         ctrl.setExerciseSession(x)
                     }
-                })
+                    })
             }
         default: return
         }
     }
-
+    
+    func sessionSummariesForDate(date: NSDate) -> [Exercise.SessionSummary] {
+        return sessionSummaries
+    }
+    
+    func sessionSuggestionsForDate(date: NSDate) -> [Exercise.SessionSuggestion] {
+        return sessionSuggestions
+    }
+    
+    // MARK: UITableViewDelegate
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        switch indexPath.section {
+        case 0: return // TODO: performSegueWithIdentifier("startExercise", sender: self)
+        case 1: performSegueWithIdentifier("sessionDetail", sender: self)
+        default: fatalError("Match error")
+        }
+    }
+        
     // MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 1
+        return 2
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return sessionSummaries.count
+        switch section {
+        case 0: return sessionSuggestionsForDate(NSDate()).count
+        case 1: return sessionSummariesForDate(NSDate()).count
+        default: fatalError("Match error")
+        }
+    }
+    
+    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch section {
+        case 0: return "HomeController.SessionSuggestions".localized()
+        case 1: return "HomeController.SessionSummaries".localized()
+        default: fatalError("Match error")
+        }
     }
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return 90
+        switch indexPath.section {
+        case 0: return 30
+        case 1: return 90
+        default: fatalError("Match error")
+        }
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
-        let sessionSummary = sessionSummaries[indexPath.row]
-        let cell = tableView.dequeueReusableCellWithIdentifier("default") as SessionTableViewCell
-        cell.setSessionSummary(sessionSummary)
-        return cell
+        switch (indexPath.section, indexPath.row) {
+        case (0, let x):
+            let cell = tableView.dequeueReusableCellWithIdentifier("suggestion") as UITableViewCell
+            let suggestion = sessionSuggestionsForDate(NSDate())[x]
+            let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(suggestion.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
+            cell.textLabel!.text = ", ".join(mgs.map { $0.title })
+            cell.detailTextLabel!.text = ", ".join(mgs.map { ", ".join($0.exercises) })
+            return cell
+        case (1, let x):
+            let sessionSummary = sessionSummariesForDate(NSDate())[x]
+            let cell = tableView.dequeueReusableCellWithIdentifier("session") as SessionTableViewCell
+            cell.setSessionSummary(sessionSummary)
+            return cell
+        default: fatalError("Match error")
+        }
     }
     
     // MARK: UIActionSheetDelegate

@@ -8,13 +8,27 @@ protocol HomeControllerHeaderViewDelegate {
     
 }
 
+class RandomCalendarDataSource : NSObject, JTCalendarDataSource {
+    func calendarHaveEvent(calendar: JTCalendar!, date: NSDate!) -> Bool {
+        if NSDate().compare(date) == NSComparisonResult.OrderedAscending { return false } else { return random() % 3 == 0 }
+    }
+    
+    func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
+        
+    }
+}
+
 class HomeControllerHeaderView : UIView {
     @IBOutlet var profileImageView: UIImageView!
     @IBOutlet var bottomView: UIView!
     @IBOutlet var editProfileButton: UIButton!
     @IBOutlet var settingsButton: UIButton!
     @IBOutlet var nameLabel: UILabel!
+    @IBOutlet var calendarContentView: JTCalendarContentView!
+    // TODO: allow to be set
+    private var calendarDataSource: JTCalendarDataSource? = RandomCalendarDataSource()
     private var delegate: HomeControllerHeaderViewDelegate?
+    private let calendar = JTCalendar()
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -28,6 +42,16 @@ class HomeControllerHeaderView : UIView {
         settingsButton.roundedBorder(tintColor)
         
         backgroundColor = UIColor.clearColor()
+        
+        calendar.calendarAppearance.isWeekMode = true
+        calendar.menuMonthsView = JTCalendarMenuView()
+        calendar.contentView = calendarContentView
+
+        // TODO: in a setter of some kind
+        calendar.dataSource = calendarDataSource
+        calendar.currentDate = NSDate()
+        calendar.currentDateSelected = NSDate()
+        calendar.reloadData()
     }
     
     func setDelegate(delegate: HomeControllerHeaderViewDelegate) {

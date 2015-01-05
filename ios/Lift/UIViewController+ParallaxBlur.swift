@@ -4,7 +4,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     private var headerOverlayView: UIView?
     // TODO: height here
     private let imageHeight: CGFloat = 260.0
-    private let headerHeight: CGFloat = 60.0
+    private let headerHeight: CGFloat = 73.0
     private let invisDelta: CGFloat = 50.0
     private let blurDistance: CGFloat = 200.0
 
