@@ -16,7 +16,10 @@ class ResultContext {
     }
 
     func apply<V>(r: V -> Void) -> (Result<V> -> Void) {
-        return { (x: Result<V>) in x.cata({ _ in self.hasErrors = true }, r) }
+        return { (x: Result<V>) in x.cata({ err in
+            self.hasErrors = true
+            RKDropdownAlert.title("Lift server is offline", backgroundColor: UIColor.redColor(), textColor: UIColor.whiteColor(), time: 3)
+        }, r) }
     }
     
 }
