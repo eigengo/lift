@@ -17,7 +17,7 @@ etcd:
     - "7001:7001"
     - "4001:4001"
 main:
-  image: janm399/lift:lift-main
+  image: janm399/lift:main
   environment:
     APP_ADDR:
     JOURNAL: journal.lift.eigengo.com
@@ -33,7 +33,7 @@ main:
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
 adapter:
-  image: janm399/lift:lift-adapter
+  image: janm399/lift:adapter
   environment:
     ETCD_URL: http://etcd.lift.eigengo.com:4001
   ports:
