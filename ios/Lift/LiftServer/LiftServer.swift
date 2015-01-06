@@ -49,6 +49,9 @@ public class LiftServer {
     private let manager = Manager(configuration: {
         var configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
         
+        configuration.requestCachePolicy = NSURLRequestCachePolicy.UseProtocolCachePolicy
+        configuration.timeoutIntervalForRequest = NSTimeInterval(5) // default timeout
+        
         configuration.HTTPAdditionalHeaders = {
             // Accept-Encoding HTTP Header; see http://tools.ietf.org/html/rfc7230#section-4.2.3
             let acceptEncoding: String = "gzip;q=1.0,compress;q=0.5"
