@@ -8,10 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
-		5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894461A2F4E18009FDD10 /* arms1.adv1 */; };
-		5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894471A2F4E18009FDD10 /* arms2.adv1 */; };
-		5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894481A2F4E18009FDD10 /* arms3.adv1 */; };
-		5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */ = {isa = PBXBuildFile; fileRef = 540894491A2F4E18009FDD10 /* chest1.adv1 */; };
 		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
@@ -80,6 +76,7 @@
 		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
+		54FBCD1F1A5BF0FA00E2CB2C /* arms-bicep-curl.dat in Resources */ = {isa = PBXBuildFile; fileRef = 54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -124,10 +121,6 @@
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		54008B581A49EC730049A8EA /* String+MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+MD5.swift"; sourceTree = "<group>"; };
-		540894461A2F4E18009FDD10 /* arms1.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms1.adv1; sourceTree = "<group>"; };
-		540894471A2F4E18009FDD10 /* arms2.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms2.adv1; sourceTree = "<group>"; };
-		540894481A2F4E18009FDD10 /* arms3.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = arms3.adv1; sourceTree = "<group>"; };
-		540894491A2F4E18009FDD10 /* chest1.adv1 */ = {isa = PBXFileReference; lastKnownFileType = file; path = chest1.adv1; sourceTree = "<group>"; };
 		54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserModel+Marshalling.swift"; sourceTree = "<group>"; };
 		54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSError+Convenience.swift"; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -208,6 +201,7 @@
 		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
+		54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "arms-bicep-curl.dat"; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		604C4FB0BC879EB56AD28A81 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -253,10 +247,7 @@
 		540894451A2F4E18009FDD10 /* AccelerometerData */ = {
 			isa = PBXGroup;
 			children = (
-				540894461A2F4E18009FDD10 /* arms1.adv1 */,
-				540894471A2F4E18009FDD10 /* arms2.adv1 */,
-				540894481A2F4E18009FDD10 /* arms3.adv1 */,
-				540894491A2F4E18009FDD10 /* chest1.adv1 */,
+				54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */,
 			);
 			path = AccelerometerData;
 			sourceTree = "<group>";
@@ -638,17 +629,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54FBCD1F1A5BF0FA00E2CB2C /* arms-bicep-curl.dat in Resources */,
 				54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */,
 				544C79851A5070CF00E88F42 /* HomeControllerHeader.xib in Resources */,
-				5408944D1A2F4E18009FDD10 /* chest1.adv1 in Resources */,
 				5475FA301A31E9D200877655 /* Settings.bundle in Resources */,
 				54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */,
 				54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */,
 				54C37B871A4C1D890036C0C8 /* PropertyTableViewCell.xib in Resources */,
 				54CC69A419C4AD8E00B29EC8 /* Images.xcassets in Resources */,
-				5408944A1A2F4E18009FDD10 /* arms1.adv1 in Resources */,
-				5408944B1A2F4E18009FDD10 /* arms2.adv1 in Resources */,
-				5408944C1A2F4E18009FDD10 /* arms3.adv1 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

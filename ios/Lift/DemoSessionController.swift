@@ -10,7 +10,7 @@ class DemoSessionTableModel : NSObject, UITableViewDataSource {
     private var dataFiles: [DataFile]
     
     init(muscleGroupKeys: [String]) {
-        dataFiles = NSBundle.mainBundle().pathsForResourcesOfType(".adv1", inDirectory: nil)
+        dataFiles = NSBundle.mainBundle().pathsForResourcesOfType(".dat", inDirectory: nil)
             .map { p -> String in return p as String }
             .filter { p in return !muscleGroupKeys.filter { k in return p.lastPathComponent.hasPrefix(k) }.isEmpty }
             .map { path in
