@@ -30,9 +30,10 @@ case class AccelerometerValue(x: Int, y: Int, z: Int)
  * * 5 B in header
  * */
  * struct __attribute__((__packed__)) gfs_header {
- *     uint16_t type;
- *     uint16_t count;
- *     uint8_t samples_per_second;
+ *     uint8_t type;                   // 1 (0xad)
+ *     uint8_t count;                  // 2
+ *     uint8_t samples_per_second;     // 3
+ *     uint16_t last;                  // 4, 5
  * };
  *
  * /**
@@ -70,15 +71,16 @@ object AccelerometerData {
     new CodecPrimitive[(Int, Int)] {
       val unsigned8 = IntCodecPrimitive(8, signed = false, ByteOrdering.BigEndian)
       val unsigned16 = IntCodecPrimitive(16, signed = false, ByteOrdering.BigEndian)
-      val header = ConstantCodecPrimitive(BitVector(0xfe, 0xfc))
+      val header = ConstantCodecPrimitive(BitVector(0xad))
 
       override val bits: Long = 40
 
       override def decode(buffer: BitVector): \/[String, (BitVector, (Int, Int))] = {
         // S, C, Const
         for {
-          (b1, sps)   ← unsigned8.decode(buffer)
-          (b2, count) ← unsigned16.decode(b1)
+          (b0, last)  ← unsigned16.decode(buffer)
+          (b1, sps)   ← unsigned8.decode(b0)
+          (b2, count) ← unsigned8.decode(b1)
           (b3, _)     ← header.decode(b2)
         } yield (b3, (sps, count))
       }

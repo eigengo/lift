@@ -1,5 +1,7 @@
 package com.eigengo.lift.exercise
 
+import java.io.{FileOutputStream, File}
+
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
@@ -13,6 +15,7 @@ import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
+import scala.util.Try
 import scalaz.\/
 
 /**
@@ -166,6 +169,14 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 
     case ExerciseDataProcess(`id`, bits) ⇒
       log.info("ExerciseDataProcess: exercising -> exercising.")
+      // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
+      // Ideally, this will go somewhere more durable, but this is sufficient for now.
+      Try {
+        val fos = new FileOutputStream(s"/tmp/ad-${System.currentTimeMillis()}.dat")
+        fos.write(bits.toByteArray)
+        fos.close()
+      }.toOption
+
       val result = decodeAll(bits, Nil)
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err)},
