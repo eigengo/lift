@@ -41,7 +41,7 @@ case object NaiveModel extends ExerciseModel {
 
   private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Random.shuffle(es).head, Some(Random.nextDouble())))
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Random.shuffle(es).head, None))
   }
 
   override def apply(classify: Classify): ClassifiedExercise = randomExercise(classify.sessionProps)
