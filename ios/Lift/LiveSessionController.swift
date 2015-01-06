@@ -124,7 +124,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         self.deviceSession = nil
         deviceInfo = nil
         deviceInfoDetail = nil
-        navigationController!.popToRootViewControllerAnimated(true)
+        if let x = navigationController {
+            x.popToRootViewControllerAnimated(true)
+        }
         tableView.reloadData()
     }
     

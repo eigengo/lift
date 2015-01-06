@@ -17,9 +17,10 @@ import scalaz.\/-
  * * 5 B in header
  * */
  * struct __attribute__((__packed__)) gfs_header {
- *     uint16_t type;
- *     uint16_t count;
- *     uint8_t samples_per_second;
+ *     uint8_t type;                   // 1 (0xad)
+ *     uint8_t count;                  // 2
+ *     uint8_t samples_per_second;     // 3
+ *     uint16_t last;                  // 4, 5
  * };
  *
  * /**
@@ -48,11 +49,11 @@ class AccelerometerTest extends FlatSpec with Matchers {
 
   "Decoder" should "decode values" in {
     val bits = BitVector(
-      0xfc, 0xfe, 0x03, 0x00, 0x64,
+      0xad, 0x03, 0x64, 0x00, 0x00,
       0xff, 0xff, 0xff, 0xff, 0x01,
       0x00, 0x00, 0x00, 0x00, 0x01,
       0x78, 0x01, 0x4a, 0xc0, 0x73,
-      0xfc, 0xfe, 0x01, 0x00, 0x64,
+      0xad, 0x01, 0x64, 0x00, 0x00,
       0x78, 0x01, 0x4a, 0xc0, 0x73)
 
     val (BitVector.empty, ads) = AccelerometerData.decodeAll(bits, Nil)
@@ -61,14 +62,9 @@ class AccelerometerTest extends FlatSpec with Matchers {
   }
 
   "Decoder" should "decode training file" in {
-    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/measured/chest1.dat"))
+    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/measured/bicep-1/bicep-curl-5.dat"))
     val (BitVector.empty, ads) = AccelerometerData.decodeAll(bv, Nil)
-    val os = new FileOutputStream("/Users/janmachacek/chest1.csv")
-    ads.foreach(_.values.foreach { av ⇒
-      val s = s"${av.x},${av.y},${av.z}\n"
-      os.write(s.getBytes("UTF-8"))
-    })
-    os.close()
+    AccelerometerDataExporter.exportToCsv(ads, "bicep-curl-1")
     println(ads)
   }
 
