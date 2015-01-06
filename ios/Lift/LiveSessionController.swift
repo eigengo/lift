@@ -24,7 +24,16 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             stopSessionButton.title = "Really?".localized()
             stopSessionButton.tag = 3
         } else {
-            navigationController!.popToRootViewControllerAnimated(true)
+            end()
+        }
+    }
+    
+    func end() {
+        self.deviceSession = nil
+        deviceInfo = nil
+        deviceInfoDetail = nil
+        if let x = navigationController {
+            x.popToRootViewControllerAnimated(true)
         }
     }
 
@@ -121,13 +130,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func accelerometerDataEnded(deviceSession: DeviceSession) {
-        self.deviceSession = nil
-        deviceInfo = nil
-        deviceInfoDetail = nil
-        if let x = navigationController {
-            x.popToRootViewControllerAnimated(true)
-        }
-        tableView.reloadData()
+        end()
     }
     
     // MARK: DeviceDelegate
