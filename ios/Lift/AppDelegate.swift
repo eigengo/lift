@@ -10,7 +10,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // set up splash screen
         let splashImage = UIImage(named: "user1")
-        let splashColor = UIColor.blueColor()
+        let splashColor = UIColor(red:0.0, green:122.0 / 255.0, blue:1.0, alpha:1.0)
         let splashView = CBZSplashView(icon: splashImage, backgroundColor: splashColor)
         let animationDuration: CGFloat = 1.2
         splashView.animationDuration = animationDuration
@@ -28,6 +28,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let start = NSDate()
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let x = CurrentLiftUser.userId {
+                // Prepare the cache
+                LiftServerCache.sharedInstance.build()
                 // We have previously-known user id. But is the account still there?
                 LiftServer.sharedInstance.userCheckAccount(CurrentLiftUser.userId!) { r in
                     let id: String = r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" })
