@@ -114,6 +114,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
         self.deviceSession = deviceSession
+        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: sessionId!, data: data) {
+            $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
+        }
         tableView.reloadData()
     }
     
