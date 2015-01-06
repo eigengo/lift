@@ -22,7 +22,7 @@ class Notification extends Actor with ActorLogging {
           }
 
         case AndroidDevice() ⇒
-          log.info(s"Not yet delivering Android push message $message")
+          log.debug(s"Not yet delivering Android push message $message")
       }
   }
 }

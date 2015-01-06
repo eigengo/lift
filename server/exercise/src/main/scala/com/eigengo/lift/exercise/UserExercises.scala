@@ -168,7 +168,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       }
 
     case ExerciseDataProcess(`id`, bits) ⇒
-      log.info("ExerciseDataProcess: exercising -> exercising.")
+      log.debug("ExerciseDataProcess: exercising -> exercising.")
       // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
       // Ideally, this will go somewhere more durable, but this is sufficient for now.
       Try {
@@ -184,7 +184,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       )
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      log.info("FullyClassifiedExercise: exercising -> exercising.")
+      log.debug("FullyClassifiedExercise: exercising -> exercising.")
       persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
@@ -198,19 +198,19 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
 
     case NoExercise(metadata) ⇒
-      log.info("NoExercise: exercising -> exercising.")
+      log.debug("NoExercise: exercising -> exercising.")
       persist(NoExerciseEvt(id, metadata)) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
       }
 
     case TooMuchRest ⇒
-      log.info("NoExercise: exercising -> exercising.")
+      log.debug("NoExercise: exercising -> exercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
         notification ! PushMessage(devices, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
       }
 
     case ExerciseSessionEnd(`id`) ⇒
-      log.info("ExerciseSessionEnd: exercising -> not exercising.")
+      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)

@@ -44,7 +44,13 @@ case object NaiveModel extends ExerciseModel {
     exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Random.shuffle(es).head, None))
   }
 
-  override def apply(classify: Classify): ClassifiedExercise = randomExercise(classify.sessionProps)
+  override def apply(classify: Classify): ClassifiedExercise = {
+    val xs = classify.ad.values.map(_.x)
+    val ys = classify.ad.values.map(_.y)
+    val zs = classify.ad.values.map(_.z)
+    println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+    randomExercise(classify.sessionProps)
+  }
 }
 
 /**
