@@ -1,13 +1,13 @@
 package com.eigengo.lift.exercise
 
-import java.io.{FileOutputStream, File}
+import java.io.FileOutputStream
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
-import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, NoExercise, UnclassifiedExercise}
+import com.eigengo.lift.exercise.ExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.notification.NotificationProtocol.{Devices, MobileDestination, PushMessage, WatchDestination}
@@ -35,6 +35,15 @@ object UserExercises {
    * @param bits the submitted bits
    */
   case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
+
+  /**
+   * User classified exercise.
+   * @param userId user
+   * @param sessionId session
+   * @param name the exercise name
+   * @param intensity the intensity, if known
+   */
+  case class UserExerciseClassify(userId: UserId, sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity])
 
   /**
    * Process exercise data for the given sessionProps
@@ -86,18 +95,20 @@ object UserExercises {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseSessionStart(userId, session)        ⇒ (userId.toString, ExerciseSessionStart(session))
-    case UserExerciseSessionEnd(userId, sessionId)        ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcess(userId, sessionId, data) ⇒ (userId.toString, ExerciseDataProcess(sessionId, data))
+    case UserExerciseSessionStart(userId, session)                  ⇒ (userId.toString, ExerciseSessionStart(session))
+    case UserExerciseSessionEnd(userId, sessionId)                  ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
+    case UserExerciseDataProcess(userId, sessionId, data)           ⇒ (userId.toString, ExerciseDataProcess(sessionId, data))
+    case UserExerciseClassify(userId, sessionId, name, intensity)   ⇒ (userId.toString, UserClassifiedExercise(userId, sessionId, name, intensity))
   }
 
   /**
    * Resolves the shard name from the incoming message.
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserExerciseSessionStart(userId, _)   ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionEnd(userId, _)     ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcess(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionStart(userId, _)                        ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionEnd(userId, _)                          ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcess(userId, _, _)                      ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseClassify(userId, sessionId, name, intensity)   ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -108,9 +119,9 @@ object UserExercises {
  */
 class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
+  import akka.pattern.ask
   import scala.concurrent.duration._
 
-  import akka.pattern.ask
   private val userId = UserId(self.path.name)
   import com.eigengo.lift.common.Timeouts.defaults._
   import context.dispatcher
@@ -183,25 +194,32 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
       )
 
-    case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      log.info("FullyClassifiedExercise: exercising -> exercising.")
-      persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
-        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-        intensity.foreach { i ⇒
-          if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+    case c: ClassifiedExercise => c match {
+      case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
+        log.info("FullyClassifiedExercise: exercising -> exercising.")
+        persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
+          tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+          intensity.foreach { i ⇒
+            if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+            if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          }
         }
-      }
 
-    case UnclassifiedExercise(_) ⇒
-      // Maybe notify the user?
-      tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+      case UserClassifiedExercise(userId, sessionId, name, intensity) =>
+        //TODO: override classifier decision
+        log.info("UserClassifiedExercise: exercising -> exercising.")
+        self ! FullyClassifiedExercise(ModelMetadata(1), 1, name, intensity)
 
-    case NoExercise(metadata) ⇒
-      log.info("NoExercise: exercising -> exercising.")
-      persist(NoExerciseEvt(id, metadata)) { evt ⇒
+      case UnclassifiedExercise(_) ⇒
+        // Maybe notify the user?
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-      }
+
+      case NoExercise(metadata) ⇒
+        log.info("NoExercise: exercising -> exercising.")
+        persist(NoExerciseEvt(id, metadata)) { evt ⇒
+          tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+        }
+    }
 
     case TooMuchRest ⇒
       log.info("NoExercise: exercising -> exercising.")

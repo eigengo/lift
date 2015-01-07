@@ -1,6 +1,7 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.Actor
+import com.eigengo.lift.common.UserId
 import com.eigengo.lift.exercise.ExerciseClassifier._
 
 import scala.util.Random
@@ -80,17 +81,25 @@ object ExerciseClassifier {
   case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
 
   /**
-   * Unknown exercise
+   * User classified exercise.
+   * @param userId user
+   * @param sessionId session
+   * @param name the exercise name
+   * @param intensity the intensity, if known
+   */
+  case class UserClassifiedExercise(userId: UserId, sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
+
+  /**
+    * Unknown exercise
    * @param metadata the model
    */
   case class UnclassifiedExercise(metadata: ModelMetadata) extends ClassifiedExercise
 
   /**
-   * No exercise: ideally, a rest between sets, or just plain old not working out
+    * No exercise: ideally, a rest between sets, or just plain old not working out
    * @param metadata the model
    */
   case class NoExercise(metadata: ModelMetadata) extends ClassifiedExercise
-
 }
 
 /**
