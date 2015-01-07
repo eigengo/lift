@@ -9,13 +9,13 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     private var timer: NSTimer?
     private var startTime: NSDate?
     private var sessionId: NSUUID?
+    private var device: ConnectedDevice?
     @IBOutlet var stopSessionButton: UIBarButtonItem!
 
     // MARK: main
     override func viewWillDisappear(animated: Bool) {
-        timer!.invalidate()
+        if let x = timer { x.invalidate() }
         navigationItem.prompt = nil
-        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: sessionId!) { _ in }
     }
     
     @IBAction
@@ -29,7 +29,18 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func end() {
-        self.deviceSession = nil
+        if let x = sessionId {
+            LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: x) { x in
+                NSLog("[INFO] LiveSessionController.end() session ended")
+                self.sessionId = nil
+            }
+        } else {
+            NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
+        }
+    
+        device?.stop()
+        device = nil
+        deviceSession = nil
         deviceInfo = nil
         deviceInfoDetail = nil
         if let x = navigationController {
@@ -56,8 +67,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self)).start()
         sessionId = session.id
+        device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
+        device!.start()
     }
     
     // MARK: UITableViewDataSource
@@ -122,11 +134,15 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: AccelerometerReceiverDelegate
     
     func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
-        self.deviceSession = deviceSession
-        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: sessionId!, data: data) {
-            $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
+        if let x = sessionId {
+            self.deviceSession = deviceSession
+            LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: x, data: data) {
+                $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
+            }
+            tableView.reloadData()
+        } else {
+            RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
         }
-        tableView.reloadData()
     }
     
     func accelerometerDataEnded(deviceSession: DeviceSession) {
@@ -150,21 +166,16 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
         NSLog("deviceAppLaunchFailed %@ -> %@", deviceId, error)
-        deviceInfo = nil
         tableView.reloadData()
     }
     
     func deviceDidNotConnect(error: NSError) {
         NSLog("deviceDidNotConnect %@", error)
-        deviceInfo = nil
         tableView.reloadData()
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
         NSLog("deviceDisconnected %@", deviceId)
-        deviceInfo = nil
-        deviceInfoDetail = nil
-        deviceSession = nil
         tableView.reloadData()
     }
     
