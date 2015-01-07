@@ -1,11 +1,11 @@
 package com.eigengo.lift.exercise
 
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
 import com.eigengo.lift.exercise.UserExercises.{UserExerciseDataProcess, UserExerciseSessionEnd, UserExerciseSessionStart}
-import com.eigengo.lift.exercise.UserExercisesView.{SessionSummary, ExerciseSession, UserGetExerciseSession, UserGetExerciseSessionsSummary}
+import com.eigengo.lift.exercise.UserExercisesView._
 import scodec.bits.BitVector
 import spray.routing.Directives
 
@@ -30,8 +30,18 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       } ~
       get {
+        parameters('startDate.as[Date], 'endDate.as[Date]) { (startDate, endDate) ⇒
+          complete {
+            (userExercisesView ? UserGetExerciseSessionsSummary(userId, startDate, endDate)).mapTo[List[SessionSummary]]
+          }
+        } ~
+        parameter('date.as[Date]) { date ⇒
+          complete {
+            (userExercisesView ? UserGetExerciseSessionsSummary(userId, date, date)).mapTo[List[SessionSummary]]
+          }
+        } ~
         complete {
-          (userExercisesView ? UserGetExerciseSessionsSummary(userId)).mapTo[List[SessionSummary]]
+          (userExercisesView ? UserGetExerciseSessionsDates(userId)).mapTo[List[SessionDate]]
         }
       }
     } ~

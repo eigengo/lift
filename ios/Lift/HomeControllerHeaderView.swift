@@ -2,31 +2,23 @@ import Foundation
 
 protocol HomeControllerHeaderViewDelegate {
     
-    func editProfile()
+    func headerEditProfile()
     
-    func settings()
+    func headerSettings()
+    
+    func headerDateSelected(date: NSDate)
+    
+    func headerSessionsOnDate(date: NSDate) -> Exercise.SessionDate?
     
 }
 
-class RandomCalendarDataSource : NSObject, JTCalendarDataSource {
-    func calendarHaveEvent(calendar: JTCalendar!, date: NSDate!) -> Bool {
-        if NSDate().compare(date) == NSComparisonResult.OrderedAscending { return false } else { return random() % 3 == 0 }
-    }
-    
-    func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
-        
-    }
-}
-
-class HomeControllerHeaderView : UIView {
+class HomeControllerHeaderView : UIView, JTCalendarDataSource {
     @IBOutlet var profileImageView: UIImageView!
     @IBOutlet var bottomView: UIView!
     @IBOutlet var editProfileButton: UIButton!
     @IBOutlet var settingsButton: UIButton!
     @IBOutlet var nameLabel: UILabel!
     @IBOutlet var calendarContentView: JTCalendarContentView!
-    // TODO: allow to be set
-    private var calendarDataSource: JTCalendarDataSource? = RandomCalendarDataSource()
     private var delegate: HomeControllerHeaderViewDelegate?
     private let calendar = JTCalendar()
     
@@ -48,14 +40,14 @@ class HomeControllerHeaderView : UIView {
         calendar.contentView = calendarContentView
 
         // TODO: in a setter of some kind
-        calendar.dataSource = calendarDataSource
+        calendar.dataSource = self
         calendar.currentDate = NSDate()
         calendar.currentDateSelected = NSDate()
-        calendar.reloadData()
     }
     
     func setDelegate(delegate: HomeControllerHeaderViewDelegate) {
         self.delegate = delegate
+        reloadData()
     }
     
     func setPublicProfile(profile: User.PublicProfile?) {
@@ -88,13 +80,35 @@ class HomeControllerHeaderView : UIView {
         super.drawRect(rect)
     }
     
+    func reloadData() {
+        calendar.reloadData()
+        calendar.currentDate = NSDate()
+        calendar.currentDateSelected = NSDate()
+        delegate?.headerDateSelected(NSDate())
+    }
+    
+    // MARK: JTCalendarDataSource
+    
+    func calendarHaveEvent(calendar: JTCalendar!, date: NSDate!) -> Bool {
+        if let x = delegate {
+            return x.headerSessionsOnDate(date) != nil
+        }
+        
+        return false
+    }
+    
+    func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
+        delegate?.headerDateSelected(date)
+    }
+
+    
     // MARK: Actions
     
     @IBAction func editProfile() {
-        delegate?.editProfile()
+        delegate?.headerEditProfile()
     }
     
     @IBAction func settings() {
-        delegate?.settings()
+        delegate?.headerSettings()
     }
 }

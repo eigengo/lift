@@ -171,13 +171,12 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       log.debug("ExerciseDataProcess: exercising -> exercising.")
       // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
       // Ideally, this will go somewhere more durable, but this is sufficient for now.
-      Try {
-        val fos = new FileOutputStream(s"/tmp/ad-${System.currentTimeMillis()}.dat")
-        fos.write(bits.toByteArray)
-        fos.close()
-      }.toOption
+      UserExercisesTracing.saveBits(id, bits)
 
       val result = decodeAll(bits, Nil)
+
+      UserExercisesTracing.saveAccelerometerData(id, result._2)
+
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err)},
         { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
@@ -225,6 +224,8 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         sender() ! \/.right(evt.sessionId)
         context.become(exercising(evt.sessionId, sessionProps))
       }
+    case ExerciseSessionEnd(_) ⇒
+      sender() ! \/.left("Not in session")
   }
 
   override def receiveCommand: Receive = notExercising

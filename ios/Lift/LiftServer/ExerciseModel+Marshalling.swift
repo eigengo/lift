@@ -52,6 +52,25 @@ extension Exercise.ModelMetadata {
     
 }
 
+extension Exercise.SessionIntensity {
+
+    static func unmarshal(json: JSON) -> Exercise.SessionIntensity {
+        let intended = json["intended"].doubleValue
+        let actual = json["actual"].doubleValue
+        return Exercise.SessionIntensity(intended: intended, actual: actual)
+    }
+
+}
+
+extension Exercise.SessionDate {
+    
+    static func unmarshal(json: JSON) -> Exercise.SessionDate {
+        let date = isoDateFormatter.dateFromString(json["date"].stringValue)!
+        return Exercise.SessionDate(date: date, sessionIntensities: json["sessionIntensities"].arrayValue.map(Exercise.SessionIntensity.unmarshal))
+    }
+    
+}
+
 extension Exercise.ExerciseSession {
     
     static func unmarshal(json: JSON) -> Exercise.ExerciseSession {

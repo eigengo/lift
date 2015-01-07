@@ -1,16 +1,18 @@
 package com.eigengo.lift.common
 
 import java.text.SimpleDateFormat
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import org.json4s.JsonAST.{JNull, JString}
 import org.json4s.{Serializer, CustomSerializer, DefaultFormats, Formats}
 import spray.http.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
 import spray.httpx.Json4sSupport
 import spray.httpx.marshalling.{ToResponseMarshallingContext, ToResponseMarshaller}
+import spray.httpx.unmarshalling.{ContentExpected, MalformedContent, Deserialized, FromStringOptionDeserializer}
 import spray.routing.directives.MarshallingDirectives
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 import scalaz.{-\/, \/-, \/}
 
 object CommonMarshallers {
@@ -36,6 +38,14 @@ trait CommonMarshallers extends MarshallingDirectives with Json4sSupport {
     
     def mapNoneToEmpty[B](implicit ec: ExecutionContext): Future[ResponseOption[B]] = f.mapTo[Option[B]].map(ResponseOption.apply)
 
+  }
+
+  implicit object DateFSOD extends FromStringOptionDeserializer[Date] {
+    val format = new SimpleDateFormat("yyyy-MM-dd")
+
+    override def apply(v: Option[String]): Deserialized[Date] = {
+      v.map { s ⇒ Try { Right(format.parse(s)) }.getOrElse(Left(MalformedContent("Invalid date " + s))) } getOrElse Left(ContentExpected)
+    }
   }
 
   implicit def duToResponseMarshaller[A : ToResponseMarshaller, B : ToResponseMarshaller]: ToResponseMarshaller[\/[A, B]] = {
