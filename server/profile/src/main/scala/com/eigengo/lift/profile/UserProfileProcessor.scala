@@ -108,6 +108,9 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: KnownAccounts) ⇒
       knownAccounts = offeredSnapshot
+    case ur@UserRegistered(userId, account) ⇒
+      knownAccounts = knownAccounts.withNewAccount(account.email, userId)
+      userProfile ! ur
   }
 
   override def receiveCommand: Receive = {

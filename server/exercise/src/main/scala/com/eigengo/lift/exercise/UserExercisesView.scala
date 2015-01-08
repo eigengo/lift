@@ -60,9 +60,7 @@ object UserExercisesView {
       if (set.isEmpty) this else copy(sets = sets :+ set)
     }
 
-    def intensity: ExerciseIntensity = {
-      sets.map(_.intensity).sum / sets.size
-    }
+    lazy val intensity: ExerciseIntensity = if (sets.isEmpty) 0 else sets.map(_.intensity).sum / sets.size
   }
 
   /**

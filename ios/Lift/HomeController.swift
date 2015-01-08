@@ -104,7 +104,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         switch segue.identifier {
         case .Some("sessionDetail"):
-            let summary = sessionSummariesForDate(NSDate())[tableView.indexPathForSelectedRow()!.row]
+            let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
             ResultContext.run { ctx in
                 LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
                     if let ctrl = segue.destinationViewController as? SessionDetailController {
@@ -122,19 +122,11 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         }
     }
     
-    func sessionSummariesForDate(date: NSDate) -> [Exercise.SessionSummary] {
-        return sessionSummaries
-    }
-    
-    func sessionSuggestionsForDate(date: NSDate) -> [Exercise.SessionSuggestion] {
-        return sessionSuggestions
-    }
-    
     // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         switch indexPath.section {
         case 0:
-            let sessionSuggestion = sessionSuggestionsForDate(NSDate())[tableView.indexPathForSelectedRow()!.row]
+            let sessionSuggestion = sessionSuggestions[tableView.indexPathForSelectedRow()!.row]
             let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: sessionSuggestion.muscleGroupKeys, intendedIntensity: sessionSuggestion.intendedIntensity)
             ResultContext.run { ctx in
                 LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { sessionId in
@@ -154,8 +146,8 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return sessionSuggestionsForDate(NSDate()).count
-        case 1: return sessionSummariesForDate(NSDate()).count
+        case 0: return sessionSuggestions.count
+        case 1: return sessionSummaries.count
         default: fatalError("Match error")
         }
     }
@@ -180,13 +172,13 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         switch (indexPath.section, indexPath.row) {
         case (0, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("suggestion") as UITableViewCell
-            let suggestion = sessionSuggestionsForDate(NSDate())[x]
+            let suggestion = sessionSuggestions[x]
             let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(suggestion.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
             cell.textLabel!.text = ", ".join(mgs.map { $0.title })
             cell.detailTextLabel!.text = ", ".join(mgs.map { ", ".join($0.exercises) })
             return cell
         case (1, let x):
-            let sessionSummary = sessionSummariesForDate(NSDate())[x]
+            let sessionSummary = sessionSummaries[x]
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as SessionTableViewCell
             cell.setSessionSummary(sessionSummary)
             return cell
