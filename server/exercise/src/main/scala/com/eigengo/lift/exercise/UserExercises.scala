@@ -1,7 +1,5 @@
 package com.eigengo.lift.exercise
 
-import java.io.{FileOutputStream, File}
-
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
@@ -15,7 +13,6 @@ import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
-import scala.util.Try
 import scalaz.\/
 
 /**
@@ -108,11 +105,10 @@ object UserExercises {
  */
 class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
-  import scala.concurrent.duration._
-
   import akka.pattern.ask
+
+import scala.concurrent.duration._
   private val userId = UserId(self.path.name)
-  import com.eigengo.lift.common.Timeouts.defaults._
   import context.dispatcher
   (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
     case ds ⇒
