@@ -8,8 +8,8 @@ class RepetitionClassifierTrainerTest extends FlatSpec with Matchers with Repeti
 
   "RepetitionClassifierTrainer" should "train model" in {
     import breeze.linalg._
-    val m = csvread(new File(getClass.getResource("/training/chest-1-pa.csv").toURI))
-    val v = m.flatten().map(_.toInt)
-    train(v, "chest", "fly")
+    //val m = csvread(new File(getClass.getResource("/training/chest-1-pa.csv").toURI))
+    //val v = m.flatten().map(_.toInt)
+    //train(v, "chest", "fly")
   }
 }

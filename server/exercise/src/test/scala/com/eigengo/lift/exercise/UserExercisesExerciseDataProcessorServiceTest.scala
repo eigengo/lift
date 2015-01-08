@@ -27,7 +27,7 @@ class UserExercisesExerciseDataProcessorServiceTest
   }
 
   "ExerciseProcessor" should "accept requests" in {
-    val bv = getResourceBitVector("/measured/arm3.dat")
+    val bv = getResourceBitVector("/measured/bicep-1/all.dat")
     val userId = "C753CD2F-A46E-4C1E-9856-26C78FFAC760"
     val sessionId = "C753CD2F-A46E-4C1E-9856-26C78FFAC7AA"
     Put(s"/exercise/$userId/$sessionId", bv) ~> route ~> check {
