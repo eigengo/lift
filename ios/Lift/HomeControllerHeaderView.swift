@@ -2,10 +2,6 @@ import Foundation
 
 protocol HomeControllerHeaderViewDelegate {
     
-    func headerEditProfile()
-    
-    func headerSettings()
-    
     func headerDateSelected(date: NSDate)
     
     func headerSessionsOnDate(date: NSDate) -> Exercise.SessionDate?
@@ -15,8 +11,6 @@ protocol HomeControllerHeaderViewDelegate {
 class HomeControllerHeaderView : UIView, JTCalendarDataSource {
     @IBOutlet var profileImageView: UIImageView!
     @IBOutlet var bottomView: UIView!
-    @IBOutlet var editProfileButton: UIButton!
-    @IBOutlet var settingsButton: UIButton!
     @IBOutlet var nameLabel: UILabel!
     @IBOutlet var calendarContentView: JTCalendarContentView!
     private var delegate: HomeControllerHeaderViewDelegate?
@@ -29,9 +23,6 @@ class HomeControllerHeaderView : UIView, JTCalendarDataSource {
         profileImageView.layer.borderWidth = 3
         profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
         profileImageView.clipsToBounds = true
-        
-        editProfileButton.roundedBorder(tintColor)
-        settingsButton.roundedBorder(tintColor)
         
         backgroundColor = UIColor.clearColor()
         
@@ -101,14 +92,4 @@ class HomeControllerHeaderView : UIView, JTCalendarDataSource {
         delegate?.headerDateSelected(date)
     }
 
-    
-    // MARK: Actions
-    
-    @IBAction func editProfile() {
-        delegate?.headerEditProfile()
-    }
-    
-    @IBAction func settings() {
-        delegate?.headerSettings()
-    }
 }

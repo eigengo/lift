@@ -51,6 +51,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         // set up the holding view
         cv = contentView()
         cv.autoresizingMask = UIViewAutoresizing.FlexibleWidth
+        cv.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions.New, context: nil)
         
         // set our view to be the scroll view
         let contentHeight = cv.contentSize.height + imageHeight
@@ -82,6 +83,18 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     
     override func viewDidAppear(animated: Bool) {
         mainScrollView.contentSize = CGSizeMake(CGRectGetWidth(view.frame), cv.contentSize.height + CGRectGetHeight(backgroundScrollView.frame))
+    }
+    
+    override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
+        if keyPath == "contentSize" {
+//            let contentHeight: CGFloat = x.he
+//            mainScrollView.contentSize = CGSizeMake(view.frame.size.width, contentHeight)
+//            backgroundScrollView.contentSize = CGSizeMake(view.frame.size.width, contentHeight)
+            if let nsv = change[NSKeyValueChangeNewKey] as? NSValue {
+                let newSize = nsv.CGSizeValue()
+                mainScrollView.contentSize = CGSizeMake(CGRectGetWidth(view.frame), newSize.height + CGRectGetHeight(backgroundScrollView.frame))
+            }
+        }
     }
     
     func navBarHeight() -> CGFloat {

@@ -203,15 +203,6 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     // MARK: HomeControllerHeaderViewDelegate
     
-    func headerSettings() {
-        let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel".localized(), destructiveButtonTitle: "Logout".localized())
-        menu.showFromTabBar(tabBarController?.tabBar)
-    }
-    
-    func headerEditProfile() {
-        performSegueWithIdentifier("profile", sender: self)
-    }
-    
     func headerDateSelected(date: NSDate) {
         ResultContext.run { ctx in
             LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
@@ -223,6 +214,18 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     func headerSessionsOnDate(date: NSDate) -> Exercise.SessionDate? {
         return sessionDates.filter { elem in return elem.date == date }.first
+    }
+    
+    // MARK: Actions
+    @IBAction
+    func editProfile() {
+        performSegueWithIdentifier("profile", sender: self)
+    }
+    
+    @IBAction
+    func settings() {
+        let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel".localized(), destructiveButtonTitle: "Logout".localized())
+        menu.showFromTabBar(tabBarController?.tabBar)
     }
     
 }

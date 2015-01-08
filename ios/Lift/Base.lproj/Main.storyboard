@@ -370,7 +370,18 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Home" id="Pap-19-p9f"/>
+                    <navigationItem key="navigationItem" title="Home" id="Pap-19-p9f">
+                        <barButtonItem key="leftBarButtonItem" systemItem="compose" id="qzx-sK-weC">
+                            <connections>
+                                <action selector="editProfile" destination="7ml-CA-58H" id="Qow-4L-e0H"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="⚙" id="2hV-1f-XzR">
+                            <connections>
+                                <action selector="settings" destination="7ml-CA-58H" id="gFg-qm-YEr"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
                         <outlet property="tableView" destination="9qo-lk-hsU" id="1dT-bq-kLX"/>
