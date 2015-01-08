@@ -208,6 +208,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
             LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
                 self.sessionSummaries = x
                 self.tableView.reloadData()
+                self.scrollToTop()
             })
         }
     }

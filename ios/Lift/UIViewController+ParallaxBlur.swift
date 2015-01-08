@@ -3,9 +3,8 @@ import Foundation
 internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate {
     private var headerOverlayView: UIView?
     // TODO: height here
-    private let imageHeight: CGFloat = 260.0
-    private let headerHeight: CGFloat = 73.0
-    private let invisDelta: CGFloat = 50.0
+    private let imageHeight: CGFloat = 193.0
+    private let headerHeight: CGFloat = 72.0
     private let blurDistance: CGFloat = 200.0
 
     private let mainScrollView: UIScrollView = {
@@ -87,9 +86,6 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     
     override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
         if keyPath == "contentSize" {
-//            let contentHeight: CGFloat = x.he
-//            mainScrollView.contentSize = CGSizeMake(view.frame.size.width, contentHeight)
-//            backgroundScrollView.contentSize = CGSizeMake(view.frame.size.width, contentHeight)
             if let nsv = change[NSKeyValueChangeNewKey] as? NSValue {
                 let newSize = nsv.CGSizeValue()
                 mainScrollView.contentSize = CGSizeMake(CGRectGetWidth(view.frame), newSize.height + CGRectGetHeight(backgroundScrollView.frame))
@@ -113,6 +109,10 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     func contentView() -> UIScrollView {
         fatalError("Implement me")
     }
+    
+    func scrollToTop() {
+        mainScrollView.contentOffset.y = 10
+    }
 
     // MARK: UIScrollViewDelegate
     
@@ -126,7 +126,6 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
             delta = abs(min(0.0, mainScrollView.contentOffset.y + navBarHeight()))
             backgroundScrollView.frame = CGRectMake(CGRectGetMinX(rect) - delta / 2.0, CGRectGetMinY(rect) - delta,
                 CGRectGetWidth(scrollViewContainer.frame) + delta, CGRectGetHeight(rect) + delta)
-            //floatingHeaderView.alpha = (invisDelta - delta) / invisDelta
         } else {
             delta = mainScrollView.contentOffset.y;
             
