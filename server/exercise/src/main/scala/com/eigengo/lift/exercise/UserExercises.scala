@@ -152,8 +152,8 @@ object UserExercises {
 class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
   import akka.pattern.ask
+  import scala.concurrent.duration._
 
-import scala.concurrent.duration._
   private val userId = UserId(self.path.name)
   import context.dispatcher
   import com.eigengo.lift.common.Timeouts.defaults._

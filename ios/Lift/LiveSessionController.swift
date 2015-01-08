@@ -38,6 +38,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
     
+        UIApplication.sharedApplication().idleTimerDisabled = false
         device?.stop()
         device = nil
         deviceSession = nil
@@ -70,6 +71,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         sessionId = session.id
         device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
         device!.start()
+        UIApplication.sharedApplication().idleTimerDisabled = true
     }
     
     // MARK: UITableViewDataSource

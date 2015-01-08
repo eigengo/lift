@@ -600,6 +600,7 @@
 					};
 					54DC839D1A40ACEA006DD311 = {
 						CreatedOnToolsVersion = 6.2;
+						DevelopmentTeam = K5TCBGB2PR;
 					};
 				};
 			};
