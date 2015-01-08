@@ -156,6 +156,8 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 import scala.concurrent.duration._
   private val userId = UserId(self.path.name)
   import context.dispatcher
+  import com.eigengo.lift.common.Timeouts.defaults._
+
   (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
     case ds ⇒
       devices = ds
@@ -226,9 +228,10 @@ import scala.concurrent.duration._
 
     case ExerciseDataProcessMultiplePackets(`id`, _) ⇒
       sender() ! \/.left("Not implemented yet")
-      
+
+    case e: ClassifiedExercise => e match {
       case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      log.debug("FullyClassifiedExercise: exercising -> exercising.")
+        log.debug("FullyClassifiedExercise: exercising -> exercising.")
         persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
           tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
           intensity.foreach { i ⇒
@@ -237,13 +240,14 @@ import scala.concurrent.duration._
           }
         }
 
-    case Tap ⇒
-      persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
-        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-      }
+      case Tap ⇒
+        persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
+          tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+        }
+
       case UserClassifiedExercise(userId, sessionId, name, intensity) =>
         //TODO: override classifier decision
-        log.info("UserClassifiedExercise: exercising -> exercising.")
+        log.debug("UserClassifiedExercise: exercising -> exercising.")
         self ! FullyClassifiedExercise(ModelMetadata(1), 1, name, intensity)
 
       case UnclassifiedExercise(_) ⇒
@@ -251,7 +255,7 @@ import scala.concurrent.duration._
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
 
       case NoExercise(metadata) ⇒
-      log.debug("NoExercise: exercising -> exercising.")
+        log.debug("NoExercise: exercising -> exercising.")
         persist(NoExerciseEvt(id, metadata)) { evt ⇒
           tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         }
