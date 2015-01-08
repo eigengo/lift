@@ -3,7 +3,7 @@ package com.eigengo.lift.exercise
 import akka.actor.ActorRefFactory
 import akka.testkit.{ImplicitSender, TestKitBase, TestProbe}
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.exercise.UserExercises.UserExerciseDataProcess
+import com.eigengo.lift.exercise.UserExercises.UserExerciseDataProcessSinglePacket
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
@@ -34,7 +34,7 @@ class UserExercisesExerciseDataProcessorServiceTest
       //TODO: Fixme
       //responseAs[String] === "OK"
     }
-    probe.expectMsg(UserExerciseDataProcess(UserId(userId), SessionId(sessionId), bv))
+    probe.expectMsg(UserExerciseDataProcessSinglePacket(UserId(userId), SessionId(sessionId), bv))
     probe.reply(\/.right("OK"))
   }
 
