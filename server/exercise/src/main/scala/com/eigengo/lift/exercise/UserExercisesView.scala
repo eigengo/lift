@@ -1,5 +1,7 @@
 package com.eigengo.lift.exercise
 
+import java.util.{Calendar, Date}
+
 import akka.actor.{ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{SnapshotOffer, PersistentView}
@@ -31,7 +33,7 @@ object UserExercisesView {
     /** Average set intensity */
     def intensity: ExerciseIntensity = {
       val kie = exercises.filter(_.intensity.isDefined).flatMap(_.intensity)
-      kie.sum / kie.size
+      if (kie.isEmpty) 0.5 else kie.sum / kie.size
     }
 
     def withNewExercise(modelMetadata: ModelMetadata, exercise: Exercise): ExerciseSet = copy(exercises :+ exercise)
@@ -57,6 +59,10 @@ object UserExercisesView {
     def withNewExerciseSet(set: ExerciseSet): ExerciseSession = {
       if (set.isEmpty) this else copy(sets = sets :+ set)
     }
+
+    def intensity: ExerciseIntensity = {
+      sets.map(_.intensity).sum / sets.size
+    }
   }
 
   /**
@@ -67,9 +73,38 @@ object UserExercisesView {
    */
   case class SessionSummary(id: SessionId, sessionProps: SessionProps, setIntensities: Array[Double])
 
+  /**
+   * Session itensity summary. Compares actual and planned intensitites.
+   *
+   * @param intended planned
+   * @param actual actual
+   */
+  case class SessionIntensity(intended: ExerciseIntensity, actual: ExerciseIntensity)
+
+  /**
+   * The summary of exercise session dates
+   * @param date the date
+   * @param sessionIntensities the average intensities of all sessions done on the day
+   */
+  case class SessionDate(date: Date, sessionIntensities: List[SessionIntensity])
+
   /** Ordering on SessionSummary */
   private implicit object SessionSummaryOrdering extends Ordering[SessionSummary] {
     override def compare(x: SessionSummary, y: SessionSummary): Int = y.sessionProps.startDate.compareTo(x.sessionProps.startDate)
+  }
+
+  implicit class RichDate(date: Date) {
+    def midnight: Date = {
+      val calendar = Calendar.getInstance()
+
+      calendar.setTime(date)
+      calendar.set(Calendar.HOUR_OF_DAY, 0)
+      calendar.set(Calendar.MINUTE, 0)
+      calendar.set(Calendar.SECOND, 0)
+      calendar.set(Calendar.MILLISECOND, 0)
+
+      calendar.getTime
+    }
   }
 
   /**
@@ -93,13 +128,24 @@ object UserExercisesView {
     def get(sessionId: SessionId): Option[ExerciseSession] = sessions.find(_.id == sessionId)
 
     /**
-     * Computes summary of all sessions
+     * Computes summary of sessions between the given dates
      * @return all sessions summary
      */
-    def summary: List[SessionSummary] = sessions.map { s ⇒
-      val intensities = s.sets.map(_.intensity).toArray
-      SessionSummary(s.id, s.sessionProps, intensities)
+    def summary(startDate: Date, endDate: Date): List[SessionSummary] = sessions.flatMap { s ⇒
+      val ssd = s.sessionProps.startDate.midnight
+      if (ssd.compareTo(startDate) >= 0 && ssd.compareTo(endDate) <= 0) {
+        val intensities = s.sets.map(_.intensity).toArray
+        Some(SessionSummary(s.id, s.sessionProps, intensities))
+      } else None
     }.sorted
+
+    /**
+     * Computes the session dates
+     * @return the session dates
+     */
+    def dates: List[SessionDate] = sessions.groupBy(_.sessionProps.startDate.midnight).map { case (date, exerciseSessions) ⇒
+      SessionDate(date, exerciseSessions.map(s ⇒ SessionIntensity(s.sessionProps.intendedIntensity, s.intensity)))
+    }.toList
   }
 
   /**
@@ -131,6 +177,12 @@ object UserExercisesView {
   case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, exercise: Exercise)
 
   /**
+   * Explicit (user-provided through tapping the device, for example) of exercise set.
+   * @param sessionId the session identity
+   */
+  case class ExerciseSetExplicitMarkEvt(sessionId: SessionId)
+
+  /**
    * No exercise: rest or just being lazy
    * @param sessionId the session identity
    * @param metadata the model metadata
@@ -144,10 +196,18 @@ object UserExercisesView {
   case class TooMuchRestEvt(sessionId: SessionId)
 
   /**
-   * Query to receive all exercises for the given ``userId``
+   * Query to receive all exercises for the given ``userId`` between the given dates
+   * @param userId the user identity
+   * @param startDate the start date
+   * @param endDate the end date
+   */
+  case class UserGetExerciseSessionsSummary(userId: UserId, startDate: Date, endDate: Date)
+
+  /**
+   * Query to receive all session dates for the given ``userId``
    * @param userId the user identity
    */
-  case class UserGetExerciseSessionsSummary(userId: UserId)
+  case class UserGetExerciseSessionsDates(userId: UserId)
 
   /**
    * Query to retrieve the exercises in the given ``userId`` and ``sessionId``
@@ -160,8 +220,15 @@ object UserExercisesView {
    * Query to receive all exercises. The relationship between ``GetUserExercises`` and ``GetExerciseSessionsSummary`` is that
    * ``GetUserExercises`` is sent to the shard coordinator, which locates the appropriate (user-specific) shard,
    * and sends it the ``GetExerciseSessionsSummary`` message
+   * @param startDate the start date
+   * @param endDate the end date
    */
-  private case object GetExerciseSessionsSummary
+  private case class GetExerciseSessionsSummary(startDate: Date, endDate: Date)
+
+  /**
+   * Get session dates
+   */
+  private case object GetExerciseSessionsDates
 
   /**
    * Finds all exercises in the given ``sessionId``. 
@@ -174,24 +241,25 @@ object UserExercisesView {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserGetExerciseSessionsSummary(userId)    ⇒ (userId.toString, GetExerciseSessionsSummary)
-    case UserGetExerciseSession(userId, sessionId) ⇒ (userId.toString, GetExerciseSession(sessionId))
+    case UserGetExerciseSessionsSummary(userId, s, e) ⇒ (userId.toString, GetExerciseSessionsSummary(s, e))
+    case UserGetExerciseSessionsDates(userId)         ⇒ (userId.toString, GetExerciseSessionsDates)
+    case UserGetExerciseSession(userId, sessionId)    ⇒ (userId.toString, GetExerciseSession(sessionId))
   }
 
   /**
    * Resolves the shard name from the incoming message.
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserGetExerciseSessionsSummary(userId) ⇒ s"${userId.hashCode() % 10}"
-    case UserGetExerciseSession(userId, _)      ⇒ s"${userId.hashCode() % 10}"
+    case UserGetExerciseSessionsSummary(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserGetExerciseSessionsDates(userId)         ⇒ s"${userId.hashCode() % 10}"
+    case UserGetExerciseSession(userId, _)            ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
 
 class UserExercisesView extends PersistentView with ActorLogging with AutoPassivation {
   import com.eigengo.lift.exercise.UserExercisesView._
-
-import scala.concurrent.duration._
+  import scala.concurrent.duration._
 
   // our internal state
   private var exercises = Exercises.empty
@@ -203,37 +271,43 @@ import scala.concurrent.duration._
 
   private lazy val queries: Receive = {
     // query for exercises
-    case GetExerciseSessionsSummary ⇒
-      log.info("GetExerciseSessionsSummary: from userspace.")
-      sender() ! exercises.summary
+    case GetExerciseSessionsSummary(startDate, endDate) ⇒
+      log.debug("GetExerciseSessionsSummary: from userspace.")
+      sender() ! exercises.summary(startDate, endDate)
+    case GetExerciseSessionsDates ⇒
+      log.debug("GetExerciseSessionsDates: from userspace.")
+      sender() ! exercises.dates
     case GetExerciseSession(sessionId) ⇒
-      log.info("GetExerciseSession: from userspace.")
+      log.debug("GetExerciseSession: from userspace.")
       sender() ! exercises.get(sessionId)
   }
 
   private lazy val notExercising: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Exercises) ⇒
-      log.info("SnapshotOffer: not exercising -> not exercising.")
+      log.debug("SnapshotOffer: not exercising -> not exercising.")
       exercises = offeredSnapshot
 
     case SessionStartedEvt(sessionId, sessionProps) if isPersistent ⇒
-      log.info("SessionStartedEvt: not exercising -> exercising.")
+      log.debug("SessionStartedEvt: not exercising -> exercising.")
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
   }
 
   private def inASet(session: ExerciseSession, set: ExerciseSet): Receive = {
     case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
-      log.info("ExerciseEvt: in a set -> in a set.")
+      log.debug("ExerciseEvt: in a set -> in a set.")
       context.become(inASet(session, set.withNewExercise(metadata, exercise)).orElse(queries))
     case NoExerciseEvt(_, metadata) if isPersistent ⇒
-      log.info("NoExerciseEvt: in a set -> exercising.")
+      log.debug("NoExerciseEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
     case TooMuchRestEvt(_) if isPersistent ⇒
-      log.info("TooMuchRestEvt: in a set -> exercising.")
+      log.debug("TooMuchRestEvt: in a set -> exercising.")
+      context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
+    case ExerciseSetExplicitMarkEvt(_) ⇒
+      log.debug("ExerciseSetExplicitMarkEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
 
     case SessionEndedEvt(_) if isPersistent ⇒
-      log.info("SessionEndedEvt: in a set -> not exercising.")
+      log.debug("SessionEndedEvt: in a set -> not exercising.")
       exercises = exercises.withNewSession(session.withNewExerciseSet(set))
       saveSnapshot(exercises)
       context.become(notExercising.orElse(queries))
@@ -241,14 +315,18 @@ import scala.concurrent.duration._
   
   private def exercising(session: ExerciseSession): Receive = {
     case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
-      log.info("ExerciseEvt: exercising -> in a set.")
+      log.debug("ExerciseEvt: exercising -> in a set.")
       context.become(inASet(session, ExerciseSet(metadata, exercise)).orElse(queries))
 
+    case ExerciseSetExplicitMarkEvt(_) ⇒
+      log.debug("ExerciseSetExplicitMarkEvt: exercising -> in a set.")
+      context.become(inASet(session, ExerciseSet.empty).orElse(queries))
+
     case TooMuchRestEvt(_) ⇒
-      log.info("TooMuchRest: exercising -> exercising.")
+      log.debug("TooMuchRest: exercising -> exercising.")
 
     case SessionEndedEvt(_) if isPersistent ⇒
-      log.info("SessionEndedEvt: exercising -> not exercising.")
+      log.debug("SessionEndedEvt: exercising -> not exercising.")
       saveSnapshot(exercises)
       exercises = exercises.withNewSession(session)
   }

@@ -143,6 +143,11 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
         }
     }
     
+    private func appKilled(watch: PBWatch!, error: NSError!) {
+        currentDeviceSession?.stop(watch)
+        currentDeviceSession = nil
+    }
+    
     // MARK: Device implementation
 
     func start() {
@@ -151,6 +156,7 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
     
     func stop() {
         // TODO: Implement me
+        findWatch().either({ x in self.deviceDelegate.deviceDidNotConnect(x) }, onR: { $0.appMessagesKill(self.appKilled) })
     }
     
     // MARK: PBPebbleCentralDelegate implementation

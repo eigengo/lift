@@ -8,45 +8,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var alertView: UIAlertView? = nil
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // set up splash screen
-        let splashImage = UIImage(named: "user1")
-        let splashColor = UIColor(red:0.0, green:122.0 / 255.0, blue:1.0, alpha:1.0)
-        let splashView = CBZSplashView(icon: splashImage, backgroundColor: splashColor)
-        let animationDuration: CGFloat = 1.2
-        splashView.animationDuration = animationDuration
-        window = UIWindow(frame: UIScreen.mainScreen().bounds)
-        window!.makeKeyAndVisible()
-        window!.addSubview(splashView)
-        splashView.startAnimation()
-        
         // notifications et al
         registerSettingsAndDelegates()
 
         // perform initialization
-        dispatch_async(dispatch_queue_create("animate", nil), {
-            // main initialization
-            let start = NSDate()
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let start = NSDate()
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        // main initialization
+        // Prepare the cache
+        LiftServerCache.sharedInstance.build { _ in
             if let x = CurrentLiftUser.userId {
-                // Prepare the cache
-                LiftServerCache.sharedInstance.build()
                 // We have previously-known user id. But is the account still there?
                 LiftServer.sharedInstance.userCheckAccount(CurrentLiftUser.userId!) { r in
-                    let id: String = r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" })
-                    let animationDurationLeft = NSTimeInterval(animationDuration) - NSDate().timeIntervalSinceDate(start)
-                    if animationDurationLeft > 0 { NSThread.sleepForTimeInterval(animationDurationLeft) }
-                    
-                    self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
+                    self.startWithStoryboardId(storyboard, id: r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" }))
                 }
             } else {
-                let animationDurationLeft = NSTimeInterval(animationDuration) - NSDate().timeIntervalSinceDate(start)
-                if animationDurationLeft > 0 { NSThread.sleepForTimeInterval(animationDurationLeft) }
-                
-                self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier("login") as? UIViewController!
+                self.startWithStoryboardId(storyboard, id: "login")
             }
-        })
+        }
 
         return true
+    }
+    
+    func startWithStoryboardId(storyboard: UIStoryboard, id: String) {
+        window = UIWindow(frame: UIScreen.mainScreen().bounds)
+        window!.makeKeyAndVisible()
+        window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
     }
     
     func registerSettingsAndDelegates() {
@@ -110,7 +97,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func applicationDidBecomeActive(application: UIApplication) {
-        LiftServerCache.sharedInstance.build()
+        LiftServerCache.sharedInstance.build(const(()))
     }
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {

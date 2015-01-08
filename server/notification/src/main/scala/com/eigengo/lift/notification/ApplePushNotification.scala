@@ -44,7 +44,7 @@ class ApplePushNotification extends Actor with ActorLogging {
 
   private def withCertificates(service: ApnsService): Receive = {
     case ScreenMessage(deviceToken, message, badge, sound) ⇒
-      log.info(s"Screen message $message to ${util.Arrays.toString(deviceToken)}")
+      log.debug(s"Screen message $message to ${util.Arrays.toString(deviceToken)}")
       val payloadBuilder = APNS.newPayload.alertBody(message)
       badge.foreach(payloadBuilder.badge)
       sound.foreach(payloadBuilder.sound)
@@ -53,7 +53,7 @@ class ApplePushNotification extends Actor with ActorLogging {
 
   private def screenOnly: Receive = {
     case ScreenMessage(deviceToken, message, _, _) ⇒
-      log.info(s"*** Not delivering screen message $message to $deviceToken")
+      log.debug(s"*** Not delivering screen message $message to $deviceToken")
   }
 
 }

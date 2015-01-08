@@ -34,6 +34,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     private let floatingHeaderView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.clearColor()
+        view.autoresizingMask = UIViewAutoresizing.FlexibleWidth
         return view
         //return UIVisualEffectView(effect: UIVibrancyEffect()).cont
     }()
@@ -52,13 +53,14 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
         cv.autoresizingMask = UIViewAutoresizing.FlexibleWidth
         
         // set our view to be the scroll view
-        mainScrollView.contentSize = CGSizeMake(view.frame.size.width, 1000)
+        let contentHeight = cv.contentSize.height + imageHeight
+        mainScrollView.contentSize = CGSizeMake(view.frame.size.width, contentHeight)
         mainScrollView.delegate = self
         mainScrollView.frame = view.frame
         view = mainScrollView
         
         // background scroll view
-        backgroundScrollView.contentSize = CGSizeMake(view.frame.size.width, 1000)
+        backgroundScrollView.contentSize = CGSizeMake(view.frame.size.width, contentHeight)
 
         // set up frames
         backgroundScrollView.frame = CGRectMake(0, 0, CGRectGetWidth(view.frame), imageHeight)
@@ -149,6 +151,7 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     func addHeaderOverlayView(overlayView: UIView) {
         headerOverlayView = overlayView
         headerOverlayView!.frame = headerImageView.frame
+        headerOverlayView!.autoresizingMask = UIViewAutoresizing.FlexibleWidth
         floatingHeaderView.addSubview(overlayView)
     }
     

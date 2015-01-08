@@ -39,7 +39,7 @@ private[akka] class ClusterStartupGuardian extends Actor with ActorLogging {
         case (_, value) ⇒ value match {
           case AddressFromURIString(address) ⇒
             seedNodes = seedNodes + address
-            log.info(s"Now with seed nodes $seedNodes")
+            log.debug(s"Now with seed nodes $seedNodes")
           case x ⇒ log.warning(s"Got value $value, which is not address")
         }
       }
@@ -49,7 +49,7 @@ private[akka] class ClusterStartupGuardian extends Actor with ActorLogging {
         log.warning(s"Could not get sufficient number of seed nodes (got ${seedNodes.size}, needed $minNrMembers). Retrying in $retryDuration.")
         context.system.scheduler.scheduleOnce(retryDuration, self, cmd)
       } else {
-        log.info(s"Joining seed nodes $seedNodes")
+        log.debug(s"Joining seed nodes $seedNodes")
         inventory.unsubscribe("node", self)
         cluster.joinSeedNodes(seedNodes.toList.sortWith((x, y) ⇒ x.toString.compareTo(y.toString) < 0).take(minNrMembers))
       }

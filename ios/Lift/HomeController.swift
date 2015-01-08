@@ -66,6 +66,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     @IBOutlet var tableView: UITableView!
     private var sessionSummaries: [Exercise.SessionSummary] = []
+    private var sessionDates: [Exercise.SessionDate] = []
     private var sessionSuggestions: [Exercise.SessionSuggestion] = [
         Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
         Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
@@ -93,9 +94,9 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
                     self.headerView.setProfileImage(image)
                 }
             })
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, ctx.apply { x in
-                self.sessionSummaries = x
-                self.tableView.reloadData()
+            LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!, ctx.apply { x in
+                self.sessionDates = x
+                self.headerView.reloadData()
             })
         }
     }
@@ -202,13 +203,26 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     // MARK: HomeControllerHeaderViewDelegate
     
-    func settings() {
+    func headerSettings() {
         let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel".localized(), destructiveButtonTitle: "Logout".localized())
         menu.showFromTabBar(tabBarController?.tabBar)
     }
     
-    func editProfile() {
+    func headerEditProfile() {
         performSegueWithIdentifier("profile", sender: self)
+    }
+    
+    func headerDateSelected(date: NSDate) {
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
+                self.sessionSummaries = x
+                self.tableView.reloadData()
+            })
+        }
+    }
+    
+    func headerSessionsOnDate(date: NSDate) -> Exercise.SessionDate? {
+        return sessionDates.filter { elem in return elem.date == date }.first
     }
     
 }

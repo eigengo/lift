@@ -1,7 +1,5 @@
 package com.eigengo.lift.exercise
 
-import java.io.FileOutputStream
-
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
@@ -15,7 +13,6 @@ import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
-import scala.util.Try
 import scalaz.\/
 
 /**
@@ -34,7 +31,7 @@ object UserExercises {
    * @param sessionId the sessionProps identity
    * @param bits the submitted bits
    */
-  case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
+  case class UserExerciseDataProcessSinglePacket(userId: UserId, sessionId: SessionId, bits: BitVector)
 
   /**
    * User classified exercise.
@@ -46,11 +43,44 @@ object UserExercises {
   case class UserExerciseClassify(userId: UserId, sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity])
 
   /**
-   * Process exercise data for the given sessionProps
+   * Receive multiple packets of data for the given ``userId`` and ``sessionId``. The ``packets`` is a ZIP archive
+   * containing multiple files, each representing a single packet. Imagine that this message results in at least
+   * one ``UserExerciseDataProcessSinglePacket`` messages.
+   *
+   * The main notion is that all packets in the archive have been measured *at the same time*. It is possible that
+   * the archive contains the following files.
+   *
+   * {{{
+   * ad-watch.dat  (accelerometer data from the watch)
+   * ad-mobile.dat (accelerometer data from the mobile)
+   * ad-shoe.dat   (accelerometer data from a shoe sensor)
+   * hr-watch.dat  (heart rate from the watch)
+   * hr-strap.dat  (heart rate from a HR strap)
+   * ...
+   * }}}
+   *
+   * The files should be processed accordingly (by examining their content, not their file names), and the exercise
+   * classifiers should use all available information to determine the exercise
+   *
+   * @param userId the user identity
+   * @param sessionId the session identity
+   * @param packets the archive containing at least one packet
+   */
+  case class UserExerciseDataProcessMultiplePackets(userId: UserId, sessionId: SessionId, packets: Array[Byte])
+
+  /**
+   * Process exercise data for the given session
    * @param sessionId the sessionProps identifier
    * @param bits the exercise data bits
    */
-  private case class ExerciseDataProcess(sessionId: SessionId, bits: BitVector)
+  private case class ExerciseDataProcessSinglePacket(sessionId: SessionId, bits: BitVector)
+
+  /**
+   * Process exercise data for the given session
+   * @param sessionId the sessionProps identifier
+   * @param packets the bytes representing an archive with multiple exercise data bits
+   */
+  private case class ExerciseDataProcessMultiplePackets(sessionId: SessionId, packets: Array[Byte])
 
   /**
    * Starts the user exercise sessionProps
@@ -95,10 +125,11 @@ object UserExercises {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseSessionStart(userId, session)                  ⇒ (userId.toString, ExerciseSessionStart(session))
-    case UserExerciseSessionEnd(userId, sessionId)                  ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcess(userId, sessionId, data)           ⇒ (userId.toString, ExerciseDataProcess(sessionId, data))
-    case UserExerciseClassify(userId, sessionId, name, intensity)   ⇒ (userId.toString, UserClassifiedExercise(userId, sessionId, name, intensity))
+    case UserExerciseSessionStart(userId, session)                          ⇒ (userId.toString, ExerciseSessionStart(session))
+    case UserExerciseSessionEnd(userId, sessionId)                          ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
+    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)       ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
+    case UserExerciseDataProcessMultiplePackets(userId, sessionId, packets) ⇒ (userId.toString, ExerciseDataProcessMultiplePackets(sessionId, packets))
+    case UserExerciseClassify(userId, sessionId, name, intensity)           ⇒ (userId.toString, UserClassifiedExercise(userId, sessionId, name, intensity))
   }
 
   /**
@@ -107,7 +138,8 @@ object UserExercises {
   val shardResolver: ShardRegion.ShardResolver = {
     case UserExerciseSessionStart(userId, _)                        ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionEnd(userId, _)                          ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcess(userId, _, _)                      ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessSinglePacket(userId, _, _)          ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessMultiplePackets(userId, _, _)       ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseClassify(userId, sessionId, name, intensity)   ⇒ s"${userId.hashCode() % 10}"
   }
 
@@ -120,10 +152,9 @@ object UserExercises {
 class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
   import akka.pattern.ask
-  import scala.concurrent.duration._
 
+import scala.concurrent.duration._
   private val userId = UserId(self.path.name)
-  import com.eigengo.lift.common.Timeouts.defaults._
   import context.dispatcher
   (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
     case ds ⇒
@@ -178,25 +209,26 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         context.become(exercising(newId, newSessionProps))
       }
 
-    case ExerciseDataProcess(`id`, bits) ⇒
-      log.info("ExerciseDataProcess: exercising -> exercising.")
+    case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
+      log.debug("ExerciseDataProcess: exercising -> exercising.")
       // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
       // Ideally, this will go somewhere more durable, but this is sufficient for now.
-      Try {
-        val fos = new FileOutputStream(s"/tmp/ad-${System.currentTimeMillis()}.dat")
-        fos.write(bits.toByteArray)
-        fos.close()
-      }.toOption
+      UserExercisesTracing.saveBits(id, bits)
 
       val result = decodeAll(bits, Nil)
+
+      UserExercisesTracing.saveAccelerometerData(id, result._2)
+
       validateData(result).fold(
         { err ⇒ sender() ! \/.left(err)},
         { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
       )
 
-    case c: ClassifiedExercise => c match {
+    case ExerciseDataProcessMultiplePackets(`id`, _) ⇒
+      sender() ! \/.left("Not implemented yet")
+      
       case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-        log.info("FullyClassifiedExercise: exercising -> exercising.")
+      log.debug("FullyClassifiedExercise: exercising -> exercising.")
         persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
           tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
           intensity.foreach { i ⇒
@@ -205,6 +237,10 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
           }
         }
 
+    case Tap ⇒
+      persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
+        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+      }
       case UserClassifiedExercise(userId, sessionId, name, intensity) =>
         //TODO: override classifier decision
         log.info("UserClassifiedExercise: exercising -> exercising.")
@@ -215,20 +251,20 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
 
       case NoExercise(metadata) ⇒
-        log.info("NoExercise: exercising -> exercising.")
+      log.debug("NoExercise: exercising -> exercising.")
         persist(NoExerciseEvt(id, metadata)) { evt ⇒
           tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         }
     }
 
     case TooMuchRest ⇒
-      log.info("NoExercise: exercising -> exercising.")
+      log.debug("NoExercise: exercising -> exercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
         notification ! PushMessage(devices, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
       }
 
     case ExerciseSessionEnd(`id`) ⇒
-      log.info("ExerciseSessionEnd: exercising -> not exercising.")
+      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)
@@ -243,6 +279,8 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         sender() ! \/.right(evt.sessionId)
         context.become(exercising(evt.sessionId, sessionProps))
       }
+    case ExerciseSessionEnd(_) ⇒
+      sender() ! \/.left("Not in session")
   }
 
   override def receiveCommand: Receive = notExercising

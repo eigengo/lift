@@ -10,10 +10,10 @@ trait AutoPassivation extends ActorLogging {
   private val passivationReceive: Receive = {
     // passivation support
     case ReceiveTimeout ⇒
-      log.info("ReceiveTimeout: passivating.")
+      log.debug("ReceiveTimeout: passivating.")
       context.parent ! Passivate(stopMessage = 'stop)
     case 'stop ⇒
-      log.info("'stop: bye-bye, cruel world, see you after recovery.")
+      log.debug("'stop: bye-bye, cruel world, see you after recovery.")
       context.stop(self)
   }
 

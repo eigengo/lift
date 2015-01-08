@@ -72,10 +72,15 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseGetMuscleGroups()
     
     ///
-    /// Retrieves all the exercises for the given ``userId``
+    /// Retrieves all the exercises for the given ``userId`` and ``date``
     ///
-    case ExerciseGetExerciseSessionsSummary(/*userId: */NSUUID)
-    
+    case ExerciseGetExerciseSessionsSummary(/*userId: */NSUUID, /*date: */NSDate)
+
+    ///
+    /// Retrieves all the session dates for the given ``userId``
+    ///
+    case ExerciseGetExerciseSessionsDates(/*userId: */NSUUID)
+
     ///
     /// Retrieves all the exercises for the given ``userId`` and ``sessionId``
     ///
@@ -96,6 +101,19 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     ///
     case ExerciseSessionEnd(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
+    private struct Format {
+        private static let simpleDateFormatter: NSDateFormatter = {
+            let dateFormatter = NSDateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            return dateFormatter
+        }()
+        
+        static func simpleDate(date: NSDate) -> String {
+            return simpleDateFormatter.stringFromDate(date)
+        }
+        
+    }
+    
     // MARK: URLStringConvertible
     var Request: LiftServerRequest {
         get {
@@ -113,7 +131,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                     
                 case .ExerciseGetMuscleGroups(): return LiftServerRequest(path: "/exercise/musclegroups", method: Method.GET)
                     
-                case .ExerciseGetExerciseSessionsSummary(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
+                case .ExerciseGetExerciseSessionsSummary(let userId, let date): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)?date=\(Format.simpleDate(date))", method: Method.GET)
+                case .ExerciseGetExerciseSessionsDates(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
                 case .ExerciseGetExerciseSession(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.GET)
                     
                 case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.POST)

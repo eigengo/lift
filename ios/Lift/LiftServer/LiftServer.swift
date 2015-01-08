@@ -247,11 +247,16 @@ public class LiftServer {
     ///
     /// Get summary of all sessions
     ///
-    func exerciseGetExerciseSessionsSummary(userId: NSUUID, f: Result<[Exercise.SessionSummary]> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseGetExerciseSessionsSummary(userId))
+    func exerciseGetExerciseSessionsSummary(userId: NSUUID, date: NSDate, f: Result<[Exercise.SessionSummary]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetExerciseSessionsSummary(userId, date))
             .responseAsResutlt(f) { json -> [Exercise.SessionSummary] in
                 return json.arrayValue.map(Exercise.SessionSummary.unmarshal)
             }
+    }
+    
+    func exerciseGetExerciseSessionsDates(userId: NSUUID, f: Result<[Exercise.SessionDate]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetExerciseSessionsDates(userId))
+            .responseAsResutlt(f) { json in return json.arrayValue.map(Exercise.SessionDate.unmarshal) }
     }
 
     ///
