@@ -143,8 +143,8 @@ object UserExercisesView {
      * Computes the session dates
      * @return the session dates
      */
-    def dates: List[SessionDate] = sessions.groupBy(_.sessionProps.startDate.midnight).map { case (date, sessions) ⇒
-      SessionDate(date, sessions.map(s ⇒ SessionIntensity(s.sessionProps.intendedIntensity, s.intensity)))
+    def dates: List[SessionDate] = sessions.groupBy(_.sessionProps.startDate.midnight).map { case (date, exerciseSessions) ⇒
+      SessionDate(date, exerciseSessions.map(s ⇒ SessionIntensity(s.sessionProps.intendedIntensity, s.intensity)))
     }.toList
   }
 
@@ -175,6 +175,12 @@ object UserExercisesView {
    * @param exercise the result
    */
   case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, exercise: Exercise)
+
+  /**
+   * Explicit (user-provided through tapping the device, for example) of exercise set.
+   * @param sessionId the session identity
+   */
+  case class ExerciseSetExplicitMarkEvt(sessionId: SessionId)
 
   /**
    * No exercise: rest or just being lazy
@@ -296,6 +302,9 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
     case TooMuchRestEvt(_) if isPersistent ⇒
       log.debug("TooMuchRestEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
+    case ExerciseSetExplicitMarkEvt(_) ⇒
+      log.debug("ExerciseSetExplicitMarkEvt: in a set -> exercising.")
+      context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
 
     case SessionEndedEvt(_) if isPersistent ⇒
       log.debug("SessionEndedEvt: in a set -> not exercising.")
@@ -308,6 +317,10 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
     case ExerciseEvt(_, metadata, exercise) if isPersistent ⇒
       log.debug("ExerciseEvt: exercising -> in a set.")
       context.become(inASet(session, ExerciseSet(metadata, exercise)).orElse(queries))
+
+    case ExerciseSetExplicitMarkEvt(_) ⇒
+      log.debug("ExerciseSetExplicitMarkEvt: exercising -> in a set.")
+      context.become(inASet(session, ExerciseSet.empty).orElse(queries))
 
     case TooMuchRestEvt(_) ⇒
       log.debug("TooMuchRest: exercising -> exercising.")

@@ -97,6 +97,11 @@ object ExerciseClassifier {
    */
   case class NoExercise(metadata: ModelMetadata) extends ClassifiedExercise
 
+  /**
+   * The user has tapped the input device
+   */
+  case object Tap extends ClassifiedExercise
+
 }
 
 /**

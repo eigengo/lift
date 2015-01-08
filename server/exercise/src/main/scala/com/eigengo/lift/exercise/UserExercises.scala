@@ -7,7 +7,7 @@ import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
-import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, NoExercise, UnclassifiedExercise}
+import com.eigengo.lift.exercise.ExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.notification.NotificationProtocol.{Devices, MobileDestination, PushMessage, WatchDestination}
@@ -190,6 +190,11 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
           if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
           if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
         }
+      }
+
+    case Tap ⇒
+      persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
+        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
       }
 
     case UnclassifiedExercise(_) ⇒
