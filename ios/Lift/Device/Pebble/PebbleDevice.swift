@@ -42,9 +42,11 @@ class PebbleDeviceSession : DeviceSession {
     }
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
-        if let x = data[0xface0fb0] as? NSData {
+        let adKey = NSNumber(uint32: 0xface0fb0)
+        let deadKey = NSNumber(uint32: 0x0000dead)
+        if let x = data[adKey] as? NSData {
             accelerometerDataReceived(x)
-        } else if let x: AnyObject = data[0x0000dead] {
+        } else if let x: AnyObject = data[deadKey] {
             stop(watch)
         }
         return true
@@ -155,7 +157,6 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
     }
     
     func stop() {
-        // TODO: Implement me
         findWatch().either({ x in self.deviceDelegate.deviceDidNotConnect(x) }, onR: { $0.appMessagesKill(self.appKilled) })
     }
     
