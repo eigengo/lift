@@ -1,5 +1,8 @@
 library(emuR)
 library(FactoMineR)
+library(ggplot2)
+library(grid)
+library(gridExtra)
 
 # Function to extract a collection of moving windows (of size `size`) from a example (time series) data.
 #
@@ -14,16 +17,45 @@ windowSampling = function(data, size, inc = 10) {
   lapply(startIndexes, function(index) { list(index, index+size-1, data[index:(index+size-1),]) })
 }
 
+# Function that overlays (in blue) current sample window on the example (time series) data.
+#
+# @param data       time series data over which we will move our sampling window
+# @param startIndex start index to sample window
+# @param endIndex   end index to sample window
+graphWindowedData = function(data, startIndex, endIndex) {
+  graphData = data.frame(t=rep(1:dim(data)[1]), data)
+  xGraph = ggplot() +
+    geom_line(mapping=aes(x=t, y=x), data=graphData) +
+    annotate("rect", xmin=startIndex, xmax=endIndex, ymin=min(data["x"]), ymax=max(data["x"]), fill="blue", alpha=0.2) +
+    xlab("time")
+  yGraph = ggplot() +
+    geom_line(mapping=aes(x=t, y=y), data=graphData) +
+    annotate("rect", xmin=startIndex, xmax=endIndex, ymin=min(data["y"]), ymax=max(data["y"]), fill="blue", alpha=0.2) +
+    xlab("time")
+  zGraph = ggplot() +
+    geom_line(mapping=aes(x=t, y=z), data=graphData) +
+    annotate("rect", xmin=startIndex, xmax=endIndex, ymin=min(data["z"]), ymax=max(data["z"]), fill="blue", alpha=0.2) +
+    xlab("time")
+  grid.arrange(xGraph, yGraph, zGraph, main="Does this (blue) window contain a Tap event?")
+}
+
 # Function to split an input CSV file (holding accelerometer data) into a (saved) collection of sampling windows.
 #
 # @param input
 # @param size
 # @param inc
-splitInput = function(input, size, inc = 10) {
-  input.csv = read.csv(file=input, col.names=c("x", "y", "z"))
+splitAndClassifyInput = function(input, size, inc = 10) {
+  csv = read.csv(file=input, col.names=c("x", "y", "z"))
   baseFilename = sub("\\.csv", "", input)
-  for (window in windowSampling(input.csv, size, inc)) {
-    write.table(window[3], file=paste(baseFilename, "-", window[1], "-", window[2], ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
+  for (window in windowSampling(csv, size, inc)) {
+    graphWindowedData(csv, as.integer(window[1]), as.integer(window[2]))
+    cat("Does this (blue) window contain a Tap event? (y/N): ")
+    answer = scan(what=character(), nmax=1, quiet=TRUE)
+    if (toString(answer) == "y") {
+      write.table(window[3], file=paste(baseFilename, "-", window[1], "-", window[2], "-tap", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
+    } else {
+      write.table(window[3], file=paste(baseFilename, "-", window[1], "-", window[2], ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
+    }
   }
 }
 
