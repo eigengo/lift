@@ -111,7 +111,8 @@ internal class UIParallaxViewController : UIViewController, UIScrollViewDelegate
     }
     
     func scrollToTop() {
-        mainScrollView.contentOffset.y = 10
+        cv.contentOffset.y = 0
+        mainScrollView.contentOffset.y = -navBarHeight()
     }
 
     // MARK: UIScrollViewDelegate
