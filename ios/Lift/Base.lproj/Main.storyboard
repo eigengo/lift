@@ -343,6 +343,11 @@
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" red="0.93725490196078431" green="0.93725490196078431" blue="0.95686274509803926" alpha="1" colorSpace="calibratedRGB"/>
+                                <view key="tableHeaderView" contentMode="scaleToFill" id="7j3-VA-0yU" customClass="JTCalendarContentView">
+                                    <rect key="frame" x="0.0" y="64" width="414" height="83"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </view>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="session" rowHeight="91" id="hBO-15-UU4" customClass="SessionTableViewCell" customModule="Lift" customModuleProvider="target">
                                         <autoresizingMask key="autoresizingMask"/>
@@ -409,7 +414,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" title="Home" id="Pap-19-p9f">
-                        <barButtonItem key="leftBarButtonItem" systemItem="compose" id="qzx-sK-weC">
+                        <barButtonItem key="leftBarButtonItem" title="Profile" id="qzx-sK-weC">
                             <connections>
                                 <action selector="editProfile" destination="7ml-CA-58H" id="Qow-4L-e0H"/>
                             </connections>
@@ -420,8 +425,10 @@
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
+                        <outlet property="calendarContentView" destination="7j3-VA-0yU" id="cA8-fi-yQI"/>
                         <outlet property="tableView" destination="9qo-lk-hsU" id="1dT-bq-kLX"/>
                         <segue destination="DyL-Am-q2t" kind="push" identifier="sessionDetail" id="db4-ms-6cg"/>
                         <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>

@@ -302,8 +302,8 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
 
     case SessionDeletedEvt(sessionId) if isPersistent ⇒
-      saveSnapshot(exercises)
       exercises = exercises.withoutSession(sessionId)
+      saveSnapshot(exercises)
   }
 
   private def inASet(session: ExerciseSession, set: ExerciseSet): Receive = {
