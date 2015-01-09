@@ -2,17 +2,20 @@ package com.eigengo.lift.exercise
 
 import java.util.{Calendar, Date}
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{ActorRef, ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{SnapshotOffer, PersistentView}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.ExerciseClassifier.ModelMetadata
+import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, Devices}
+import com.eigengo.lift.profile.UserProfileNotifications
+import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 
 object UserExercisesView {
   /** The shard name */
   val shardName = "user-exercises-view"
   /** The props to create the actor on a node */
-  val props = Props[UserExercisesView]
+  def props(notification: ActorRef, profile: ActorRef) = Props(classOf[UserExercisesView], notification, profile)
 
   /**
    * A single recorded exercise
@@ -267,12 +270,17 @@ object UserExercisesView {
 
 }
 
-class UserExercisesView extends PersistentView with ActorLogging with AutoPassivation {
+class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends PersistentView with ActorLogging
+  with AutoPassivation with UserProfileNotifications {
   import com.eigengo.lift.exercise.UserExercisesView._
   import scala.concurrent.duration._
 
   // our internal state
   private var exercises = Exercises.empty
+
+  // values from the profile
+  private val userId = UserId(self.path.name)
+  private val notificationSender = allDevicesSender(userId, notification, userProfile)
 
   // we'll hang around for 360 seconds, just like the exercise sessions
   context.setReceiveTimeout(360.seconds)
@@ -323,7 +331,9 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: in a set -> not exercising.")
       exercises = exercises.withNewSession(session.withNewExerciseSet(set))
+      notificationSender ! "{}"
       saveSnapshot(exercises)
+
       context.become(notExercising.orElse(queries))
   }
   
@@ -341,8 +351,9 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
 
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: exercising -> not exercising.")
-      saveSnapshot(exercises)
+      notificationSender ! "{}"
       exercises = exercises.withNewSession(session)
+      saveSnapshot(exercises)
   }
 
   override def receive: Receive = withPassivation {

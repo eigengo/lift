@@ -37,7 +37,7 @@ object ExerciseBoot extends ExerciseService {
       shardResolver = UserExercises.shardResolver)
     val userExerciseView = ClusterSharding(system).start(
       typeName = UserExercisesView.shardName,
-      entryProps = Some(UserExercisesView.props),
+      entryProps = Some(UserExercisesView.props(notification, profile)),
       idExtractor = UserExercisesView.idExtractor,
       shardResolver = UserExercisesView.shardResolver)
 

@@ -11,7 +11,6 @@
 		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
-		5429608E1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
@@ -73,6 +72,7 @@
 		54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
 		54F0C0041A602B9A00D1A9C8 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */; };
+		54F0C0061A60349300D1A9C8 /* RemoteNotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F0C0051A60349300D1A9C8 /* RemoteNotificationDelegate.swift */; };
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54FBCD1F1A5BF0FA00E2CB2C /* arms-bicep-curl.dat in Resources */ = {isa = PBXBuildFile; fileRef = 54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */; };
@@ -125,7 +125,6 @@
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
-		5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+ParallaxBlur.swift"; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
 		543B26FC1A49D18800381298 /* Accelerometer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accelerometer.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
@@ -197,6 +196,7 @@
 		54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftUserDefaults.swift; sourceTree = "<group>"; };
 		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
 		54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		54F0C0051A60349300D1A9C8 /* RemoteNotificationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteNotificationDelegate.swift; sourceTree = "<group>"; };
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
 		54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "arms-bicep-curl.dat"; sourceTree = "<group>"; };
@@ -382,9 +382,9 @@
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
 				54618F7D1A5744710017CA2D /* ResultContext.swift */,
 				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
-				5429608D1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift */,
 				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
 				54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */,
+				54F0C0051A60349300D1A9C8 /* RemoteNotificationDelegate.swift */,
 			);
 			path = Lift;
 			sourceTree = "<group>";
@@ -713,6 +713,7 @@
 				54C6EFEA1A2F8FF00044BDAB /* SessionDetailController.swift in Sources */,
 				54DB7DC71A4A01290075A420 /* String+Localisation.swift in Sources */,
 				54DB071B1A49E65400DC1E91 /* Device.swift in Sources */,
+				54F0C0061A60349300D1A9C8 /* RemoteNotificationDelegate.swift in Sources */,
 				54C37B851A4C116C0036C0C8 /* PropertyTableViewCell.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
@@ -733,7 +734,6 @@
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
 				54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
-				5429608E1A50CACC006A0D97 /* UIViewController+ParallaxBlur.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,

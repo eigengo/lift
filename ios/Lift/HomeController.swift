@@ -62,7 +62,7 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
 }
 
 class HomeController : UIViewController, UITableViewDataSource,
-    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource {
+    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource, RemoteNotificationDelegate {
     
     @IBOutlet var tableView: UITableView!
     @IBOutlet var calendarContentView: JTCalendarContentView!
@@ -228,6 +228,11 @@ class HomeController : UIViewController, UITableViewDataSource,
         if buttonIndex == 0 {
             performSegueWithIdentifier("logout", sender: self)
         }
+    }
+    
+    // MARK: RemoteNotificationDelegate
+    func remoteNotificationReceivedAlert(alert: String) {
+        calendarDidDateSelected(self.calendar, date: NSDate())
     }
     
     // MARK: Actions

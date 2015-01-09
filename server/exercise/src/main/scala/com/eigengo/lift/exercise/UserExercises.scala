@@ -182,8 +182,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
   import com.eigengo.lift.common.Timeouts.defaults._
 
   (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
-    case ds ⇒
-      devices = ds
+    case ds ⇒ devices = ds
   }
 
   // minimum confidence
