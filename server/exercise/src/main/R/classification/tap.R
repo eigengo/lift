@@ -4,6 +4,12 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 
+########################################################################################################################
+#
+# Data Tagging (for Supervised Learning)
+#
+########################################################################################################################
+
 # Function to extract a collection of moving windows (of size `size`) from a example (time series) data.
 #
 # @param data time series data over which we will move our sampling window
@@ -39,25 +45,43 @@ graphWindowedData = function(data, startIndex, endIndex) {
   grid.arrange(xGraph, yGraph, zGraph, main="Does this (blue) window contain a Tap event?")
 }
 
-# Function to split an input CSV file (holding accelerometer data) into a (saved) collection of sampling windows.
+# TODO: documentation
 #
-# @param input
-# @param size
-# @param inc
+# @param data       time series data over which we will move our sampling window
+# @param startIndex start index to sample window
+# @param endIndex   end index to sample window
+# @param label      label to tag (user) classified data with
+labelInput = function(data, startIndex, endIndex, label) {
+  graphWindowedData(data, startIndex, endIndex)
+  cat("Does this (blue) window contain a Tap event? (y/N): ")
+  answer = scan(what=character(), nmax=1, quiet=TRUE)
+  if (toString(answer) == "y") {
+    label
+  } else {
+    ""
+  }
+}
+
+# Function to split an input CSV file (holding accelerometer data) into a (saved) collection of sampling windows. Used
+# for DEBUGGING.
+#
+# @param input CSV file name holding accelerometer data
+# @param size  size of sampling window
+# @param inc   increment by which we move sampling window (default is 10 events)
 splitAndClassifyInput = function(input, size, inc = 10) {
   csv = read.csv(file=input, col.names=c("x", "y", "z"))
   baseFilename = sub("\\.csv", "", input)
   for (window in windowSampling(csv, size, inc)) {
-    graphWindowedData(csv, as.integer(window[1]), as.integer(window[2]))
-    cat("Does this (blue) window contain a Tap event? (y/N): ")
-    answer = scan(what=character(), nmax=1, quiet=TRUE)
-    if (toString(answer) == "y") {
-      write.table(window[3], file=paste(baseFilename, "-", window[1], "-", window[2], "-tap", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
-    } else {
-      write.table(window[3], file=paste(baseFilename, "-", window[1], "-", window[2], ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
-    }
+    label = labelInput(csv, as.integer(window[1]), as.integer(window[2]), "-tap")
+    write.table(window[3], file=paste(baseFilename, "-", window[1], "-", window[2], label, ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
   }
 }
+
+########################################################################################################################
+#
+# Feature Extraction
+#
+########################################################################################################################
 
 # Function to extract a feature vector from a given set of example (time series) data. Internally, we extract feature
 # vectors using discrete cosine transform (DCT) algorithm.
@@ -70,6 +94,38 @@ featureVector = function(data, approx) {
   dct(data, approx, fit=FALSE)
 }
 
+# TODO: document
+# Used for DEBUGGING.
+#
+# @param input  CSV file name holding accelerometer data
+# @param size   size of sampling window
+# @param approx (positive) integer describing the number of coefficients (i.e. level of approximation) that the underlying
+#               DCT algorithm should use
+# @param tag    used to tag (user) classified data with
+# @param inc    increment by which we move sampling window (default is 10 events)
+buildFeatureVectors = function(input, size, approx, tag, inc = 10) {
+  if (approx >= 3 * size) {
+    cat("`approx` needs to be below 3 * `size`")
+    return()
+  }
+  csv = read.csv(file=input, col.names=c("x", "y", "z"))
+  baseFilename = sub("\\.csv", "", input)
+  result = NULL
+  for (window in windowSampling(csv, size, inc)) {
+    label = labelInput(csv, as.integer(window[1]), as.integer(window[2]), tag)
+    windowData = as.data.frame(window[3])
+    feature = featureVector(t(data.frame(windowData["x"], windowData["y"], windowData["z"])), approx)
+    rbind(result, data.frame(label, t(feature))) -> result
+  }
+  write.table(na.omit(result), file=paste(baseFilename, "-", tag, "-", approx, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
+}
+
+########################################################################################################################
+#
+# Dimensional Reduction of Features
+#
+########################################################################################################################
+
 # Function to calculate loadings (i.e. how to map [normalised] feature vectors into the [reduced] PCA space) from a
 # principle component analysis (PCA) result data structure.
 #
@@ -80,5 +136,11 @@ featureVector = function(data, approx) {
 loadings = function(pca) {
   sweep(pca$var$coord, 2, sqrt(pca$eig[1:ncol(pca$var$coord), 1]), FUN="/")
 }
+
+########################################################################################################################
+#
+# Machine Learning
+#
+########################################################################################################################
 
 # TODO: add in SVM training code!
