@@ -125,7 +125,7 @@ object UserExercisesView {
      * @param id the session to be removed
      * @return the exercises without the specified session
      */
-    def withoutSession(id: SessionId): Exercises = copy(sessions = sessions.filter(_.id != id))
+    def withoutSession(id: SessionId): Exercises = copy(sessions = sessions.dropWhile(_.id == id))
 
     /**
      * Gets a session identified by ``sessionId``
