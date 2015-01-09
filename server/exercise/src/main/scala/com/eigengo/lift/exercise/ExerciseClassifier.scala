@@ -87,15 +87,6 @@ object ExerciseClassifier {
   case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
 
   /**
-   * User classified exercise.
-   * @param userId user
-   * @param sessionId session
-   * @param name the exercise name
-   * @param intensity the intensity, if known
-   */
-  case class UserClassifiedExercise(userId: UserId, sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
-
-  /**
     * Unknown exercise
    * @param metadata the model
    */

@@ -282,11 +282,11 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
 
   private lazy val notExercising: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Exercises) ⇒
-      log.debug("SnapshotOffer: not exercising -> not exercising.")
+      log.info("SnapshotOffer: not exercising -> not exercising.")
       exercises = offeredSnapshot
 
     case SessionStartedEvt(sessionId, sessionProps) if isPersistent ⇒
-      log.debug("SessionStartedEvt: not exercising -> exercising.")
+      log.info(s"SessionStartedEvt($sessionId, $sessionProps): not exercising -> exercising.")
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
   }
 
@@ -305,7 +305,7 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
 
     case SessionEndedEvt(_) if isPersistent ⇒
-      log.debug("SessionEndedEvt: in a set -> not exercising.")
+      log.info("SessionEndedEvt: in a set -> not exercising.")
       exercises = exercises.withNewSession(session.withNewExerciseSet(set))
       saveSnapshot(exercises)
       context.become(notExercising.orElse(queries))
@@ -324,7 +324,7 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
       log.debug("TooMuchRest: exercising -> exercising.")
 
     case SessionEndedEvt(_) if isPersistent ⇒
-      log.debug("SessionEndedEvt: exercising -> not exercising.")
+      log.info("SessionEndedEvt: exercising -> not exercising.")
       saveSnapshot(exercises)
       exercises = exercises.withNewSession(session)
   }

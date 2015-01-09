@@ -83,6 +83,14 @@ object UserExercises {
   private case class ExerciseDataProcessMultiplePackets(sessionId: SessionId, packets: Array[Byte])
 
   /**
+   * User classified exercise.
+   * @param sessionId session
+   * @param name the exercise name
+   * @param intensity the intensity, if known
+   */
+  private case class UserClassifiedExercise(sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity])
+
+  /**
    * Starts the user exercise sessionProps
    * @param userId the user identity
    * @param sessionProps the sessionProps details
@@ -129,7 +137,7 @@ object UserExercises {
     case UserExerciseSessionEnd(userId, sessionId)                          ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
     case UserExerciseDataProcessSinglePacket(userId, sessionId, data)       ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
     case UserExerciseDataProcessMultiplePackets(userId, sessionId, packets) ⇒ (userId.toString, ExerciseDataProcessMultiplePackets(sessionId, packets))
-    case UserExerciseClassify(userId, sessionId, name, intensity)           ⇒ (userId.toString, UserClassifiedExercise(userId, sessionId, name, intensity))
+    case UserExerciseClassify(userId, sessionId, name, intensity)           ⇒ (userId.toString, UserClassifiedExercise(sessionId, name, intensity))
   }
 
   /**
@@ -229,37 +237,33 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
     case ExerciseDataProcessMultiplePackets(`id`, _) ⇒
       sender() ! \/.left("Not implemented yet")
 
-    case e: ClassifiedExercise => e match {
-      case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-        log.debug("FullyClassifiedExercise: exercising -> exercising.")
-        persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
-          tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-          intensity.foreach { i ⇒
-            if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-            if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          }
-        }
-
-      case Tap ⇒
-        persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
-          tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-        }
-
-      case UserClassifiedExercise(userId, sessionId, name, intensity) =>
-        //TODO: override classifier decision
-        log.debug("UserClassifiedExercise: exercising -> exercising.")
-        self ! FullyClassifiedExercise(ModelMetadata(1), 1, name, intensity)
-
-      case UnclassifiedExercise(_) ⇒
-        // Maybe notify the user?
+    case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
+      log.debug("FullyClassifiedExercise: exercising -> exercising.")
+      persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-
-      case NoExercise(metadata) ⇒
-        log.debug("NoExercise: exercising -> exercising.")
-        persist(NoExerciseEvt(id, metadata)) { evt ⇒
-          tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+        intensity.foreach { i ⇒
+          if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
         }
-    }
+      }
+
+    case Tap ⇒
+      persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
+        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+      }
+
+    case UserClassifiedExercise(`id`, name, intensity) =>
+      self ! FullyClassifiedExercise(ModelMetadata(0), 1, name, intensity)
+
+    case UnclassifiedExercise(_) ⇒
+      // Maybe notify the user?
+      tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+
+    case NoExercise(metadata) ⇒
+      log.debug("NoExercise: exercising -> exercising.")
+      persist(NoExerciseEvt(id, metadata)) { evt ⇒
+        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
+      }
 
     case TooMuchRest ⇒
       log.debug("NoExercise: exercising -> exercising.")

@@ -106,6 +106,8 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
         saveSnapshot(profile)
         context.become(registered)
       }
+    case pp: PublicProfile ⇒ profile = profile.withPublicProfile(pp)
+    case pi: Array[Byte] ⇒ profile = profile.withProfileImage(pi)
   }
 
   private def registered: Receive = withPassivation {
