@@ -61,43 +61,49 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
-class HomeController : UIParallaxViewController, UITableViewDataSource,
-    UITableViewDelegate, HomeControllerHeaderViewDelegate, UIActionSheetDelegate {
+class HomeController : UIViewController, UITableViewDataSource,
+    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource {
     
     @IBOutlet var tableView: UITableView!
+    @IBOutlet var calendarContentView: JTCalendarContentView!
+
     private var sessionSummaries: [Exercise.SessionSummary] = []
     private var sessionDates: [Exercise.SessionDate] = []
     private var sessionSuggestions: [Exercise.SessionSuggestion] = [
         Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
         Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
     ]
-    private var headerView: HomeControllerHeaderView!
-    
-    override func contentView() -> UIScrollView {
-        return tableView
-    }
-    
+    private let calendar = JTCalendar()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.scrollEnabled = false
-        headerView = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as HomeControllerHeaderView
-        headerView.setDelegate(self)
-        addHeaderOverlayView(headerView)
         tableView.allowsMultipleSelectionDuringEditing = false
+        calendar.calendarAppearance.isWeekMode = true
+        calendar.menuMonthsView = JTCalendarMenuView()
+        calendar.contentView = calendarContentView
+        
+        calendar.dataSource = self
     }
     
     override func viewDidAppear(animated: Bool) {
         ResultContext.run { ctx in
-            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply(self.headerView.setPublicProfile))
-            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
-                if let image = UIImage(data: data) {
-                    self.setHeaderImage(image)
-                    self.headerView.setProfileImage(image)
+            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply { publicProfile in
+                if let x = publicProfile {
+                    self.navigationItem.title = x.firstName + " " + x.lastName
+                } else {
+                    self.navigationItem.title = "Home".localized()
                 }
             })
+//            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
+//                if let image = UIImage(data: data) {
+//                }
+//            })
             LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!, ctx.apply { x in
                 self.sessionDates = x
-                self.headerView.reloadData()
+                self.calendar.reloadData()
+                self.calendar.currentDate = NSDate()
+                self.calendar.currentDateSelected = NSDate()
+                self.calendarDidDateSelected(self.calendar, date: NSDate())
             })
         }
     }
@@ -146,10 +152,10 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == UITableViewCellEditingStyle.Delete {
-            NSLog("Be gone")
             let sessionId = sessionSummaries[indexPath.row].id
             LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
-                self.headerView.reloadData()
+                self.sessionSummaries = self.sessionSummaries.filter { $0.id != sessionId }
+                self.tableView.reloadData()
             }
         }
     }
@@ -201,27 +207,27 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         }
     }
     
+    // MARK: JTCalendarDataSource
+    
+    func calendarHaveEvent(calendar: JTCalendar!, date: NSDate!) -> Bool {
+        return !sessionDates.filter { elem in return elem.date == date }.isEmpty
+    }
+    
+    func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
+                self.sessionSummaries = x
+                self.tableView.reloadData()
+            })
+        }
+    }
+
+    
     // MARK: UIActionSheetDelegate
     func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
         if buttonIndex == 0 {
             performSegueWithIdentifier("logout", sender: self)
         }
-    }
-    
-    // MARK: HomeControllerHeaderViewDelegate
-    
-    func headerDateSelected(date: NSDate) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
-                self.sessionSummaries = x
-                self.tableView.reloadData()
-                self.scrollToTop()
-            })
-        }
-    }
-    
-    func headerSessionsOnDate(date: NSDate) -> Exercise.SessionDate? {
-        return sessionDates.filter { elem in return elem.date == date }.first
     }
     
     // MARK: Actions
