@@ -24,11 +24,6 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       }
     } ~
     path("exercise" / UserIdValue) { userId ⇒
-      post {
-        handleWith { sessionProps: SessionProps ⇒
-          (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[UUID]
-        }
-      } ~
       get {
         parameters('startDate.as[Date], 'endDate.as[Date]) { (startDate, endDate) ⇒
           complete {
@@ -42,6 +37,20 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         } ~
         complete {
           (userExercisesView ? UserGetExerciseSessionsDates(userId)).mapTo[List[SessionDate]]
+        }
+      }
+    } ~
+    path("exercise" / UserIdValue / "start") { userId ⇒
+      post {
+        handleWith { sessionProps: SessionProps ⇒
+          (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[UUID]
+        }
+      }
+    } ~
+    path("exercise" / UserIdValue / SessionIdValue / "end") { (userId, sessionId) ⇒
+      post {
+        complete {
+          (userExercises ? UserExerciseSessionEnd(userId, sessionId)).mapRight[Unit]
         }
       }
     } ~
@@ -60,13 +69,6 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       delete {
         complete {
           (userExercises ? UserExerciseSessionDelete(userId, sessionId)).mapRight[Unit]
-        }
-      }
-    } ~
-    path("exercise" / UserIdValue / SessionIdValue / "end") { (userId, sessionId) ⇒
-      post {
-        complete {
-          (userExercises ? UserExerciseSessionEnd(userId, sessionId)).mapRight[Unit]
         }
       }
     } ~

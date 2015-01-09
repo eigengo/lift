@@ -141,7 +141,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: x, data: data) {
                 $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
             }
-            tableView.reloadData()
+            if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
+                tableView.reloadData()
+            }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
         }
