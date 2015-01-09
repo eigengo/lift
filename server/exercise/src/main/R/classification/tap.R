@@ -187,7 +187,7 @@ reduceFeatureDimensions = function(inputList, size, approx, tag) {
 # @param replications
 # @param cost
 # @param gamma
-trainSVM = function(tag, approx, reduction, replications = 10, cost = 100, gamma = 1) {
+trainSVM = function(tag, approx, reduction, ratio = 3, replications = 10, cost = 100, gamma = 1) {
   labels = lapply(rep(1:reduction), function(index) { paste("f", index, sep="") })
   data = read.csv(file=paste("svm", "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""))
   names(data) = c("tag", t(labels))
