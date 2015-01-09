@@ -117,6 +117,12 @@ object UserExercisesView {
      */
     def withNewSession(session: ExerciseSession): Exercises = copy(sessions = sessions :+ session)
 
+    /**
+     * Removes a session
+     * @param id the session to be removed
+     * @return the exercises without the specified session
+     */
+    def withoutSession(id: SessionId): Exercises = copy(sessions = sessions.filter(_.id != id))
 
     /**
      * Gets a session identified by ``sessionId``
@@ -159,6 +165,12 @@ object UserExercisesView {
    * @param sessionProps the session props
    */
   case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProps)
+
+  /**
+   * The session has been deleted
+   * @param sessionId the session that was deleted
+   */
+  case class SessionDeletedEvt(sessionId: SessionId)
 
   /**
    * The session has ended
@@ -288,6 +300,10 @@ class UserExercisesView extends PersistentView with ActorLogging with AutoPassiv
     case SessionStartedEvt(sessionId, sessionProps) if isPersistent ⇒
       log.info(s"SessionStartedEvt($sessionId, $sessionProps): not exercising -> exercising.")
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
+
+    case SessionDeletedEvt(sessionId) if isPersistent ⇒
+      saveSnapshot(exercises)
+      exercises = exercises.withoutSession(sessionId)
   }
 
   private def inASet(session: ExerciseSession, set: ExerciseSet): Receive = {

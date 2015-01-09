@@ -266,4 +266,9 @@ public class LiftServer {
         request(LiftServerURLs.ExerciseGetExerciseSession(userId, sessionId))
             .responseAsResutlt(f, Exercise.ExerciseSession.unmarshal)
     }
+    
+    func exerciseDeleteExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseDeleteExerciseSession(userId, sessionId))
+            .responseAsResutlt(f, const(()))
+    }
 }

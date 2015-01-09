@@ -83,6 +83,7 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         headerView = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as HomeControllerHeaderView
         headerView.setDelegate(self)
         addHeaderOverlayView(headerView)
+        tableView.allowsMultipleSelectionDuringEditing = false
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -136,6 +137,20 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
             }
         case 1: performSegueWithIdentifier("sessionDetail", sender: self)
         default: fatalError("Match error")
+        }
+    }
+    
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return indexPath.section == 1
+    }
+    
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if editingStyle == UITableViewCellEditingStyle.Delete {
+            NSLog("Be gone")
+            let sessionId = sessionSummaries[indexPath.row].id
+            LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
+                self.headerView.reloadData()
+            }
         }
     }
         

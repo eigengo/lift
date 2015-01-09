@@ -85,6 +85,11 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     /// Retrieves all the exercises for the given ``userId`` and ``sessionId``
     ///
     case ExerciseGetExerciseSession(/*userId: */NSUUID, /*sessionId: */NSUUID)
+
+    ///
+    /// Deletes all the exercises for the given ``userId`` and ``sessionId``
+    ///
+    case ExerciseDeleteExerciseSession(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
     /// Starts an exercise session for the given ``userId``
@@ -134,10 +139,11 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .ExerciseGetExerciseSessionsSummary(let userId, let date): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)?date=\(Format.simpleDate(date))", method: Method.GET)
                 case .ExerciseGetExerciseSessionsDates(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
                 case .ExerciseGetExerciseSession(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.GET)
+                case .ExerciseDeleteExerciseSession(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.DELETE)
                     
                 case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.POST)
                 case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
-                case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.DELETE)
+                case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
                 }
                 }()
             

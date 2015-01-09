@@ -34,6 +34,13 @@ object UserExercises {
   case class UserExerciseDataProcessSinglePacket(userId: UserId, sessionId: SessionId, bits: BitVector)
 
   /**
+   * Remove a session identified by ``sessionId`` for user identified by ``userId``
+   * @param userId the user identity
+   * @param sessionId the session identity
+   */
+  case class UserExerciseSessionDelete(userId: UserId, sessionId: SessionId)
+
+  /**
    * User classified exercise.
    * @param userId user
    * @param sessionId session
@@ -117,6 +124,12 @@ object UserExercises {
   private case class ExerciseSessionEnd(sessionId: SessionId)
 
   /**
+   * Remove the specified ``sessionId``
+   * @param sessionId the session identity
+   */
+  private case class ExerciseSessionDelete(sessionId: SessionId)
+
+  /**
    * Accelerometer data for the given sessionProps
    * @param sessionId the sessionProps identity
    * @param data the data
@@ -137,6 +150,7 @@ object UserExercises {
     case UserExerciseSessionEnd(userId, sessionId)                          ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
     case UserExerciseDataProcessSinglePacket(userId, sessionId, data)       ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
     case UserExerciseDataProcessMultiplePackets(userId, sessionId, packets) ⇒ (userId.toString, ExerciseDataProcessMultiplePackets(sessionId, packets))
+    case UserExerciseSessionDelete(userId, sessionId)                       ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
     case UserExerciseClassify(userId, sessionId, name, intensity)           ⇒ (userId.toString, UserClassifiedExercise(sessionId, name, intensity))
   }
 
@@ -148,6 +162,7 @@ object UserExercises {
     case UserExerciseSessionEnd(userId, _)                          ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseDataProcessSinglePacket(userId, _, _)          ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseDataProcessMultiplePackets(userId, _, _)       ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionDelete(userId, _)                       ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseClassify(userId, sessionId, name, intensity)   ⇒ s"${userId.hashCode() % 10}"
   }
 
@@ -289,6 +304,11 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       }
     case ExerciseSessionEnd(_) ⇒
       sender() ! \/.left("Not in session")
+
+    case ExerciseSessionDelete(sessionId) ⇒
+      persist(SessionDeletedEvt(sessionId)) { evt ⇒
+        sender() ! \/.right(())
+      }
   }
 
   override def receiveCommand: Receive = notExercising

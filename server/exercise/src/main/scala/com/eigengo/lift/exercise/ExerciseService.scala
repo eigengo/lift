@@ -59,6 +59,13 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       delete {
         complete {
+          (userExercises ? UserExerciseSessionDelete(userId, sessionId)).mapRight[Unit]
+        }
+      }
+    } ~
+    path("exercise" / UserIdValue / SessionIdValue / "end") { (userId, sessionId) ⇒
+      post {
+        complete {
           (userExercises ? UserExerciseSessionEnd(userId, sessionId)).mapRight[Unit]
         }
       }
