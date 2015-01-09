@@ -143,24 +143,31 @@ loadings = function(pca) {
 
 # TODO: document
 #
-# @param input  CSV file name holding accelerometer data
-# @param size   size of sampling window
-# @param approx (positive) integer describing the number of coefficients (i.e. level of approximation) that the underlying
-#               DCT algorithm should use
-# @param tag    used to tag (user) classified data with
-reduceFeatureDimensions = function(input, size, approx, tag) {
-  baseFilename = sub("\\.csv", "", input)
-  fvInput = paste(baseFilename, "-", tag, "-", approx, "-features", ".csv", sep="")
+# @param inputList list of CSV file names holding accelerometer data
+# @param size      size of sampling window
+# @param approx    (positive) integer describing the number of coefficients (i.e. level of approximation) that the underlying
+#                  DCT algorithm should use
+# @param tag       used to tag (user) classified data with
+reduceFeatureDimensions = function(inputList, size, approx, tag) {
   labels = lapply(rep(1:approx), function(index) { paste("f", index, sep="") })
-  featureVectors = read.csv(file=fvInput)
+  featureVectors = NULL
+  for (input in inputList) {
+    baseFilename = sub("\\.csv", "", input)
+    fvInput = paste(baseFilename, "-", tag, "-", approx, "-features", ".csv", sep="")
+    feature = read.csv(file=fvInput)
+    featureData = data.frame(feature)
+    names(featureData) = c("tag", t(labels))
+    rbind(featureVectors, featureData) -> featureVectors
+  }
   names(featureVectors) = c("tag", t(labels))
+  featureVectors = na.omit(featureVectors)
   pca = PCA(featureVectors[,2:(approx+1)])
   print(pca$eig)
   cat("How many PCA dimensions do you wish to keep? ")
   reduction = scan(what=integer(), nmax=1, quiet=TRUE)
   pca = PCA(featureVectors[,2:(approx+1)], ncp=reduction, graph=FALSE)
   result = data.frame(featureVectors[,1], pca$ind$coord)
-  write.table(result, file=paste(baseFilename, "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
+  write.table(result, file=paste("svm", "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
 }
 
 ########################################################################################################################
