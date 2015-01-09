@@ -95,7 +95,6 @@ featureVector = function(data, approx) {
 }
 
 # TODO: document
-# Used for DEBUGGING.
 #
 # @param input  CSV file name holding accelerometer data
 # @param size   size of sampling window
@@ -114,7 +113,12 @@ buildFeatureVectors = function(input, size, approx, tag, inc = 10) {
   for (window in windowSampling(csv, size, inc)) {
     label = labelInput(csv, as.integer(window[1]), as.integer(window[2]), tag)
     windowData = as.data.frame(window[3])
-    feature = featureVector(t(data.frame(windowData["x"], windowData["y"], windowData["z"])), approx)
+    xLabels = lapply(rep(1:size), function(index) { paste("x", index, sep="") })
+    yLabels = lapply(rep(1:size), function(index) { paste("y", index, sep="") })
+    zLabels = lapply(rep(1:size), function(index) { paste("z", index, sep="") })
+    featureData = data.frame(t(windowData["x"]), t(windowData["y"]), t(windowData["z"]))
+    names(featureData) = c(xLabels, yLabels, zLabels)
+    feature = as.data.frame(featureVector(featureData, approx))
     rbind(result, data.frame(label, t(feature))) -> result
   }
   write.table(na.omit(result), file=paste(baseFilename, "-", tag, "-", approx, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
@@ -122,7 +126,7 @@ buildFeatureVectors = function(input, size, approx, tag, inc = 10) {
 
 ########################################################################################################################
 #
-# Dimensional Reduction of Features
+# Dimensional Reduction of Feature Set
 #
 ########################################################################################################################
 
@@ -135,6 +139,28 @@ buildFeatureVectors = function(input, size, approx, tag, inc = 10) {
 # @returns   loadings matrix
 loadings = function(pca) {
   sweep(pca$var$coord, 2, sqrt(pca$eig[1:ncol(pca$var$coord), 1]), FUN="/")
+}
+
+# TODO: document
+#
+# @param input  CSV file name holding accelerometer data
+# @param size   size of sampling window
+# @param approx (positive) integer describing the number of coefficients (i.e. level of approximation) that the underlying
+#               DCT algorithm should use
+# @param tag    used to tag (user) classified data with
+reduceFeatureDimensions = function(input, size, approx, tag) {
+  baseFilename = sub("\\.csv", "", input)
+  fvInput = paste(baseFilename, "-", tag, "-", approx, "-features", ".csv", sep="")
+  xLabels = lapply(rep(1:approx), function(index) { paste("x", index, sep="") })
+  yLabels = lapply(rep(1:approx), function(index) { paste("y", index, sep="") })
+  zLabels = lapply(rep(1:approx), function(index) { paste("z", index, sep="") })
+  featureVectors = read.csv(file=fvInput, col.names=t(c("tag", xLabels, yLabels, zLabels)))
+  pca = PCA(featureVectors[,2:(3 * approx)])
+  pca$eig
+  cat("How many PCA dimensions do you wish to keep?")
+  reduction = scan(what=integer(), nmax=1, quiet=TRUE)
+  result = data.frame(featureVectors[,1], pca$ind$coord[,1:reduction])
+  write.table(result, file=paste(baseFilename, "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
 }
 
 ########################################################################################################################
