@@ -151,15 +151,15 @@ loadings = function(pca) {
 reduceFeatureDimensions = function(input, size, approx, tag) {
   baseFilename = sub("\\.csv", "", input)
   fvInput = paste(baseFilename, "-", tag, "-", approx, "-features", ".csv", sep="")
-  xLabels = lapply(rep(1:approx), function(index) { paste("x", index, sep="") })
-  yLabels = lapply(rep(1:approx), function(index) { paste("y", index, sep="") })
-  zLabels = lapply(rep(1:approx), function(index) { paste("z", index, sep="") })
-  featureVectors = read.csv(file=fvInput, col.names=t(c("tag", xLabels, yLabels, zLabels)))
-  pca = PCA(featureVectors[,2:(3 * approx)])
-  pca$eig
-  cat("How many PCA dimensions do you wish to keep?")
+  labels = lapply(rep(1:approx), function(index) { paste("f", index, sep="") })
+  featureVectors = read.csv(file=fvInput)
+  names(featureVectors) = c("tag", t(labels))
+  pca = PCA(featureVectors[,2:(approx+1)])
+  print(pca$eig)
+  cat("How many PCA dimensions do you wish to keep? ")
   reduction = scan(what=integer(), nmax=1, quiet=TRUE)
-  result = data.frame(featureVectors[,1], pca$ind$coord[,1:reduction])
+  pca = PCA(featureVectors[,2:(approx+1)], ncp=reduction, graph=FALSE)
+  result = data.frame(featureVectors[,1], pca$ind$coord)
   write.table(result, file=paste(baseFilename, "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
 }
 
