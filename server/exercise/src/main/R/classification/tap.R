@@ -1,8 +1,10 @@
+library(e1071)
 library(emuR)
 library(FactoMineR)
 library(ggplot2)
 library(grid)
 library(gridExtra)
+library(rpart)
 
 ########################################################################################################################
 #
@@ -176,4 +178,33 @@ reduceFeatureDimensions = function(inputList, size, approx, tag) {
 #
 ########################################################################################################################
 
-# TODO: add in SVM training code!
+# TODO: document
+#
+# @param tag
+# @param approx
+# @param reduction
+# @param ratio
+# @param replications
+# @param cost
+# @param gamma
+trainSVM = function(tag, approx, reduction, replications = 10, cost = 100, gamma = 1) {
+  labels = lapply(rep(1:reduction), function(index) { paste("f", index, sep="") })
+  data = read.csv(file=paste("svm", "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""))
+  names(data) = c("tag", t(labels))
+  sampleSize = nrow(data)
+  testData = sample(sampleSize, trunc(sampleSize/ratio))
+  testSet = data[testData,]
+  trainingSet = data[-testData,]
+  svm.model = svm(tag ~ ., data = trainingSet, cost = cost, gamma = gamma)
+  svm.pred = predict(svm.model, testSet[,2:ncol(data)])
+  rpart.model = rpart(tag ~ ., data = trainingSet)
+  rpart.pred = predict(rpart.model, testSet[,2:ncol(data)], type = "class")
+  print("Compute SVM confusion matrix")
+  print(table(pred = svm.pred, true = testSet[,1]))
+  print("Compute rpart confusion matrix")
+  print(table(pred = rpart.pred, true = testSet[,1]))
+
+  list(svm.model, svm.pred, rpart.model, rpart.pred)
+}
+
+# TODO: add in SVM classification code!
