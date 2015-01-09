@@ -105,7 +105,13 @@ class HomeController : UIViewController, UITableViewDataSource,
                 self.calendar.currentDateSelected = NSDate()
                 self.calendarDidDateSelected(self.calendar, date: NSDate())
             })
+            AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
         }
+    }
+    
+    override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        AppDelegate.unbecomeCurrentRemoteNotificationDelegate()
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

@@ -6,6 +6,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var deviceToken: NSData?
     var window: UIWindow?
     var alertView: UIAlertView? = nil
+    
+    class func becomeCurrentRemoteNotificationDelegate(delegate: RemoteNotificationDelegate) {
+        (UIApplication.sharedApplication().delegate! as AppDelegate).currentRemoteNotificationDelegate = delegate
+    }
+    
+    class func unbecomeCurrentRemoteNotificationDelegate() {
+        (UIApplication.sharedApplication().delegate! as AppDelegate).currentRemoteNotificationDelegate = nil
+    }
+    
+    weak var currentRemoteNotificationDelegate: RemoteNotificationDelegate?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // notifications et al
@@ -85,8 +95,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject]) {
-        if let ctrl = application.keyWindow?.rootViewController as? RemoteNotificationDelegate {
-            ctrl.remoteNotificationReceivedAlert("foo")
+        if let x = currentRemoteNotificationDelegate {
+            x.remoteNotificationReceivedAlert("foo")
         } else if self.alertView == nil {
             let aps = userInfo["aps"] as [NSObject : AnyObject]
             let alert = aps["alert"] as String
