@@ -4,7 +4,6 @@ library(FactoMineR)
 library(ggplot2)
 library(grid)
 library(gridExtra)
-library(rpart)
 
 ########################################################################################################################
 #
@@ -47,7 +46,7 @@ graphWindowedData = function(data, startIndex, endIndex) {
   grid.arrange(xGraph, yGraph, zGraph, main="Does this (blue) window contain a Tap event?")
 }
 
-# TODO: documentation
+# User interaction function. Used to determine if the current sample window should be tagged (with a label) or not.
 #
 # @param data       time series data over which we will move our sampling window
 # @param startIndex start index to sample window
@@ -96,7 +95,8 @@ featureVector = function(data, approx) {
   dct(data, approx, fit=FALSE)
 }
 
-# TODO: document
+# Function used to build and create file containing example feature vectors. Each row of the CSV data file represents a
+# (user) labeled sample window encoded as a feature vector (extracted using DCT).
 #
 # @param input  CSV file name holding accelerometer data
 # @param size   size of sampling window
@@ -143,13 +143,16 @@ loadings = function(pca) {
   sweep(pca$var$coord, 2, sqrt(pca$eig[1:ncol(pca$var$coord), 1]), FUN="/")
 }
 
-# TODO: document
+# Function that applies PCA to the (previously) extracted feature vectors. In doing so, user interaction is used to
+# determine (from data tables and data visualisations) the level of approximation (i.e. number of approximating
+# coefficients that DCT will use).
 #
 # @param inputList list of CSV file names holding accelerometer data
 # @param size      size of sampling window
 # @param approx    (positive) integer describing the number of coefficients (i.e. level of approximation) that the underlying
 #                  DCT algorithm should use
 # @param tag       used to tag (user) classified data with
+# @returns         PCA model loadings to be used to translate from example space into training space
 reduceFeatureDimensions = function(inputList, size, approx, tag) {
   labels = lapply(rep(1:approx), function(index) { paste("f", index, sep="") })
   featureVectors = NULL
@@ -170,6 +173,7 @@ reduceFeatureDimensions = function(inputList, size, approx, tag) {
   pca = PCA(featureVectors[,2:(approx+1)], ncp=reduction, graph=FALSE)
   result = data.frame(featureVectors[,1], pca$ind$coord)
   write.table(result, file=paste("svm", "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""), sep=",", row.names=FALSE, col.names=FALSE)
+  loadings(pca)
 }
 
 ########################################################################################################################
@@ -178,33 +182,60 @@ reduceFeatureDimensions = function(inputList, size, approx, tag) {
 #
 ########################################################################################################################
 
-# TODO: document
+# Function used to train a support vector machine (SVM).
 #
-# @param tag
-# @param approx
-# @param reduction
-# @param ratio
+# @param tag          tag that data has been (potentially) labeled with (for training)
+# @param approx       (positive) integer describing the number of coefficients (i.e. level of approximation) that the underlying
+#                     DCT algorithm should use
+# @param reduction    number of dimensions kept during the PCA (dimensionality) reduction phase
 # @param replications
-# @param cost
-# @param gamma
-trainSVM = function(tag, approx, reduction, ratio = 3, replications = 10, cost = 100, gamma = 1) {
+# @returns            trained SVM model
+trainSVM = function(tag, approx, reduction, replications = 10) {
   labels = lapply(rep(1:reduction), function(index) { paste("f", index, sep="") })
   data = read.csv(file=paste("svm", "-", tag, "-", approx, "-reduced-", reduction, "-features", ".csv", sep=""))
   names(data) = c("tag", t(labels))
   sampleSize = nrow(data)
-  testData = sample(sampleSize, trunc(sampleSize/ratio))
+  testData = sample(sampleSize, trunc(sampleSize/3))
   testSet = data[testData,]
   trainingSet = data[-testData,]
-  svm.model = svm(tag ~ ., data = trainingSet, cost = cost, gamma = gamma)
+  cost = 100
+  gamma = 1
+  svm.model = svm(tag ~ ., data = trainingSet, cost = 100, gamma = 1, probability = TRUE)
+  print("SVM confusion matrix and model accuracy rates:")
   svm.pred = predict(svm.model, testSet[,2:ncol(data)])
-  rpart.model = rpart(tag ~ ., data = trainingSet)
-  rpart.pred = predict(rpart.model, testSet[,2:ncol(data)], type = "class")
-  print("Compute SVM confusion matrix")
-  print(table(pred = svm.pred, true = testSet[,1]))
-  print("Compute rpart confusion matrix")
-  print(table(pred = rpart.pred, true = testSet[,1]))
+  svmTable = table(pred = svm.pred, true = testSet[,1])
+  print(svmTable)
+  print(classAgreement(svmTable))
 
-  list(svm.model, svm.pred, rpart.model, rpart.pred)
+  svm.model
 }
 
-# TODO: add in SVM classification code!
+# TODO: document
+tuneSVM = function() {
+  # TODO: implement
+}
+
+# Used to classify events in a given accelerometer data file (the `input`) using an SVM classifier.
+#
+# @param input       CSV file containing accelerometer data within which we need to classify events
+# @param pcaLoadings PCA loadings - used to translate from example space into SVM trained data space
+# @param svm         trained SVM model
+# @param tag         label used to classify data
+# @param size        sample window size (used to sample input for classification purposes)
+# @param approx      level of approximation
+# @param inc         distance by which sampling window will iteratively move
+classify = function(input, pcaLoadings, svm, tag, size, approx, inc = 10) {
+  csv = read.csv(file=input, col.names=(c("x", "y", "z")))
+  labels = lapply(rep(1:approx), function(index) { paste("f", index, sep="") })
+
+  for (window in windowSampling(csv, size, inc)) {
+    feature = featureVector(window[3], approx)
+    featureData = data.frame(feature)
+    names(featureData) = c(t(labels))
+    svmFeature = featureData %*% pcaLoadings
+    pred = predict(svm, svmFeature, decision.values = TRUE, probability = TRUE)
+    if (toString(attr(pred, "decision.values")[1,]) == tag) {
+      print(paste("Tap present at: ", window[1], "; ending at: ", window[2], " (probability = ", attr(pred, "probabilities")[1,], ")"))
+    }
+  }
+}
