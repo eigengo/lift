@@ -8,6 +8,7 @@ import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
+import com.eigengo.lift.exercise.packet.MultiPacket
 import com.eigengo.lift.notification.NotificationProtocol._
 import com.eigengo.lift.profile.UserProfileNotifications
 import scodec.bits.BitVector
@@ -71,9 +72,9 @@ object UserExercises {
    *
    * @param userId the user identity
    * @param sessionId the session identity
-   * @param packets the archive containing at least one packet
+   * @param packet the archive containing at least one packet
    */
-  case class UserExerciseDataProcessMultiplePackets(userId: UserId, sessionId: SessionId, packets: Array[Byte])
+  case class UserExerciseDataProcessMultiPacket(userId: UserId, sessionId: SessionId, packet: MultiPacket)
 
   /**
    * Process exercise data for the given session
@@ -85,9 +86,9 @@ object UserExercises {
   /**
    * Process exercise data for the given session
    * @param sessionId the sessionProps identifier
-   * @param packets the bytes representing an archive with multiple exercise data bits
+   * @param packet the bytes representing an archive with multiple exercise data bits
    */
-  private case class ExerciseDataProcessMultiplePackets(sessionId: SessionId, packets: Array[Byte])
+  private case class ExerciseDataProcessMultiPacket(sessionId: SessionId, packet: MultiPacket)
 
   /**
    * User classified exercise.
@@ -146,24 +147,24 @@ object UserExercises {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseSessionStart(userId, session)                          ⇒ (userId.toString, ExerciseSessionStart(session))
-    case UserExerciseSessionEnd(userId, sessionId)                          ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)       ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
-    case UserExerciseDataProcessMultiplePackets(userId, sessionId, packets) ⇒ (userId.toString, ExerciseDataProcessMultiplePackets(sessionId, packets))
-    case UserExerciseSessionDelete(userId, sessionId)                       ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
-    case UserExerciseClassify(userId, sessionId, name, intensity)           ⇒ (userId.toString, UserClassifiedExercise(sessionId, name, intensity))
+    case UserExerciseSessionStart(userId, session)                      ⇒ (userId.toString, ExerciseSessionStart(session))
+    case UserExerciseSessionEnd(userId, sessionId)                      ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
+    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)   ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
+    case UserExerciseDataProcessMultiPacket(userId, sessionId, packets) ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
+    case UserExerciseSessionDelete(userId, sessionId)                   ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
+    case UserExerciseClassify(userId, sessionId, name, intensity)       ⇒ (userId.toString, UserClassifiedExercise(sessionId, name, intensity))
   }
 
   /**
    * Resolves the shard name from the incoming message.
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserExerciseSessionStart(userId, _)                        ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionEnd(userId, _)                          ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcessSinglePacket(userId, _, _)          ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcessMultiplePackets(userId, _, _)       ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionDelete(userId, _)                       ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseClassify(userId, sessionId, name, intensity)   ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionStart(userId, _)                      ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionEnd(userId, _)                        ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessSinglePacket(userId, _, _)        ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessMultiPacket(userId, _, _)         ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionDelete(userId, _)                     ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseClassify(userId, sessionId, name, intensity) ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -176,8 +177,12 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
   extends PersistentActor with ActorLogging with AutoPassivation with UserProfileNotifications {
   import scala.concurrent.duration._
 
+  // user reference and notifier
   private val userId = UserId(self.path.name)
   private val notificationSender = newNotificationSender(userId, notification, userProfile)
+
+  // tracing output
+  private val tracing = context.actorOf(UserExercisesTracing.props)
 
   // minimum confidence
   private val confidenceThreshold = 0.5
@@ -227,9 +232,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 
     case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
-      // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
-      // Ideally, this will go somewhere more durable, but this is sufficient for now.
-      UserExercisesTracing.saveBits(id, bits)
+      tracing ! UserExercisesTracing.UndecodedSinglePacket(id, bits)
 
       val result = decodeAll(bits, Nil)
 
@@ -240,7 +243,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
       )
 
-    case ExerciseDataProcessMultiplePackets(`id`, _) ⇒
+    case ExerciseDataProcessMultiPacket(`id`, _) ⇒
       sender() ! \/.left("Not implemented yet")
 
     case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒

@@ -55,7 +55,7 @@ object ExerciseServiceTest {
           case UserExerciseDataProcessSinglePacket(_, _, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
-          case UserExerciseDataProcessMultiplePackets(_, _, _) =>
+          case UserExerciseDataProcessMultiPacket(_, _, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
           case UserGetExerciseSessionsDates(_) =>
