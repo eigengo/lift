@@ -8,8 +8,8 @@ import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
-import com.eigengo.lift.notification.NotificationProtocol.{Devices, MobileDestination, PushMessage, WatchDestination}
-import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
+import com.eigengo.lift.notification.NotificationProtocol._
+import com.eigengo.lift.profile.UserProfileNotifications
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
@@ -173,22 +173,14 @@ object UserExercises {
  * ``AccelerometerData``. It also provides the query for the current state.
  */
 class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
-  extends PersistentActor with ActorLogging with AutoPassivation {
-  import akka.pattern.ask
+  extends PersistentActor with ActorLogging with AutoPassivation with UserProfileNotifications {
   import scala.concurrent.duration._
 
   private val userId = UserId(self.path.name)
-  import context.dispatcher
-  import com.eigengo.lift.common.Timeouts.defaults._
-
-  (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
-    case ds ⇒ devices = ds
-  }
+  private val notificationSender = newNotificationSender(userId, notification, userProfile)
 
   // minimum confidence
   private val confidenceThreshold = 0.5
-  // known user devices
-  private var devices = Devices.empty
   // how long until we stop processing
   context.setReceiveTimeout(360.seconds)
   // our unique persistenceId; the self.path.name is provided by ``UserExercises.idExtractor``,
@@ -256,8 +248,8 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
         intensity.foreach { i ⇒
-          if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+          if (i << sessionProps.intendedIntensity) notificationSender ! ScreenMessagePayload("Harder!", None, Some("default"))
+          if (i >> sessionProps.intendedIntensity) notificationSender ! ScreenMessagePayload("Easier!", None, Some("default"))
         }
       }
 
@@ -282,7 +274,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
     case TooMuchRest ⇒
       log.debug("NoExercise: exercising -> exercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
-        notification ! PushMessage(devices, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
+        notificationSender ! ScreenMessagePayload("Chop chop!", None, Some("default"))
       }
 
     case ExerciseSessionEnd(`id`) ⇒

@@ -2,9 +2,21 @@ package com.eigengo.lift.exercise
 
 import java.io.FileOutputStream
 
+import akka.actor.Actor.Receive
+import akka.persistence.PersistentView
 import scodec.bits.BitVector
 
 import scala.util.Try
+
+object UserExercisesTracingView {
+
+}
+
+class UserExercisesTracingView extends PersistentView {
+  override def viewId: String = ???
+  override def persistenceId: String = ???
+  override def receive: Receive = ???
+}
 
 object UserExercisesTracing {
 

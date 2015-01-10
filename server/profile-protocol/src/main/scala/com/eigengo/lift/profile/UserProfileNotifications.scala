@@ -2,7 +2,7 @@ package com.eigengo.lift.profile
 
 import akka.actor.{Actor, ActorRef}
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, Devices}
+import com.eigengo.lift.notification.NotificationProtocol.{PushMessagePayload, PushMessage, Devices}
 import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 
 import scala.concurrent.ExecutionContext
@@ -13,26 +13,42 @@ import scala.concurrent.ExecutionContext
 trait UserProfileNotifications {
   this: Actor ⇒
 
-  def allDevicesSender(userId: UserId, notification: ActorRef, userProfile: ActorRef): AllDevicesSender = {
-    new AllDevicesSender(userId, notification, userProfile)(context.dispatcher)
+  def newNotificationSender(userId: UserId, notification: ActorRef, userProfile: ActorRef): UserProfileNotificationsSender = {
+    new UserProfileNotificationsSender(userId, notification, userProfile)(context.dispatcher)
   }
   
 }
 
-private[profile] class AllDevicesSender(userId: UserId, notification: ActorRef, userProfile: ActorRef)(implicit ec: ExecutionContext) {
+/**
+ * Convenience sender
+ * @param userId the user identity
+ * @param notification the notification actor
+ * @param userProfile the user profile actor
+ * @param ec execution context
+ */
+private[profile] class UserProfileNotificationsSender(userId: UserId, notification: ActorRef, userProfile: ActorRef)(implicit ec: ExecutionContext) {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
   private var devices: Devices = Devices.empty
 
-  (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
-    case ds ⇒ devices = ds
+  refreshDevices()
+
+  private def refreshDevices(f: ⇒ Unit = {}): Unit = {
+    (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
+      case ds ⇒ devices = ds
+    }
   }
 
-  def !(alert: String): Unit = {
-    notification ! PushMessage(devices, alert, None, None, Seq(MobileDestination))
-//    (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
-//      case ds ⇒ notification ! PushMessage(ds, alert, None, None, Seq(MobileDestination))
-//    }
-  }
+  /**
+   * Sends the notification to the last registered device, using the remembered list of devices
+   * @param payload the payload to be sent
+   */
+  def !(payload: PushMessagePayload): Unit = notification ! PushMessage(devices.justLast, payload)
+
+  /**
+   * Sends the notification to the last registered device, refreshing the list of devices
+   * @param payload the payload to be sent
+   */
+  def !?(payload: PushMessagePayload): Unit = refreshDevices(this ! payload)
   
 }
