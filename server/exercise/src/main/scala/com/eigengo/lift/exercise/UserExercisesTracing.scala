@@ -12,48 +12,6 @@ import scodec.bits.BitVector
 import scala.util.Try
 
 /**
- * Tracing actor that collects data about a running session
- */
-class UserExercisesTracing extends PersistentActor {
-  import com.eigengo.lift.exercise.UserExercisesTracing._
-  private var tapped: Boolean = false
-  private var currentUserExercise: Option[Exercise] = None
-  private var currentSystemExercise: Option[Exercise] = None
-
-  override def receiveRecover: Receive = Actor.emptyBehavior
-
-  private def inASession(id: SessionId): Receive = {
-    case SessionEndedEvt(`id`)         ⇒ context.become(notExercising)
-    case SessionStartedEvt(newId, _)   ⇒ context.become(inASession(newId))
-
-    case packet: BitVector             ⇒ UserExercisesTracing.saveBits(id, packet)
-    case packet: MultiPacket           ⇒ // TODO: complete me
-    case DecodingFailed(error)         ⇒
-    case DecodingSucceeded(sensorData) ⇒ sensorData.foreach { sd ⇒
-        sd.data.foreach {
-          case AccelerometerData(_, values) ⇒ saveAccelerometerData(id, values)
-        }
-      }
-
-    case ExerciseEvt(`id`, ModelMetadata.user, exercise) ⇒
-    case ExerciseEvt(`id`, metadata, exercise) ⇒
-    case ExerciseSetExplicitMarkEvt(`id`) ⇒
-    case NoExercise(ModelMetadata.user) ⇒
-    case NoExercise(metadata) ⇒
-
-    case TooMuchRestEvt(`id`) ⇒
-  }
-
-  private def notExercising: Receive = {
-    case SessionStartedEvt(id, _) ⇒ context.become(inASession(id))
-  }
-
-  override def receiveCommand: Receive = notExercising
-
-  override val persistenceId: String = s"user-exercises-tracing-${self.path.name}"
-}
-
-/**
  * The protocol & companion
  */
 object UserExercisesTracing {
@@ -62,21 +20,81 @@ object UserExercisesTracing {
   case class DecodingSucceeded(sensorData: List[SensorDataWithLocation]) extends AnyVal
   case class DecodingFailed(error: String) extends AnyVal
 
+  private case class Tag(tapped: Boolean, userExercise: Option[Exercise], systemExercise: Option[Exercise]) {
+    def withUserExercise(ue: Option[Exercise]): Tag = copy(userExercise = ue)
+    def withSystemExercise(se: Option[Exercise]): Tag = copy(systemExercise = se)
+    def withToggledTap(): Tag = copy(tapped = !tapped)
+  }
+  private case object Tag {
+    val empty = Tag(false, None, None)
+  }
 
-  def saveAccelerometerData(id: SessionId, values: List[AccelerometerValue]) = {
-    Try {
-      val fos = new FileOutputStream(s"/tmp/ad-$id.csv", true)
-      values.foreach { v ⇒
-          val line = s"${v.x},${v.y},${v.z}\n"
-          fos.write(line.getBytes("UTF-8"))
-        }
+  def appendSensorData(id: SessionId, tag: Tag, sdwls: List[SensorDataWithLocation]): Unit = {
+    def convertTag(tag: Tag): String = {
+      s"${tag.tapped},${tag.systemExercise.getOrElse("")},${tag.userExercise.getOrElse("")}"
+    }
+
+    def save(id: SessionId, tag: Tag)(sdwl: SensorDataWithLocation): Unit = {
+      val fos = new FileOutputStream(s"/tmp/lift-$id-${sdwl.location}.csv", true)
+      sdwl.data.foreach {
+        case AccelerometerData(_, values) ⇒
+          values.foreach { v ⇒
+            val line = s"${v.x},${v.y},${v.z}\n"
+            fos.write(line.getBytes("UTF-8"))
+          }
+      }
       fos.close()
     }
+
+    sdwls.foreach(save(id, tag))
   }
 
-
-  def saveBits(id: SessionId, bits: BitVector): Unit = {
-    Try { val fos = new FileOutputStream(s"/tmp/ad-$id.dat", true); fos.write(bits.toByteArray); fos.close() }
+  def saveBits(counter: Int, id: SessionId, bits: BitVector): Int = {
+    Try { val fos = new FileOutputStream(s"/tmp/lift-$id.dat", true); fos.write(bits.toByteArray); fos.close() }
+    counter + 1
   }
 
+  def saveMultiPacket(counter: Int, id: SessionId, packet: MultiPacket): Int = {
+    // TODO: complete me
+    ???
+    counter + 1
+  }
+
+}
+
+/**
+ * Tracing actor that collects data about a running session
+ */
+class UserExercisesTracing extends PersistentActor {
+  import com.eigengo.lift.exercise.UserExercisesTracing._
+  private var counter: Int = 0
+  private var tag: Tag = Tag.empty
+
+  override def receiveRecover: Receive = Actor.emptyBehavior
+
+  private def inASession(id: SessionId): Receive = {
+    case SessionEndedEvt(`id`)         ⇒ context.become(notExercising)
+    case SessionStartedEvt(newId, _)   ⇒ context.become(inASession(newId))
+
+    case packet: BitVector             ⇒ counter = saveBits(counter, id, packet)
+    case packet: MultiPacket           ⇒ counter = saveMultiPacket(counter, id, packet)
+    case DecodingFailed(error)         ⇒
+    case DecodingSucceeded(sensorData) ⇒ appendSensorData(id, tag, sensorData)
+
+    case ExerciseEvt(`id`, ModelMetadata.user, exercise) ⇒ tag = tag.withUserExercise(Some(exercise))
+    case ExerciseEvt(`id`, metadata, exercise) ⇒ tag = tag.withSystemExercise(Some(exercise))
+    case ExerciseSetExplicitMarkEvt(`id`) ⇒ tag = tag.withToggledTap()
+    case NoExercise(ModelMetadata.user) ⇒ tag = tag.withUserExercise(None)
+    case NoExercise(metadata) ⇒ tag = tag.withSystemExercise(None)
+
+    case TooMuchRestEvt(`id`) ⇒
+  }
+
+  private def notExercising: Receive = {
+    case SessionStartedEvt(id, _) ⇒ tag = Tag.empty; context.become(inASession(id))
+  }
+
+  override def receiveCommand: Receive = notExercising
+
+  override val persistenceId: String = s"user-exercises-tracing-${self.path.name}"
 }
