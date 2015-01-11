@@ -41,7 +41,7 @@ case object NaiveModel extends ExerciseModel {
 
   private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Random.shuffle(es).head, None))
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None)))
   }
 
   override def apply(classify: Classify): ClassifiedExercise = {
@@ -77,6 +77,14 @@ object ExerciseClassifier {
   case class ModelMetadata(version: Int)
 
   /**
+   * The MD companion
+   */
+  object ModelMetadata {
+    /** Special user-classified metadata */
+    val user = ModelMetadata(-1231344)
+  }
+
+  /**
    * ADT holding the classification result
    */
   sealed trait ClassifiedExercise
@@ -85,10 +93,9 @@ object ExerciseClassifier {
    * Known exercise with the given confidence, name and optional intensity
    * @param metadata the model metadata
    * @param confidence the confidence
-   * @param name the exercise name
-   * @param intensity the intensity, if known
+   * @param exercise the exercise
    */
-  case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
+  case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, exercise: Exercise) extends ClassifiedExercise
 
   /**
     * Unknown exercise

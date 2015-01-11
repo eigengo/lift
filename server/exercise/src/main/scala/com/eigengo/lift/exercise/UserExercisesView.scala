@@ -17,14 +17,6 @@ object UserExercisesView {
   def props(notification: ActorRef, profile: ActorRef) = Props(classOf[UserExercisesView], notification, profile)
 
   /**
-   * A single recorded exercise
-   *
-   * @param name the name
-   * @param intensity the intensity, if known
-   */
-  case class Exercise(name: ExerciseName, intensity: Option[Double] /* Ideally, this would be Option[ExerciseIntensity], but Json4s is being silly */)
-
-  /**
    * A set contains list of exercises
    * @param exercises the exercises in the set
    */

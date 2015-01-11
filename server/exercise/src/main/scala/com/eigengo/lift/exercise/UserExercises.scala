@@ -4,10 +4,9 @@ import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercises._
-import com.eigengo.lift.exercise.UserExercisesTracing.{DecodingSucceeded, DecodingFailed}
+import com.eigengo.lift.exercise.UserExercisesTracing._
 import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.exercise.packet.MultiPacket
 import com.eigengo.lift.notification.NotificationProtocol._
@@ -43,13 +42,19 @@ object UserExercises {
   case class UserExerciseSessionDelete(userId: UserId, sessionId: SessionId)
 
   /**
-   * User classified exercise.
+   * User classified exercise start.
    * @param userId user
    * @param sessionId session
-   * @param name the exercise name
-   * @param intensity the intensity, if known
+   * @param exercise the exercise
    */
-  case class UserExerciseClassify(userId: UserId, sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity])
+  case class UserExerciseExplicitClassificationStart(userId: UserId, sessionId: SessionId, exercise: Exercise)
+
+  /**
+   * User classification end
+   * @param userId the user
+   * @param sesionId the session
+   */
+  case class UserExerciseExplicitClassificationEnd(userId: UserId, sesionId: SessionId)
 
   /**
    * Receive multiple packets of data for the given ``userId`` and ``sessionId``. The ``packets`` is a ZIP archive
@@ -94,10 +99,15 @@ object UserExercises {
   /**
    * User classified exercise.
    * @param sessionId session
-   * @param name the exercise name
-   * @param intensity the intensity, if known
+   * @param exercise the exercise
    */
-  private case class UserClassifiedExercise(sessionId: SessionId, name: ExerciseName, intensity: Option[ExerciseIntensity])
+  private case class ExerciseExplicitClassificationStart(sessionId: SessionId, exercise: Exercise)
+
+  /**
+   * User classified exercise.
+   * @param sessionId session
+   */
+  private case class ExerciseExplicitClassificationEnd(sessionId: SessionId)
 
   /**
    * Starts the user exercise sessionProps
@@ -148,24 +158,26 @@ object UserExercises {
    * so our identity is ``userId.toString``
    */
   val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseSessionStart(userId, session)                      ⇒ (userId.toString, ExerciseSessionStart(session))
-    case UserExerciseSessionEnd(userId, sessionId)                      ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)   ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
-    case UserExerciseDataProcessMultiPacket(userId, sessionId, packets) ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
-    case UserExerciseSessionDelete(userId, sessionId)                   ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
-    case UserExerciseClassify(userId, sessionId, name, intensity)       ⇒ (userId.toString, UserClassifiedExercise(sessionId, name, intensity))
+    case UserExerciseSessionStart(userId, session)                            ⇒ (userId.toString, ExerciseSessionStart(session))
+    case UserExerciseSessionEnd(userId, sessionId)                            ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
+    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)         ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
+    case UserExerciseDataProcessMultiPacket(userId, sessionId, packets)       ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
+    case UserExerciseSessionDelete(userId, sessionId)                         ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
+    case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
+    case UserExerciseExplicitClassificationEnd(userId, sessionId)             ⇒ (userId.toString, ExerciseExplicitClassificationEnd(sessionId))
   }
 
   /**
    * Resolves the shard name from the incoming message.
    */
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserExerciseSessionStart(userId, _)                      ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionEnd(userId, _)                        ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcessSinglePacket(userId, _, _)        ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcessMultiPacket(userId, _, _)         ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionDelete(userId, _)                     ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseClassify(userId, sessionId, name, intensity) ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionStart(userId, _)                   ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionEnd(userId, _)                     ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessSinglePacket(userId, _, _)     ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessMultiPacket(userId, _, _)      ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionDelete(userId, _)                  ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseExplicitClassificationStart(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -186,7 +198,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
   private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
 
   // tracing output
-  private val tracing = context.actorOf(UserExercisesTracing.props)
+  private val tracing = context.actorOf(UserExercisesTracing.props, userId.toString)
 
   // minimum confidence
   private val confidenceThreshold = 0.5
@@ -202,14 +214,14 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
   import context.dispatcher
 
   /// decoding failed
-  private def decodingFailed(id: SessionId)(error: String): Unit = {
-    tracing ! DecodingFailed(id, error)
+  private def decodingFailed(error: String): Unit = {
+    tracing ! DecodingFailed(error)
     sender() ! \/.left(error)
   }
 
   /// decoding succeeded
-  private def decodedSensorData(id: SessionId, sessionProps: SessionProps)(data: List[SensorDataWithLocation]): Unit = {
-    tracing ! DecodingSucceeded(id, data)
+  private def decodedSensorData(sessionProps: SessionProps)(data: List[SensorDataWithLocation]): Unit = {
+    tracing ! DecodingSucceeded(data)
     exerciseClasssifiers ! Classify(sessionProps, data)
     sender() ! \/.right(())
   }
@@ -230,7 +242,9 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       val newId = SessionId.randomId()
       persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
         log.warning("ExerciseSessionStart: exercising -> exercising. Implicitly ending running session and starting a new one.")
+
         val (_::newSession) = x
+        tracing ! newSession
         saveSnapshot(newSession)
         sender() ! \/.right(newId)
         context.become(exercising(newId, newSessionProps))
@@ -238,21 +252,22 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 
     case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
-      tracing ! UserExercisesTracing.ReceivedSinglePacket(id, bits)
+      tracing ! bits
 
       rootSensorDataDecoder
         .decodeAll(bits)
         .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
-        .fold(decodingFailed(id), decodedSensorData(id, sessionProps))
+        .fold(decodingFailed, decodedSensorData(sessionProps))
 
     case ExerciseDataProcessMultiPacket(`id`, _) ⇒
       sender() ! \/.left("Not implemented yet")
 
-    case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
+    case FullyClassifiedExercise(metadata, confidence, exercise) if confidence > confidenceThreshold ⇒
       log.debug("FullyClassifiedExercise: exercising -> exercising.")
-      persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
+      persist(ExerciseEvt(id, metadata, exercise)) { evt ⇒
+        tracing ! evt
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-        intensity.foreach { i ⇒
+        exercise.intensity.foreach { i ⇒
           if (i << sessionProps.intendedIntensity) notificationSender ! ScreenMessagePayload("Harder!", None, Some("default"))
           if (i >> sessionProps.intendedIntensity) notificationSender ! ScreenMessagePayload("Easier!", None, Some("default"))
         }
@@ -260,11 +275,17 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 
     case Tap ⇒
       persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒
+        tracing ! evt
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
       }
 
-    case UserClassifiedExercise(`id`, name, intensity) =>
-      self ! FullyClassifiedExercise(ModelMetadata(0), 1, name, intensity)
+    case ExerciseExplicitClassificationStart(`id`, exercise) =>
+      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒
+        tracing ! evt
+      }
+
+    case ExerciseExplicitClassificationEnd(`id`) ⇒
+      self ! NoExercise(ModelMetadata.user)
 
     case UnclassifiedExercise(_) ⇒
       // Maybe notify the user?
@@ -273,18 +294,21 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
     case NoExercise(metadata) ⇒
       log.debug("NoExercise: exercising -> exercising.")
       persist(NoExerciseEvt(id, metadata)) { evt ⇒
+        tracing ! evt
         tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
       }
 
     case TooMuchRest ⇒
       log.debug("NoExercise: exercising -> exercising.")
       persist(TooMuchRestEvt(id)) { evt ⇒
+        tracing ! evt
         notificationSender ! ScreenMessagePayload("Chop chop!", None, Some("default"))
       }
 
     case ExerciseSessionEnd(`id`) ⇒
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
+        tracing ! evt
         saveSnapshot(evt)
         context.become(notExercising)
         sender() ! \/.right(())

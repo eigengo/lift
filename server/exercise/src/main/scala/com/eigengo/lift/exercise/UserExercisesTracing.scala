@@ -2,47 +2,74 @@ package com.eigengo.lift.exercise
 
 import java.io.FileOutputStream
 
-import akka.actor.Actor.Receive
-import akka.actor.Props
-import akka.persistence.{PersistentActor, PersistentView}
+import akka.actor.{Actor, Props}
+import akka.persistence.PersistentActor
+import com.eigengo.lift.exercise.ExerciseClassifier._
+import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 
 import scala.util.Try
 
+/**
+ * Tracing actor that collects data about a running session
+ */
 class UserExercisesTracing extends PersistentActor {
-  import UserExercisesTracing._
+  import com.eigengo.lift.exercise.UserExercisesTracing._
+  private var tapped: Boolean = false
+  private var currentUserExercise: Option[Exercise] = None
+  private var currentSystemExercise: Option[Exercise] = None
 
-  override def receiveRecover: Receive = ???
+  override def receiveRecover: Receive = Actor.emptyBehavior
 
-  override def receiveCommand: Receive = {
-    case ReceivedSinglePacket(id, bits) ⇒
-      // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
-      // Ideally, this will go somewhere more durable, but this is sufficient for now.
-      UserExercisesTracing.saveBits(id, bits)
+  private def inASession(id: SessionId): Receive = {
+    case SessionEndedEvt(`id`)         ⇒ context.become(notExercising)
+    case SessionStartedEvt(newId, _)   ⇒ context.become(inASession(newId))
 
+    case packet: BitVector             ⇒ UserExercisesTracing.saveBits(id, packet)
+    case packet: MultiPacket           ⇒ // TODO: complete me
+    case DecodingFailed(error)         ⇒
+    case DecodingSucceeded(sensorData) ⇒ sensorData.foreach { sd ⇒
+        sd.data.foreach {
+          case AccelerometerData(_, values) ⇒ saveAccelerometerData(id, values)
+        }
+      }
+
+    case ExerciseEvt(`id`, ModelMetadata.user, exercise) ⇒
+    case ExerciseEvt(`id`, metadata, exercise) ⇒
+    case ExerciseSetExplicitMarkEvt(`id`) ⇒
+    case NoExercise(ModelMetadata.user) ⇒
+    case NoExercise(metadata) ⇒
+
+    case TooMuchRestEvt(`id`) ⇒
   }
 
-  override def persistenceId: String = ???
+  private def notExercising: Receive = {
+    case SessionStartedEvt(id, _) ⇒ context.become(inASession(id))
+  }
+
+  override def receiveCommand: Receive = notExercising
+
+  override val persistenceId: String = s"user-exercises-tracing-${self.path.name}"
 }
 
+/**
+ * The protocol & companion
+ */
 object UserExercisesTracing {
   val props: Props = Props[UserExercisesTracing]
 
-  case class ReceivedSinglePacket(id: SessionId, bits: BitVector)
-  case class ReceivedMultiPacket(id: SessionId, mp: MultiPacket)
-  case class DecodingSucceeded(id: SessionId, sensorData: List[SensorDataWithLocation])
-  case class DecodingFailed(id: SessionId, error: String)
+  case class DecodingSucceeded(sensorData: List[SensorDataWithLocation]) extends AnyVal
+  case class DecodingFailed(error: String) extends AnyVal
 
-  def saveAccelerometerData(id: SessionId, datas: List[AccelerometerData]) = {
+
+  def saveAccelerometerData(id: SessionId, values: List[AccelerometerValue]) = {
     Try {
       val fos = new FileOutputStream(s"/tmp/ad-$id.csv", true)
-      datas.foreach { ad ⇒
-        ad.values.foreach { v ⇒
+      values.foreach { v ⇒
           val line = s"${v.x},${v.y},${v.z}\n"
           fos.write(line.getBytes("UTF-8"))
         }
-      }
       fos.close()
     }
   }

@@ -22,14 +22,14 @@ object ExerciseServiceTest {
     val userId = UserId.randomId()
     val sessionId = SessionId.randomId()
 
-    val squat = "squat"
+    val squat = Exercise("squat", Some(1.0))
     val intensity = Some(1.0)
     val startDate = dateFormat.parse("1970-01-01")
     val endDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProps(startDate, Seq("Legs"), 1.0)
-    val muscleGroups = List(MuscleGroup("legs", "Legs", List(squat, "extension", "curl")))
+    val muscleGroups = List(MuscleGroup("legs", "Legs", List("squat")))
     val sessionSummary = List(SessionSummary(sessionId, sessionProps, Array(1.0)))
-    val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(Exercise(squat, intensity))))))
+    val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(squat)))))
     val sessionDates = List(SessionDate(startDate, List(SessionIntensity(intensity.get, intensity.get))))
     val bitVector = BitVector.empty
     val emptyResponse = "{\"b\":{}}"
@@ -65,7 +65,7 @@ object ExerciseServiceTest {
           case UserExerciseSessionEnd(_, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
-          case UserExerciseClassify(_, _, _, _) =>
+          case UserExerciseExplicitClassificationStart(_, _, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
         }
@@ -159,10 +159,10 @@ class ExerciseServiceTest
   }
 
   it should "listen at POST exercise/:UserIdValue/:SessionIdValue/classification endpoint" in {
-    Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/classification", Exercise(TestData.squat, TestData.intensity)) ~> underTest ~> check {
+    Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/classification", TestData.squat) ~> underTest ~> check {
       response.entity.asString should be(TestData.emptyResponse)
     }
 
-    probe.expectMsg(UserExerciseClassify(TestData.userId, TestData.sessionId, TestData.squat, TestData.intensity))
+    probe.expectMsg(UserExerciseExplicitClassificationStart(TestData.userId, TestData.sessionId, TestData.squat))
   }
 }
