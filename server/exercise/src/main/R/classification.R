@@ -133,6 +133,7 @@ trainSVM = function(tag, size, costParam = 100, gammaParam = 1) {
   print(classAgreement(svmTable))
 
   saveRDS(svm.model, paste("svm-model", "-", tag, "-features", ".rds", sep=""))
+  write.svm(svm.model, svm.file = paste("svm-model", "-", tag, "-features", ".svm", sep=""))
 }
 
 # TODO: document
