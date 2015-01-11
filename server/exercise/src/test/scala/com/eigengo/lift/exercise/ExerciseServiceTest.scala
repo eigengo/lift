@@ -45,7 +45,7 @@ object ExerciseServiceTest {
             sender ! TestData.muscleGroups
             TestActor.KeepRunning
           case UserExerciseSessionStart(_, _) =>
-            sender ! \/-(TestData.userId.id)
+            sender ! \/.right(TestData.userId.id)
             TestActor.KeepRunning
           case UserGetExerciseSessionsSummary(_, _, _) =>
             sender ! TestData.sessionSummary
@@ -102,7 +102,7 @@ class ExerciseServiceTest
     probe.expectMsg(GetMuscleGroups)
   }
 
-  it should "listen at POST exercise/UserIdValue endpoint" in {
+  it should "listen at POST exercise/:UserIdValue endpoint" in {
     Post(s"/exercise/${TestData.userId.id}/start", TestData.sessionProps) ~> underTest ~> check {
       UserId(response.entity.asString.replace("\"", "")) should be(TestData.userId)
     }
@@ -110,7 +110,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserExerciseSessionStart(TestData.userId, TestData.sessionProps))
   }
 
-  it should "listen at GET exercise/UserIdValue?startDate=date&endDate=date endpoint" in {
+  it should "listen at GET exercise/:UserIdValue?startDate=date&endDate=date endpoint" in {
     Get(s"/exercise/${TestData.userId.id}?startDate=${dateFormat.format(TestData.startDate)}&endDate=${dateFormat.format(TestData.endDate)}") ~> underTest ~> check {
       responseAs[List[SessionSummary]].head.sessionProps should be(TestData.sessionSummary.head.sessionProps)
     }
@@ -118,7 +118,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserGetExerciseSessionsSummary(TestData.userId, TestData.startDate, TestData.endDate))
   }
 
-  it should "listen at GET exercise/UserIdValue?date=date endpoint" in {
+  it should "listen at GET exercise/:UserIdValue?date=date endpoint" in {
     Get(s"/exercise/${TestData.userId.id}?date=${dateFormat.format(TestData.startDate)}") ~> underTest ~> check {
       responseAs[List[SessionSummary]].head.sessionProps should be(TestData.sessionSummary.head.sessionProps)
     }
@@ -126,7 +126,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserGetExerciseSessionsSummary(TestData.userId, TestData.startDate, TestData.startDate))
   }
 
-  it should "listen at GET exercise/UserIdValue endpoint" in {
+  it should "listen at GET exercise/:UserIdValue endpoint" in {
     Get(s"/exercise/${TestData.userId.id}") ~> underTest ~> check {
       responseAs[List[SessionDate]] should be(TestData.sessionDates)
     }
