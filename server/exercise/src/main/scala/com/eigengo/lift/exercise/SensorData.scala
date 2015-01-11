@@ -113,7 +113,11 @@ object RootSensorDataDecoder {
         def decode0(bits: BitVector, acc: List[SensorData]): String \/ (BitVector, List[SensorData]) = {
           decoders.find(_.supports(bits)).map { decoder ⇒
             decoder.decode(bits).flatMap {
+              // decoded all there is to be decoded
               case (BitVector.empty, sd) ⇒ \/.right(BitVector.empty → (acc :+ sd))
+              // more bits to be decoded, but same as bits; no need to try further
+              case (`bits`, _)           ⇒ \/.left("Undecoded bits")
+              // more bits to be decoded
               case (neb, sd)             ⇒ decode0(neb, acc :+ sd)
             }
           }.getOrElse(\/.left("No decoder"))

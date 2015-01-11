@@ -26,12 +26,12 @@ object UserExercisesTracing {
     def withToggledTap(): Tag = copy(tapped = !tapped)
   }
   private case object Tag {
-    val empty = Tag(false, None, None)
+    val empty = Tag(tapped = false, None, None)
   }
 
   def appendSensorData(id: SessionId, tag: Tag, sdwls: List[SensorDataWithLocation]): Unit = {
-    def convertTag(tag: Tag): String = {
-      s"${tag.tapped},${tag.systemExercise.getOrElse("")},${tag.userExercise.getOrElse("")}"
+    def tagged(tag: Tag, s: String): String = {
+      s"${tag.tapped},${tag.systemExercise.getOrElse("")},${tag.userExercise.getOrElse("")},$s"
     }
 
     def save(id: SessionId, tag: Tag)(sdwl: SensorDataWithLocation): Unit = {
@@ -39,7 +39,7 @@ object UserExercisesTracing {
       sdwl.data.foreach {
         case AccelerometerData(_, values) ⇒
           values.foreach { v ⇒
-            val line = s"${v.x},${v.y},${v.z}\n"
+            val line = tagged(tag, s"${v.x},${v.y},${v.z}\n")
             fos.write(line.getBytes("UTF-8"))
           }
       }
