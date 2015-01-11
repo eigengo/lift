@@ -16,7 +16,7 @@ class UserExercisesTracing extends PersistentActor {
   override def receiveRecover: Receive = ???
 
   override def receiveCommand: Receive = {
-    case UndecodedSinglePacket(id, bits) ⇒
+    case ReceivedSinglePacket(id, bits) ⇒
       // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
       // Ideally, this will go somewhere more durable, but this is sufficient for now.
       UserExercisesTracing.saveBits(id, bits)
@@ -29,9 +29,10 @@ class UserExercisesTracing extends PersistentActor {
 object UserExercisesTracing {
   val props: Props = Props[UserExercisesTracing]
 
-  case class UndecodedSinglePacket(id: SessionId, bits: BitVector)
-  case class UndecodedMultiPacket(id: SessionId, mp: MultiPacket)
-  case class DecodedValues(id: SessionId, values: Seq[Any])
+  case class ReceivedSinglePacket(id: SessionId, bits: BitVector)
+  case class ReceivedMultiPacket(id: SessionId, mp: MultiPacket)
+  case class DecodingSucceeded(id: SessionId, sensorData: List[SensorDataWithLocation])
+  case class DecodingFailed(id: SessionId, error: String)
 
   def saveAccelerometerData(id: SessionId, datas: List[AccelerometerData]) = {
     Try {

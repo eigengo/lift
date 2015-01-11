@@ -47,6 +47,8 @@ import scalaz.\/-
  */
 class AccelerometerDataTest extends FlatSpec with Matchers {
 
+  val rootDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
+
   "Decoder" should "decode values" in {
     val bits = BitVector(
       0xad, 0x03, 0x64, 0x00, 0x00,
@@ -56,14 +58,14 @@ class AccelerometerDataTest extends FlatSpec with Matchers {
       0xad, 0x01, 0x64, 0x00, 0x00,
       0x78, 0x01, 0x4a, 0xc0, 0x73)
 
-    val (BitVector.empty, ads) = AccelerometerData.decodeAll(bits, Nil)
+    val \/-(ads: List[AccelerometerData @unchecked]) = rootDecoder.decodeAll(bits)
     ads(0).values should contain allOf(AccelerometerValue(-1, -1, 127), AccelerometerValue(0, 0, 64), AccelerometerValue(376, 592, -784))
     ads(1).values should contain (AccelerometerValue(376, 592, -784))
   }
 
   "Decoder" should "decode training file" in {
-    val bv = BitVector.fromInputStream(getClass.getResourceAsStream("/measured/chest-press-3/all.dat"))
-    val (BitVector.empty, ads) = AccelerometerData.decodeAll(bv, Nil)
+    val bits = BitVector.fromInputStream(getClass.getResourceAsStream("/measured/chest-press-3/all.dat"))
+    val \/-(ads: List[AccelerometerData @unchecked]) = rootDecoder.decodeAll(bits)
     AccelerometerDataExporter.exportToCsv(ads, "chest-press-3")
     println(ads)
   }

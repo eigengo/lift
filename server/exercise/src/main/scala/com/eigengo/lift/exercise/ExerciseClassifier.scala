@@ -1,7 +1,6 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.Actor
-import com.eigengo.lift.common.UserId
 import com.eigengo.lift.exercise.ExerciseClassifier._
 
 import scala.util.Random
@@ -46,10 +45,15 @@ case object NaiveModel extends ExerciseModel {
   }
 
   override def apply(classify: Classify): ClassifiedExercise = {
-    val xs = classify.ad.values.map(_.x)
-    val ys = classify.ad.values.map(_.y)
-    val zs = classify.ad.values.map(_.z)
-    println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+    classify.sensorData.foreach { sd ⇒
+      sd.data.foreach {
+        case AccelerometerData(sr, values) ⇒
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+      }
+    }
     randomExercise(classify.sessionProps)
   }
 }
@@ -62,9 +66,9 @@ object ExerciseClassifier {
   /**
    * Classify the given accelerometer data together with session information
    * @param sessionProps the session
-   * @param ad the accelerometer data
+   * @param sensorData the sensor data
    */
-  case class Classify(sessionProps: SessionProps, ad: AccelerometerData)
+  case class Classify(sessionProps: SessionProps, sensorData: List[SensorDataWithLocation])
 
   /**
    * Model version and other metadata

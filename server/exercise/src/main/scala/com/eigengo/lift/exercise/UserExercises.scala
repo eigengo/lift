@@ -7,6 +7,7 @@ import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.AccelerometerData._
 import com.eigengo.lift.exercise.ExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercises._
+import com.eigengo.lift.exercise.UserExercisesTracing.{DecodingSucceeded, DecodingFailed}
 import com.eigengo.lift.exercise.UserExercisesView._
 import com.eigengo.lift.exercise.packet.MultiPacket
 import com.eigengo.lift.notification.NotificationProtocol._
@@ -181,6 +182,9 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
   private val userId = UserId(self.path.name)
   private val notificationSender = newNotificationSender(userId, notification, userProfile)
 
+  // decoders
+  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
+
   // tracing output
   private val tracing = context.actorOf(UserExercisesTracing.props)
 
@@ -197,15 +201,17 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 
   import context.dispatcher
 
-  private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
-    case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
-    case (BitVector.empty, h :: t) ⇒
-      if (t.forall(_.samplingRate == h.samplingRate)) {
-        \/.right(t.foldLeft(h)((res, ad) ⇒ ad.copy(values = ad.values ++ res.values)))
-      } else {
-        \/.left("Unmatched sampling rates")
-      }
-    case (_, _)                    ⇒ \/.left("Undecoded input")
+  /// decoding failed
+  private def decodingFailed(id: SessionId)(error: String): Unit = {
+    tracing ! DecodingFailed(id, error)
+    sender() ! \/.left(error)
+  }
+
+  /// decoding succeeded
+  private def decodedSensorData(id: SessionId, sessionProps: SessionProps)(data: List[SensorDataWithLocation]): Unit = {
+    tracing ! DecodingSucceeded(id, data)
+    exerciseClasssifiers ! Classify(sessionProps, data)
+    sender() ! \/.right(())
   }
 
   private def cancellingTooMuchRest(r: Receive): Receive = {
@@ -232,16 +238,12 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
 
     case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
-      tracing ! UserExercisesTracing.UndecodedSinglePacket(id, bits)
+      tracing ! UserExercisesTracing.ReceivedSinglePacket(id, bits)
 
-      val result = decodeAll(bits, Nil)
-
-      UserExercisesTracing.saveAccelerometerData(id, result._2)
-
-      validateData(result).fold(
-        { err ⇒ sender() ! \/.left(err)},
-        { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
-      )
+      rootSensorDataDecoder
+        .decodeAll(bits)
+        .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
+        .fold(decodingFailed(id), decodedSensorData(id, sessionProps))
 
     case ExerciseDataProcessMultiPacket(`id`, _) ⇒
       sender() ! \/.left("Not implemented yet")

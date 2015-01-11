@@ -87,35 +87,13 @@ object AccelerometerDataDecoder extends SensorDataDecoder[AccelerometerData] {
     }
   )
 
-  private def decodex(bits: BitVector): (BitVector, List[AccelerometerData]) = {
-    val result = for {
+  override def supports(bits: BitVector): Boolean = {
+    val x = header.decode(bits)
+    x.isRight
+  }
+
+  override def decode(bits: BitVector): \/[String, (BitVector, AccelerometerData)] = for {
       (body, (sps, count)) ← packedGfsHeader.decode(bits)
       (rest, avs)          ← packedAccelerometerData.decode[List](body, count)
-    } yield (rest, AccelerometerData(sps, avs))
-
-    result.fold(_ => (bits, Nil), { case (bits2, ad) => (bits2, List(ad)) })
-  }
-
-  /**
-   * Decodes as much as possible from ``bits``, appending the values to ``ads``.
-   * @param bits the input bit stream
-   * @param ads the "current" list of ``AccelerometerData``
-   * @return the remaining bits and decoded ``AccelerometerData``
-   */
-  @tailrec
-  final def decodeAll(bits: BitVector, ads: List[AccelerometerData]): (BitVector, List[AccelerometerData]) = {
-    decodex(bits) match {
-      // Parsed all we could, nothing remains
-      case (BitVector.empty, ads2) => (BitVector.empty, ads ++ ads2)
-      // Parsed all we could, but exactly `bits` remain => we did not get any further.
-      // Repeated recursion will not solve anything.
-      case (`bits`, ads2) => (bits, ads ++ ads2)
-      // Still something left to parse
-      case (neb, ads2) => decodeAll(neb, ads ++ ads2)
-    }
-  }
-
-  override def supports(bits: BitVector): Boolean = header.decode(bits).isRight
-
-  override def decode(bits: BitVector): \/[String, (BitVector, AccelerometerData)] = ???
+    } yield rest → AccelerometerData(sps, avs)
 }
