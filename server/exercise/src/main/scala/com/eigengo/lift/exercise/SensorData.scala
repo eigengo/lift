@@ -68,7 +68,10 @@ trait SensorDataDecoder[+A] {
 }
 
 /**
- * Root decoder adds ``decodeAll`` method to ensure that no bits are left undecoded
+ * Root decoder adds ``decodeAll`` method to ensure that no bits are left undecoded. It
+ * is also not covariant in A: there should only be one ``RootSensorDataDecoder``, typically
+ * constructed by calling {{RootSensorDataDecoder.apply}}.
+ *
  * @tparam A the type of sensor data
  */
 trait RootSensorDataDecoder[A] extends SensorDataDecoder[A] {
@@ -88,7 +91,16 @@ trait RootSensorDataDecoder[A] extends SensorDataDecoder[A] {
 }
 
 /**
- * Sensor data decoder copanion
+ * Sensor data decoder companion, which constructs a ``RootSensorDataDecoder[List[SensorData]]`` from
+ * a sequence of ``SensorDataDecoder[SensorData]``. Typically, you'll keep the returned value in a
+ * variable:
+ *
+ * {{{
+ *   val decoder = RootSensorDataDecoder(AccelerometerDataDecoder, HeartRateDataDecoder, GeolocationDataDecoder)
+ *   ...
+ *
+ *   decoder.decodeAll(bits)
+ * }}}
  */
 object RootSensorDataDecoder {
   private implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
