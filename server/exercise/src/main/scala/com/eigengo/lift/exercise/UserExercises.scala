@@ -320,6 +320,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
       persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
         saveSnapshot(evt)
         sender() ! \/.right(evt.sessionId)
+        tracing ! evt
         context.become(exercising(evt.sessionId, sessionProps))
       }
     case ExerciseSessionEnd(_) ⇒
