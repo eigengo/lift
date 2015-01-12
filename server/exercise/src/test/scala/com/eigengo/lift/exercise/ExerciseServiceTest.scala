@@ -5,9 +5,11 @@ import java.text.SimpleDateFormat
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{ImplicitSender, TestActor, TestKitBase, TestProbe}
 import com.eigengo.lift.common.UserId
+import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData.Source
 import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
+import com.eigengo.lift.exercise.packet.MultiPacket
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
 import spray.testkit.ScalatestRouteTest
@@ -33,6 +35,8 @@ object ExerciseServiceTest {
     val sessionDates = List(SessionDate(startDate, List(SessionIntensity(intensity.get, intensity.get))))
     val bitVector = BitVector.empty
     val emptyResponse = "{\"b\":{}}"
+    val multiPacket = ExerciseMarshallersTest.TestData.multiPacket(SensorDataSourceLocationWrist)
+    val protobufMessage = ExerciseMarshallersTest.TestData.protobufMessage(Source.WRIST)
   }
 
   def probe(implicit system: ActorSystem) = {
@@ -143,11 +147,11 @@ class ExerciseServiceTest
   }
 
   it should "listen at PUT exercise/:UserIdValue/:SessionIdValue endpoint" in {
-    Put(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}", TestData.bitVector) ~> underTest ~> check {
+    Put(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}", BitVector(TestData.protobufMessage)) ~> underTest ~> check {
       response.entity.asString should be(TestData.emptyResponse)
     }
 
-    probe.expectMsg(UserExerciseDataProcessSinglePacket(TestData.userId, TestData.sessionId, TestData.bitVector))
+    probe.expectMsg(UserExerciseDataProcessMultiPacket(TestData.userId, TestData.sessionId, TestData.multiPacket))
   }
 
   it should "listen at POST exercise/:UserIdValue/:SessionIdValue/end endpoint" in {

@@ -5,8 +5,8 @@ import java.util.UUID
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
 import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData
 import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData.Source
-import com.eigengo.lift.exercise.packet.MultiPacket
-import scodec.bits.BitVector
+import com.eigengo.lift.exercise.packet.{RawSensorData, MultiPacket}
+import scodec.bits.{ByteVector, BitVector}
 import spray.http.HttpRequest
 import spray.httpx.marshalling.{ToResponseMarshallingContext, ToResponseMarshaller}
 import spray.httpx.unmarshalling.{Deserialized, FromRequestUnmarshaller}
@@ -14,24 +14,21 @@ import spray.routing._
 import spray.routing.directives.{MarshallingDirectives, PathDirectives}
 import scala.collection.JavaConverters._
 
-
 /**
  * Defines the marshallers for the Lift system
  */
 trait ExerciseMarshallers extends MarshallingDirectives with PathDirectives with CommonPathDirectives with CommonMarshallers {
 
   /**
-   * Unmarshals the ``HttpRequest`` to an instance of (off-heap) ``BitVector``.
-   * It is possible to have empty ``BitVector``, though this might not be particularly
-   * useful for the app
+   * Unmarshals the ``HttpRequest`` to an instance of ``MultiPacket``.
    */
   implicit object BitVectorFromRequestUnmarshaller extends FromRequestUnmarshaller[MultiPacket] {
     private def convertLocation(source: Source) = {
-      source.getDescriptorForType.getName match {
-        case "WRIST" => SensorDataSourceLocationWrist
-        case "WAIST" => SensorDataSourceLocationWaist
-        case "FOOT" => SensorDataSourceLocationFoot
-        case "CHEST" => SensorDataSourceLocationChest
+      source match {
+        case Source.WRIST => SensorDataSourceLocationWrist
+        case Source.WAIST => SensorDataSourceLocationWaist
+        case Source.FOOT => SensorDataSourceLocationFoot
+        case Source.CHEST => SensorDataSourceLocationChest
         case _ => SensorDataSourceLocationAny
       }
     }
@@ -45,7 +42,7 @@ trait ExerciseMarshallers extends MarshallingDirectives with PathDirectives with
         MultiPacket(
           multipleDeviceSensorData
             .getSingleDeviceSensorDataList().asScala
-            .map(p => SensorDataWithLocation(convertLocation(p.getSource), List()))))
+            .map(p => RawSensorData(convertLocation(p.getSource), BitVector(p.getData.toByteArray)))))
     }
   }
 
