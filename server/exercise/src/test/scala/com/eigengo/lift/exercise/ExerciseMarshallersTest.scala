@@ -23,14 +23,24 @@ object ExerciseMarshallersTest {
     def protobufMessage(source: Source) =
       MultipleDeviceSensorData
         .newBuilder()
-        .addSingleDeviceSensorData(
-          SingleDeviceSensorData.newBuilder().setSource(source).setData(data())
-        )
-        .build()
+        .addSingleDeviceSensorData(SingleDeviceSensorData.newBuilder().setSource(source).setData(data()))
+        .build
         .toByteArray
 
+    def protobufMessageMultipleDevices(sources: Seq[Source]) = {
+      val builder = MultipleDeviceSensorData.newBuilder()
+      sources.foreach(s => builder.addSingleDeviceSensorData(SingleDeviceSensorData.newBuilder().setSource(s).setData(data())))
+
+      builder
+        .build
+        .toByteArray
+    }
+
     def multiPacket(source: SensorDataSourceLocation) =
-      MultiPacket(List(RawSensorData(source, BitVector(TestData.data().toByteArray))))
+      multiPacketMultipleDevices(List(source))
+
+    def multiPacketMultipleDevices(sources: Seq[SensorDataSourceLocation]) =
+      MultiPacket(sources.map(s => RawSensorData(s, BitVector(TestData.data().toByteArray))))
   }
 }
 
@@ -43,8 +53,6 @@ class ExerciseMarshallersTest
 
   val underTest = BitVectorFromRequestUnmarshaller
 
-  //TODO: Add tests for multiple devices and grouping
-
   "The marshaller" should "unmarshall protocol buffer message from wrist device" in {
     val message = TestData.protobufMessage(Source.WRIST)
 
@@ -55,5 +63,11 @@ class ExerciseMarshallersTest
     val message = TestData.protobufMessage(Source.WAIST)
 
     underTest.apply(HttpRequest(entity = HttpEntity(message))) should be(Right(TestData.multiPacket(SensorDataSourceLocationWaist)))
+  }
+
+  it should "unmarshall protocol buffer message from multiple devices" in {
+    val message = TestData.protobufMessageMultipleDevices(List(Source.WAIST, Source.WRIST))
+
+    underTest.apply(HttpRequest(entity = HttpEntity(message))) should be(Right(TestData.multiPacketMultipleDevices(List(SensorDataSourceLocationWaist, SensorDataSourceLocationWrist))))
   }
 }
