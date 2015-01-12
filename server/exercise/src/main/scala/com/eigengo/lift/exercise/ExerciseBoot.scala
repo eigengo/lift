@@ -8,13 +8,13 @@ import spray.routing.Route
 
 import scala.concurrent.ExecutionContext
 
-case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef, exerciseClassifiers: ActorRef) extends BootedNode {
+case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef) extends BootedNode {
   /**
    * Starts the route given the exercise boot
    * @param ec the execution context
    * @return the route
    */
-  def route(ec: ExecutionContext): Route = exerciseRoute(userExercises, userExercisesView, exerciseClassifiers)(ec)
+  def route(ec: ExecutionContext): Route = exerciseRoute(userExercises, userExercisesView)(ec)
 
   override def api: Option[(ExecutionContext) ⇒ Route] = Some(route)
 }
@@ -29,19 +29,18 @@ object ExerciseBoot extends ExerciseService {
    * @param system the AS to boot the microservice in
    */
   def boot(notification: ActorRef, profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
-    val exerciseClassifiers = system.actorOf(ExerciseClassifiers.props, ExerciseClassifiers.name)
     val userExercise = ClusterSharding(system).start(
-      typeName = UserExercises.shardName,
-      entryProps = Some(UserExercises.props(notification, profile, exerciseClassifiers)),
-      idExtractor = UserExercises.idExtractor,
-      shardResolver = UserExercises.shardResolver)
+      typeName = UserExercisesProcessor.shardName,
+      entryProps = Some(UserExercisesProcessor.props(notification, profile)),
+      idExtractor = UserExercisesProcessor.idExtractor,
+      shardResolver = UserExercisesProcessor.shardResolver)
     val userExerciseView = ClusterSharding(system).start(
-      typeName = UserExercisesView.shardName,
-      entryProps = Some(UserExercisesView.props(notification, profile)),
-      idExtractor = UserExercisesView.idExtractor,
-      shardResolver = UserExercisesView.shardResolver)
+      typeName = UserExercisesSessions.shardName,
+      entryProps = Some(UserExercisesSessions.props(notification, profile)),
+      idExtractor = UserExercisesSessions.idExtractor,
+      shardResolver = UserExercisesSessions.shardResolver)
 
-    ExerciseBoot(userExercise, userExerciseView, exerciseClassifiers)
+    ExerciseBoot(userExercise, userExerciseView)
   }
 
 }
