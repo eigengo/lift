@@ -6,7 +6,7 @@ import akka.actor.Props
 import akka.persistence.PersistentView
 import com.eigengo.lift.common.UserId
 import com.eigengo.lift.exercise.MultiPacket
-import com.eigengo.lift.exercise.UserExerciseClassifier._
+import com.eigengo.lift.exercise.UserExercisesClassifier._
 import scodec.bits.BitVector
 
 import scala.util.Try

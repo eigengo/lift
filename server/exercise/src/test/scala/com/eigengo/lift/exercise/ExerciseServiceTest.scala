@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{ImplicitSender, TestActor, TestKitBase, TestProbe}
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.exercise.UserExerciseClassifier.MuscleGroup
+import com.eigengo.lift.exercise.UserExercisesClassifier.MuscleGroup
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
 import org.scalatest.{FlatSpec, Matchers}
@@ -93,7 +93,7 @@ class ExerciseServiceTest
 
   "The Exercise service" should "listen at GET /exercise/musclegroups endpoint" in {
     Get("/exercise/musclegroups") ~> underTest ~> check {
-      responseAs[List[MuscleGroup]] should be(UserExerciseClassifier.supportedMuscleGroups)
+      responseAs[List[MuscleGroup]] should be(UserExercisesClassifier.supportedMuscleGroups)
     }
   }
 

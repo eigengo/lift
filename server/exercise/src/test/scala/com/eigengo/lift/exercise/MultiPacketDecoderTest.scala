@@ -22,12 +22,19 @@ class MultiPacketDecoderTest extends FlatSpec with Matchers {
   }
 
   def randomSize(sloc: Byte): Short = Random.nextInt(65536).toShort
-  def constSize(s: Short)(sloc: Byte): Short = s
+  def constSize(s: Int)(sloc: Byte): Short = s.toShort
   def constContent(b: Byte*)(sloc: Byte): Array[Byte] = b.toArray
+  def randomContentBySloc(sloc: Byte): Array[Byte] = Array.fill(Random.nextInt(65535))(sloc)
 
   "Single valid packet" should "decode" in {
     val \/-(x) = MultiPacketDecoder.decode(ByteBuffer.wrap(generate(List(0x01), constSize(1), constContent(0x00))))
     x.packets(0).payload.getByte(0) should be(0)
+  }
+
+  "Multiple valid packets" should "decode" in {
+    val in = generate(List(0x01), constSize(65535), randomContentBySloc)
+    val \/-(x) = MultiPacketDecoder.decode(ByteBuffer.wrap(in))
+    println(x)
   }
 
 }

@@ -27,7 +27,19 @@ import scalaz.\/
  */
 object MultiPacketDecoder {
   private val header = 0xcab0.toShort
-  private val uint16 = IntCodecPrimitive(16, signed = false, ByteOrdering.BigEndian)
+
+  def decodeShort(b0: Byte, b1: Byte): Int = {
+    (b0 << 8) + b1
+  }
+
+  def decodeSensorDataSourceLocation(sloc: Byte): String \/ SensorDataSourceLocation = sloc match {
+    case 0x01 ⇒ \/.right(SensorDataSourceLocationWrist)
+    case 0x02 ⇒ \/.right(SensorDataSourceLocationWaist)
+    case 0x03 ⇒ \/.right(SensorDataSourceLocationChest)
+    case 0x04 ⇒ \/.right(SensorDataSourceLocationFoot)
+    case 0xff ⇒ \/.right(SensorDataSourceLocationAny)
+    case x    ⇒ \/.left(s"Unknown sensor data source location $x")
+  }
 
   def decode(input: ByteBuffer): String \/ MultiPacket = {
     val bebb = input.order(ByteOrder.BIG_ENDIAN)
@@ -41,13 +53,13 @@ object MultiPacketDecoder {
         else {
           var position = bebb.position()
           val (h :: t) = (0 until count).toList.map { _ ⇒
-            val size = bebb.getShort
-            val sloc = bebb.get()
+            val size = decodeShort(bebb.get, bebb.get)
+            val sloc = decodeSensorDataSourceLocation(bebb.get())
             val buf = bebb.slice().limit(size).asInstanceOf[ByteBuffer]
             position = position + size
             bebb.position(position)
 
-            \/.right(PacketWithLocation(SensorDataSourceLocationAny, BitVector(buf)))
+            sloc.map(sloc ⇒ PacketWithLocation(sloc, BitVector(buf)))
           }
 
           t.foldLeft(h.map(MultiPacket.apply))((r, b) ⇒ r.flatMap(mp ⇒ b.map(mp.withNewPacket)))

@@ -18,7 +18,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / "musclegroups") {
       get {
         complete {
-          UserExerciseClassifier.supportedMuscleGroups
+          UserExercisesClassifier.supportedMuscleGroups
         }
       }
     } ~
