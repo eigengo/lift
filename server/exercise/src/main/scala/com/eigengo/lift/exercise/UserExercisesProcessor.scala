@@ -7,7 +7,6 @@ import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.UserExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.packet.MultiPacket
-import com.eigengo.lift.profile.UserProfileNotifications
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
@@ -179,7 +178,7 @@ object UserExercisesProcessor {
  * ``AccelerometerData``. It also provides the query for the current state.
  */
 class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
-  extends PersistentActor with ActorLogging with AutoPassivation with UserProfileNotifications {
+  extends PersistentActor with ActorLogging with AutoPassivation {
   import scala.concurrent.duration._
   import UserExercises._
 
