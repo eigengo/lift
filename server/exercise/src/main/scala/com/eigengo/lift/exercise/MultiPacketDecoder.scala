@@ -2,7 +2,7 @@ package com.eigengo.lift.exercise
 
 import java.nio.{ByteOrder, ByteBuffer}
 
-import scodec.bits.{BitVector, ByteOrdering}
+import scodec.bits.{ByteVector, BitVector, ByteOrdering}
 
 import scalaz.\/
 
@@ -29,7 +29,7 @@ object MultiPacketDecoder {
   private val header = 0xcab0.toShort
 
   def decodeShort(b0: Byte, b1: Byte): Int = {
-    (b0 << 8) + b1
+    ByteVector(b0, b1).toInt(signed = false, ordering = ByteOrdering.BigEndian)
   }
 
   def decodeSensorDataSourceLocation(sloc: Byte): String \/ SensorDataSourceLocation = sloc match {
@@ -37,7 +37,7 @@ object MultiPacketDecoder {
     case 0x02 ⇒ \/.right(SensorDataSourceLocationWaist)
     case 0x03 ⇒ \/.right(SensorDataSourceLocationChest)
     case 0x04 ⇒ \/.right(SensorDataSourceLocationFoot)
-    case 0xff ⇒ \/.right(SensorDataSourceLocationAny)
+    case 0x7f ⇒ \/.right(SensorDataSourceLocationAny)
     case x    ⇒ \/.left(s"Unknown sensor data source location $x")
   }
 
