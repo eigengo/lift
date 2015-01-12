@@ -3,12 +3,10 @@ package com.eigengo.lift.exercise
 import java.util.{Date, UUID}
 
 import akka.actor.ActorRef
-import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
-import com.eigengo.lift.exercise.UserExercises._
-import com.eigengo.lift.exercise.UserExercisesView._
+import com.eigengo.lift.exercise.UserExercisesProcessor._
+import com.eigengo.lift.exercise.UserExercisesSessions._
 import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
-import spray.http.HttpEntity
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -17,11 +15,11 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef, exerciseClassifiers: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
     path("exercise" / "musclegroups") {
       get {
         complete {
-          (exerciseClassifiers ? GetMuscleGroups).mapTo[List[MuscleGroup]]
+          UserExerciseClassifier.supportedMuscleGroups
         }
       }
     } ~

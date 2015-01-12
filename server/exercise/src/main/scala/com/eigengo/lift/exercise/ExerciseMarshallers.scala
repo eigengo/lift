@@ -1,14 +1,11 @@
 package com.eigengo.lift.exercise
 
-import java.util.UUID
-
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
 import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData
 import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData.Source
 import com.eigengo.lift.exercise.packet.{RawSensorData, MultiPacket}
 import scodec.bits.{ByteVector, BitVector}
 import spray.http.HttpRequest
-import spray.httpx.marshalling.{ToResponseMarshallingContext, ToResponseMarshaller}
 import spray.httpx.unmarshalling.{Deserialized, FromRequestUnmarshaller}
 import spray.routing._
 import spray.routing.directives.{MarshallingDirectives, PathDirectives}
@@ -36,11 +33,9 @@ trait ExerciseMarshallers extends MarshallingDirectives with PathDirectives with
     override def apply(request: HttpRequest): Deserialized[MultiPacket] = {
       val bs = request.entity.data.toByteArray
 
-      val multipleDeviceSensorData = MultipleDeviceSensorData.parseFrom(bs)
-
       Right(
         MultiPacket(
-          multipleDeviceSensorData
+          MultipleDeviceSensorData.parseFrom(bs)
             .getSingleDeviceSensorDataList().asScala
             .map(p => RawSensorData(convertLocation(p.getSource), BitVector(p.getData.toByteArray)))))
     }

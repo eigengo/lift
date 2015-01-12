@@ -2,16 +2,13 @@ package com.eigengo.lift.exercise
 
 import java.nio.ByteBuffer
 
-import akka.testkit.{ImplicitSender, TestKitBase}
 import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData.{Source, SingleDeviceSensorData}
-import com.eigengo.lift.exercise.DeviceSensorData.{MultipleDeviceSensorDataOrBuilder, MultipleDeviceSensorData}
-import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
+import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData
 import com.eigengo.lift.exercise.packet.{RawSensorData, MultiPacket}
 import com.google.protobuf.ByteString
 import org.scalatest.{Matchers, FlatSpec}
 import scodec.bits.BitVector
 import spray.http.{HttpEntity, HttpRequest}
-import spray.testkit.ScalatestRouteTest
 
 object ExerciseMarshallersTest {
   object TestData {

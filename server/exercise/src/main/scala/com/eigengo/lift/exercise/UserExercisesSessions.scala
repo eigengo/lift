@@ -6,15 +6,15 @@ import akka.actor.{ActorRef, ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{SnapshotOffer, PersistentView}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-import com.eigengo.lift.exercise.ExerciseClassifier.ModelMetadata
+import com.eigengo.lift.exercise.UserExerciseClassifier.ModelMetadata
 import com.eigengo.lift.notification.NotificationProtocol.DataMessagePayload
 import com.eigengo.lift.profile.UserProfileNotifications
 
-object UserExercisesView {
+object UserExercisesSessions {
   /** The shard name */
   val shardName = "user-exercises-view"
   /** The props to create the actor on a node */
-  def props(notification: ActorRef, profile: ActorRef) = Props(classOf[UserExercisesView], notification, profile)
+  def props(notification: ActorRef, profile: ActorRef) = Props(classOf[UserExercisesSessions], notification, profile)
 
   /**
    * A set contains list of exercises
@@ -154,52 +154,6 @@ object UserExercisesView {
   }
 
   /**
-   * The session has started
-   * @param sessionId the session identity
-   * @param sessionProps the session props
-   */
-  case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProps)
-
-  /**
-   * The session has been deleted
-   * @param sessionId the session that was deleted
-   */
-  case class SessionDeletedEvt(sessionId: SessionId)
-
-  /**
-   * The session has ended
-   * @param sessionId the session id
-   */
-  case class SessionEndedEvt(sessionId: SessionId)
-
-  /**
-   * Exercise event received for the given session with model metadata and exercise
-   * @param sessionId the session identity
-   * @param metadata the model metadata
-   * @param exercise the result
-   */
-  case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, exercise: Exercise)
-
-  /**
-   * Explicit (user-provided through tapping the device, for example) of exercise set.
-   * @param sessionId the session identity
-   */
-  case class ExerciseSetExplicitMarkEvt(sessionId: SessionId)
-
-  /**
-   * No exercise: rest or just being lazy
-   * @param sessionId the session identity
-   * @param metadata the model metadata
-   */
-  case class NoExerciseEvt(sessionId: SessionId, metadata: ModelMetadata)
-
-  /**
-   * Too much rest
-   * @param sessionId the session identity
-   */
-  case class TooMuchRestEvt(sessionId: SessionId)
-
-  /**
    * Query to receive all exercises for the given ``userId`` between the given dates
    * @param userId the user identity
    * @param startDate the start date
@@ -261,9 +215,10 @@ object UserExercisesView {
 
 }
 
-class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends PersistentView with ActorLogging
+class UserExercisesSessions(notification: ActorRef, userProfile: ActorRef) extends PersistentView with ActorLogging
   with AutoPassivation with UserProfileNotifications {
-  import com.eigengo.lift.exercise.UserExercisesView._
+  import UserExercisesSessions._
+  import UserExercises._
   import scala.concurrent.duration._
 
   // our internal state
@@ -275,8 +230,12 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
 
   // we'll hang around for 360 seconds, just like the exercise sessions
   context.setReceiveTimeout(360.seconds)
-  override val viewId: String = s"user-exercises-view-${self.path.name}"
-  override val persistenceId: String = s"user-exercises-${self.path.name}"
+
+  override def autoUpdateInterval: FiniteDuration = 1.second
+  override def autoUpdate: Boolean = true
+
+  override val viewId: String = s"user-exercises-sessions-${userId.toString}"
+  override val persistenceId: String = s"user-exercises-${userId.toString}"
 
   private lazy val queries: Receive = {
     // query for exercises
@@ -313,9 +272,6 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
     case NoExerciseEvt(_, metadata) if isPersistent ⇒
       log.debug("NoExerciseEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
-    case TooMuchRestEvt(_) if isPersistent ⇒
-      log.debug("TooMuchRestEvt: in a set -> exercising.")
-      context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
     case ExerciseSetExplicitMarkEvt(_) ⇒
       log.debug("ExerciseSetExplicitMarkEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
@@ -337,9 +293,6 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
     case ExerciseSetExplicitMarkEvt(_) ⇒
       log.debug("ExerciseSetExplicitMarkEvt: exercising -> in a set.")
       context.become(inASet(session, ExerciseSet.empty).orElse(queries))
-
-    case TooMuchRestEvt(_) ⇒
-      log.debug("TooMuchRest: exercising -> exercising.")
 
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: exercising -> not exercising.")

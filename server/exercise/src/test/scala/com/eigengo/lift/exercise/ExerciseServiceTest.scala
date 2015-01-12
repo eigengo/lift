@@ -6,9 +6,9 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{ImplicitSender, TestActor, TestKitBase, TestProbe}
 import com.eigengo.lift.common.UserId
 import com.eigengo.lift.exercise.DeviceSensorData.MultipleDeviceSensorData.Source
-import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
-import com.eigengo.lift.exercise.UserExercises._
-import com.eigengo.lift.exercise.UserExercisesView._
+import com.eigengo.lift.exercise.UserExerciseClassifier.MuscleGroup
+import com.eigengo.lift.exercise.UserExercisesProcessor._
+import com.eigengo.lift.exercise.UserExercisesSessions._
 import com.eigengo.lift.exercise.packet.MultiPacket
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
@@ -45,9 +45,6 @@ object ExerciseServiceTest {
     probe.setAutoPilot {
       new TestActor.AutoPilot {
         def run(sender: ActorRef, msg: Any) = msg match {
-          case GetMuscleGroups =>
-            sender ! TestData.muscleGroups
-            TestActor.KeepRunning
           case UserExerciseSessionStart(_, _) =>
             sender ! \/.right(TestData.userId.id)
             TestActor.KeepRunning
@@ -94,16 +91,14 @@ class ExerciseServiceTest
 
   val probe = ExerciseServiceTest.probe
 
-  val underTest = exerciseRoute(probe.ref, probe.ref, probe.ref)
+  val underTest = exerciseRoute(probe.ref, probe.ref)
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 
   "The Exercise service" should "listen at GET /exercise/musclegroups endpoint" in {
     Get("/exercise/musclegroups") ~> underTest ~> check {
-      responseAs[List[MuscleGroup]] should be(TestData.muscleGroups)
+      responseAs[List[MuscleGroup]] should be(UserExerciseClassifier.supportedMuscleGroups)
     }
-
-    probe.expectMsg(GetMuscleGroups)
   }
 
   it should "listen at POST exercise/:UserIdValue endpoint" in {
