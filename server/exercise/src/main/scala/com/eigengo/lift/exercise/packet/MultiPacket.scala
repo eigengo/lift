@@ -1,5 +1,5 @@
 package com.eigengo.lift.exercise.packet
 
-class MultiPacket {
+import com.eigengo.lift.exercise.SensorDataWithLocation
 
-}
+case class MultiPacket(sensorData: Seq[SensorDataWithLocation])

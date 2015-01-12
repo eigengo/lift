@@ -6,6 +6,7 @@ import akka.actor.ActorRef
 import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGroup}
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
+import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 import spray.http.HttpEntity
 import spray.routing.Directives
@@ -63,8 +64,8 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       put {
         // TODO: content type negotiation
-        handleWith { bits: BitVector ⇒
-          (userExercises ? UserExerciseDataProcessSinglePacket(userId, sessionId, bits)).mapRight[Unit]
+        handleWith { packet: MultiPacket ⇒
+          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, packet)).mapRight[Unit]
         }
       } ~
       delete {
