@@ -250,6 +250,7 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         context.become(exercising(newId, newSessionProps))
       }
 
+    //TODO: Remove single packet completely?
     case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
       tracing ! bits
@@ -259,8 +260,17 @@ class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClass
         .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
         .fold(decodingFailed, decodedSensorData(sessionProps))
 
-    case ExerciseDataProcessMultiPacket(`id`, _) ⇒
-      sender() ! \/.left("Not implemented yet")
+    //TODO: Handle all and not just first
+    case ExerciseDataProcessMultiPacket(`id`, data) ⇒
+      log.debug("ExerciseDataProcess: exercising -> exercising.")
+
+      val firstSensorData = data.rawSensorData.head.data
+      tracing ! firstSensorData
+
+      rootSensorDataDecoder
+        .decodeAll(firstSensorData)
+        .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
+        .fold(decodingFailed, decodedSensorData(sessionProps))
 
     case FullyClassifiedExercise(metadata, confidence, exercise) if confidence > confidenceThreshold ⇒
       log.debug("FullyClassifiedExercise: exercising -> exercising.")
