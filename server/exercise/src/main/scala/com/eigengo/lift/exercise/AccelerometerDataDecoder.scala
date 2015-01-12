@@ -1,24 +1,8 @@
 package com.eigengo.lift.exercise
 
-import scodec.bits.{BitVector, ByteOrdering}
+import scodec.bits.{ByteOrdering, BitVector}
 
-import scala.annotation.tailrec
 import scalaz.\/
-
-/**
- * Accelerometer data groups ``values`` at the given ``samplingRate``
- * @param samplingRate the sampling rate in Hz
- * @param values the values
- */
-case class AccelerometerData(samplingRate: Int, values: List[AccelerometerValue]) extends SensorData
-
-/**
- * Accelerometer data
- * @param x the x
- * @param y the y
- * @param z the z
- */
-case class AccelerometerValue(x: Int, y: Int, z: Int)
 
 /**
  * Contains decoders for the stream of paced values in a stream constructed from
@@ -93,7 +77,7 @@ object AccelerometerDataDecoder extends SensorDataDecoder[AccelerometerData] {
   }
 
   override def decode(bits: BitVector): \/[String, (BitVector, AccelerometerData)] = for {
-      (body, (sps, count)) ← packedGfsHeader.decode(bits)
-      (rest, avs)          ← packedAccelerometerData.decode[List](body, count)
-    } yield rest → AccelerometerData(sps, avs)
+    (body, (sps, count)) ← packedGfsHeader.decode(bits)
+    (rest, avs)          ← packedAccelerometerData.decode[List](body, count)
+  } yield rest → AccelerometerData(sps, avs)
 }

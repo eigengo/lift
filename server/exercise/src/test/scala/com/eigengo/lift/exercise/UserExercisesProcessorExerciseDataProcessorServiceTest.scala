@@ -3,7 +3,7 @@ package com.eigengo.lift.exercise
 import akka.actor.ActorRefFactory
 import akka.testkit.{ImplicitSender, TestKitBase, TestProbe}
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.exercise.UserExercises.UserExerciseDataProcessSinglePacket
+import com.eigengo.lift.exercise.UserExercisesProcessor.UserExerciseDataProcessSinglePacket
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
@@ -11,11 +11,11 @@ import spray.testkit.ScalatestRouteTest
 
 import scalaz.\/
 
-class UserExercisesExerciseDataProcessorServiceTest
+class UserExercisesProcessorExerciseDataProcessorServiceTest
   extends FlatSpec with ScalatestRouteTest with TestKitBase with Matchers
   with ExerciseService with ExerciseMarshallers with LiftTestMarshallers with ImplicitSender {
   val probe = TestProbe()
-  val route = exerciseRoute(probe.ref, testActor, testActor)
+  val route = exerciseRoute(probe.ref, testActor)
 
   override def testConfig: Config = ConfigFactory.load("/test.conf")
 
