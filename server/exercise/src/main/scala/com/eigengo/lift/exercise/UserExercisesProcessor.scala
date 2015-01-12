@@ -4,9 +4,9 @@ import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
+import com.eigengo.lift.exercise.MultiPacket
 import com.eigengo.lift.exercise.UserExerciseClassifier._
 import com.eigengo.lift.exercise.UserExercisesProcessor._
-import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 
 import scala.language.postfixOps

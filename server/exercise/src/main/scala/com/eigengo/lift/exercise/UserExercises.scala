@@ -1,7 +1,7 @@
 package com.eigengo.lift.exercise
 
+import com.eigengo.lift.exercise.MultiPacket
 import com.eigengo.lift.exercise.UserExerciseClassifier.ModelMetadata
-import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 
 object UserExercises {
