@@ -7,6 +7,7 @@ import com.eigengo.lift.exercise.ExerciseClassifiers.{GetMuscleGroups, MuscleGro
 import com.eigengo.lift.exercise.UserExercises._
 import com.eigengo.lift.exercise.UserExercisesView._
 import scodec.bits.BitVector
+import spray.http.HttpEntity
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -75,7 +76,13 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / UserIdValue / SessionIdValue / "classification") { (userId, sessionId) ⇒
       post {
         handleWith { exercise: Exercise ⇒
-          (userExercises ? UserExerciseClassify(userId, sessionId, exercise.name, exercise.intensity)).mapRight[Unit]
+          (userExercises ? UserExerciseExplicitClassificationStart(userId, sessionId, exercise)).mapRight[Unit]
+        }
+      } ~
+      delete {
+        complete {
+          userExercises ! UserExerciseExplicitClassificationEnd(userId, sessionId)
+          ""
         }
       }
     }

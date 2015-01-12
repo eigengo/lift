@@ -18,7 +18,7 @@ object UserProfileProtocol {
      * @param device the device
      * @return the updated profile
      */
-    def withDevice(device: Device) = copy(devices = device :: devices)
+    def withDevice(device: Device) = copy(devices = devices.withNewDevice(device))
 
     /**
      * Sets the public profile

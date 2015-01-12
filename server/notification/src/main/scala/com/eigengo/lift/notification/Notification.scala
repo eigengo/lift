@@ -13,16 +13,10 @@ class Notification extends Actor with ActorLogging {
   private val apple = context.actorOf(ApplePushNotification.props)
 
   override def receive: Receive = {
-    case PushMessage(devices, message, badge, sound, destinations) ⇒
+    case PushMessage(devices, payload) ⇒
       devices.foreach {
-        case IOSDevice(deviceToken) ⇒
-          destinations.foreach {
-            case MobileDestination ⇒ apple ! ApplePushNotification.ScreenMessage(deviceToken, message, badge, sound)
-            case WatchDestination ⇒ // noop for now
-          }
-
-        case AndroidDevice() ⇒
-          log.debug(s"Not yet delivering Android push message $message")
+        case IOSDevice(deviceToken) ⇒ apple ! ApplePushNotification.PushMessage(deviceToken, payload)
+        case AndroidDevice() ⇒ log.debug(s"Not yet delivering Android push message $payload")
       }
   }
 }

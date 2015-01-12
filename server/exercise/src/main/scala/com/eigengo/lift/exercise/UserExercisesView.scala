@@ -7,23 +7,14 @@ import akka.contrib.pattern.ShardRegion
 import akka.persistence.{SnapshotOffer, PersistentView}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import com.eigengo.lift.exercise.ExerciseClassifier.ModelMetadata
-import com.eigengo.lift.notification.NotificationProtocol.{MobileDestination, PushMessage, Devices}
+import com.eigengo.lift.notification.NotificationProtocol.DataMessagePayload
 import com.eigengo.lift.profile.UserProfileNotifications
-import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
 
 object UserExercisesView {
   /** The shard name */
   val shardName = "user-exercises-view"
   /** The props to create the actor on a node */
   def props(notification: ActorRef, profile: ActorRef) = Props(classOf[UserExercisesView], notification, profile)
-
-  /**
-   * A single recorded exercise
-   *
-   * @param name the name
-   * @param intensity the intensity, if known
-   */
-  case class Exercise(name: ExerciseName, intensity: Option[Double] /* Ideally, this would be Option[ExerciseIntensity], but Json4s is being silly */)
 
   /**
    * A set contains list of exercises
@@ -280,7 +271,7 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
 
   // values from the profile
   private val userId = UserId(self.path.name)
-  private val notificationSender = allDevicesSender(userId, notification, userProfile)
+  private val notificationSender = newNotificationSender(userId, notification, userProfile)
 
   // we'll hang around for 360 seconds, just like the exercise sessions
   context.setReceiveTimeout(360.seconds)
@@ -310,6 +301,7 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
       context.become(exercising(ExerciseSession(sessionId, sessionProps, List.empty)).orElse(queries))
 
     case SessionDeletedEvt(sessionId) if isPersistent ⇒
+      log.info(s"SessionDeletedEvt($sessionId): not exercising -> not exercising")
       exercises = exercises.withoutSession(sessionId)
       saveSnapshot(exercises)
   }
@@ -331,7 +323,7 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: in a set -> not exercising.")
       exercises = exercises.withNewSession(session.withNewExerciseSet(set))
-      notificationSender ! "{}"
+      notificationSender ! DataMessagePayload("{}")
       saveSnapshot(exercises)
 
       context.become(notExercising.orElse(queries))
@@ -351,8 +343,8 @@ class UserExercisesView(notification: ActorRef, userProfile: ActorRef) extends P
 
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: exercising -> not exercising.")
-      notificationSender ! "{}"
       exercises = exercises.withNewSession(session)
+      notificationSender ! DataMessagePayload("{}")
       saveSnapshot(exercises)
   }
 

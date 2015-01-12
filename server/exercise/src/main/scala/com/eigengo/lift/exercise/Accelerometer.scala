@@ -10,7 +10,7 @@ import scalaz.\/
  * @param samplingRate the sampling rate in Hz
  * @param values the values
  */
-case class AccelerometerData(samplingRate: Int, values: List[AccelerometerValue])
+case class AccelerometerData(samplingRate: Int, values: List[AccelerometerValue]) extends SensorData
 
 /**
  * Accelerometer data
@@ -46,8 +46,9 @@ case class AccelerometerValue(x: Int, y: Int, z: Int)
  * };
  * }}}
  */
-object AccelerometerData {
+object AccelerometerDataDecoder extends SensorDataDecoder[AccelerometerData] {
   private implicit val _ = scalaz.Monoid.instance[String](_ + _, "")
+  private val header = ConstantCodecPrimitive(BitVector(0xad))
 
   private val packedAccelerometerData = new ReverseByteOrderCodecPrimitive(
     new CodecPrimitive[AccelerometerValue] {
@@ -71,7 +72,6 @@ object AccelerometerData {
     new CodecPrimitive[(Int, Int)] {
       val unsigned8 = IntCodecPrimitive(8, signed = false, ByteOrdering.BigEndian)
       val unsigned16 = IntCodecPrimitive(16, signed = false, ByteOrdering.BigEndian)
-      val header = ConstantCodecPrimitive(BitVector(0xad))
 
       override val bits: Long = 40
 
@@ -87,32 +87,13 @@ object AccelerometerData {
     }
   )
 
-  private def decode(bits: BitVector): (BitVector, List[AccelerometerData]) = {
-    val result = for {
+  override def supports(bits: BitVector): Boolean = {
+    val x = header.decode(bits)
+    x.isRight
+  }
+
+  override def decode(bits: BitVector): \/[String, (BitVector, AccelerometerData)] = for {
       (body, (sps, count)) ← packedGfsHeader.decode(bits)
       (rest, avs)          ← packedAccelerometerData.decode[List](body, count)
-    } yield (rest, AccelerometerData(sps, avs))
-
-    result.fold(_ => (bits, Nil), { case (bits2, ad) => (bits2, List(ad)) })
-  }
-
-  /**
-   * Decodes as much as possible from ``bits``, appending the values to ``ads``.
-   * @param bits the input bit stream
-   * @param ads the "current" list of ``AccelerometerData``
-   * @return the remaining bits and decoded ``AccelerometerData``
-   */
-  @tailrec
-  final def decodeAll(bits: BitVector, ads: List[AccelerometerData]): (BitVector, List[AccelerometerData]) = {
-    decode(bits) match {
-      // Parsed all we could, nothing remains
-      case (BitVector.empty, ads2) => (BitVector.empty, ads ++ ads2)
-      // Parsed all we could, but exactly `bits` remain => we did not get any further.
-      // Repeated recursion will not solve anything.
-      case (`bits`, ads2) => (bits, ads ++ ads2)
-      // Still something left to parse
-      case (neb, ads2) => decodeAll(neb, ads ++ ads2)
-    }
-  }
-
+    } yield rest → AccelerometerData(sps, avs)
 }

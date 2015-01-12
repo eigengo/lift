@@ -1,7 +1,6 @@
 package com.eigengo.lift.exercise
 
 import java.text.SimpleDateFormat
-import java.util.{Date, UUID}
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{ImplicitSender, TestActor, TestKitBase, TestProbe}
@@ -18,17 +17,19 @@ import scalaz._
 object ExerciseServiceTest {
 
   object TestData {
-    val userId = UserId(UUID.randomUUID())
-    val sessionId = SessionId(UUID.randomUUID())
+    private val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 
-    val squat = "squat"
+    val userId = UserId.randomId()
+    val sessionId = SessionId.randomId()
+
+    val squat = Exercise("squat", Some(1.0))
     val intensity = Some(1.0)
-    val startDate = new Date(1970, 1, 1, 0, 0, 0)
-    val endDate = new Date(1970, 1, 1, 0, 0, 0)
+    val startDate = dateFormat.parse("1970-01-01")
+    val endDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProps(startDate, Seq("Legs"), 1.0)
-    val muscleGroups = List(MuscleGroup("legs", "Legs", List(squat, "extension", "curl")))
+    val muscleGroups = List(MuscleGroup("legs", "Legs", List("squat")))
     val sessionSummary = List(SessionSummary(sessionId, sessionProps, Array(1.0)))
-    val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(Exercise(squat, intensity))))))
+    val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(squat)))))
     val sessionDates = List(SessionDate(startDate, List(SessionIntensity(intensity.get, intensity.get))))
     val bitVector = BitVector.empty
     val emptyResponse = "{\"b\":{}}"
@@ -44,7 +45,7 @@ object ExerciseServiceTest {
             sender ! TestData.muscleGroups
             TestActor.KeepRunning
           case UserExerciseSessionStart(_, _) =>
-            sender ! \/-(TestData.userId.id)
+            sender ! \/.right(TestData.userId.id)
             TestActor.KeepRunning
           case UserGetExerciseSessionsSummary(_, _, _) =>
             sender ! TestData.sessionSummary
@@ -55,7 +56,7 @@ object ExerciseServiceTest {
           case UserExerciseDataProcessSinglePacket(_, _, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
-          case UserExerciseDataProcessMultiplePackets(_, _, _) =>
+          case UserExerciseDataProcessMultiPacket(_, _, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
           case UserGetExerciseSessionsDates(_) =>
@@ -64,7 +65,7 @@ object ExerciseServiceTest {
           case UserExerciseSessionEnd(_, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
-          case UserExerciseClassify(_, _, _, _) =>
+          case UserExerciseExplicitClassificationStart(_, _, _) =>
             sender ! \/.right(())
             TestActor.KeepRunning
         }
@@ -101,15 +102,15 @@ class ExerciseServiceTest
     probe.expectMsg(GetMuscleGroups)
   }
 
-  it should "listen at POST exercise/UserIdValue endpoint" in {
-    Post(s"/exercise/${TestData.userId.id}", TestData.sessionProps) ~> underTest ~> check {
-      UUID.fromString(response.entity.asString.replace("\"", "")) should be(TestData.userId.id)
+  it should "listen at POST exercise/:UserIdValue endpoint" in {
+    Post(s"/exercise/${TestData.userId.id}/start", TestData.sessionProps) ~> underTest ~> check {
+      UserId(response.entity.asString.replace("\"", "")) should be(TestData.userId)
     }
 
     probe.expectMsg(UserExerciseSessionStart(TestData.userId, TestData.sessionProps))
   }
 
-  it should "listen at GET exercise/UserIdValue?startDate=date&endDate=date endpoint" in {
+  it should "listen at GET exercise/:UserIdValue?startDate=date&endDate=date endpoint" in {
     Get(s"/exercise/${TestData.userId.id}?startDate=${dateFormat.format(TestData.startDate)}&endDate=${dateFormat.format(TestData.endDate)}") ~> underTest ~> check {
       responseAs[List[SessionSummary]].head.sessionProps should be(TestData.sessionSummary.head.sessionProps)
     }
@@ -117,7 +118,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserGetExerciseSessionsSummary(TestData.userId, TestData.startDate, TestData.endDate))
   }
 
-  it should "listen at GET exercise/UserIdValue?date=date endpoint" in {
+  it should "listen at GET exercise/:UserIdValue?date=date endpoint" in {
     Get(s"/exercise/${TestData.userId.id}?date=${dateFormat.format(TestData.startDate)}") ~> underTest ~> check {
       responseAs[List[SessionSummary]].head.sessionProps should be(TestData.sessionSummary.head.sessionProps)
     }
@@ -125,7 +126,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserGetExerciseSessionsSummary(TestData.userId, TestData.startDate, TestData.startDate))
   }
 
-  it should "listen at GET exercise/UserIdValue endpoint" in {
+  it should "listen at GET exercise/:UserIdValue endpoint" in {
     Get(s"/exercise/${TestData.userId.id}") ~> underTest ~> check {
       responseAs[List[SessionDate]] should be(TestData.sessionDates)
     }
@@ -133,7 +134,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserGetExerciseSessionsDates(TestData.userId))
   }
 
-  it should "listen at GET exercise/UserIdValue/SessionIdValue endpoint" in {
+  it should "listen at GET exercise/:UserIdValue/:SessionIdValue endpoint" in {
     Get(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}") ~> underTest ~> check {
       responseAs[Option[ExerciseSession]] should be(TestData.session)
     }
@@ -141,7 +142,7 @@ class ExerciseServiceTest
     probe.expectMsg(UserGetExerciseSession(TestData.userId, TestData.sessionId))
   }
 
-  it should "listen at PUT exercise/UserIdValue/SessionIdValue endpoint" in {
+  it should "listen at PUT exercise/:UserIdValue/:SessionIdValue endpoint" in {
     Put(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}", TestData.bitVector) ~> underTest ~> check {
       response.entity.asString should be(TestData.emptyResponse)
     }
@@ -149,19 +150,19 @@ class ExerciseServiceTest
     probe.expectMsg(UserExerciseDataProcessSinglePacket(TestData.userId, TestData.sessionId, TestData.bitVector))
   }
 
-  it should "listen at DELETE exercise/UserIdValue/SessionIdValue endpoint" in {
-    Delete(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}") ~> underTest ~> check {
+  it should "listen at POST exercise/:UserIdValue/:SessionIdValue/end endpoint" in {
+    Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/end") ~> underTest ~> check {
       response.entity.asString should be(TestData.emptyResponse)
     }
 
     probe.expectMsg(UserExerciseSessionEnd(TestData.userId, TestData.sessionId))
   }
 
-  it should "listen at POST exercise/UserIdValue/SessionIdValue/classification endpoint" in {
-    Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/classification", Exercise(TestData.squat, TestData.intensity)) ~> underTest ~> check {
+  it should "listen at POST exercise/:UserIdValue/:SessionIdValue/classification endpoint" in {
+    Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/classification", TestData.squat) ~> underTest ~> check {
       response.entity.asString should be(TestData.emptyResponse)
     }
 
-    probe.expectMsg(UserExerciseClassify(TestData.userId, TestData.sessionId, TestData.squat, TestData.intensity))
+    probe.expectMsg(UserExerciseExplicitClassificationStart(TestData.userId, TestData.sessionId, TestData.squat))
   }
 }

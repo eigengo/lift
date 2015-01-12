@@ -6,7 +6,8 @@ import java.util
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
 import akka.routing.RoundRobinPool
-import com.eigengo.lift.notification.ApplePushNotification.ScreenMessage
+import com.eigengo.lift.notification.ApplePushNotification.PushMessage
+import com.eigengo.lift.notification.NotificationProtocol.{DataMessagePayload, ScreenMessagePayload, PushMessagePayload}
 import com.notnoop.apns.{ApnsService, APNS}
 
 import scala.io.Source
@@ -19,11 +20,9 @@ object ApplePushNotification {
    * Sends default message to the client
    *
    * @param deviceToken the device token
-   * @param message the message
-   * @param badge the badge
-   * @param sound the sound
+   * @param payload the message
    */
-  case class ScreenMessage(deviceToken: Array[Byte], message: String, badge: Option[Int], sound: Option[String])
+  case class PushMessage(deviceToken: Array[Byte], payload: PushMessagePayload)
 
 }
 
@@ -43,17 +42,19 @@ class ApplePushNotification extends Actor with ActorLogging {
   }.getOrElse(screenOnly)
 
   private def withCertificates(service: ApnsService): Receive = {
-    case ScreenMessage(deviceToken, message, badge, sound) ⇒
-      log.debug(s"Screen message $message to ${util.Arrays.toString(deviceToken)}")
+    case PushMessage(deviceToken, ScreenMessagePayload(message, badge, sound)) ⇒
       val payloadBuilder = APNS.newPayload.alertBody(message)
       badge.foreach(payloadBuilder.badge)
       sound.foreach(payloadBuilder.sound)
       service.push(deviceToken, payloadBuilder.build().getBytes("UTF-8"))
+    case PushMessage(deviceToken, DataMessagePayload(message)) ⇒
+      val payloadBuilder = APNS.newPayload.customField("data", message)
+      service.push(deviceToken, payloadBuilder.build().getBytes("UTF-8"))
   }
 
   private def screenOnly: Receive = {
-    case ScreenMessage(deviceToken, message, _, _) ⇒
-      log.debug(s"*** Not delivering screen message $message to $deviceToken")
+    case PushMessage(deviceToken, payload) ⇒
+      log.debug(s"*** Not delivering screen message $payload to $deviceToken")
   }
 
 }

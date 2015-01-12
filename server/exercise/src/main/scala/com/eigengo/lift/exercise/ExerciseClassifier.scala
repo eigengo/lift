@@ -1,7 +1,6 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.Actor
-import com.eigengo.lift.common.UserId
 import com.eigengo.lift.exercise.ExerciseClassifier._
 
 import scala.util.Random
@@ -42,14 +41,19 @@ case object NaiveModel extends ExerciseModel {
 
   private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Random.shuffle(es).head, None))
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None)))
   }
 
   override def apply(classify: Classify): ClassifiedExercise = {
-    val xs = classify.ad.values.map(_.x)
-    val ys = classify.ad.values.map(_.y)
-    val zs = classify.ad.values.map(_.z)
-    println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+    classify.sensorData.foreach { sd ⇒
+      sd.data.foreach {
+        case AccelerometerData(sr, values) ⇒
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+      }
+    }
     randomExercise(classify.sessionProps)
   }
 }
@@ -62,15 +66,23 @@ object ExerciseClassifier {
   /**
    * Classify the given accelerometer data together with session information
    * @param sessionProps the session
-   * @param ad the accelerometer data
+   * @param sensorData the sensor data
    */
-  case class Classify(sessionProps: SessionProps, ad: AccelerometerData)
+  case class Classify(sessionProps: SessionProps, sensorData: List[SensorDataWithLocation])
 
   /**
    * Model version and other metadata
    * @param version the model version
    */
   case class ModelMetadata(version: Int)
+
+  /**
+   * The MD companion
+   */
+  object ModelMetadata {
+    /** Special user-classified metadata */
+    val user = ModelMetadata(-1231344)
+  }
 
   /**
    * ADT holding the classification result
@@ -81,10 +93,9 @@ object ExerciseClassifier {
    * Known exercise with the given confidence, name and optional intensity
    * @param metadata the model metadata
    * @param confidence the confidence
-   * @param name the exercise name
-   * @param intensity the intensity, if known
+   * @param exercise the exercise
    */
-  case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, name: ExerciseName, intensity: Option[ExerciseIntensity]) extends ClassifiedExercise
+  case class FullyClassifiedExercise(metadata: ModelMetadata, confidence: Double, exercise: Exercise) extends ClassifiedExercise
 
   /**
     * Unknown exercise
