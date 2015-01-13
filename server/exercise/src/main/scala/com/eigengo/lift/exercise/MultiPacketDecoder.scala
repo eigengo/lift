@@ -42,24 +42,27 @@ object MultiPacketDecoder {
   }
 
   def decode(input: ByteBuffer): String \/ MultiPacket = {
-    val bebb = input.order(ByteOrder.BIG_ENDIAN)
     if (input.limit() < 7) \/.left("No viable input: size < 7.")
     else {
       val inputHeader = input.getShort
       if (inputHeader != header) \/.left(s"Incorrect header. Expected $header, got $inputHeader.")
       else {
-        val count = bebb.get()
+        val count = input.get()
         if (count == 0) \/.left("No content")
         else {
-          var position = bebb.position()
-          val (h :: t) = (0 until count).toList.map { _ ⇒
-            val size = decodeShort(bebb.get, bebb.get)
-            val sloc = decodeSensorDataSourceLocation(bebb.get())
-            val buf = bebb.slice().limit(size).asInstanceOf[ByteBuffer]
-            position = position + size
-            bebb.position(position)
+          val (h :: t) = (0 until count).toList.map { x ⇒
+            if (input.position() + 3 >= input.limit()) \/.left(s"Incomplete or truncated input. (Header of packet $x.)")
+            else {
+              val size = decodeShort(input.get, input.get)
+              if (input.position() + size >= input.limit()) \/.left(s"Incomplete or truncated input. ($size bytes payload of packet $x.)")
+              else {
+                val sloc = decodeSensorDataSourceLocation(input.get)
+                val buf = input.slice().limit(size).asInstanceOf[ByteBuffer]
+                input.position(input.position() + size)
 
-            sloc.map(sloc ⇒ PacketWithLocation(sloc, BitVector(buf)))
+                sloc.map(sloc ⇒ PacketWithLocation(sloc, BitVector(buf)))
+              }
+            }
           }
 
           t.foldLeft(h.map(MultiPacket.apply))((r, b) ⇒ r.flatMap(mp ⇒ b.map(mp.withNewPacket)))
