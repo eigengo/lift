@@ -1,7 +1,5 @@
 package com.eigengo.lift.exercise
 
-import scodec.bits.BitVector
-
 object UserExercises {
 
   /**
@@ -17,14 +15,6 @@ object UserExercises {
     /** Special user-classified metadata */
     val user = ModelMetadata(-1231344)
   }
-
-  /**
-   * Failed to decode single packet for the given session with an error message and the original packet
-   * @param id the session identity
-   * @param error the decoding error
-   * @param packet the failing packet
-   */
-  case class SinglePacketDecodingFailedEvt(id: SessionId, error: String, packet: BitVector)
 
   /**
    * Failed to decode multi-packet for the given session with an error message and the original packet

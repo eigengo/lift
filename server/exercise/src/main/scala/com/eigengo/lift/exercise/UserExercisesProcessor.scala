@@ -4,10 +4,6 @@ import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-import com.eigengo.lift.exercise.MultiPacket
-import com.eigengo.lift.exercise.UserExercisesClassifier._
-import com.eigengo.lift.exercise.UserExercisesProcessor._
-import scodec.bits.BitVector
 
 import scala.language.postfixOps
 import scalaz.\/
@@ -21,14 +17,6 @@ object UserExercisesProcessor {
   val shardName = "user-exercises"
   /** The sessionProps to create the actor on a node */
   def props(notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], notification, userProfile)
-
-  /**
-   * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
-   * @param userId the user identity
-   * @param sessionId the sessionProps identity
-   * @param bits the submitted bits
-   */
-  case class UserExerciseDataProcessSinglePacket(userId: UserId, sessionId: SessionId, bits: BitVector)
 
   /**
    * Remove a session identified by ``sessionId`` for user identified by ``userId``
@@ -54,8 +42,8 @@ object UserExercisesProcessor {
 
   /**
    * Receive multiple packets of data for the given ``userId`` and ``sessionId``. The ``packets`` is a ZIP archive
-   * containing multiple files, each representing a single packet. Imagine that this message results in at least
-   * one ``UserExerciseDataProcessSinglePacket`` messages.
+   * containing multiple files, each representing a single packet.
+   *
    *
    * The main notion is that all packets in the archive have been measured *at the same time*. It is possible that
    * the archive contains the following files.
@@ -77,13 +65,6 @@ object UserExercisesProcessor {
    * @param packet the archive containing at least one packet
    */
   case class UserExerciseDataProcessMultiPacket(userId: UserId, sessionId: SessionId, packet: MultiPacket)
-
-  /**
-   * Process exercise data for the given session
-   * @param sessionId the sessionProps identifier
-   * @param bits the exercise data bits
-   */
-  private case class ExerciseDataProcessSinglePacket(sessionId: SessionId, bits: BitVector)
 
   /**
    * Process exercise data for the given session
@@ -151,7 +132,6 @@ object UserExercisesProcessor {
   val idExtractor: ShardRegion.IdExtractor = {
     case UserExerciseSessionStart(userId, session)                            ⇒ (userId.toString, ExerciseSessionStart(session))
     case UserExerciseSessionEnd(userId, sessionId)                            ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)         ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
     case UserExerciseDataProcessMultiPacket(userId, sessionId, packets)       ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
     case UserExerciseSessionDelete(userId, sessionId)                         ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
     case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
@@ -164,7 +144,6 @@ object UserExercisesProcessor {
   val shardResolver: ShardRegion.ShardResolver = {
     case UserExerciseSessionStart(userId, _)                   ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionEnd(userId, _)                     ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcessSinglePacket(userId, _, _)     ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseDataProcessMultiPacket(userId, _, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionDelete(userId, _)                  ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationStart(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
@@ -179,6 +158,8 @@ object UserExercisesProcessor {
  */
 class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
+  import com.eigengo.lift.exercise.UserExercisesClassifier._
+  import com.eigengo.lift.exercise.UserExercisesProcessor._
   import scala.concurrent.duration._
   import UserExercises._
 
@@ -189,7 +170,7 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
 
   // tracing output
-  private val tracing = context.actorOf(UserExercisesTracing.props(userId))
+  /*private val tracing = */context.actorOf(UserExercisesTracing.props(userId))
   private val classifier = context.actorOf(UserExercisesClassifier.props)
 
   // how long until we stop processing
@@ -215,19 +196,17 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
         context.become(exercising(newId, newSessionProps))
       }
 
-    case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
+    case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
 
-      rootSensorDataDecoder
-        .decodeAll(bits)
-        .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
-        .fold({ err ⇒ persist(SinglePacketDecodingFailedEvt(id, err, bits)) { evt ⇒ sender() ! \/.left(err) } },
-              { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
-
-    case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
-      persist(MultiPacketDecodingFailedEvt(id, "Not implemented", packet)) {
-        evt ⇒ sender() ! \/.left("Not implemented")
+      val (h :: t)= packet.packets.map { pwl ⇒
+        rootSensorDataDecoder
+          .decodeAll(pwl.payload)
+          .map(sd ⇒ SensorDataWithLocation(pwl.sourceLocation, sd))
       }
+      val result = t.foldLeft(h.map(x ⇒ List(x)))((r, b) ⇒ r.flatMap(sdwls ⇒ b.map(x ⇒ x :: sdwls)))
+      result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
+                  { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
 
     case ExerciseSessionEnd(`id`) ⇒
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")

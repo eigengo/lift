@@ -10,6 +10,7 @@ import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.BitVector
+import spray.http.HttpEntity
 import spray.testkit.ScalatestRouteTest
 
 import scalaz._
@@ -31,7 +32,10 @@ object ExerciseServiceTest {
     val sessionSummary = List(SessionSummary(sessionId, sessionProps, Array(1.0)))
     val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(squat)))))
     val sessionDates = List(SessionDate(startDate, List(SessionIntensity(intensity.get, intensity.get))))
-    val bitVector = BitVector.empty
+    val multiPacket: Array[Byte] = Array(
+      0xca, 0xb0, 0x02,
+      0x00, 0x04, 0x01, 0xff, 0x01, 0x02, 0x03,
+      0x00, 0x02, 0x02, 0xf0, 0x01).map(_.toByte)
     val emptyResponse = "{\"b\":{}}"
   }
 
@@ -49,9 +53,6 @@ object ExerciseServiceTest {
             TestActor.KeepRunning
           case UserGetExerciseSession(_, _) =>
             sender ! TestData.session
-            TestActor.KeepRunning
-          case UserExerciseDataProcessSinglePacket(_, _, _) =>
-            sender ! \/.right(())
             TestActor.KeepRunning
           case UserExerciseDataProcessMultiPacket(_, _, _) =>
             sender ! \/.right(())
@@ -80,7 +81,6 @@ class ExerciseServiceTest
   with Matchers
   with ExerciseService
   with ExerciseMarshallers
-  with LiftTestMarshallers
   with ImplicitSender {
 
   import com.eigengo.lift.exercise.ExerciseServiceTest._
@@ -138,11 +138,15 @@ class ExerciseServiceTest
   }
 
   it should "listen at PUT exercise/:UserIdValue/:SessionIdValue endpoint" in {
-    Put(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}", TestData.bitVector) ~> underTest ~> check {
+    Put(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}").withEntity(HttpEntity(bytes = TestData.multiPacket)) ~> underTest ~> check {
       response.entity.asString should be(TestData.emptyResponse)
     }
 
-    probe.expectMsg(UserExerciseDataProcessSinglePacket(TestData.userId, TestData.sessionId, TestData.bitVector))
+    val UserExerciseDataProcessMultiPacket(TestData.userId, TestData.sessionId, mp) = probe.expectMsgType[UserExerciseDataProcessMultiPacket]
+    mp.packets.size should be(2)
+    mp.packets(0).sourceLocation should be(SensorDataSourceLocationWrist)
+    mp.packets(0).payload.getByte(0) should be(0xff.toByte)
+    mp.packets(1).sourceLocation should be(SensorDataSourceLocationWaist)
   }
 
   it should "listen at POST exercise/:UserIdValue/:SessionIdValue/end endpoint" in {

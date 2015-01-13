@@ -5,9 +5,7 @@ import java.io.FileOutputStream
 import akka.actor.Props
 import akka.persistence.PersistentView
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.exercise.MultiPacket
 import com.eigengo.lift.exercise.UserExercisesClassifier._
-import scodec.bits.BitVector
 
 import scala.util.Try
 
@@ -46,14 +44,10 @@ object UserExercisesTracing {
     sdwls.foreach(save(id, tag))
   }
 
-  def saveBits(counter: Int, id: SessionId, bits: BitVector): Int = {
-    Try { val fos = new FileOutputStream(s"/tmp/lift-$id.dat", true); fos.write(bits.toByteArray); fos.close() }
-    counter + 1
-  }
-
   def saveMultiPacket(counter: Int, id: SessionId, packet: MultiPacket): Int = {
-    // TODO: complete me
-    ???
+    packet.packets.foreach { pwl ⇒
+      Try { val fos = new FileOutputStream(s"/tmp/lift-$id-${pwl.sourceLocation}-$counter.dat", true); fos.write(pwl.payload.toByteArray); fos.close() }
+    }
     counter + 1
   }
 
@@ -73,7 +67,6 @@ class UserExercisesTracing(userId: String) extends PersistentView {
     case SessionEndedEvt(`id`)       ⇒ context.become(notExercising)
     case SessionStartedEvt(newId, _) ⇒ context.become(inASession(newId))
 
-    case SinglePacketDecodingFailedEvt(_, _, packet) ⇒ counter = saveBits(counter, id, packet)
     case MultiPacketDecodingFailedEvt(_, _, packet)  ⇒ counter = saveMultiPacket(counter, id, packet)
 
     case ClassifyExerciseEvt(props, sdwl)            ⇒ appendSensorData(id, tag, sdwl)

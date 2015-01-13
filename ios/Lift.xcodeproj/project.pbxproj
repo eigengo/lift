@@ -12,6 +12,8 @@
 		540454981A650C4D00273425 /* SensorDataSourceLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540454971A650C4D00273425 /* SensorDataSourceLocation.swift */; };
 		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
+		542611341A658DDA00A758AA /* MultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542611331A658DDA00A758AA /* MultiPacket.swift */; };
+		542611351A658F2C00A758AA /* MultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542611331A658DDA00A758AA /* MultiPacket.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
@@ -129,6 +131,7 @@
 		540454971A650C4D00273425 /* SensorDataSourceLocation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataSourceLocation.swift; sourceTree = "<group>"; };
 		54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserModel+Marshalling.swift"; sourceTree = "<group>"; };
 		54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSError+Convenience.swift"; sourceTree = "<group>"; };
+		542611331A658DDA00A758AA /* MultiPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiPacket.swift; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
@@ -494,6 +497,7 @@
 				545E06051A304CBD00AB633B /* ExerciseModel.swift */,
 				547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */,
 				54DC83B31A40AF82006DD311 /* NotificationModel.swift */,
+				542611331A658DDA00A758AA /* MultiPacket.swift */,
 				540454951A650C1C00273425 /* MutableMultiPacket.swift */,
 				540454971A650C4D00273425 /* SensorDataSourceLocation.swift */,
 			);
@@ -754,6 +758,7 @@
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
 				54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
+				542611341A658DDA00A758AA /* MultiPacket.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				540454961A650C1C00273425 /* MutableMultiPacket.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
@@ -785,6 +790,7 @@
 				54C1587E1A651299008F6E2A /* MutableMultiPacket.swift in Sources */,
 				54CC69B319C4AD8E00B29EC8 /* LiftTests.swift in Sources */,
 				54C1587F1A651299008F6E2A /* SensorDataSourceLocation.swift in Sources */,
+				542611351A658F2C00A758AA /* MultiPacket.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

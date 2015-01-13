@@ -9,5 +9,5 @@ case class MultiPacket(packets: List[PacketWithLocation]) {
 }
 
 object MultiPacket {
-  def apply(pwl: PacketWithLocation): MultiPacket = MultiPacket(List(pwl))
+  def single(pwl: PacketWithLocation): MultiPacket = MultiPacket(List(pwl))
 }

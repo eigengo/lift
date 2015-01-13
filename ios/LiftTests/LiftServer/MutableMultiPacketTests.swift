@@ -15,7 +15,7 @@ class MutableMultiPacketTests : XCTestCase {
         mp.append(SensorDataSourceLocation.Wrist, data: payload(0xff, 0x01, 0x02, 0x03))
         mp.append(SensorDataSourceLocation.Waist, data: payload(0xf0, 0x01))
         mp.append(SensorDataSourceLocation.Any,   data: repeatedPayload(0xffff, const: 0x8f))
-        let result = mp.build()
+        let result = mp.data()
         
         // the output should be
         // 0x00: 0xca 0xb0 0x03 (header)
