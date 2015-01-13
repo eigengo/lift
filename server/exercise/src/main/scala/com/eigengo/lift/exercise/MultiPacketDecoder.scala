@@ -1,8 +1,8 @@
 package com.eigengo.lift.exercise
 
-import java.nio.{ByteOrder, ByteBuffer}
+import java.nio.ByteBuffer
 
-import scodec.bits.{ByteVector, BitVector, ByteOrdering}
+import scodec.bits.{BitVector, ByteOrdering, ByteVector}
 
 import scalaz.\/
 
