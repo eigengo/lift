@@ -187,10 +187,9 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
-      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
+      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { case (_::newSession::Nil) ⇒
         log.warning("ExerciseSessionStart: exercising -> exercising. Implicitly ending running session and starting a new one.")
 
-        val (_::newSession) = x
         saveSnapshot(newSession)
         sender() ! \/.right(newId)
         context.become(exercising(newId, newSessionProps))
@@ -199,7 +198,7 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
     case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
 
-      val (h :: t)= packet.packets.map { pwl ⇒
+      val (h::t) = packet.packets.map { pwl ⇒
         rootSensorDataDecoder
           .decodeAll(pwl.payload)
           .map(sd ⇒ SensorDataWithLocation(pwl.sourceLocation, sd))
