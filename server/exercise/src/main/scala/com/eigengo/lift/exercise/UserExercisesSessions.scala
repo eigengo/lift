@@ -6,11 +6,11 @@ import akka.actor.{ActorRef, ActorLogging, Props}
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{SnapshotOffer, PersistentView}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-import com.eigengo.lift.exercise.UserExerciseClassifier.ModelMetadata
 import com.eigengo.lift.notification.NotificationProtocol.DataMessagePayload
 import com.eigengo.lift.profile.UserProfileNotifications
 
 object UserExercisesSessions {
+  import UserExercises._
   /** The shard name */
   val shardName = "user-exercises-view"
   /** The props to create the actor on a node */

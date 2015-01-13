@@ -1,10 +1,22 @@
 package com.eigengo.lift.exercise
 
-import com.eigengo.lift.exercise.UserExerciseClassifier.ModelMetadata
-import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 
 object UserExercises {
+
+  /**
+   * Model version and other metadata
+   * @param version the model version
+   */
+  case class ModelMetadata(version: Int)
+
+  /**
+   * The MD companion
+   */
+  object ModelMetadata {
+    /** Special user-classified metadata */
+    val user = ModelMetadata(-1231344)
+  }
 
   /**
    * Failed to decode single packet for the given session with an error message and the original packet

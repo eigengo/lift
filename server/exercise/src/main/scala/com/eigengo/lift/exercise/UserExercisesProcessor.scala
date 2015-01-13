@@ -4,9 +4,9 @@ import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-import com.eigengo.lift.exercise.UserExerciseClassifier._
+import com.eigengo.lift.exercise.MultiPacket
+import com.eigengo.lift.exercise.UserExercisesClassifier._
 import com.eigengo.lift.exercise.UserExercisesProcessor._
-import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 
 import scala.language.postfixOps
@@ -190,7 +190,7 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
 
   // tracing output
   private val tracing = context.actorOf(UserExercisesTracing.props(userId))
-  private val classifier = context.actorOf(UserExerciseClassifier.props)
+  private val classifier = context.actorOf(UserExercisesClassifier.props)
 
   // how long until we stop processing
   context.setReceiveTimeout(360.seconds)

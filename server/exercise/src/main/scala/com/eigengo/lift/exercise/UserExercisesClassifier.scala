@@ -1,7 +1,7 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
-import com.eigengo.lift.exercise.UserExerciseClassifier._
+import com.eigengo.lift.exercise.UserExercisesClassifier._
 import UserExercises._
 
 import scala.util.Random
@@ -9,8 +9,8 @@ import scala.util.Random
 /**
  * Companion object for the classifier
  */
-object UserExerciseClassifier {
-  val props: Props = Props[UserExerciseClassifier]
+object UserExercisesClassifier {
+  val props: Props = Props[UserExercisesClassifier]
 
   /**
    * Muscle group information
@@ -28,22 +28,7 @@ object UserExerciseClassifier {
     MuscleGroup(key = "arms",  title = "Arms",  exercises = List("biceps curl", "triceps press down")),
     MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over"))
   )
-
-
-  /**
-   * Model version and other metadata
-   * @param version the model version
-   */
-  case class ModelMetadata(version: Int)
-
-  /**
-   * The MD companion
-   */
-  object ModelMetadata {
-    /** Special user-classified metadata */
-    val user = ModelMetadata(-1231344)
-  }
-
+  
   /**
    * ADT holding the classification result
    */
@@ -78,7 +63,7 @@ object UserExerciseClassifier {
 /**
  * Match the received exercise data using the given model
  */
-class UserExerciseClassifier extends Actor {
+class UserExercisesClassifier extends Actor {
   val exercises =
     Map(
       "arms" → List("Biceps curl", "Triceps press"),
