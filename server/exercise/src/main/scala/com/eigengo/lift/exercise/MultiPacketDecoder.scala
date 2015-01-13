@@ -48,7 +48,7 @@ object MultiPacketDecoder {
       if (inputHeader != header) \/.left(s"Incorrect header. Expected $header, got $inputHeader.")
       else {
         val count = input.get()
-        if (count == 0) \/.left("No content")
+        if (count == 0) \/.left("No content.")
         else {
           val (h :: t) = (0 until count).toList.map { x ⇒
             if (input.position() + 3 >= input.limit()) \/.left(s"Incomplete or truncated input. (Header of packet $x.)")

@@ -43,7 +43,7 @@ class MultiPacketDecoderTest extends FlatSpec with Matchers {
   "Very badly malformed input" should "fail decoding" in {
     val -\/("No viable input: size < 7.") = MultiPacketDecoder.decode(ByteBuffer.wrap(Array.empty))
     val -\/("Incorrect header. Expected -13648, got 0.") = MultiPacketDecoder.decode(ByteBuffer.wrap(Array.fill(7)(0)))
-    val -\/("No content") = MultiPacketDecoder.decode(ByteBuffer.wrap(Array[Byte](0xca.toByte, 0xb0.toByte, 0x00, 0x00, 0x00, 0x00, 0x00)))
+    val -\/("No content.") = MultiPacketDecoder.decode(ByteBuffer.wrap(Array[Byte](0xca.toByte, 0xb0.toByte, 0x00, 0x00, 0x00, 0x00, 0x00)))
   }
 
   "Malformed content" should "fail decoding" in {
