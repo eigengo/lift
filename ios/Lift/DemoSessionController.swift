@@ -106,8 +106,9 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let path = tableModel!.filePathAtIndexPath(indexPath)
-        let data = NSFileManager.defaultManager().contentsAtPath(path!)
-        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: sessionId!, data: data!) { x in
+        let data = NSFileManager.defaultManager().contentsAtPath(path!)!
+        let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
+        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: sessionId!, data: mp) { x in
             NSLog("Sent...")
         }
         

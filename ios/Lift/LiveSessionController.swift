@@ -138,7 +138,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
         if let x = sessionId {
             self.deviceSession = deviceSession
-            LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: x, data: data) {
+            let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
+            LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: x, data: mp) {
                 $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
             }
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {

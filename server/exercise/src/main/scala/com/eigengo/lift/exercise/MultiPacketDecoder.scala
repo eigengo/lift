@@ -65,7 +65,7 @@ object MultiPacketDecoder {
             }
           }
 
-          t.foldLeft(h.map(MultiPacket.apply))((r, b) ⇒ r.flatMap(mp ⇒ b.map(mp.withNewPacket)))
+          t.foldLeft(h.map(MultiPacket.single))((r, b) ⇒ r.flatMap(mp ⇒ b.map(mp.withNewPacket)))
         }
       }
     }

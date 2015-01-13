@@ -60,9 +60,8 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       } ~
       put {
-        // TODO: content type negotiation
-        handleWith { bits: BitVector ⇒
-          (userExercises ? UserExerciseDataProcessSinglePacket(userId, sessionId, bits)).mapRight[Unit]
+        handleWith { mp: MultiPacket ⇒
+          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, mp)).mapRight[Unit]
         }
       } ~
       delete {
