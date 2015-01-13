@@ -1,4 +1,8 @@
-//Scala code generated using https://github.com/SandroGrzicic/ScalaBuff/wiki/Generated-code: sbt run --proto_path=./ --scala_out=./
+//Java code generated using protoc sensorData.proto --java_out=./
+//Scala code can be generated using
+//    there were some version issues at the time of writing but looked like they would be resolved soon
+//    https://github.com/SandroGrzicic/ScalaBuff/wiki/Generated-code: sbt run --proto_path=./ --scala_out=./
+//    there is also a sbt plugin https://github.com/sbt/sbt-scalabuff
 //Swift code generated using https://github.com/alexeyxo/protobuf-swift: protoc sensorData.proto --swift_out=./
 
 message MultipleDeviceSensorData {
