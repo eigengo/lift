@@ -68,5 +68,4 @@ object UserExercises {
    * @param metadata the model metadata
    */
   case class NoExerciseEvt(sessionId: SessionId, metadata: ModelMetadata)
-  
 }

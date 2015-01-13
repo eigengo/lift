@@ -215,6 +215,7 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
         context.become(exercising(newId, newSessionProps))
       }
 
+    //TODO: Remove single packet completely?
     case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
 
@@ -224,10 +225,18 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
         .fold({ err ⇒ persist(SinglePacketDecodingFailedEvt(id, err, bits)) { evt ⇒ sender() ! \/.left(err) } },
               { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
 
+    //TODO: Handle all and not just first
     case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
-      persist(MultiPacketDecodingFailedEvt(id, "Not implemented", packet)) {
-        evt ⇒ sender() ! \/.left("Not implemented")
-      }
+      log.debug("ExerciseDataProcess: exercising -> exercising.")
+
+      val firstSensorData = packet.rawSensorData.head.data
+      tracing ! firstSensorData
+
+      rootSensorDataDecoder
+        .decodeAll(firstSensorData)
+        .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
+        .fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
+              { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
 
     case ExerciseSessionEnd(`id`) ⇒
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")

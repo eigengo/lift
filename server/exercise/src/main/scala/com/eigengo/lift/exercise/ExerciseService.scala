@@ -5,6 +5,7 @@ import java.util.{Date, UUID}
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
+import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 import spray.routing.Directives
 
@@ -61,8 +62,8 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       put {
         // TODO: content type negotiation
-        handleWith { bits: BitVector ⇒
-          (userExercises ? UserExerciseDataProcessSinglePacket(userId, sessionId, bits)).mapRight[Unit]
+        handleWith { packet: MultiPacket ⇒
+          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, packet)).mapRight[Unit]
         }
       } ~
       delete {
