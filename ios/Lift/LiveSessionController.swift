@@ -142,9 +142,15 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                 case UITableViewCellAccessoryType.None:
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
                     NSLog("Explicitly classification start for: %@", cellText!)
+                    ResultContext.run {ctx in
+                        LiftServer.sharedInstance.exerciseSessionStartExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, exercise: Exercise.Exercise(name: cellText!, intensity: nil), f: ctx.unit())
+                    }
                 case UITableViewCellAccessoryType.Checkmark:
                     selectedCell.accessoryType = UITableViewCellAccessoryType.None
                     NSLog("Explicitly classification stop for: %@", cellText!)
+                    ResultContext.run{ctx in
+                        LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
+                    }
                 default: NSLog("Cell was something other than Checked or None!")
                 }
             }
