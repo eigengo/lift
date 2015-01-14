@@ -106,14 +106,30 @@ extractFeatures = function(inputList, size, tag, inc = 10) {
 #
 ########################################################################################################################
 
+# TODO: document
+parameterCost = function(tag, data, testData, buckets, costParam, gammaParam) {
+  bucketCount = (sampleSize %/% buckets)-1
+  result = 0
+  for (n in 1:bucketCount) { 
+    testIndexes = testData[(n*buckets):((n+1)*buckets)]
+    testSet = data[testIndexes,]
+    trainingSet = data[-testIndexes,]
+    svm.model = svm(tag ~ ., data = trainingSet, cost = costParam, gamma = gammaParam, probability = TRUE)
+    svm.pred = predict(svm.model, testSet[,2:ncol(data)], probability = TRUE)
+    svmTable = table(pred = svm.pred, true = testSet[,1])
+    result = result + ((svmTable[1,1] + svmTable[2,2])/sum(svmTable))
+  }
+
+  result / bucketCount
+}
+
 # Function used to train a support vector machine (SVM). Trained SVM model is saved to a file.
 #
-# @param tag          tag that data has been (potentially) labeled with (for training)
-# @param approx       (positive) integer describing the number of coefficients (i.e. level of approximation) that the
-#                     underlying DCT algorithm should use
+# @param tag        tag that data has been (potentially) labeled with (for training)
+# @param size       size of sampling window
 # @param costParam
 # @param gammaParam
-trainSVM = function(tag, size, costParam = 100, gammaParam = 1) {
+trainSVM = function(tag, size, buckets = 10, costParams = c(1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1), gammaParams = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.09, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.008, 0.009)) {
   data = read.csv(file=paste("svm", "-", tag, "-features", ".csv", sep=""))
   xLabels = lapply(rep(1:size), function(index) { paste("x", index, sep="") })
   yLabels = lapply(rep(1:size), function(index) { paste("y", index, sep="") })
@@ -121,35 +137,71 @@ trainSVM = function(tag, size, costParam = 100, gammaParam = 1) {
   names(data) = c("tag", xLabels, yLabels, zLabels)
 
   sampleSize = nrow(data)
-  testData = sample(sampleSize, trunc(sampleSize * 2/5))
-  testSet = data[testData,]
-  trainingSet = data[-testData,]
-  svm.model = svm(tag ~ ., data = trainingSet, cost = costParam, gamma = gammaParam, probability = TRUE)
+  testData = sample(sampleSize, sampleSize)
 
-  print("SVM confusion matrix and model accuracy rates:")
-  svm.pred = predict(svm.model, testSet[,2:ncol(data)], probability = TRUE)
-  svmTable = table(pred = svm.pred, true = testSet[,1])
-  print(svmTable)
-  print(classAgreement(svmTable))
+  # Perform a grid search and locate the SVM model with the highest cost (in terms of an N-fold cross validation)
+  bestCostParam = NULL
+  bestGammaParam = NULL
+  maxCost = NULL
+  for (costParam in costParams) {
+    for (gammaParam in gammaParams) {
+      cost = parameterCost(tag, data, testData, buckets, costParam, gammaParam)
+      if (debug) {
+        print(paste(costParam, gammaParam, cost))
+      }
+      if (is.null(bestCostParam)) {
+        bestCostParam = costParam
+        bestGammaParam = gammaParam
+        maxCost = cost
+        print(paste("[Initial step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+      }
+      if (cost > maxCost) {
+        bestCostParam = costParam
+        bestGammaParam = gammaParam
+        maxCost = cost
+        print(paste("[Search step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+      }
+    }
+  }
+  print(paste("Tuned SVM model (", bestCostParam, ",", bestGammaParam, ") has ", buckets, "-fold cross correlation value of ", maxCost, sep=""))
 
+  svm.model = svm(tag ~ ., data = trainingSet, cost = bestCostParam, gamma = bestGammaParam, probability = TRUE)
   saveRDS(svm.model, paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   write.svm(svm.model, svm.file = paste("svm-model", "-", tag, "-features", ".libsvm", sep=""), scale.file = paste("svm-model", "-", tag, "-features", ".scale", sep=""))
 }
 
-# TODO: document
-tuneSVM = function() {
-  # TODO: implement
+# Function implementing a radial kernel - for reusing trained model in non-R environments
+#
+# @param x     input vector
+# @param y     input vector
+# @param gamma "reach" (user defined parameter)
+radial_kernel = function(x, y, gamma) {
+  -gamma * sum(x * x + y * y - 2 * x * y)
+}
+
+# Function implementing data classification - for reusing trained model in non-R environments
+#
+# NOTE: following values need to be extracted from (R) SVM models for portability to non-R environments:
+#   x.scale; tot.nSV; SV; gamma; coefs; rho
+#
+# @param tag         label or tag this SVM has been classified for (used to load previously stored RDS SVM object)
+# @param data        (new) data instance that is to be classified
+svm_predict = function(tag, data) {
+  svm = readRDS(paste("svm-model", "-", tag, "-features", ".rds", sep=""))
+  scaled_data = (data - svm$x.scale$"scaled:center") / svm$x.scale$"scaled:scale"
+  sum(sapply(1:svm$tot.nSV, function(j) { radial_kernel(svm$SV[j,], scaled_data, svm$gamma) * svm$coefs[j] })) - svm$rho
 }
 
 # Used to classify events in a given accelerometer data file (the `input`) using an SVM classifier (which is loaded from
 # a previously saved RDS file).
 #
-# @param input       CSV file containing accelerometer data within which we need to classify events
-# @param tag         label used to classify data
-# @param size        sample window size (used to sample input for classification purposes)
-# @param inc         distance by which sampling window will iteratively move
-# @param threshold   probability threshold - over this value and we classify window as being labeled by `tag`
-classify = function(input, tag, size, inc = 10, threshold = 0.75) {
+# @param input         CSV file containing accelerometer data within which we need to classify events
+# @param tag           label used to classify data
+# @param size          sample window size (used to sample input for classification purposes)
+# @param inc           distance by which sampling window will iteratively move
+# @param threshold     probability threshold - over this value and we classify window as being labeled by `tag`
+# @param model.predict function to be used in making model predictions (default is to use e1071 `predict` function)
+classify = function(input, tag, size, inc = 10, threshold = 0.75, model.predict = predict) {
   svm = readRDS(paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   csv = read.csv(file=input, col.names=(c("x", "y", "z")))
   xLabels = lapply(rep(1:size), function(index) { paste("x", index, sep="") })
@@ -176,7 +228,7 @@ classify = function(input, tag, size, inc = 10, threshold = 0.75) {
     names(feature) = c("feature")
     row.names(feature) = c(xLabels, yLabels, zLabels)
 
-    pred = predict(svm, newdata = t(feature), probability = TRUE)
+    pred = model.predict(svm, t(feature), probability = TRUE)
     probability = as.data.frame(attr(pred, "probabilities"))
     if (debug) {
       print(paste(window[1], format(round(probability[tag], 2), nsmall=2)))
