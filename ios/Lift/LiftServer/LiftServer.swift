@@ -241,6 +241,14 @@ public class LiftServer {
             .responseAsResutlt(f) { json in json.arrayValue.map(Exercise.Exercise.unmarshal) }
     }
     
+    func exerciseSessionStartExplicitClassification(userId: NSUUID, sessionId: NSUUID, exercise: Exercise.Exercise, f: Result<Void> -> Void) -> Void {
+        NSLog("Server request to start explicit classification")
+    }
+    
+    func exerciseSessionEndExplicitClassification(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        NSLog("Server request to end explicit classification")
+    }
+    
     ///
     /// Close the running session
     ///
