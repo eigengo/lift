@@ -120,7 +120,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (1, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
             cell.textLabel!.text = exampleExercises[x].name
-            cell.selectionStyle = UITableViewCellSelectionStyle.Blue
+            cell.selectionStyle = UITableViewCellSelectionStyle.None
             return cell
         default: return UITableViewCell()
         }
@@ -137,6 +137,15 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if indexPath.section == 1 {
             NSLog("Explicitly classification start")
+        }
+        if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+            switch(selectedCell.accessoryType){
+            case UITableViewCellAccessoryType.None:
+                selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
+            case UITableViewCellAccessoryType.Checkmark:
+                selectedCell.accessoryType = UITableViewCellAccessoryType.None
+            default: NSLog("Cell was something other than Checked or None!")
+            }
         }
     }
     
