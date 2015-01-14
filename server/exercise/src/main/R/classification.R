@@ -115,14 +115,19 @@ extractFeatures = function(inputList, size, tag, inc = 10) {
 # @param costParam  
 # @param gammaParam 
 parameterCost = function(tag, data, testData, buckets, costParam, gammaParam) {
+  sampleSize = nrow(data)
   bucketCount = (sampleSize %/% buckets)-1
+  extraCount = sampleSize %% buckets
   result = 0
   for (n in 1:bucketCount) { 
     testIndexes = testData[(n*buckets):((n+1)*buckets)]
+    if (n <= extraCount) {
+      testIndexes = c(testIndexes, testData[((bucketCount+1)*buckets) + n])
+    }
     testSet = data[testIndexes,]
     trainingSet = data[-testIndexes,]
-    svm.model = svm(tag ~ ., data = trainingSet, cost = costParam, gamma = gammaParam, probability = TRUE)
-    svm.pred = predict(svm.model, testSet[,2:ncol(data)], probability = TRUE)
+    svm.model = svm(tag ~ ., data = trainingSet, cost = costParam, gamma = gammaParam)
+    svm.pred = predict(svm.model, testSet[,2:ncol(data)])
     svmTable = table(pred = svm.pred, true = testSet[,1])
     result = result + ((svmTable[1,1] + svmTable[2,2])/sum(svmTable))
   }
@@ -134,9 +139,11 @@ parameterCost = function(tag, data, testData, buckets, costParam, gammaParam) {
 #
 # @param tag        tag that data has been (potentially) labeled with (for training)
 # @param size       size of sampling window
+# @param buckets    number of buckets or folds to be used
+# @param repeats    how many attempts at fitting a model for a given cost and gamma parameter
 # @param costParam
 # @param gammaParam
-trainSVM = function(tag, size, buckets = 10, costParams = c(1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1), gammaParams = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.09, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.008, 0.009)) {
+trainSVM = function(tag, size, buckets = 10, repeats = 10, costParams = 10^(0:4), gammaParams = 10^(0:-4)) {
   data = read.csv(file=paste("svm", "-", tag, "-features", ".csv", sep=""))
   xLabels = lapply(rep(1:size), function(index) { paste("x", index, sep="") })
   yLabels = lapply(rep(1:size), function(index) { paste("y", index, sep="") })
@@ -144,29 +151,31 @@ trainSVM = function(tag, size, buckets = 10, costParams = c(1000, 900, 800, 700,
   names(data) = c("tag", xLabels, yLabels, zLabels)
 
   sampleSize = nrow(data)
-  testData = sample(sampleSize, sampleSize)
 
   # Perform a grid search and locate the SVM model with the highest cost (in terms of an N-fold cross validation)
   bestCostParam = NULL
   bestGammaParam = NULL
   maxCost = NULL
-  for (costParam in costParams) {
-    for (gammaParam in gammaParams) {
-      cost = parameterCost(tag, data, testData, buckets, costParam, gammaParam)
-      if (debug) {
-        print(paste(costParam, gammaParam, cost))
-      }
-      if (is.null(bestCostParam)) {
-        bestCostParam = costParam
-        bestGammaParam = gammaParam
-        maxCost = cost
-        print(paste("[Initial step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
-      }
-      if (cost > maxCost) {
-        bestCostParam = costParam
-        bestGammaParam = gammaParam
-        maxCost = cost
-        print(paste("[Search step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+  for (iter in 1:repeats) {
+    testData = sample(sampleSize, sampleSize)
+    for (costParam in costParams) {
+      for (gammaParam in gammaParams) {
+        cost = parameterCost(tag, data, testData, buckets, costParam, gammaParam)
+        if (debug) {
+          print(paste(costParam, gammaParam, cost))
+        }
+        if (is.null(bestCostParam)) {
+          bestCostParam = costParam
+          bestGammaParam = gammaParam
+          maxCost = cost
+          print(paste("[Initial step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+        }
+        if (cost > maxCost) {
+          bestCostParam = costParam
+          bestGammaParam = gammaParam
+          maxCost = cost
+          print(paste("[Search step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+        }
       }
     }
   }
