@@ -106,7 +106,14 @@ extractFeatures = function(inputList, size, tag, inc = 10) {
 #
 ########################################################################################################################
 
-# TODO: document
+# Function used to calculate an N-fold cross validation cost.
+#
+# @param tag        tag that data has been (potentially) labeled with (for training)
+# @param data       training data we are to use
+# @param testData   randomised indexes into the data parameter
+# @param buckets    number of buckets or folds to be used
+# @param costParam  
+# @param gammaParam 
 parameterCost = function(tag, data, testData, buckets, costParam, gammaParam) {
   bucketCount = (sampleSize %/% buckets)-1
   result = 0
