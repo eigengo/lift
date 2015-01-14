@@ -274,23 +274,8 @@ classify = function(input, tag, size, inc = 10, threshold = 0.75, model.predict 
 # @param size      TODO:
 # @param tag       TODO:
 # @param inc       TODO:
-# @param gamma     TODO:
-# @param threshold TODO:
-main = function(inputList, size, tag, inc = 10, gamma = 1, threshold = 0.75) {
+main = function(inputList, size, tag, inc = 10) {
   extractFeatures(inputList, size, tag, inc)
 
-  answer = "y"
-  while (toString(answer) != "n") {
-    trainSVM(tag, size, gamma)
-    print("Retrain the SVM (Y/n)? ")
-    answer = scan(what=character(), nmax=1, quiet=TRUE)
-  }
-
-  print("Enter name of file for classification ('stop' to terminate): ")
-  answer = scan(what=string(), nmax=1, quiet=TRUE)
-  while (toString(answer) != "stop") {
-    classify(input, tag, size, threshold)
-    print("Enter name of file for classification ('stop' to terminate): ")
-    answer = scan(what=string(), nmax=1, quiet=TRUE)
-  }
+  trainSVM(tag, size)
 }
