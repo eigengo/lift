@@ -136,23 +136,25 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if indexPath.section == 1 {
-            NSLog("Explicitly classification start")
-        }
-        if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
-            switch(selectedCell.accessoryType){
-            case UITableViewCellAccessoryType.None:
-                selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
-            case UITableViewCellAccessoryType.Checkmark:
-                selectedCell.accessoryType = UITableViewCellAccessoryType.None
-            default: NSLog("Cell was something other than Checked or None!")
+            if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+                let cellText = selectedCell.textLabel!.text
+                switch(selectedCell.accessoryType){
+                case UITableViewCellAccessoryType.None:
+                    selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
+                    NSLog("Explicitly classification start for: %@", cellText!)
+                case UITableViewCellAccessoryType.Checkmark:
+                    selectedCell.accessoryType = UITableViewCellAccessoryType.None
+                    NSLog("Explicitly classification stop for: %@", cellText!)
+                default: NSLog("Cell was something other than Checked or None!")
+                }
             }
         }
     }
     
     override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        if indexPath.section == 1 {
-            NSLog("Explicitly classification end")
-        }
+        //if indexPath.section == 1 {
+       //     NSLog("Explicitly classification end")
+        //}
     }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {

@@ -243,10 +243,14 @@ public class LiftServer {
     
     func exerciseSessionStartExplicitClassification(userId: NSUUID, sessionId: NSUUID, exercise: Exercise.Exercise, f: Result<Void> -> Void) -> Void {
         NSLog("Server request to start explicit classification")
+        let params: [String : AnyObject] = ["name": exercise.name]
+        request(LiftServerURLs.ExplicitExerciseClassificationStart(userId, sessionId), body: .Json(params: params))
     }
     
     func exerciseSessionEndExplicitClassification(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
         NSLog("Server request to end explicit classification")
+        request(LiftServerURLs.ExplicitExerciseClassificationStop(userId, sessionId))
+            .responseAsResutlt(f, const(()))
     }
     
     ///
