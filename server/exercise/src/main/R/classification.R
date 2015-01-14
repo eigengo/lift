@@ -172,7 +172,7 @@ trainSVM = function(tag, size, buckets = 10, costParams = c(1000, 900, 800, 700,
   }
   print(paste("Tuned SVM model (", bestCostParam, ",", bestGammaParam, ") has ", buckets, "-fold cross correlation value of ", maxCost, sep=""))
 
-  svm.model = svm(tag ~ ., data = trainingSet, cost = bestCostParam, gamma = bestGammaParam, probability = TRUE)
+  svm.model = svm(tag ~ ., data = data, cost = bestCostParam, gamma = bestGammaParam, probability = TRUE)
   saveRDS(svm.model, paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   write.svm(svm.model, svm.file = paste("svm-model", "-", tag, "-features", ".libsvm", sep=""), scale.file = paste("svm-model", "-", tag, "-features", ".scale", sep=""))
 }
