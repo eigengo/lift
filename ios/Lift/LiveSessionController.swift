@@ -121,6 +121,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
             cell.textLabel!.text = exampleExercises[x].name
             cell.selectionStyle = UITableViewCellSelectionStyle.None
+            cell.accessoryType = UITableViewCellAccessoryType.None
             return cell
         default: return UITableViewCell()
         }

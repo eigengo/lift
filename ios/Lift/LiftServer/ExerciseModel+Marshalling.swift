@@ -34,6 +34,12 @@ extension Exercise.Exercise {
         return Exercise.Exercise(name: json["name"].stringValue, intensity: json["intensity"].double)
     }
     
+    func marshal() -> [String : AnyObject] {
+        var params: [String : AnyObject] = [:]
+        params["name"] = name
+        if let x = intensity { params["intensity"] = x }
+        return params
+    }
 }
 
 extension Exercise.ExerciseSet {
