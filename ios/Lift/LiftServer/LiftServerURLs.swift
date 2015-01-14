@@ -102,6 +102,11 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseSessionSubmitData(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
+    /// Gets exercise classification examples for the given ``userId`` and ``sessionId``
+    ///
+    case ExerciseSessionGetClassificationExamples(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
     /// Ends the session for the given ``userId`` and ``sessionId``
     ///
     case ExerciseSessionEnd(/*userId: */NSUUID, /*sessionId: */NSUUID)
@@ -144,6 +149,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/start", method: Method.POST)
                 case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
                 case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
+                    
+                case .ExerciseSessionGetClassificationExamples(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.GET)
                 }
                 }()
             

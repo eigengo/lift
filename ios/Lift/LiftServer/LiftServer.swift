@@ -236,6 +236,11 @@ public class LiftServer {
             .responseAsResutlt(f, const(()))
     }
     
+    func exerciseSessionGetClassificationExamples(userId: NSUUID, sessionId: NSUUID, f: Result<[Exercise.Exercise]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionGetClassificationExamples(userId, sessionId))
+            .responseAsResutlt(f) { json in json.arrayValue.map(Exercise.Exercise.unmarshal) }
+    }
+    
     ///
     /// Close the running session
     ///
@@ -254,11 +259,14 @@ public class LiftServer {
             }
     }
     
+    ///
+    /// Get summary of session dates
+    ///
     func exerciseGetExerciseSessionsDates(userId: NSUUID, f: Result<[Exercise.SessionDate]> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetExerciseSessionsDates(userId))
             .responseAsResutlt(f) { json in return json.arrayValue.map(Exercise.SessionDate.unmarshal) }
     }
-
+    
     ///
     /// Get one particular session
     ///

@@ -6,6 +6,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     private var deviceInfo: DeviceInfo?
     private var deviceInfoDetail: DeviceInfo.Detail?
     private var deviceSession: DeviceSession?
+    private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
     private var sessionId: NSUUID?
@@ -71,6 +72,12 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         sessionId = session.id
         device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
         device!.start()
+        LiftServer.sharedInstance.exerciseSessionGetClassificationExamples(CurrentLiftUser.userId!, sessionId: session.id) {
+            $0.cata(const(()), { x in
+                self.exampleExercises = x
+                self.tableView.reloadData()
+            })
+        }
         UIApplication.sharedApplication().idleTimerDisabled = true
     }
     
@@ -91,7 +98,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                 return 1
             }
         // section 2: exercise log
-        case 1: return 10
+        case 1: return exampleExercises.count
         default: return 0
         }
     }
@@ -110,9 +117,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log
-        case (1, _):
+        case (1, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
-            cell.textLabel!.text = "LiveSessionController.exercise".localized()
+            cell.textLabel!.text = exampleExercises[x].name
+            cell.selectionStyle = UITableViewCellSelectionStyle.Blue
             return cell
         default: return UITableViewCell()
         }
@@ -123,6 +131,18 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case 0: return "LiveSessionController.section.deviceAndSession".localized()
         case 1: return "LiveSessionController.section.exercise".localized()
         default: return ""
+        }
+    }
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if indexPath.section == 1 {
+            NSLog("Explicitly classification start")
+        }
+    }
+    
+    override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+        if indexPath.section == 1 {
+            NSLog("Explicitly classification end")
         }
     }
     

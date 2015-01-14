@@ -299,6 +299,8 @@ class UserExercisesSessions(notification: ActorRef, userProfile: ActorRef) exten
       exercises = exercises.withNewSession(session)
       notificationSender ! DataMessagePayload("{}")
       saveSnapshot(exercises)
+
+      context.become(notExercising.orElse(queries))
   }
 
   override def receive: Receive = withPassivation {
