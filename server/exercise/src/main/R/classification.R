@@ -210,15 +210,21 @@ taylor_radial_kernel = function(x, y, gamma, degree = 2) {
 # Function implementing data classification - for reusing trained model in non-R environments
 #
 # NOTE: following values need to be extracted from (R) SVM models for portability to non-R environments:
-#   x.scale; tot.nSV; SV; gamma; coefs; rho
+#   x.scale; tot.nSV; SV; gamma; coefs; rho; probA; probB
 #
-# @param tag  label or tag this SVM has been classified for (used to load previously stored RDS SVM object)
-# @param data (new) data instance that is to be classified
-# @param rbf  radial basis function that we are to use (allows for approximation via taylor series etc.)
-svm_predict = function(tag, data, rbf = radial_kernel) {
+# @param tag         label or tag this SVM has been classified for (used to load previously stored RDS SVM object)
+# @param data        (new) data instance that is to be classified
+# @param probability flag that controls if probability attribute is present or not
+# @param rbf         radial basis function that we are to use (allows for approximation via taylor series etc.)
+svm_predict = function(tag, data, probability = TRUE, rbf = radial_kernel) {
   svm = readRDS(paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   scaled_data = (data - svm$x.scale$"scaled:center") / svm$x.scale$"scaled:scale"
-  sum(sapply(1:svm$tot.nSV, function(j) { rbf(svm$SV[j,], scaled_data, svm$gamma) * svm$coefs[j] })) - svm$rho
+  result = sum(sapply(1:svm$tot.nSV, function(j) { rbf(svm$SV[j,], scaled_data, svm$gamma) * svm$coefs[j] })) - svm$rho
+  if (probability) {
+    probability = 1 / (1 + exp(svm$probA * result + svm$probB))
+    attr(result, "probability") = matrix(list(probability, 1-probability), ncol=2, dimnames=list(NULL, list("", tag)))
+  }
+  result
 }
 
 # Used to classify events in a given accelerometer data file (the `input`) using an SVM classifier (which is loaded from
