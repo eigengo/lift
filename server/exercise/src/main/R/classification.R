@@ -187,24 +187,24 @@ trainSVM = function(tag, size, buckets = 10, repeats = 10, costParams = 10^(0:4)
   write.svm(svm.model, svm.file = paste("svm-model", "-", tag, "-features", ".libsvm", sep=""), scale.file = paste("svm-model", "-", tag, "-features", ".scale", sep=""))
 }
 
-# Function implementing a (partial) radial basis function - for reusing trained model in non-R environments
+# Function implementing a radial basis function - for reusing trained model in non-R environments
 #
 # @param x     input vector
 # @param y     input vector (for efficiency, calling context calculates this RBF component)
 # @param gamma "reach" (user defined parameter)
-partial_radial_kernel = function(x, y, gamma) {
-  exp(-gamma * sum(x * x)) * exp(gamma * sum(2 * x * y))
+radial_kernel = function(x, y, gamma) {
+  exp(-gamma * sum((x - y) * (x - y)))
 }
 
-# Taylor series approximation to the (partial) radial basis function - for reusing trained model in non-R environments on large data sets
+# Taylor series approximation to the radial basis function - for reusing trained model in non-R environments on large data sets
 #
 # @param x      input vector
 # @param y      input vector (for efficiency, calling context calculates this RBF component)
 # @param gamma  "reach" (user defined parameter)
 # @param degree degree to which taylor series will be expanded (around zero)
-taylor_partial_radial_kernel = function(x, y, gamma, degree = 2) {
+taylor_radial_kernel = function(x, y, gamma, degree = 2) {
   taylor_expansion = taylor(f = exp, x0 = 0, n = degree)
-  exp(-gamma * sum(x * x)) * polyval(taylor_expansion, gamma * 2 * sum(x * y))
+  exp(-gamma * sum(x * x)) * exp(-gamma * sum(y * y)) * polyval(taylor_expansion, gamma * sum(2 * x * y))
 }
 
 # Function implementing data classification - for reusing trained model in non-R environments
@@ -212,13 +212,13 @@ taylor_partial_radial_kernel = function(x, y, gamma, degree = 2) {
 # NOTE: following values need to be extracted from (R) SVM models for portability to non-R environments:
 #   x.scale; tot.nSV; SV; gamma; coefs; rho
 #
-# @param tag         label or tag this SVM has been classified for (used to load previously stored RDS SVM object)
-# @param data        (new) data instance that is to be classified
-# @param partial_rbf radial basis function that we are to use (allows for approximation via taylor series etc.)
-svm_predict = function(tag, data, partial_rbf = partial_radial_kernel) {
+# @param tag  label or tag this SVM has been classified for (used to load previously stored RDS SVM object)
+# @param data (new) data instance that is to be classified
+# @param rbf  radial basis function that we are to use (allows for approximation via taylor series etc.)
+svm_predict = function(tag, data, rbf = radial_kernel) {
   svm = readRDS(paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   scaled_data = (data - svm$x.scale$"scaled:center") / svm$x.scale$"scaled:scale"
-  exp(-gamma * sum(scaled_data * scaled_data)) * sum(sapply(1:svm$tot.nSV, function(j) { partial_rbf(svm$SV[j,], scaled_data, svm$gamma) * svm$coefs[j] })) - svm$rho
+  sum(sapply(1:svm$tot.nSV, function(j) { rbf(svm$SV[j,], scaled_data, svm$gamma) * svm$coefs[j] })) - svm$rho
 }
 
 # Used to classify events in a given accelerometer data file (the `input`) using an SVM classifier (which is loaded from
