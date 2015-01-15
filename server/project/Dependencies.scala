@@ -30,7 +30,7 @@ object Dependencies {
 
   object kafka {
     val version = "0.8.2-beta"
-    val kafka   = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
+    val kafka   = "org.apache.kafka" %% "kafka"  % version// exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
   }
 
   object scalaz {
@@ -64,4 +64,5 @@ object Dependencies {
   // Testing
   val scalatest = "org.scalatest"    %% "scalatest"    % "2.2.1"
   val scalacheck = "org.scalacheck"   %% "scalacheck"   % "1.12.1"
+
 }

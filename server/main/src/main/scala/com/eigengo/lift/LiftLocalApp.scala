@@ -1,6 +1,7 @@
 package com.eigengo.lift
 
 import akka.actor._
+import akka.contrib.pattern.{ClusterSingletonProxy, ClusterSingletonManager}
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
@@ -44,9 +45,19 @@ object LiftLocalApp extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
+      //TODO: FIX
+      val manager = system.actorOf(ClusterSingletonManager.props(
+        KafkaProducerActor.props(config),
+        "kafka-producer",
+        "die",
+        None), "manager")
+
+      val kafka = system.actorOf(ClusterSingletonProxy.props(
+        "/user/manager/kafka-producer", None), "kafka-producer-proxy")
+
       val profile = ProfileBoot.boot(system)
       val notification = NotificationBoot.boot
-      val exercise = ExerciseBoot.boot(notification.notification, profile.userProfile)
+      val exercise = ExerciseBoot.boot(kafka, notification.notification, profile.userProfile)
 
       startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }

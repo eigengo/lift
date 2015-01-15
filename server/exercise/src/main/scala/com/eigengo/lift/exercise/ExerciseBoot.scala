@@ -1,11 +1,9 @@
 package com.eigengo.lift.exercise
 
-import akka.actor.Actor.Receive
-import akka.actor.{Props, Actor, ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.contrib.pattern.ClusterSharding
 import com.eigengo.lift.common.MicroserviceApp.BootedNode
 import com.eigengo.lift.exercise.ExerciseBoot._
-import com.eigengo.lift.kafka.KafkaProducerActor
 import spray.routing.Route
 
 import scala.concurrent.ExecutionContext
@@ -30,7 +28,7 @@ object ExerciseBoot extends ExerciseService {
    * Boot the exercise microservice
    * @param system the AS to boot the microservice in
    */
-  def boot(notification: ActorRef, profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
+  def boot(kafkaProducer: ActorRef, notification: ActorRef, profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
     val userExercise = ClusterSharding(system).start(
       typeName = UserExercisesProcessor.shardName,
       entryProps = Some(UserExercisesProcessor.props(notification, profile)),
@@ -41,8 +39,6 @@ object ExerciseBoot extends ExerciseService {
       entryProps = Some(UserExercisesSessions.props(notification, profile)),
       idExtractor = UserExercisesSessions.idExtractor,
       shardResolver = UserExercisesSessions.shardResolver)
-
-    val kafkaProducer = system.actorOf(KafkaProducerActor.props)
 
     ExerciseBoot(kafkaProducer, userExercise, userExerciseView)
   }
