@@ -8,7 +8,7 @@
         <scene sceneID="499-Ze-D1L">
             <objects>
                 <tableViewController title="Running Session" hidesBottomBarWhenPushed="YES" id="rWr-64-kYJ" userLabel="Live Session" customClass="LiveSessionController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleAspectFit" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" allowsSelection="NO" rowHeight="73" sectionHeaderHeight="10" sectionFooterHeight="10" id="6Hi-hh-6nu">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleAspectFit" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="73" sectionHeaderHeight="10" sectionFooterHeight="10" id="6Hi-hh-6nu">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="0.93725490196078431" green="0.93725490196078431" blue="0.95686274509803926" alpha="1" colorSpace="calibratedRGB"/>
@@ -33,7 +33,7 @@
                                     </subviews>
                                 </tableViewCellContentView>
                             </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="exercise" textLabel="cCs-mB-HT5" detailTextLabel="YB7-Ks-Isa" rowHeight="40" style="IBUITableViewCellStyleValue2" id="OKf-UO-cXe">
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" accessoryType="checkmark" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="exercise" textLabel="cCs-mB-HT5" detailTextLabel="YB7-Ks-Isa" rowHeight="40" style="IBUITableViewCellStyleValue2" id="OKf-UO-cXe">
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="OKf-UO-cXe" id="OHN-kA-uxe">
                                     <autoresizingMask key="autoresizingMask"/>

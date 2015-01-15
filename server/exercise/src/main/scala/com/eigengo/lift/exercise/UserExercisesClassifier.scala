@@ -28,6 +28,12 @@ object UserExercisesClassifier {
     MuscleGroup(key = "arms",  title = "Arms",  exercises = List("biceps curl", "triceps press down")),
     MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over"))
   )
+
+  /**
+   * Provides List[Exercise] as examples of exercises for the given ``sessionProps``
+   * @param sessionProps the session props
+   */
+  case class ClassificationExamples(sessionProps: SessionProps)
   
   /**
    * ADT holding the classification result
@@ -90,6 +96,8 @@ class UserExercisesClassifier extends Actor {
           }
         }
       sender() ! randomExercise(sessionProps)
+    case ClassificationExamples(sessionProps) ⇒
+      sender() ! List(Exercise("chest press", Some(1.0)), Exercise("foobar", Some(1.0)), Exercise("barfoo", Some(1.0)))
   }
 
 }

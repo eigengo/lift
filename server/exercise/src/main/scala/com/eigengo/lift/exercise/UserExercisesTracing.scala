@@ -69,7 +69,7 @@ class UserExercisesTracing(userId: String) extends PersistentView {
 
     case MultiPacketDecodingFailedEvt(_, _, packet)  ⇒ counter = saveMultiPacket(counter, id, packet)
 
-    case ClassifyExerciseEvt(props, sdwl)            ⇒ appendSensorData(id, tag, sdwl)
+    case ClassifyExerciseEvt(_, sdwl)                ⇒ appendSensorData(id, tag, sdwl)
 
     case ExerciseEvt(`id`, ModelMetadata.user, exercise) ⇒ tag = tag.withUserExercise(Some(exercise))
     case ExerciseEvt(`id`, metadata, exercise)           ⇒ tag = tag.withSystemExercise(Some(exercise))
