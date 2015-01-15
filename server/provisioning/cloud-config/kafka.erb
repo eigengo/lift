@@ -1,0 +1,26 @@
+<%= ERB.new(File.read("cloud-config/default.erb"), 0, "<>", '_default').result(binding) %>
+
+# Cloud config data for creating Cassandra compute nodes
+
+coreos:
+  units:
+    - name: install-kafka.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Kafka Docker image
+        Requires=docker.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+
+        # Download our Kafka container image from the Docker repository
+        ExecStartPre=/usr/bin/docker pull <%= @docker[:kafka] %>
+        ExecStart=/bin/echo Docker Kafka Image Installed
+
+        [X-Fleet]
+        # Only download on Kafka deployment nodes
+        MachineMetadata=type=kafka

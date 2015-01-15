@@ -14,7 +14,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(kafkaProducer: ActorRef, userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
     path("exercise" / "musclegroups") {
       get {
         complete {
@@ -80,6 +80,16 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         complete {
           userExercises ! UserExerciseExplicitClassificationEnd(userId, sessionId)
           ""
+        }
+      }
+    } ~
+    path("kafka") {
+      post {
+        handleWith { exercise: Exercise ⇒
+          complete {
+            kafkaProducer ! exercise
+            ""
+          }
         }
       }
     }

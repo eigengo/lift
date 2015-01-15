@@ -1,20 +1,22 @@
 package com.eigengo.lift.exercise
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.Actor.Receive
+import akka.actor.{Props, Actor, ActorRef, ActorSystem}
 import akka.contrib.pattern.ClusterSharding
 import com.eigengo.lift.common.MicroserviceApp.BootedNode
 import com.eigengo.lift.exercise.ExerciseBoot._
+import com.eigengo.lift.kafka.KafkaProducerActor
 import spray.routing.Route
 
 import scala.concurrent.ExecutionContext
 
-case class ExerciseBoot(userExercises: ActorRef, userExercisesView: ActorRef) extends BootedNode {
+case class ExerciseBoot(kafkaProducer: ActorRef, userExercises: ActorRef, userExercisesView: ActorRef) extends BootedNode {
   /**
    * Starts the route given the exercise boot
    * @param ec the execution context
    * @return the route
    */
-  def route(ec: ExecutionContext): Route = exerciseRoute(userExercises, userExercisesView)(ec)
+  def route(ec: ExecutionContext): Route = exerciseRoute(kafkaProducer, userExercises, userExercisesView)(ec)
 
   override def api: Option[(ExecutionContext) ⇒ Route] = Some(route)
 }
@@ -40,7 +42,9 @@ object ExerciseBoot extends ExerciseService {
       idExtractor = UserExercisesSessions.idExtractor,
       shardResolver = UserExercisesSessions.shardResolver)
 
-    ExerciseBoot(userExercise, userExerciseView)
+    val kafkaProducer = system.actorOf(KafkaProducerActor.props)
+
+    ExerciseBoot(kafkaProducer, userExercise, userExerciseView)
   }
 
 }

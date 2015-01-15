@@ -17,7 +17,7 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         
-        # Download our Akka container image from the Docker repository
+        # Download our Cassandra container image from the Docker repository
         ExecStartPre=/usr/bin/docker pull <%= @docker[:cassandra] %>
         ExecStart=/bin/echo Docker Cassandra Image Installed
         
