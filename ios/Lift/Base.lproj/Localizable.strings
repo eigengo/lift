@@ -15,7 +15,6 @@
 
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
-"LiveSessionController.exercise"="Some exercise";
 "LiveSessionController.section.deviceAndSession"="Device and session";
 "LiveSessionController.section.exercise"="Exercise";
 "LiveSessionController.elapsed"="Elapsed %d:%02d";
