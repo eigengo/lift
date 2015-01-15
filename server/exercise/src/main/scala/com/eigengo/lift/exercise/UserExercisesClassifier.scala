@@ -79,7 +79,7 @@ class UserExercisesClassifier extends Actor {
 
   private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None)))
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None, None)))
   }
 
   override def receive: Receive = {
@@ -97,7 +97,7 @@ class UserExercisesClassifier extends Actor {
         }
       sender() ! randomExercise(sessionProps)
     case ClassificationExamples(sessionProps) ⇒
-      sender() ! List(Exercise("chest press", Some(1.0)), Exercise("foobar", Some(1.0)), Exercise("barfoo", Some(1.0)))
+      sender() ! List(Exercise("chest press", Some(1.0), None), Exercise("foobar", Some(1.0), None), Exercise("barfoo", Some(1.0), None))
   }
 
 }

@@ -23,7 +23,7 @@ object ExerciseServiceTest {
     val userId = UserId.randomId()
     val sessionId = SessionId.randomId()
 
-    val squat = Exercise("squat", Some(1.0))
+    val squat = Exercise("squat", Some(1.0), None)
     val intensity = Some(1.0)
     val startDate = dateFormat.parse("1970-01-01")
     val endDate = dateFormat.parse("1970-01-01")

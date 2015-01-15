@@ -21,7 +21,7 @@ class UserExercisesTracingTest extends FlatSpec with TestKitBase with Matchers w
 
     tracer ! SessionStartedEvt(id, props)
 
-    tracer ! ExerciseEvt(id, ModelMetadata.user, Exercise("user", Some(1.0)))
+    tracer ! ExerciseEvt(id, ModelMetadata.user, Exercise("user", Some(1.0), None))
     tracer ! ClassifyExerciseEvt(props, List(sdwl))
     tracer ! ClassifyExerciseEvt(props, List(sdwl))
 
