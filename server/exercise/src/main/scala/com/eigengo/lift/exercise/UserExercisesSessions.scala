@@ -32,8 +32,8 @@ object UserExercisesSessions {
     }
 
     def withMetric(metric: Metric): ExerciseSet = {
-      val newList = exercises.map(e ⇒ Exercise(e.name, e.intensity, Some(metric)))
-      ExerciseSet(newList)
+      val newExercises = exercises.map(e ⇒ Exercise(e.name, e.intensity, Some(metric)))
+      copy(exercises = newExercises)
     }
 
     def withNewExercise(modelMetadata: ModelMetadata, exercise: Exercise): ExerciseSet = copy(exercises :+ exercise)
