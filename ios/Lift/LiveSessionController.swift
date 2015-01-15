@@ -120,7 +120,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (1, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
             cell.textLabel!.text = exampleExercises[x].name
-            cell.selectionStyle = UITableViewCellSelectionStyle.Blue
+            cell.selectionStyle = UITableViewCellSelectionStyle.None
+            cell.accessoryType = UITableViewCellAccessoryType.None
             return cell
         default: return UITableViewCell()
         }
@@ -136,13 +137,41 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if indexPath.section == 1 {
-            NSLog("Explicitly classification start")
+            if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+                switch selectedCell.accessoryType {
+                case UITableViewCellAccessoryType.None:
+                    for i in 0...(tableView.numberOfRowsInSection(1) - 1) {
+                        let indexPath = NSIndexPath(forRow: i, inSection: 1)
+                        if (tableView.cellForRowAtIndexPath(indexPath)!.accessoryType == UITableViewCellAccessoryType.Checkmark) {
+                            tableView.cellForRowAtIndexPath(indexPath)!.accessoryType = UITableViewCellAccessoryType.None
+                        }
+                    }
+                    selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
+                    ResultContext.run { ctx in
+                        LiftServer.sharedInstance.exerciseSessionStartExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, exercise: self.exampleExercises[indexPath.row], f: ctx.unit())
+                    }
+                case UITableViewCellAccessoryType.Checkmark:
+                    selectedCell.accessoryType = UITableViewCellAccessoryType.None
+                    ResultContext.run { ctx in
+                        LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
+                    }
+                default: return
+                }
+            }
         }
     }
     
     override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        if indexPath.section == 1 {
-            NSLog("Explicitly classification end")
+        if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+            switch selectedCell.accessoryType {
+                //If it was still checked, send delete request before unchecking
+            case UITableViewCellAccessoryType.Checkmark:
+                selectedCell.accessoryType = UITableViewCellAccessoryType.None
+                ResultContext.run{ ctx in
+                    LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
+                }
+            default: return
+            }
         }
     }
     

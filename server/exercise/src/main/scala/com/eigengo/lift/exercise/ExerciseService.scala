@@ -78,7 +78,8 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       post {
         handleWith { exercise: Exercise ⇒
-          (userExercises ? UserExerciseExplicitClassificationStart(userId, sessionId, exercise)).mapRight[Unit]
+          userExercises ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
+          ""
         }
       } ~
       delete {

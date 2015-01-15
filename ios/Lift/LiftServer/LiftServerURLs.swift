@@ -111,6 +111,16 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     ///
     case ExerciseSessionEnd(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
+    ///
+    /// Starts the explicit exercise classification for ``userId`` and ``sessionId``
+    ///
+    case ExplicitExerciseClassificationStart(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
+    /// Stops the explicit exercise classification for ``userId`` and ``sessionId``
+    ///
+    case ExplicitExerciseClassificationStop(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
     private struct Format {
         private static let simpleDateFormatter: NSDateFormatter = {
             let dateFormatter = NSDateFormatter()
@@ -151,6 +161,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
                     
                 case .ExerciseSessionGetClassificationExamples(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.GET)
+                case .ExplicitExerciseClassificationStart(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.POST)
+                case .ExplicitExerciseClassificationStop(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.DELETE)
                 }
                 }()
             

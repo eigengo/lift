@@ -240,6 +240,22 @@ public class LiftServer {
         request(LiftServerURLs.ExerciseSessionGetClassificationExamples(userId, sessionId))
             .responseAsResutlt(f) { json in json.arrayValue.map(Exercise.Exercise.unmarshal) }
     }
+
+    ///
+    /// Submit data for an explicit exerise to the server
+    ///
+    func exerciseSessionStartExplicitClassification(userId: NSUUID, sessionId: NSUUID, exercise: Exercise.Exercise, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExplicitExerciseClassificationStart(userId, sessionId), body: .Json(params: exercise.marshal()))
+            .responseAsResutlt(f, const(()))
+    }
+    
+    ///
+    /// Finish saving data for the explicit exercise
+    ///
+    func exerciseSessionEndExplicitClassification(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExplicitExerciseClassificationStop(userId, sessionId))
+            .responseAsResutlt(f, const(()))
+    }
     
     ///
     /// Close the running session
