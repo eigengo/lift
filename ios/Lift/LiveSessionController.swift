@@ -141,6 +141,12 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                 let cellText = selectedCell.textLabel!.text
                 switch(selectedCell.accessoryType){
                 case UITableViewCellAccessoryType.None:
+                    for i in 0...(tableView.numberOfRowsInSection(1)-1) {
+                        if (tableView.cellForRowAtIndexPath(NSIndexPath(forRow: i, inSection: 1))!.accessoryType == UITableViewCellAccessoryType.Checkmark){
+                            //We have to untick existing ticks, then continue with the user selection
+                            tableView.cellForRowAtIndexPath(NSIndexPath(forRow: i, inSection: 1))!.accessoryType = UITableViewCellAccessoryType.None
+                        }
+                    }
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
                     NSLog("Explicitly classification start for: %@", cellText!)
                     ResultContext.run {ctx in
@@ -159,9 +165,18 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        //if indexPath.section == 1 {
-       //     NSLog("Explicitly classification end")
-        //}
+        if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+            let cellText = selectedCell.textLabel!.text
+            switch(selectedCell.accessoryType){
+            case UITableViewCellAccessoryType.Checkmark: //If it was still checked, send delete request
+                selectedCell.accessoryType = UITableViewCellAccessoryType.None
+                NSLog("Explicitly classification stop for: %@", cellText!)
+                ResultContext.run{ctx in
+                    LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
+                }
+            default: NSLog("Cell was something other than Checked or None!")
+            }
+        }
     }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
