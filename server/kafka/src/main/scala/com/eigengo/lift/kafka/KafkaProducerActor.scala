@@ -1,7 +1,6 @@
 package com.eigengo.lift.kafka
 
-import akka.actor.{Actor, Props}
-import akka.routing.RoundRobinPool
+import akka.actor.{ActorLogging, Actor, Props}
 import com.eigengo.lift.common.JavaSerializationCodecs
 import com.typesafe.config.Config
 
@@ -23,18 +22,30 @@ object KafkaProducerActor {
 /**
  * Kafka producer actor
  * Provides service to produce messages to Kafka
- * @param kafkaConfig kafka configuration
+ * @param config kafka configuration
  */
-class KafkaProducerActor(override val kafkaConfig: Config)
+class KafkaProducerActor(config: Config)
   extends Actor
+  with ActorLogging
   with KafkaProducer
   with JavaSerializationCodecs {
 
+  override val kafkaConfig = config.getConfig("kafka.producer")
+
+  private val topic = kafkaConfig.getString("topic")
+
+  private def logs[T](event: T) =
+    log.info(s"""${self.path} producing "$event" to Kafka""")
+
   override def receive: Receive = {
-    case exercise: String => {
-      println(s"Producing $exercise")
-      val produced = produce(exercise, "test")
-      println(s"Produced $produced")
+    case event @ _ => {
+      logs(event)
+      val produced = produce(event, topic)
     }
+  }
+
+  override def postStop() = {
+    close
+    postStop
   }
 }

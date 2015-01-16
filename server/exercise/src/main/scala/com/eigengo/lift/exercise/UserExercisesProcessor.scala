@@ -16,7 +16,7 @@ object UserExercisesProcessor {
   /** The shard name */
   val shardName = "user-exercises"
   /** The sessionProps to create the actor on a node */
-  def props(notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], notification, userProfile)
+  def props(kafka: ActorRef, notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], kafka, notification, userProfile)
 
   /**
    * Remove a session identified by ``sessionId`` for user identified by ``userId``

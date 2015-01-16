@@ -88,13 +88,5 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
           ""
         }
       }
-    } ~
-    path("kafka") {
-      post {
-        handleWith { exercise: Exercise ⇒
-          kafkaProducer ! exercise
-          ""
-        }
-      }
     }
 }

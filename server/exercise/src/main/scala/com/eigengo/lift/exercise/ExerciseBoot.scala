@@ -28,10 +28,10 @@ object ExerciseBoot extends ExerciseService {
    * Boot the exercise microservice
    * @param system the AS to boot the microservice in
    */
-  def boot(kafkaProducer: ActorRef, notification: ActorRef, profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
+  def boot(kafka: ActorRef, notification: ActorRef, profile: ActorRef)(implicit system: ActorSystem): ExerciseBoot = {
     val userExercise = ClusterSharding(system).start(
       typeName = UserExercisesProcessor.shardName,
-      entryProps = Some(UserExercisesProcessor.props(notification, profile)),
+      entryProps = Some(UserExercisesProcessor.props(kafka, notification, profile)),
       idExtractor = UserExercisesProcessor.idExtractor,
       shardResolver = UserExercisesProcessor.shardResolver)
     val userExerciseView = ClusterSharding(system).start(
@@ -40,7 +40,7 @@ object ExerciseBoot extends ExerciseService {
       idExtractor = UserExercisesSessions.idExtractor,
       shardResolver = UserExercisesSessions.shardResolver)
 
-    ExerciseBoot(kafkaProducer, userExercise, userExerciseView)
+    ExerciseBoot(kafka, userExercise, userExerciseView)
   }
 
 }

@@ -4,12 +4,13 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, 
 
 import scala.util.{Failure, Success, Try}
 import scalaz.\/
+import com.eigengo.lift.common.MessagePayload._
 
 trait JavaSerializationCodecs {
 
   implicit def messageDecoder[A]: MessageDecoder[A] =
     new MessageDecoder[A] {
-      override def decode(data: Array[Byte]): String \/ A = {
+      override def decode(data: Payload): String \/ A = {
         val ois = new ObjectInputStream(new ByteArrayInputStream(data))
         val res = Try(ois.readObject().asInstanceOf[A]) match {
           case Success(a) ⇒ \/.right(a)
@@ -23,7 +24,7 @@ trait JavaSerializationCodecs {
 
   implicit def messageEncoder[A]: MessageEncoder[A] =
     new MessageEncoder[A] {
-      override def encode(value: A): String \/ Array[Byte] = {
+      override def encode(value: A): String \/ Payload = {
         val bos = new ByteArrayOutputStream()
         val oos = new ObjectOutputStream(bos)
         Try { oos.writeObject(value); oos.close() } match {
