@@ -1,6 +1,7 @@
 package com.eigengo.lift.kafka
 
-import com.eigengo.lift.kafka.MessagePayload.Payload
+import com.eigengo.lift.common.{MessageEncoder, MessagePayload}
+import MessagePayload.Payload
 import com.eigengo.lift.kafka.PropertiesConfig._
 import com.typesafe.config.Config
 import kafka.javaapi.producer.Producer

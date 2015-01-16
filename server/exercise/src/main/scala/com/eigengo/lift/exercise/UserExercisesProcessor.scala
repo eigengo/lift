@@ -164,15 +164,17 @@ object UserExercisesProcessor {
     case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationExamples(userId, _) ⇒ s"${userId.hashCode() % 10}"
   }
-
 }
 
 /**
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
-  extends PersistentActor with ActorLogging with AutoPassivation {
+class UserExercisesProcessor(kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
+  extends PersistentActor
+  with ActorLogging
+  with AutoPassivation {
+
   import com.eigengo.lift.exercise.UserExercisesClassifier._
   import com.eigengo.lift.exercise.UserExercisesProcessor._
   import scala.concurrent.duration._

@@ -1,7 +1,8 @@
-package com.eigengo.lift.kafka
+package com.eigengo.lift.common
+
+import com.eigengo.lift.common.MessagePayload.Payload
 
 import scalaz.\/
-import MessagePayload.Payload
 
 trait MessageEncoder[A] {
   def encode(value: A): String \/ Payload

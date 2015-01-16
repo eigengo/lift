@@ -1,8 +1,6 @@
-package com.eigengo.lift.exercise
+package com.eigengo.lift.common
 
-import java.io.{ObjectOutputStream, ByteArrayOutputStream, ByteArrayInputStream, ObjectInputStream}
-import com.eigengo.lift.kafka.{MessageEncoder, MessageDecoder}
-import kafka.serializer.{Decoder, Encoder}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
 import scala.util.{Failure, Success, Try}
 import scalaz.\/

@@ -7,7 +7,7 @@ name := "domain"
 lazy val common = project.in(file("common")).dependsOn(contrib)
 
 //Kafka intergration
-lazy val kafka = project.in(file("kafka"))
+lazy val kafka = project.in(file("kafka")).dependsOn(common)
 
 //Exercise
 lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common, kafka)

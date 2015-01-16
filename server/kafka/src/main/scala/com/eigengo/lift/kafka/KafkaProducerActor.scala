@@ -1,13 +1,16 @@
-package com.eigengo.lift.exercise
+package com.eigengo.lift.kafka
 
 import akka.actor.{Actor, Props}
-import com.eigengo.lift.kafka.KafkaProducer
+import akka.routing.RoundRobinPool
+import com.eigengo.lift.common.JavaSerializationCodecs
 import com.typesafe.config.Config
 
 /**
  * Kafka producer actor companion for actor construction
  */
 object KafkaProducerActor {
+
+  val name = "kafka-producer"
 
   /**
    * KafkaProducerActor props
@@ -28,13 +31,10 @@ class KafkaProducerActor(override val kafkaConfig: Config)
   with JavaSerializationCodecs {
 
   override def receive: Receive = {
-    case exercise: Exercise => {
+    case exercise: String => {
       println(s"Producing $exercise")
       val produced = produce(exercise, "test")
       println(s"Produced $produced")
     }
-
-    case "die" =>
-      context stop self
   }
 }
