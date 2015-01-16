@@ -37,12 +37,22 @@ struct Exercise {
         var intendedIntensity: ExerciseIntensityKey
     }
     
+    /// Metric
+    
+    struct Metric {
+        // value
+        // metricUnit
+        var value: Double
+        var metricUnit: String //Mass or Distance
+    }
+    
     ///
     /// Sigle exercise
     ///
     struct Exercise {
         var name: String
         var intensity: ExerciseIntensityKey?
+        var metric: Metric?
     }
     
     ///
