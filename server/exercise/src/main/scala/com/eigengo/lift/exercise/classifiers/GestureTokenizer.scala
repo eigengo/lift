@@ -56,17 +56,17 @@ class GestureTokenizer(name: String, locationFilter: Set[SensorDataSourceLocatio
       }
   }
 
-  val workflow = Flow[SensorDataWithLocation[AccelerometerData]]
+  def workflow(out: Source[Token]) = Flow[SensorDataWithLocation[AccelerometerData]]
     .filter(data => locationFilter.contains(data.location))
     .groupBy(_.location)
     .map {
       case (location, sensorSource) =>
         (location,
          sensorSource
-           .scan[(List[Token], List[AccelerometerData])]((List(), List())) {
+           .scan[(Source[Token], List[AccelerometerData])]((out, List())) {
              case ((parsed, unparsed), sensor) =>
                val (gestures, remaining) = parseGestures(unparsed ++ sensor.data)
-               (parsed ++ gestures, remaining)
+               (parsed.concat(Source(gestures)), remaining)
            }
         )
     }
