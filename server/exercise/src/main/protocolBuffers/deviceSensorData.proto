@@ -1,0 +1,32 @@
+//Java code generated using protoc sensorData.proto --java_out=./
+//Scala code can be generated using
+//    there were some version issues at the time of writing but looked like they would be resolved soon
+//    https://github.com/SandroGrzicic/ScalaBuff/wiki/Generated-code: sbt run --proto_path=./ --scala_out=./
+//    there is also a sbt plugin https://github.com/sbt/sbt-scalabuff
+//Swift code generated using https://github.com/alexeyxo/protobuf-swift: protoc sensorData.proto --swift_out=./
+
+message MultipleDeviceSensorData {
+  enum Source {
+    HEAD = 0;
+    NECK = 1;
+    SHOULDER = 2;
+    CHEST = 3;
+    ARM = 4;
+    FOREARM = 5;
+    HAND = 6;
+    WRIST = 7;
+    WAIST = 8;
+    HIP = 9;
+    THIGH = 10;
+    CALF = 11;
+    ANKLE = 12;
+    FOOT = 13;
+  }
+
+  message SingleDeviceSensorData {
+    required Source source = 1;
+    required bytes data = 2;
+  }
+
+  repeated SingleDeviceSensorData singleDeviceSensorData = 1;
+}
