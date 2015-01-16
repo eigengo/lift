@@ -111,17 +111,17 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     ClusterInventory(system).resolveDependencies(microserviceProps.dependencies, 60.seconds).onComplete {
       case Success(_) ⇒
         val hostname = InetAddress.getLocalHost.getHostAddress
-        log.info(s"Starting Up microservice $microserviceProps at $hostname")
+        log.debug(s"Starting Up microservice $microserviceProps at $hostname")
         Thread.sleep(10000)
 
         // Create the ActorSystem for the microservice
-        log.info("Creating the microservice's ActorSystem")
+        log.debug("Creating the microservice's ActorSystem")
         ClusterStartup(system).join {
           val selfAddress = cluster.selfAddress
-          log.info(s"Node $selfAddress booting up")
+          log.debug(s"Node $selfAddress booting up")
           // boot the microservice code
           val bootedNode = boot(system, cluster)
-          log.info(s"Node $selfAddress booted up $bootedNode")
+          log.debug(s"Node $selfAddress booted up $bootedNode")
           bootedNode.api.foreach { api ⇒
             import RouteConcatenation._
             val route: Route = api(system.dispatcher) ~ NodeManager(SprayConnector).apply("deleteme")
@@ -131,7 +131,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
             ClusterInventory(system).set("api", s"http://$hostname:$port?version=${microserviceProps.version}&side=${microserviceProps.cqrs.mkString(",")}")
           }
           // logme!
-          log.info(s"Node $selfAddress Up")
+          log.debug(s"Node $selfAddress Up")
         }
       case Failure(UnresolvedDependencies(resolved, remaining)) ⇒
         log.error(s"Could not resolve dependencies for $microserviceProps: resolved $resolved, $remaining remaining.")

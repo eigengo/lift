@@ -72,14 +72,24 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseGetMuscleGroups()
     
     ///
-    /// Retrieves all the exercises for the given ``userId``
+    /// Retrieves all the exercises for the given ``userId`` and ``date``
     ///
-    case ExerciseGetExerciseSessionsSummary(/*userId: */NSUUID)
-    
+    case ExerciseGetExerciseSessionsSummary(/*userId: */NSUUID, /*date: */NSDate)
+
+    ///
+    /// Retrieves all the session dates for the given ``userId``
+    ///
+    case ExerciseGetExerciseSessionsDates(/*userId: */NSUUID)
+
     ///
     /// Retrieves all the exercises for the given ``userId`` and ``sessionId``
     ///
     case ExerciseGetExerciseSession(/*userId: */NSUUID, /*sessionId: */NSUUID)
+
+    ///
+    /// Deletes all the exercises for the given ``userId`` and ``sessionId``
+    ///
+    case ExerciseDeleteExerciseSession(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
     /// Starts an exercise session for the given ``userId``
@@ -92,9 +102,37 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseSessionSubmitData(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
+    /// Gets exercise classification examples for the given ``userId`` and ``sessionId``
+    ///
+    case ExerciseSessionGetClassificationExamples(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
     /// Ends the session for the given ``userId`` and ``sessionId``
     ///
     case ExerciseSessionEnd(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
+    /// Starts the explicit exercise classification for ``userId`` and ``sessionId``
+    ///
+    case ExplicitExerciseClassificationStart(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
+    /// Stops the explicit exercise classification for ``userId`` and ``sessionId``
+    ///
+    case ExplicitExerciseClassificationStop(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    private struct Format {
+        private static let simpleDateFormatter: NSDateFormatter = {
+            let dateFormatter = NSDateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            return dateFormatter
+        }()
+        
+        static func simpleDate(date: NSDate) -> String {
+            return simpleDateFormatter.stringFromDate(date)
+        }
+        
+    }
     
     // MARK: URLStringConvertible
     var Request: LiftServerRequest {
@@ -113,12 +151,18 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                     
                 case .ExerciseGetMuscleGroups(): return LiftServerRequest(path: "/exercise/musclegroups", method: Method.GET)
                     
-                case .ExerciseGetExerciseSessionsSummary(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
+                case .ExerciseGetExerciseSessionsSummary(let userId, let date): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)?date=\(Format.simpleDate(date))", method: Method.GET)
+                case .ExerciseGetExerciseSessionsDates(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.GET)
                 case .ExerciseGetExerciseSession(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.GET)
+                case .ExerciseDeleteExerciseSession(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.DELETE)
                     
-                case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)", method: Method.POST)
+                case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/start", method: Method.POST)
                 case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
-                case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.DELETE)
+                case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
+                    
+                case .ExerciseSessionGetClassificationExamples(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.GET)
+                case .ExplicitExerciseClassificationStart(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.POST)
+                case .ExplicitExerciseClassificationStop(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.DELETE)
                 }
                 }()
             

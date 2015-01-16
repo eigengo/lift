@@ -108,15 +108,18 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: KnownAccounts) ⇒
       knownAccounts = offeredSnapshot
+    case ur@UserRegistered(userId, account) ⇒
+      knownAccounts = knownAccounts.withNewAccount(account.email, userId)
+      userProfile ! ur
   }
 
   override def receiveCommand: Receive = {
     case UserRegister(email, _) if knownAccounts.contains(email) ⇒
-      log.info("UserRegister: username taken.")
+      log.debug("UserRegister: username taken.")
       sender() ! \/.left("Username already taken")
 
     case UserRegister(email, password) if !knownAccounts.contains(email) ⇒
-      log.info("UserRegister: username available.")
+      log.debug("UserRegister: username available.")
       val salt = Random.nextString(100)
       persist(UserRegistered(UserId.randomId(), Account(email, digestPassword(password, salt), salt))) { userRegistered ⇒
         userProfile ! userRegistered
@@ -128,28 +131,28 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       }
 
     case KnownAccountAdded(email, userId) if sender() != self ⇒
-      log.info(s"KnownAccountAdded. Accounts now ${knownAccounts.accounts}.")
+      log.debug(s"KnownAccountAdded. Accounts now ${knownAccounts.accounts}.")
       knownAccounts = knownAccounts.withNewAccount(email, userId)
 
     case UserLogin(email, password) ⇒
-      log.info("UserLogin.")
+      log.debug("UserLogin.")
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
 
     case UserCheckAccount(userId) ⇒
       sender ! knownAccounts.hasUserId(userId)
 
     case UserSetDevice(userId, device) ⇒
-      log.info("UserSetDevice.")
+      log.debug("UserSetDevice.")
       userProfile ! UserDeviceSet(userId, device)
       sender() ! \/.right(())
 
     case UserSetPublicProfile(userId, publicProfile) ⇒
-      log.info("UserSetPublicProfile.")
+      log.debug("UserSetPublicProfile.")
       userProfile ! UserPublicProfileSet(userId, publicProfile)
       sender() ! \/.right(())
 
     case UserSetProfileImage(userId, profileImage) ⇒
-      log.info("UserSetProfileImage.")
+      log.debug("UserSetProfileImage.")
       if (profileImage.length > 128000) {
         /*
         val resizedImage = new BufferedImage(256, 256, BufferedImage.TYPE_3BYTE_BGR)

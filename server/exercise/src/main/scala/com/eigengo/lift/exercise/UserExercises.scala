@@ -1,232 +1,74 @@
 package com.eigengo.lift.exercise
 
-import java.io.{FileOutputStream, File}
-
-import akka.actor._
-import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.eigengo.lift.common.{AutoPassivation, UserId}
-import com.eigengo.lift.exercise.AccelerometerData._
-import com.eigengo.lift.exercise.ExerciseClassifier.{Classify, FullyClassifiedExercise, NoExercise, UnclassifiedExercise}
-import com.eigengo.lift.exercise.UserExercises._
-import com.eigengo.lift.exercise.UserExercisesView._
-import com.eigengo.lift.notification.NotificationProtocol.{Devices, MobileDestination, PushMessage, WatchDestination}
-import com.eigengo.lift.profile.UserProfileProtocol.UserGetDevices
-import scodec.bits.BitVector
-
-import scala.language.postfixOps
-import scala.util.Try
-import scalaz.\/
-
-/**
- * User + list of exercises companion
- */
 object UserExercises {
 
-  /** The shard name */
-  val shardName = "user-exercises"
-  /** The sessionProps to create the actor on a node */
-  def props(notification: ActorRef, userProfile: ActorRef, exerciseClassifiers: ActorRef) = Props(classOf[UserExercises], notification, userProfile, exerciseClassifiers)
+  /**
+   * Model version and other metadata
+   * @param version the model version
+   */
+  case class ModelMetadata(version: Int)
 
   /**
-   * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
-   * @param userId the user identity
-   * @param sessionId the sessionProps identity
-   * @param bits the submitted bits
+   * The MD companion
    */
-  case class UserExerciseDataProcess(userId: UserId, sessionId: SessionId, bits: BitVector)
-
-  /**
-   * Process exercise data for the given sessionProps
-   * @param sessionId the sessionProps identifier
-   * @param bits the exercise data bits
-   */
-  private case class ExerciseDataProcess(sessionId: SessionId, bits: BitVector)
-
-  /**
-   * Starts the user exercise sessionProps
-   * @param userId the user identity
-   * @param sessionProps the sessionProps details
-   */
-  case class UserExerciseSessionStart(userId: UserId, sessionProps: SessionProps)
-
-  /**
-   * Ends the user exercise sessionProps
-   * @param userId the user identity
-   * @param sessionId the generated sessionProps identity
-   */
-  case class UserExerciseSessionEnd(userId: UserId, sessionId: SessionId)
-
-  /**
-   * The sessionProps has started
-   * @param sessionProps the sessionProps identity
-   */
-  private case class ExerciseSessionStart(sessionProps: SessionProps)
-
-  /**
-   * The sessionProps has ended
-   * @param sessionId the sessionProps identity
-   */
-  private case class ExerciseSessionEnd(sessionId: SessionId)
-
-  /**
-   * Accelerometer data for the given sessionProps
-   * @param sessionId the sessionProps identity
-   * @param data the data
-   */
-  private case class ExerciseSessionData(sessionId: SessionId, data: AccelerometerData)
-
-  /**
-   * Too much rest message that is sent to us if the user is being lazy
-   */
-  private case object TooMuchRest
-
-  /**
-   * Extracts the identity of the shard from the messages sent to the coordinator. We have per-user shard,
-   * so our identity is ``userId.toString``
-   */
-  val idExtractor: ShardRegion.IdExtractor = {
-    case UserExerciseSessionStart(userId, session)        ⇒ (userId.toString, ExerciseSessionStart(session))
-    case UserExerciseSessionEnd(userId, sessionId)        ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
-    case UserExerciseDataProcess(userId, sessionId, data) ⇒ (userId.toString, ExerciseDataProcess(sessionId, data))
+  object ModelMetadata {
+    /** Special user-classified metadata */
+    val user = ModelMetadata(-1231344)
   }
 
   /**
-   * Resolves the shard name from the incoming message.
+   * Failed to decode multi-packet for the given session with an error message and the original packet
+   * @param id the session identity
+   * @param error the decoding error
+   * @param packet the failing packet
    */
-  val shardResolver: ShardRegion.ShardResolver = {
-    case UserExerciseSessionStart(userId, _)   ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionEnd(userId, _)     ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseDataProcess(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
-  }
+  case class MultiPacketDecodingFailedEvt(id: SessionId, error: String, packet: MultiPacket)
 
-}
+  /**
+   * Classify the given accelerometer data together with session information
+   * @param sessionProps the session
+   * @param sensorData the sensor data
+   */
+  case class ClassifyExerciseEvt(sessionProps: SessionProps, sensorData: List[SensorDataWithLocation])
 
-/**
- * Models each user's exercises as its state, which is updated upon receiving and classifying the
- * ``AccelerometerData``. It also provides the query for the current state.
- */
-class UserExercises(notification: ActorRef, userProfile: ActorRef, exerciseClasssifiers: ActorRef)
-  extends PersistentActor with ActorLogging with AutoPassivation {
-  import scala.concurrent.duration._
+  /**
+   * The session has started
+   * @param sessionId the session identity
+   * @param sessionProps the session props
+   */
+  case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProps)
 
-  import akka.pattern.ask
-  private val userId = UserId(self.path.name)
-  import com.eigengo.lift.common.Timeouts.defaults._
-  import context.dispatcher
-  (userProfile ? UserGetDevices(userId)).mapTo[Devices].onSuccess {
-    case ds ⇒
-      devices = ds
-  }
+  /**
+   * The session has been deleted
+   * @param sessionId the session that was deleted
+   */
+  case class SessionDeletedEvt(sessionId: SessionId)
 
-  // minimum confidence
-  private val confidenceThreshold = 0.5
-  // known user devices
-  private var devices = Devices.empty
-  // how long until we stop processing
-  context.setReceiveTimeout(360.seconds)
-  // our unique persistenceId; the self.path.name is provided by ``UserExercises.idExtractor``,
-  // hence, self.path.name is the String representation of the userId UUID.
-  override val persistenceId: String = s"user-exercises-${self.path.name}"
+  /**
+   * The session has ended
+   * @param sessionId the session id
+   */
+  case class SessionEndedEvt(sessionId: SessionId)
 
-  // chop-chop timer cancellable
-  private var tooMuchRestCancellable: Option[Cancellable] = None
+  /**
+   * Exercise event received for the given session with model metadata and exercise
+   * @param sessionId the session identity
+   * @param metadata the model metadata
+   * @param exercise the result
+   */
+  case class ExerciseEvt(sessionId: SessionId, metadata: ModelMetadata, exercise: Exercise)
 
-  import context.dispatcher
+  /**
+   * Explicit (user-provided through tapping the device, for example) of exercise set.
+   * @param sessionId the session identity
+   */
+  case class ExerciseSetExplicitMarkEvt(sessionId: SessionId)
 
-  private def validateData(result: (BitVector, List[AccelerometerData])): \/[String, AccelerometerData] = result match {
-    case (BitVector.empty, Nil)    ⇒ \/.left("Empty")
-    case (BitVector.empty, h :: t) ⇒
-      if (t.forall(_.samplingRate == h.samplingRate)) {
-        \/.right(t.foldLeft(h)((res, ad) ⇒ ad.copy(values = ad.values ++ res.values)))
-      } else {
-        \/.left("Unmatched sampling rates")
-      }
-    case (_, _)                    ⇒ \/.left("Undecoded input")
-  }
-
-  private def cancellingTooMuchRest(r: Receive): Receive = {
-    case x if r.isDefinedAt(x) ⇒
-      tooMuchRestCancellable.foreach(_.cancel())
-      r(x)
-  }
-
-  override def receiveRecover: Receive = {
-    case SnapshotOffer(_, SessionStartedEvt(sessionId, sessionProps)) ⇒
-      context.become(exercising(sessionId, sessionProps))
-  }
-
-  private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation(cancellingTooMuchRest {
-    case ExerciseSessionStart(newSessionProps) ⇒
-      val newId = SessionId.randomId()
-      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
-        log.warning("ExerciseSessionStart: exercising -> exercising. Implicitly ending running session and starting a new one.")
-        val (_::newSession) = x
-        saveSnapshot(newSession)
-        sender() ! \/.right(newId)
-        context.become(exercising(newId, newSessionProps))
-      }
-
-    case ExerciseDataProcess(`id`, bits) ⇒
-      log.info("ExerciseDataProcess: exercising -> exercising.")
-      // Tracing code: save any input chunk to an arbitrarily-named file for future analysis.
-      // Ideally, this will go somewhere more durable, but this is sufficient for now.
-      Try {
-        val fos = new FileOutputStream(s"/tmp/ad-${System.currentTimeMillis()}.dat")
-        fos.write(bits.toByteArray)
-        fos.close()
-      }.toOption
-
-      val result = decodeAll(bits, Nil)
-      validateData(result).fold(
-        { err ⇒ sender() ! \/.left(err)},
-        { evt ⇒ exerciseClasssifiers ! Classify(sessionProps, evt); sender() ! \/.right(()) }
-      )
-
-    case FullyClassifiedExercise(metadata, confidence, name, intensity) if confidence > confidenceThreshold ⇒
-      log.info("FullyClassifiedExercise: exercising -> exercising.")
-      persist(ExerciseEvt(id, metadata, Exercise(name, intensity))) { evt ⇒
-        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-        intensity.foreach { i ⇒
-          if (i << sessionProps.intendedIntensity) notification ! PushMessage(devices, "Harder!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-          if (i >> sessionProps.intendedIntensity) notification ! PushMessage(devices, "Easier!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-        }
-      }
-
-    case UnclassifiedExercise(_) ⇒
-      // Maybe notify the user?
-      tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-
-    case NoExercise(metadata) ⇒
-      log.info("NoExercise: exercising -> exercising.")
-      persist(NoExerciseEvt(id, metadata)) { evt ⇒
-        tooMuchRestCancellable = Some(context.system.scheduler.scheduleOnce(sessionProps.restDuration, self, TooMuchRest))
-      }
-
-    case TooMuchRest ⇒
-      log.info("NoExercise: exercising -> exercising.")
-      persist(TooMuchRestEvt(id)) { evt ⇒
-        notification ! PushMessage(devices, "Chop chop!", None, Some("default"), Seq(MobileDestination, WatchDestination))
-      }
-
-    case ExerciseSessionEnd(`id`) ⇒
-      log.info("ExerciseSessionEnd: exercising -> not exercising.")
-      persist(SessionEndedEvt(id)) { evt ⇒
-        saveSnapshot(evt)
-        context.become(notExercising)
-        sender() ! \/.right(())
-      }
-  })
-
-  private def notExercising: Receive = withPassivation {
-    case ExerciseSessionStart(sessionProps) ⇒
-      persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
-        saveSnapshot(evt)
-        sender() ! \/.right(evt.sessionId)
-        context.become(exercising(evt.sessionId, sessionProps))
-      }
-  }
-
-  override def receiveCommand: Receive = notExercising
-
+  /**
+   * No exercise: rest or just being lazy
+   * @param sessionId the session identity
+   * @param metadata the model metadata
+   */
+  case class NoExerciseEvt(sessionId: SessionId, metadata: ModelMetadata)
+  
 }

@@ -4,7 +4,7 @@ import Keys._
 object Dependencies {
 
   object akka {
-    val version = "2.3.6"
+    val version = "2.3.8"
     // Core Akka
     val actor                 = "com.typesafe.akka"      %% "akka-actor"                    % version
     val cluster               = "com.typesafe.akka"      %% "akka-cluster"                  % version

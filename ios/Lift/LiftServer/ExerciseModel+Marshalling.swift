@@ -34,6 +34,12 @@ extension Exercise.Exercise {
         return Exercise.Exercise(name: json["name"].stringValue, intensity: json["intensity"].double)
     }
     
+    func marshal() -> [String : AnyObject] {
+        var params: [String : AnyObject] = [:]
+        params["name"] = name
+        if let x = intensity { params["intensity"] = x }
+        return params
+    }
 }
 
 extension Exercise.ExerciseSet {
@@ -48,6 +54,25 @@ extension Exercise.ModelMetadata {
     
     static func unmarshal(json: JSON) -> Exercise.ModelMetadata {
         return Exercise.ModelMetadata(version: json["version"].intValue)
+    }
+    
+}
+
+extension Exercise.SessionIntensity {
+
+    static func unmarshal(json: JSON) -> Exercise.SessionIntensity {
+        let intended = json["intended"].doubleValue
+        let actual = json["actual"].doubleValue
+        return Exercise.SessionIntensity(intended: intended, actual: actual)
+    }
+
+}
+
+extension Exercise.SessionDate {
+    
+    static func unmarshal(json: JSON) -> Exercise.SessionDate {
+        let date = isoDateFormatter.dateFromString(json["date"].stringValue)!
+        return Exercise.SessionDate(date: date, sessionIntensities: json["sessionIntensities"].arrayValue.map(Exercise.SessionIntensity.unmarshal))
     }
     
 }

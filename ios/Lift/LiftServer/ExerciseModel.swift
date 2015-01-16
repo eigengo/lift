@@ -69,6 +69,22 @@ struct Exercise {
     }
     
     ///
+    /// Session intensity
+    ///
+    struct SessionIntensity {
+        var intended: ExerciseIntensityKey
+        var actual: ExerciseIntensityKey
+    }
+    
+    ///
+    /// Session date summary
+    ///
+    struct SessionDate {
+        var date: NSDate
+        var sessionIntensities: [SessionIntensity]
+    }
+    
+    ///
     /// Session summary model
     ///
     struct SessionSummary {

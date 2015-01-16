@@ -16,9 +16,10 @@ public class LiftServerCache {
     
     private var muscleGroups: [Exercise.MuscleGroup]?
     
-    func build() {
+    func build(f: Result<Void> -> Void) -> Void {
         LiftServer.sharedInstance.exerciseGetMuscleGroups() {
             $0.cata(const(()), { x in self.muscleGroups = x })
+            f(Result.value(()))
         }
     }
     

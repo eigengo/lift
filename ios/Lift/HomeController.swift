@@ -61,49 +61,63 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
-class HomeController : UIParallaxViewController, UITableViewDataSource,
-    UITableViewDelegate, HomeControllerHeaderViewDelegate, UIActionSheetDelegate {
+class HomeController : UIViewController, UITableViewDataSource,
+    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource, RemoteNotificationDelegate {
     
     @IBOutlet var tableView: UITableView!
+    @IBOutlet var calendarContentView: JTCalendarContentView!
+
     private var sessionSummaries: [Exercise.SessionSummary] = []
+    private var sessionDates: [Exercise.SessionDate] = []
     private var sessionSuggestions: [Exercise.SessionSuggestion] = [
         Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
         Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
     ]
-    private var headerView: HomeControllerHeaderView!
-    
-    override func contentView() -> UIScrollView {
-        return tableView
-    }
-    
+    private let calendar = JTCalendar()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.scrollEnabled = false
-        headerView = NSBundle.mainBundle().loadNibNamed("HomeControllerHeader", owner: self, options: nil).first as HomeControllerHeaderView
-        headerView.setDelegate(self)
-        addHeaderOverlayView(headerView)
+        tableView.allowsMultipleSelectionDuringEditing = false
+        calendar.calendarAppearance.isWeekMode = true
+        calendar.menuMonthsView = JTCalendarMenuView()
+        calendar.contentView = calendarContentView
+        
+        calendar.dataSource = self
     }
     
     override func viewDidAppear(animated: Bool) {
         ResultContext.run { ctx in
-            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply(self.headerView.setPublicProfile))
-            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
-                if let image = UIImage(data: data) {
-                    self.setHeaderImage(image)
-                    self.headerView.setProfileImage(image)
+            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply { publicProfile in
+                if let x = publicProfile {
+                    self.navigationItem.title = x.firstName + " " + x.lastName
+                } else {
+                    self.navigationItem.title = "Home".localized()
                 }
             })
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, ctx.apply { x in
-                self.sessionSummaries = x
-                self.tableView.reloadData()
+//            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
+//                if let image = UIImage(data: data) {
+//                }
+//            })
+            LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!, ctx.apply { x in
+                self.sessionDates = x
+                self.calendar.reloadData()
+                self.calendar.currentDate = NSDate()
+                self.calendar.currentDateSelected = NSDate()
+                self.calendarDidDateSelected(self.calendar, date: NSDate())
             })
+            AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
         }
+    }
+    
+    override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        AppDelegate.unbecomeCurrentRemoteNotificationDelegate()
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         switch segue.identifier {
         case .Some("sessionDetail"):
-            let summary = sessionSummariesForDate(NSDate())[tableView.indexPathForSelectedRow()!.row]
+            let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
             ResultContext.run { ctx in
                 LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
                     if let ctrl = segue.destinationViewController as? SessionDetailController {
@@ -121,19 +135,11 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         }
     }
     
-    func sessionSummariesForDate(date: NSDate) -> [Exercise.SessionSummary] {
-        return sessionSummaries
-    }
-    
-    func sessionSuggestionsForDate(date: NSDate) -> [Exercise.SessionSuggestion] {
-        return sessionSuggestions
-    }
-    
     // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         switch indexPath.section {
         case 0:
-            let sessionSuggestion = sessionSuggestionsForDate(NSDate())[tableView.indexPathForSelectedRow()!.row]
+            let sessionSuggestion = sessionSuggestions[tableView.indexPathForSelectedRow()!.row]
             let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: sessionSuggestion.muscleGroupKeys, intendedIntensity: sessionSuggestion.intendedIntensity)
             ResultContext.run { ctx in
                 LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { sessionId in
@@ -145,6 +151,20 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         default: fatalError("Match error")
         }
     }
+    
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return indexPath.section == 1
+    }
+    
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if editingStyle == UITableViewCellEditingStyle.Delete {
+            let sessionId = sessionSummaries[indexPath.row].id
+            LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
+                self.sessionSummaries = self.sessionSummaries.filter { $0.id != sessionId }
+                self.tableView.reloadData()
+            }
+        }
+    }
         
     // MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -153,8 +173,8 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return sessionSuggestionsForDate(NSDate()).count
-        case 1: return sessionSummariesForDate(NSDate()).count
+        case 0: return sessionSuggestions.count
+        case 1: return sessionSummaries.count
         default: fatalError("Match error")
         }
     }
@@ -179,19 +199,35 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         switch (indexPath.section, indexPath.row) {
         case (0, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("suggestion") as UITableViewCell
-            let suggestion = sessionSuggestionsForDate(NSDate())[x]
+            let suggestion = sessionSuggestions[x]
             let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(suggestion.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
             cell.textLabel!.text = ", ".join(mgs.map { $0.title })
             cell.detailTextLabel!.text = ", ".join(mgs.map { ", ".join($0.exercises) })
             return cell
         case (1, let x):
-            let sessionSummary = sessionSummariesForDate(NSDate())[x]
+            let sessionSummary = sessionSummaries[x]
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as SessionTableViewCell
             cell.setSessionSummary(sessionSummary)
             return cell
         default: fatalError("Match error")
         }
     }
+    
+    // MARK: JTCalendarDataSource
+    
+    func calendarHaveEvent(calendar: JTCalendar!, date: NSDate!) -> Bool {
+        return !sessionDates.filter { elem in return elem.date == date }.isEmpty
+    }
+    
+    func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
+        ResultContext.run { ctx in
+            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
+                self.sessionSummaries = x
+                self.tableView.reloadData()
+            })
+        }
+    }
+
     
     // MARK: UIActionSheetDelegate
     func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
@@ -200,15 +236,21 @@ class HomeController : UIParallaxViewController, UITableViewDataSource,
         }
     }
     
-    // MARK: HomeControllerHeaderViewDelegate
+    // MARK: RemoteNotificationDelegate
+    func remoteNotificationReceivedAlert(alert: String) {
+        calendarDidDateSelected(self.calendar, date: NSDate())
+    }
     
+    // MARK: Actions
+    @IBAction
+    func editProfile() {
+        performSegueWithIdentifier("profile", sender: self)
+    }
+    
+    @IBAction
     func settings() {
         let menu = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: "Cancel".localized(), destructiveButtonTitle: "Logout".localized())
         menu.showFromTabBar(tabBarController?.tabBar)
-    }
-    
-    func editProfile() {
-        performSegueWithIdentifier("profile", sender: self)
     }
     
 }

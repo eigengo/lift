@@ -91,9 +91,12 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, offeredSnapshot: Profile) ⇒
-      log.info("SnapshotOffer: not registered -> registered.")
+      log.debug("SnapshotOffer: not registered -> registered.")
       profile = offeredSnapshot
       context.become(registered)
+    case acc: Account ⇒ profile = Profile(acc, Devices.empty, None, None)
+    case pp: PublicProfile ⇒ profile = profile.withPublicProfile(pp)
+    case pi: Array[Byte] ⇒ profile = profile.withProfileImage(pi)
   }
 
   override def receiveCommand: Receive = notRegistered
@@ -101,7 +104,7 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
   private def notRegistered: Receive = withPassivation {
     case cmd: Account ⇒
       persist(cmd) { acc ⇒
-        log.info("Account: not registered -> registered.")
+        log.debug("Account: not registered -> registered.")
         profile = Profile(acc, Devices.empty, None, None)
         saveSnapshot(profile)
         context.become(registered)
@@ -110,32 +113,32 @@ class UserProfile extends PersistentActor with ActorLogging with AutoPassivation
 
   private def registered: Receive = withPassivation {
     case ds: DeviceSet ⇒ persist(ds) { evt ⇒
-      log.info("DeviceSet: registered -> registered.")
+      log.debug("DeviceSet: registered -> registered.")
       profile = profile.withDevice(evt.device)
       saveSnapshot(profile)
     }
     case pp: PublicProfile ⇒ persist(pp) { evt ⇒
-      log.info("PublicProfile: registered -> registered.")
+      log.debug("PublicProfile: registered -> registered.")
       profile = profile.withPublicProfile(evt)
       saveSnapshot(profile)
     }
     case pi: Array[Byte] ⇒ persist(pi) { evt ⇒
-      log.info("PublicProfile: registered -> registered.")
+      log.debug("PublicProfile: registered -> registered.")
       profile = profile.withProfileImage(evt)
       saveSnapshot(profile)
     }
 
     case GetPublicProfile ⇒
-      log.info("GetPublicProfile: registered -> registered.")
+      log.debug("GetPublicProfile: registered -> registered.")
       sender() ! profile.publicProfile
     case GetAccount ⇒
-      log.info("GetAccount: registered -> registered.")
+      log.debug("GetAccount: registered -> registered.")
       sender() ! profile.account
     case GetDevices ⇒
-      log.info("GetDevices: registered -> registered.")
+      log.debug("GetDevices: registered -> registered.")
       sender() ! profile.devices
     case GetProfileImage ⇒
-      log.info("GetProfileImage: registered -> registered.")
+      log.debug("GetProfileImage: registered -> registered.")
       sender() ! profile.profileImage
   }
 

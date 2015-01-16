@@ -62,4 +62,13 @@ class SessionDetailController : UIViewController, UITableViewDataSource {
         return exerciseCell(indexPath.section - 1, indexPath.row)
     }
     
+    // MARK: Actions
+    @IBAction
+    func share() {
+        let textToShare = "Great session!"
+        let myWebsite = NSURL(string: "http://lift.eigengo.com/")!
+        let items: [AnyObject] = [textToShare, myWebsite]
+        let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        navigationController?.presentViewController(activityViewController, animated: true, completion: nil)
+    }
 }

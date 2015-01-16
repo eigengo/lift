@@ -231,8 +231,29 @@ public class LiftServer {
     ///
     /// Submit data (received from the smartwatch most likely) to the running session
     ///
-    func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data))
+    func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: MultiPacket, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data.data()))
+            .responseAsResutlt(f, const(()))
+    }
+    
+    func exerciseSessionGetClassificationExamples(userId: NSUUID, sessionId: NSUUID, f: Result<[Exercise.Exercise]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionGetClassificationExamples(userId, sessionId))
+            .responseAsResutlt(f) { json in json.arrayValue.map(Exercise.Exercise.unmarshal) }
+    }
+
+    ///
+    /// Submit data for an explicit exerise to the server
+    ///
+    func exerciseSessionStartExplicitClassification(userId: NSUUID, sessionId: NSUUID, exercise: Exercise.Exercise, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExplicitExerciseClassificationStart(userId, sessionId), body: .Json(params: exercise.marshal()))
+            .responseAsResutlt(f, const(()))
+    }
+    
+    ///
+    /// Finish saving data for the explicit exercise
+    ///
+    func exerciseSessionEndExplicitClassification(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExplicitExerciseClassificationStop(userId, sessionId))
             .responseAsResutlt(f, const(()))
     }
     
@@ -247,18 +268,31 @@ public class LiftServer {
     ///
     /// Get summary of all sessions
     ///
-    func exerciseGetExerciseSessionsSummary(userId: NSUUID, f: Result<[Exercise.SessionSummary]> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseGetExerciseSessionsSummary(userId))
+    func exerciseGetExerciseSessionsSummary(userId: NSUUID, date: NSDate, f: Result<[Exercise.SessionSummary]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetExerciseSessionsSummary(userId, date))
             .responseAsResutlt(f) { json -> [Exercise.SessionSummary] in
                 return json.arrayValue.map(Exercise.SessionSummary.unmarshal)
             }
     }
-
+    
+    ///
+    /// Get summary of session dates
+    ///
+    func exerciseGetExerciseSessionsDates(userId: NSUUID, f: Result<[Exercise.SessionDate]> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseGetExerciseSessionsDates(userId))
+            .responseAsResutlt(f) { json in return json.arrayValue.map(Exercise.SessionDate.unmarshal) }
+    }
+    
     ///
     /// Get one particular session
     ///
     func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Exercise.ExerciseSession> -> Void) -> Void {
         request(LiftServerURLs.ExerciseGetExerciseSession(userId, sessionId))
             .responseAsResutlt(f, Exercise.ExerciseSession.unmarshal)
+    }
+    
+    func exerciseDeleteExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseDeleteExerciseSession(userId, sessionId))
+            .responseAsResutlt(f, const(()))
     }
 }
