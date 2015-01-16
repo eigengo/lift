@@ -31,13 +31,19 @@ extension Exercise.SessionProps {
 extension Exercise.Exercise {
     
     static func unmarshal(json: JSON) -> Exercise.Exercise {
-        return Exercise.Exercise(name: json["name"].stringValue, intensity: json["intensity"].double)
+        return Exercise.Exercise(name: json["name"].stringValue, intensity: json["intensity"].double, metric: Exercise.Metric(value: json["metric"]["value"].doubleValue, metricUnit: json["metric"]["metricUnit"].stringValue))
     }
     
     func marshal() -> [String : AnyObject] {
         var params: [String : AnyObject] = [:]
         params["name"] = name
         if let x = intensity { params["intensity"] = x }
+        if let m = metric {
+            var metricParams: [String : AnyObject] = [:]
+            metricParams["value"] = m.value ?? 0.0
+            metricParams["metricUnit"] = m.metricUnit ?? ""
+            params["metric"] = metricParams
+            }
         return params
     }
 }

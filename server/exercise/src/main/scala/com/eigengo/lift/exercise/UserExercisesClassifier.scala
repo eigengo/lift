@@ -97,7 +97,7 @@ class UserExercisesClassifier extends Actor {
         }
       sender() ! randomExercise(sessionProps)
     case ClassificationExamples(sessionProps) ⇒
-      sender() ! List(Exercise("chest press", Some(1.0), None), Exercise("foobar", Some(1.0), None), Exercise("barfoo", Some(1.0), None))
+      sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }
 
 }

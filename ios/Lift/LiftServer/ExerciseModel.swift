@@ -42,6 +42,8 @@ struct Exercise {
     struct Metric {
         // value
         // metricUnit
+        var value: Double
+        var metricUnit: String //Mass or Distance
     }
     
     ///
