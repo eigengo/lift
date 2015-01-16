@@ -5,6 +5,7 @@ import java.util.{Date, UUID}
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
+import com.eigengo.lift.exercise.packet.MultiPacket
 import scodec.bits.BitVector
 import spray.routing.Directives
 
@@ -18,7 +19,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / "musclegroups") {
       get {
         complete {
-          UserExercisesClassifier.supportedMuscleGroups
+          UserExerciseClassifier.supportedMuscleGroups
         }
       }
     } ~
@@ -60,8 +61,9 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       } ~
       put {
-        handleWith { mp: MultiPacket ⇒
-          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, mp)).mapRight[Unit]
+        // TODO: content type negotiation
+        handleWith { packet: MultiPacket ⇒
+          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, packet)).mapRight[Unit]
         }
       } ~
       delete {
@@ -71,15 +73,9 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "classification") { (userId, sessionId) ⇒
-      get {
-        complete {
-          (userExercises ? UserExerciseExplicitClassificationExamples(userId, sessionId)).mapTo[List[Exercise]]
-        }
-      } ~
       post {
         handleWith { exercise: Exercise ⇒
-          userExercises ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
-          ""
+          (userExercises ? UserExerciseExplicitClassificationStart(userId, sessionId, exercise)).mapRight[Unit]
         }
       } ~
       delete {

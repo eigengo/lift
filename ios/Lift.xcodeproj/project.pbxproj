@@ -84,6 +84,7 @@
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54FBCD1F1A5BF0FA00E2CB2C /* arms-bicep-curl.dat in Resources */ = {isa = PBXBuildFile; fileRef = 54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
+		FC3F18CF1A64469B00E3C23D /* DeviceSensorData.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC3F18CE1A64469B00E3C23D /* DeviceSensorData.pb.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -213,6 +214,7 @@
 		54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "arms-bicep-curl.dat"; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		604C4FB0BC879EB56AD28A81 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC3F18CE1A64469B00E3C23D /* DeviceSensorData.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceSensorData.pb.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -489,6 +491,7 @@
 		54F780B71A278EFC00E4F3C5 /* LiftServer */ = {
 			isa = PBXGroup;
 			children = (
+				FC3F18CE1A64469B00E3C23D /* DeviceSensorData.pb.swift */,
 				54F780B81A278EFC00E4F3C5 /* LiftServer.swift */,
 				54680BA21A332DE0004FC897 /* LiftServerCache.swift */,
 				545E06071A304D3100AB633B /* LiftServerURLs.swift */,
@@ -772,6 +775,7 @@
 				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
 				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,
 				5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */,
+				FC3F18CF1A64469B00E3C23D /* DeviceSensorData.pb.swift in Sources */,
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
 				54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */,

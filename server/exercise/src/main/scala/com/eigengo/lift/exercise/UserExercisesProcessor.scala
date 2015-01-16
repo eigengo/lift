@@ -4,6 +4,10 @@ import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
+import com.eigengo.lift.exercise.UserExerciseClassifier._
+import com.eigengo.lift.exercise.UserExercisesProcessor._
+import com.eigengo.lift.exercise.packet.MultiPacket
+import scodec.bits.BitVector
 
 import scala.language.postfixOps
 import scalaz.\/
@@ -17,6 +21,14 @@ object UserExercisesProcessor {
   val shardName = "user-exercises"
   /** The sessionProps to create the actor on a node */
   def props(notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], notification, userProfile)
+
+  /**
+   * Receive exercise data for the given ``userId`` and the ``bits`` that may represent the exercises performed
+   * @param userId the user identity
+   * @param sessionId the sessionProps identity
+   * @param bits the submitted bits
+   */
+  case class UserExerciseDataProcessSinglePacket(userId: UserId, sessionId: SessionId, bits: BitVector)
 
   /**
    * Remove a session identified by ``sessionId`` for user identified by ``userId``
@@ -34,13 +46,6 @@ object UserExercisesProcessor {
   case class UserExerciseExplicitClassificationStart(userId: UserId, sessionId: SessionId, exercise: Exercise)
 
   /**
-   * Obtains a list of example exercises for the given session
-   * @param userId the user
-   * @param sessionId the session
-   */
-  case class UserExerciseExplicitClassificationExamples(userId: UserId, sessionId: SessionId)
-
-  /**
    * User classification end
    * @param userId the user
    * @param sesionId the session
@@ -49,8 +54,8 @@ object UserExercisesProcessor {
 
   /**
    * Receive multiple packets of data for the given ``userId`` and ``sessionId``. The ``packets`` is a ZIP archive
-   * containing multiple files, each representing a single packet.
-   *
+   * containing multiple files, each representing a single packet. Imagine that this message results in at least
+   * one ``UserExerciseDataProcessSinglePacket`` messages.
    *
    * The main notion is that all packets in the archive have been measured *at the same time*. It is possible that
    * the archive contains the following files.
@@ -76,6 +81,13 @@ object UserExercisesProcessor {
   /**
    * Process exercise data for the given session
    * @param sessionId the sessionProps identifier
+   * @param bits the exercise data bits
+   */
+  private case class ExerciseDataProcessSinglePacket(sessionId: SessionId, bits: BitVector)
+
+  /**
+   * Process exercise data for the given session
+   * @param sessionId the sessionProps identifier
    * @param packet the bytes representing an archive with multiple exercise data bits
    */
   private case class ExerciseDataProcessMultiPacket(sessionId: SessionId, packet: MultiPacket)
@@ -86,12 +98,6 @@ object UserExercisesProcessor {
    * @param exercise the exercise
    */
   private case class ExerciseExplicitClassificationStart(sessionId: SessionId, exercise: Exercise)
-
-  /**
-   * Obtain list of classification examples
-   * @param sessionId the session
-   */
-  private case class ExerciseExplicitClassificationExamples(sessionId: SessionId)
 
   /**
    * User classified exercise.
@@ -145,11 +151,11 @@ object UserExercisesProcessor {
   val idExtractor: ShardRegion.IdExtractor = {
     case UserExerciseSessionStart(userId, session)                            ⇒ (userId.toString, ExerciseSessionStart(session))
     case UserExerciseSessionEnd(userId, sessionId)                            ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
+    case UserExerciseDataProcessSinglePacket(userId, sessionId, data)         ⇒ (userId.toString, ExerciseDataProcessSinglePacket(sessionId, data))
     case UserExerciseDataProcessMultiPacket(userId, sessionId, packets)       ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
     case UserExerciseSessionDelete(userId, sessionId)                         ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
     case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
     case UserExerciseExplicitClassificationEnd(userId, sessionId)             ⇒ (userId.toString, ExerciseExplicitClassificationEnd(sessionId))
-    case UserExerciseExplicitClassificationExamples(userId, sessionId)        ⇒ (userId.toString, ExerciseExplicitClassificationExamples(sessionId))
   }
 
   /**
@@ -158,11 +164,11 @@ object UserExercisesProcessor {
   val shardResolver: ShardRegion.ShardResolver = {
     case UserExerciseSessionStart(userId, _)                   ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionEnd(userId, _)                     ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseDataProcessSinglePacket(userId, _, _)     ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseDataProcessMultiPacket(userId, _, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionDelete(userId, _)                  ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationStart(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseExplicitClassificationExamples(userId, _) ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -173,8 +179,6 @@ object UserExercisesProcessor {
  */
 class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   extends PersistentActor with ActorLogging with AutoPassivation {
-  import com.eigengo.lift.exercise.UserExercisesClassifier._
-  import com.eigengo.lift.exercise.UserExercisesProcessor._
   import scala.concurrent.duration._
   import UserExercises._
 
@@ -185,8 +189,8 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
 
   // tracing output
-  /*private val tracing = */context.actorOf(UserExercisesTracing.props(userId))
-  private val classifier = context.actorOf(UserExercisesClassifier.props)
+  private val tracing = context.actorOf(UserExercisesTracing.props(userId))
+  private val classifier = context.actorOf(UserExerciseClassifier.props)
 
   // how long until we stop processing
   context.setReceiveTimeout(360.seconds)
@@ -200,16 +204,39 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
-    // start and end
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
-      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { case (_::newSession::Nil) ⇒
+      persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { x ⇒
         log.warning("ExerciseSessionStart: exercising -> exercising. Implicitly ending running session and starting a new one.")
 
+        val (_::newSession) = x
         saveSnapshot(newSession)
         sender() ! \/.right(newId)
         context.become(exercising(newId, newSessionProps))
       }
+
+    //TODO: Remove single packet completely?
+    case ExerciseDataProcessSinglePacket(`id`, bits) ⇒
+      log.debug("ExerciseDataProcess: exercising -> exercising.")
+
+      rootSensorDataDecoder
+        .decodeAll(bits)
+        .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
+        .fold({ err ⇒ persist(SinglePacketDecodingFailedEvt(id, err, bits)) { evt ⇒ sender() ! \/.left(err) } },
+              { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
+
+    //TODO: Handle all and not just first
+    case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+      log.debug("ExerciseDataProcess: exercising -> exercising.")
+
+      val firstSensorData = packet.rawSensorData.head.data
+      tracing ! firstSensorData
+
+      rootSensorDataDecoder
+        .decodeAll(firstSensorData)
+        .map(sd ⇒ List(SensorDataWithLocation(SensorDataSourceLocationAny, sd)))
+        .fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
+              { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
 
     case ExerciseSessionEnd(`id`) ⇒
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")
@@ -219,36 +246,18 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
         sender() ! \/.right(())
       }
 
-    // packet from the mobile / wearables
-    case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
-      log.debug("ExerciseDataProcess: exercising -> exercising.")
-
-      val (h::t) = packet.packets.map { pwl ⇒
-        rootSensorDataDecoder
-          .decodeAll(pwl.payload)
-          .map(sd ⇒ SensorDataWithLocation(pwl.sourceLocation, sd))
-      }
-      val result = t.foldLeft(h.map(x ⇒ List(x)))((r, b) ⇒ r.flatMap(sdwls ⇒ b.map(x ⇒ x :: sdwls)))
-      result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
-                  { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
-
-    // explicit classification
-    case ExerciseExplicitClassificationStart(`id`, exercise) =>
-      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
-
-    case ExerciseExplicitClassificationEnd(`id`) ⇒
-      self ! NoExercise(ModelMetadata.user)
-
-    case ExerciseExplicitClassificationExamples(`id`) ⇒
-      classifier.tell(ClassificationExamples(sessionProps), sender())
-
-    // classification results
     case FullyClassifiedExercise(metadata, confidence, exercise) ⇒
       log.debug("FullyClassifiedExercise: exercising -> exercising.")
       persist(ExerciseEvt(id, metadata, exercise)) { evt ⇒ }
 
     case Tap ⇒
       persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒ }
+
+    case ExerciseExplicitClassificationStart(`id`, exercise) =>
+      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
+
+    case ExerciseExplicitClassificationEnd(`id`) ⇒
+      self ! NoExercise(ModelMetadata.user)
 
     case UnclassifiedExercise(_) ⇒
 
