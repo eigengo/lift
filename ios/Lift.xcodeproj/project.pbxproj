@@ -16,6 +16,7 @@
 		542611351A658F2C00A758AA /* MultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542611331A658DDA00A758AA /* MultiPacket.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
+		5434CCDA1A69839400B0735C /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5434CCD91A69839400B0735C /* SystemConfiguration.framework */; };
 		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */; };
@@ -136,6 +137,7 @@
 		5427CDEA19C5F259005C9B4E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
+		5434CCD91A69839400B0735C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		543B26FC1A49D18800381298 /* Accelerometer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accelerometer.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleAccelerometerRecorder.swift; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5434CCDA1A69839400B0735C /* SystemConfiguration.framework in Frameworks */,
 				5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */,
 				5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */,
 				54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */,
@@ -507,6 +510,7 @@
 		8D64789A58A65961D3659708 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5434CCD91A69839400B0735C /* SystemConfiguration.framework */,
 				54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */,
 				5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */,
 				604C4FB0BC879EB56AD28A81 /* libPods.a */,
