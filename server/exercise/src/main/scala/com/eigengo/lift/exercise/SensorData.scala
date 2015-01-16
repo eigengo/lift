@@ -38,5 +38,5 @@ case object SensorDataSourceLocationAny extends SensorDataSourceLocation
  * @param location the location
  * @param data the data
  */
-case class SensorDataWithLocation(location: SensorDataSourceLocation, data: List[SensorData])
+case class SensorDataWithLocation[D <: SensorData](location: SensorDataSourceLocation, data: List[D])
 
