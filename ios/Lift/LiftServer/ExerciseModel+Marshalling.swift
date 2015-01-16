@@ -31,7 +31,7 @@ extension Exercise.SessionProps {
 extension Exercise.Exercise {
     
     static func unmarshal(json: JSON) -> Exercise.Exercise {
-        return Exercise.Exercise(name: json["name"].stringValue, intensity: json["intensity"].double, metric: Exercise.Metric(value: json["metric"]["value"].doubleValue, metricUnit: json["metric"]["metricUnit"].stringValue))
+        return Exercise.Exercise(name: json["name"].stringValue, intensity: json["intensity"].double, metric: Exercise.Metric.unmarshal(json["metric"]))
     }
     
     func marshal() -> [String : AnyObject] {
@@ -45,6 +45,13 @@ extension Exercise.Exercise {
             params["metric"] = metricParams
             }
         return params
+    }
+}
+
+extension Exercise.Metric {
+
+    static func unmarshal(json: JSON) -> Exercise.Metric {
+        return Exercise.Metric(value: json["value"].doubleValue, metricUnit: json["metricUnit"].stringValue)
     }
 }
 
