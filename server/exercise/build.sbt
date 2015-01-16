@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   akka.cluster,
   akka.contrib,
   akka.persistence,
+  akka.streams.core,
   // Breeze
   scalanlp.breeze,
   scalanlp.nak,

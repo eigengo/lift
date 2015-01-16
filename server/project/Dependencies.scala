@@ -12,6 +12,14 @@ object Dependencies {
     val persistence           = "com.typesafe.akka"      %% "akka-persistence-experimental" % version intransitive()
     val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4" intransitive()
 
+    object streams {
+      val version = "1.0-M2"
+
+      val core      = "com.typesafe.akka" %% "akka-stream-experimental"    % version
+      val http      = "com.typesafe.akka" %% "akka-http-experimental"      % version
+      val http_core = "com.typesafe.akka" %% "akka-http-core-experimental" % version
+    }
+
     val leveldb               = "org.iq80.leveldb"        % "leveldb"                       % "0.7"
     
     val testkit               = "com.typesafe.akka"      %% "akka-testkit"                  % version
@@ -34,7 +42,7 @@ object Dependencies {
   // }
 
   object scalaz {
-    val core = "org.scalaz" %% "scalaz-core"  % "7.1.0"
+    val core = "org.scalaz" %% "scalaz-core" % "7.1.0"
   }
 
   object json4s {
