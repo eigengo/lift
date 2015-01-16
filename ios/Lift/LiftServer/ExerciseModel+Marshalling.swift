@@ -38,12 +38,7 @@ extension Exercise.Exercise {
         var params: [String : AnyObject] = [:]
         params["name"] = name
         if let x = intensity { params["intensity"] = x }
-        if let m = metric {
-            var metricParams: [String : AnyObject] = [:]
-            metricParams["value"] = m.value ?? 0.0
-            metricParams["metricUnit"] = m.metricUnit ?? ""
-            params["metric"] = metricParams
-            }
+        if let m = metric { params["metric"] = m.marshal() }
         return params
     }
 }
@@ -52,6 +47,13 @@ extension Exercise.Metric {
 
     static func unmarshal(json: JSON) -> Exercise.Metric {
         return Exercise.Metric(value: json["value"].doubleValue, metricUnit: json["metricUnit"].stringValue)
+    }
+    
+    func marshal() -> [String : AnyObject] {
+        var metricParams: [String : AnyObject] = [:]
+        metricParams["value"] = value ?? 0.0
+        metricParams["metricUnit"] = metricUnit ?? ""
+        return metricParams
     }
 }
 
