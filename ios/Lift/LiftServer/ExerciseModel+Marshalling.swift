@@ -51,8 +51,8 @@ extension Exercise.Metric {
     
     func marshal() -> [String : AnyObject] {
         var metricParams: [String : AnyObject] = [:]
-        metricParams["value"] = value ?? 0.0
-        metricParams["metricUnit"] = metricUnit ?? ""
+        metricParams["value"] = value
+        metricParams["metricUnit"] = metricUnit
         return metricParams
     }
 }
