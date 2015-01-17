@@ -7,8 +7,8 @@ import breeze.numerics.constants.Pi
 object SVMClassifier {
 
   case class SVMScale private[svm] (center: DenseVector[Double], scale: DenseVector[Double])
-  case class SVMModel private[svm] (tag: String, nSV: Int, SV: DenseMatrix[Double], gamma: Double, coefs: DenseVector[Double], rho: Double, probA: Double, probB: Double, scaled: SVMScale)
-  case class SVMClassification private[svm] (result: Double, probability: Map[String, Double])
+  case class SVMModel private[svm] (nSV: Int, SV: DenseMatrix[Double], gamma: Double, coefs: DenseVector[Double], rho: Double, probA: Double, probB: Double, scaled: Option[SVMScale])
+  case class SVMClassification private[svm] (result: Double, notClassified: Double, isClassified: Double)
 
 }
 
@@ -65,11 +65,14 @@ trait SVMClassifier {
    */
   def predict(svm: SVMModel, data: DenseMatrix[Double], rbf: (DenseVector[Double], DenseVector[Double], Double) => Double) {
     val feature = discrete_cosine_transform(data)
-    val scaled_feature = (feature :- svm.scaled.center) :/ svm.scaled.scale
+    val scaled_feature = svm.scaled.map {
+      case scaling =>
+        (feature :- scaling.center) :/ scaling.scale
+    }.getOrElse(feature)
     val result = sum((0 to svm.nSV).map(j => rbf(svm.SV(j,::).t, scaled_feature, svm.gamma) * svm.coefs(j))) - svm.rho
     val probability = 1 / (1 + exp(svm.probA * result + svm.probB))
 
-    SVMClassification(result, Map("" -> probability, svm.tag -> (1-probability)))
+    SVMClassification(result, probability, 1-probability)
   }
 
 }
