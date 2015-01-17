@@ -1,14 +1,20 @@
-package com.eigengo.lift.exercise.classifiers
+package com.eigengo.lift.exercise.classifiers.svm
 
 import breeze.linalg._
 import breeze.numerics._
 import breeze.numerics.constants.Pi
 
+object SVMClassifier {
+
+  case class SVMScale private[svm] (center: DenseVector[Double], scale: DenseVector[Double])
+  case class SVMModel private[svm] (tag: String, nSV: Int, SV: DenseMatrix[Double], gamma: Double, coefs: DenseVector[Double], rho: Double, probA: Double, probB: Double, scaled: SVMScale)
+  case class SVMClassification private[svm] (result: Double, probability: Map[String, Double])
+
+}
+
 trait SVMClassifier {
 
-  case class SVMScale(center: DenseVector[Double], scale: DenseVector[Double])
-  case class SVMModel(tag: String, nSV: Int, SV: DenseMatrix[Double], gamma: Double, coefs: DenseVector[Double], rho: Double, probA: Double, probB: Double, scaled: SVMScale)
-  case class SVMClassification(result: Double, probability: Map[String, Double])
+  import SVMClassifier._
 
   /**
    * 1-dimensional type II discrete cosine transform (DCT)
@@ -16,7 +22,7 @@ trait SVMClassifier {
    * @param data vector of data to be transformed
    * @return     vector of DCT transform coefficients
    */
-  def discrete_cosine_transform(data: DenseVector[Double]): DenseVector[Double] = {
+  private def discrete_cosine_transform(data: DenseVector[Double]): DenseVector[Double] = {
     val n = dim(data)
 
     DenseVector.tabulate(n) { k => sum(data :* cos(DenseVector.tabulate(n) { i => (Pi / n) * (i + 0.5) * k })) }
@@ -29,21 +35,34 @@ trait SVMClassifier {
    * @param data matrix of data to be transformed
    * @return     concatenation of type I DCT results applied to each data row
    */
-  def discrete_cosine_transform(data: DenseMatrix[Double]): DenseVector[Double] = {
+  private def discrete_cosine_transform(data: DenseMatrix[Double]): DenseVector[Double] = {
     DenseVector.vertcat((0 to data.rows).map { c => discrete_cosine_transform(data(c,::).t) }: _*)
   }
 
-  def radial_kernel(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
+  /**
+   * Radial basis function implementations.
+   *   * `radial_kernel`        - standard implementation
+   *   * `taylor_radial_kernel` - implementation that uses a taylor expansion (for efficiency)
+   */
+
+  protected def radial_kernel(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
     exp(-gamma * sum((x :- y) :* (x :- y)))
   }
 
-  def taylor_radial_kernel(degree: Int = 2)(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
-    def factorial(n: Int): Int = if (n == 0) { 1 } else { n * factorial(n - 1) }
+  protected def taylor_radial_kernel(degree: Int = 2)(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
+    def factorial(n: Int, accumalator: Int = 1): Int = if (n == 0) { accumalator } else { factorial(n - 1, n * accumalator) }
     val taylor_expansion = (0 to degree).map(i => 1.0 / factorial(i)).toArray[Double]
 
     exp(-gamma * sum(x :* x)) * exp(-gamma * sum(y :* y)) * polyval(taylor_expansion, gamma * 2 * sum(x :* y))
   }
 
+  /**
+   * Use an SVM model to classify given data. Raw classification result and matching probability returned by this function.
+   *
+   * @param svm  (trained) SVM model to be used in prediction
+   * @param data (unseen) data that SVM predictor is to classify
+   * @param rbf  radial basis function that the SVM predictor is to use
+   */
   def predict(svm: SVMModel, data: DenseMatrix[Double], rbf: (DenseVector[Double], DenseVector[Double], Double) => Double) {
     val feature = discrete_cosine_transform(data)
     val scaled_feature = (feature :- svm.scaled.center) :/ svm.scaled.scale

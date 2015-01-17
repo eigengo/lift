@@ -23,6 +23,8 @@ libraryDependencies ++= Seq(
   // Codec
   scodec_bits,
   scalaz.core,
+  // Parsing
+  parboiled,
   // Apple push notifications
   apns,
   slf4j_simple,
