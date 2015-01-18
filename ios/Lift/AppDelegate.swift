@@ -56,24 +56,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
         
         LiftServer.sharedInstance.setDelegate(self, delegateQueue: dispatch_get_main_queue())
     }
-    
-    private func visibleNavigationViewController(rootViewController: UIViewController) -> UINavigationController? {
-        if let nvc = rootViewController as? UINavigationController {
-            return nvc
-        } else {
-            if let x = rootViewController.presentedViewController as? UITabBarController {
-                if let selectedViewController = x.selectedViewController {
-                    return visibleNavigationViewController(selectedViewController)
-                }
-            }
-            if let x = rootViewController.presentedViewController {
-                return visibleNavigationViewController(x)
-            } else {
-                return nil
-            }
-        }
-    }
-    
+        
     // MARK: UIApplicationDelegate implementation
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
@@ -157,16 +140,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
         println("Availability changed to \(newState)")
         if !newState.shouldAttemptRequest() {
             NSLog("*** Offline")
-            UINavigationBar.appearance().backgroundColor = UIColor.redColor()
-            if let x = visibleNavigationViewController(window!.rootViewController!) {
-               x.navigationBar.layoutIfNeeded()
-            }
+            RKDropdownAlert.title("Offline".localized(), backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
+            UINavigationBar.appearance().barTintColor = UIColor.orangeColor()
         } else {
             NSLog("*** Online")
-            UINavigationBar.appearance().backgroundColor = UIColor.greenColor()
-            if let x = visibleNavigationViewController(window!.rootViewController!) {
-                x.navigationBar.layoutIfNeeded()
-            }
+            RKDropdownAlert.title("Online".localized(), backgroundColor: UIColor.greenColor(), textColor: UIColor.blackColor(), time: 3)
+            UINavigationBar.appearance().barTintColor = nil
         }
     }
 
