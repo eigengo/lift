@@ -1,6 +1,8 @@
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '8.2'
 
+link_with 'Lift', 'LiftTests'
+
 pod "PebbleKit"
 pod "JBChartView"
 pod "RKDropdownAlert"
