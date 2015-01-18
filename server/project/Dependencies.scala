@@ -53,8 +53,9 @@ object Dependencies {
   object scalanlp {
     val version = "0.10"
 
-    val breeze = "org.scalanlp" %% "breeze" % version
-    val nak    = "org.scalanlp" %% "nak" % "1.3" exclude("org.scalanlp", "breeze_2.11") exclude("org.scalanlp", "breeze-natives_2.11")
+    val breeze  = "org.scalanlp" %% "breeze"         % version
+    val natives = "org.scalanlp" %% "breeze-natives" % version
+    val nak     = "org.scalanlp" %% "nak"            % "1.3" exclude("org.scalanlp", "breeze_2.11") exclude("org.scalanlp", "breeze-natives_2.11")
   }
 
   val scodec_bits      = "org.typelevel"    %% "scodec-bits"  % "1.0.4"

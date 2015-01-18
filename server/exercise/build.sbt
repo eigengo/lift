@@ -13,6 +13,7 @@ libraryDependencies ++= Seq(
   akka.streams.core,
   // Breeze
   scalanlp.breeze,
+  scalanlp.natives,
   scalanlp.nak,
   // For REST API
   spray.httpx,

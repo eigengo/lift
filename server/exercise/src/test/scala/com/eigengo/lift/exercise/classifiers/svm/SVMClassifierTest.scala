@@ -116,15 +116,16 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
 
   property("vector and matrix DCTs are equal when matrix is a vector") {
     forAll(DenseVectorGen) { (data: DenseVector[Double]) =>
-      discrete_cosine_transform(data) === discrete_cosine_transform(data.toDenseMatrix)
+      assert(discrete_cosine_transform(data) === discrete_cosine_transform(data.toDenseMatrix))
     }
   }
 
+  // FIXME: how can vector be equal to a matrix!?
   property("accelerometer data has a correct DCT result") {
     val data = DenseMatrix(accelerometer_data: _*)
     val result = DenseMatrix(transformed_accelerometer_data: _*)
 
-    discrete_cosine_transform(data) === result
+    assert(discrete_cosine_transform(data) === result)
   }
 
   // FIXME: x and y need to be same length
