@@ -127,6 +127,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     }
     
     func applicationDidBecomeActive(application: UIApplication) {
+        LiftServer.sharedInstance.setBaseUrlString(LiftUserDefaults.liftServerUrl)
         LiftServerCache.sharedInstance.build(const(()))
     }
     

@@ -1,8 +1,7 @@
 import Foundation
 import XCTest
 
-class ExerciseSessionOffilneManagerTests : XCTestCase {
-
+class ExerciseSessionOfflineManagerTests : XCTestCase {
     let manager = ExerciseSessionOfflineManager()
     
 }

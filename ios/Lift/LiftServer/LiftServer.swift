@@ -254,10 +254,11 @@ public class LiftServer {
         return dateFormatter
     }()
     
-    private func baseURLString() -> String {
-        return LiftUserDefaults.liftServerUrl
-    }
+    private var baseUrlString: String = LiftUserDefaults.liftServerUrl
     
+    func setBaseUrlString(baseUrlString: String) {
+        self.baseUrlString = baseUrlString
+    }
     
     ///
     /// Body is either JSON structure or NSData
@@ -273,9 +274,9 @@ public class LiftServer {
     private func request(req: LiftServerRequestConvertible, body: Body? = nil) -> Request {
         let lsr = req.Request
         switch body {
-        case let .Some(Body.Json(params)): return manager.request(lsr.method, baseURLString() + lsr.path, parameters: params, encoding: ParameterEncoding.JSON)
-        case let .Some(Body.Data(data)): return manager.upload(URLRequest(lsr.method, baseURLString() + lsr.path), data: data)
-        case .None: return manager.request(lsr.method, baseURLString() + lsr.path, parameters: nil, encoding: ParameterEncoding.URL)
+        case let .Some(Body.Json(params)): return manager.request(lsr.method, baseUrlString + lsr.path, parameters: params, encoding: ParameterEncoding.JSON)
+        case let .Some(Body.Data(data)): return manager.upload(URLRequest(lsr.method, baseUrlString + lsr.path), data: data)
+        case .None: return manager.request(lsr.method, baseUrlString + lsr.path, parameters: nil, encoding: ParameterEncoding.URL)
         }
     }
     

@@ -3,8 +3,12 @@ platform :ios, '8.2'
 
 link_with 'Lift', 'LiftTests'
 
-pod "PebbleKit"
-pod "JBChartView"
-pod "RKDropdownAlert"
-pod "JTCalendar"
-pod "Reachability"
+pod 'PebbleKit'
+pod 'JBChartView'
+pod 'RKDropdownAlert'
+pod 'JTCalendar'
+pod 'Reachability'
+
+target :LiftTests do
+    pod 'CocoaHTTPServer'
+end
