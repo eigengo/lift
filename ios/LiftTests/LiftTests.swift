@@ -1,11 +1,3 @@
-//
-//  LiftTests.swift
-//  LiftTests
-//
-//  Created by Jan Machacek on 13/09/2014.
-//  Copyright (c) 2014 Jan Machacek. All rights reserved.
-//
-
 import UIKit
 import XCTest
 
