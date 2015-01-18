@@ -116,8 +116,6 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
 
   property("vector and matrix DCTs are equal when matrix is a vector") {
     forAll(DenseVectorGen) { (data: DenseVector[Double]) =>
-      println(discrete_cosine_transform(data))
-      println(discrete_cosine_transform(data.toDenseMatrix))
       discrete_cosine_transform(data) === discrete_cosine_transform(data.toDenseMatrix)
     }
   }
