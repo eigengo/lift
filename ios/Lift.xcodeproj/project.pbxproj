@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		23929FB2F2C8236CF369D326 /* libPods-LiftTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4426590D0160CE631890E9AC /* libPods-LiftTests.a */; };
+		390DD5F7C530950EB2D40268 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
 		540454961A650C1C00273425 /* MutableMultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540454951A650C1C00273425 /* MutableMultiPacket.swift */; };
 		540454981A650C4D00273425 /* SensorDataSourceLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540454971A650C4D00273425 /* SensorDataSourceLocation.swift */; };
@@ -265,6 +266,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				23929FB2F2C8236CF369D326 /* libPods-LiftTests.a in Frameworks */,
+				390DD5F7C530950EB2D40268 /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
