@@ -116,6 +116,8 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
 
   property("vector and matrix DCTs are equal when matrix is a vector") {
     forAll(DenseVectorGen) { (data: DenseVector[Double]) =>
+      println(discrete_cosine_transform(data))
+      println(discrete_cosine_transform(data.toDenseMatrix))
       discrete_cosine_transform(data) === discrete_cosine_transform(data.toDenseMatrix)
     }
   }
@@ -127,12 +129,14 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     discrete_cosine_transform(data) === result
   }
 
+  // FIXME: x and y need to be same length
   property("standard and taylor approximated RDFs are equal") {
     forAll(posNum[Int] suchThat(2 <= _), DenseVectorGen, DenseVectorGen, arbitrary[Double]) { (degree: Int, x: DenseVector[Double], y: DenseVector[Double], gamma: Double) =>
       (radial_kernel(x, y, gamma) - taylor_radial_kernel(degree)(x, y, gamma)) === (0.0 +- 0.03)
     }
   }
 
+  // FIXME: data needs to be of a size suitable for the SVM model?
   property("SVM model displays consistent prediction with a standard RDF") {
     forAll(SVMModelGen, DenseMatrixGen) { (svm: SVMModel, data: DenseMatrix[Double]) =>
       val classification = predict(svm, data, rbf = radial_kernel)
@@ -142,6 +146,7 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     }
   }
 
+  // FIXME: data needs to be of a size suitable for the SVM model?
   property("SVM model displays consistent prediction with a taylor approximated RDF") {
     forAll(posNum[Int] suchThat(2 <= _), SVMModelGen, DenseMatrixGen) { (degree: Int, svm: SVMModel, data: DenseMatrix[Double]) =>
       val classification = predict(svm, data, rbf = taylor_radial_kernel(degree))
