@@ -73,6 +73,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
         Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
     ]
+    private var sessions: [ExerciseSession] = []
     private let calendar = JTCalendar()
 
     override func viewDidLoad() {
