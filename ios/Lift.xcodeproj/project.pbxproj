@@ -457,9 +457,9 @@
 			children = (
 				54C1587B1A651237008F6E2A /* LiftServer */,
 				54CC69B219C4AD8E00B29EC8 /* LiftTests.swift */,
-				54CC69B019C4AD8E00B29EC8 /* Supporting Files */,
 				54ED4EAB1A6C544200490DA7 /* ExerciseSessionOfflineManagerTests.swift */,
 				54ED4EC31A6C54F300490DA7 /* LiftTests-Bridging-Header.h */,
+				54CC69B019C4AD8E00B29EC8 /* Supporting Files */,
 			);
 			path = LiftTests;
 			sourceTree = "<group>";
