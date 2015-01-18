@@ -1,30 +1,77 @@
 import Foundation
 
+/**
+ * Maintains the availability of the server connection
+ */
 struct AvailabilityState {
-    var isReachable: Bool = true
-    var lastServerFailureDate: NSDate? = nil
+    // network reachable
+    var isNetworkReachable: Bool = true
+    // server is reachable
+    var isServerReachable: Bool = true
     
+    // last 5xx response date from the server
+    var lastServerFailureDate: NSDate? = nil
+}
+
+/**
+ * Provides feedback about lift server's operations
+ */
+protocol LiftServerDelegate {
+    
+    /**
+     * Called when the server's availability state changes
+     * @param newState the new availability state
+     */
+    func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState)
+    
+}
+
+internal func !=(l: AvailabilityState, r: AvailabilityState) -> Bool {
+    return l.isNetworkReachable != r.isNetworkReachable ||
+        l.isServerReachable != r.isServerReachable ||
+        l.lastServerFailureDate != r.lastServerFailureDate
+}
+
+/**
+ * Operations on AS
+ */
+internal extension AvailabilityState {
+
     func shouldAttemptRequest() -> Bool {
-        if isReachable {
+        if let x = lastServerFailureDate {
+            // regardless of situation, we try every 60 seconds
+            return NSDate().timeIntervalSinceDate(x) > 60
+        }
+
+        if isNetworkReachable {
+            // we're connected to the internet
             if let x = lastServerFailureDate {
+                // we try every 5 seconds since failure
                 return NSDate().timeIntervalSinceDate(x) > 5
             }
             return true
         }
+        
+        
         return false
     }
     
-    func failed() -> AvailabilityState {
-        return AvailabilityState(isReachable: isReachable, lastServerFailureDate: NSDate())
+    func serverFailed() -> AvailabilityState {
+        return AvailabilityState(isNetworkReachable: isNetworkReachable, isServerReachable: isServerReachable, lastServerFailureDate: NSDate())
     }
     
-    func reachable() -> AvailabilityState {
-        return AvailabilityState(isReachable: true, lastServerFailureDate: lastServerFailureDate)
+    func serverSucceeded() -> AvailabilityState {
+        return AvailabilityState(isNetworkReachable: true, isServerReachable: true, lastServerFailureDate: lastServerFailureDate)
     }
     
-    func unreachable() -> AvailabilityState {
-        return AvailabilityState(isReachable: false, lastServerFailureDate: lastServerFailureDate)
+    func networkReachable(reachable: Bool) -> AvailabilityState {
+        return AvailabilityState(isNetworkReachable: reachable, isServerReachable: isServerReachable, lastServerFailureDate: lastServerFailureDate)
     }
+    
+    func serverReachable(reachable: Bool) -> AvailabilityState {
+        return AvailabilityState(isNetworkReachable: isNetworkReachable, isServerReachable: reachable, lastServerFailureDate: NSDate())
+    }
+    
 }
 
 
@@ -45,27 +92,46 @@ extension Request {
                     if statusCodeFamily == 1 || statusCodeFamily == 2 || statusCodeFamily == 3 {
                         // 1xx, 2xx, 3xx responses are success responses
                         let val = completionHandler(json)
+                        u(s.serverSucceeded())
                         f(Result.value(val))
                     } else {
                         // 4xx responses are errors, but do not mean that the server is broken
                         let userInfo = [NSLocalizedDescriptionKey : json.stringValue]
                         let err = NSError(domain: "com.eigengo.lift", code: x.statusCode, userInfo: userInfo)
                         NSLog("Failed with %@ -> %@", request, x)
+                        u(s.serverSucceeded())
                         f(Result.error(err))
                     }
                     if statusCodeFamily == 5 {
                         // we have 5xx responses. this counts as server error.
-                        u(s.failed())
+                        u(s.serverFailed())
                     }
                 } else if let x = error {
                     // we don't have a responses, and we have an error
                     NSLog("Failed with %@", x)
-                    u(s.failed())
+                    
+                    if x.domain == NSURLErrorDomain {
+                        // unreachable server
+                        u(s.serverReachable(false))
+                    } else {
+                        // just server failure
+                        u(s.serverFailed())
+                    }
+                    
                     f(Result.error(x))
                 }
             }
         } else {
-            f(Result.error(NSError.errorWithMessage("Server unavailable", code: 999)))
+            if let x = NSURLCache.sharedURLCache().cachedResponseForRequest(request) {
+                // we have a cached response
+                let s = NSString(data: x.data, encoding: NSUTF8StringEncoding)
+                NSLog("Cached %@", s!)
+                var error: NSError? = nil
+                let json = JSON(data: x.data, options: NSJSONReadingOptions.AllowFragments, error: &error)
+                f(Result.value(completionHandler(json)))
+            } else {
+                f(Result.error(NSError.errorWithMessage("Server unavailable", code: 999)))
+            }
         }
     }
     
@@ -91,18 +157,42 @@ public class LiftServer {
     private func registerReachability() {
         let reachability = Reachability.reachabilityForInternetConnection()
         reachability.reachableBlock = { _ in
-            self.availabilityState = self.availabilityState.reachable()
+            self.updateAvailabiltyState(self.availabilityState.networkReachable(true))
         }
         reachability.unreachableBlock = { _ in
-            self.availabilityState = self.availabilityState.unreachable()
+            self.updateAvailabiltyState(self.availabilityState.networkReachable(false))
         }
     }
 
     /// indicates that the server is reachable
     private var availabilityState = AvailabilityState()
     
+    /// the delegate and its queue
+    private var delegateQueue: dispatch_queue_t? = nil
+    private var delegate: LiftServerDelegate? = nil
+    
+    /**
+     * Sets the delegate that will run on the given queue
+     *
+     * @param delegate the delegate
+     * @param queue the quue
+     */
+    func setDelegate(delegate: LiftServerDelegate, delegateQueue: dispatch_queue_t) {
+        self.delegate = delegate
+        self.delegateQueue = delegateQueue
+    }
+    
     private func asu() -> (AvailabilityState, AvailabilityState -> Void) {
-        return (availabilityState, { x in self.availabilityState = x })
+        return (availabilityState, updateAvailabiltyState)
+    }
+    
+    private func updateAvailabiltyState(newState: AvailabilityState) {
+        if availabilityState != newState {
+            availabilityState = newState
+            if delegate != nil && delegateQueue != nil {
+                dispatch_async(self.delegateQueue!, { self.delegate!.liftServer(self, availabilityStateChanged: newState) })
+            }
+        }
     }
     
     ///

@@ -2,11 +2,13 @@ import UIKit
 import SystemConfiguration
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
 
     var deviceToken: NSData?
     var window: UIWindow?
     var alertView: UIAlertView? = nil
+    
+    // MARK: Application-wide public functions
     
     class func becomeCurrentRemoteNotificationDelegate(delegate: RemoteNotificationDelegate) {
         (UIApplication.sharedApplication().delegate! as AppDelegate).currentRemoteNotificationDelegate = delegate
@@ -17,6 +19,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     weak var currentRemoteNotificationDelegate: RemoteNotificationDelegate?
+
+    // MARK: Private functions
+    
+    private func startWithStoryboardId(storyboard: UIStoryboard, id: String) {
+        window = UIWindow(frame: UIScreen.mainScreen().bounds)
+        window!.makeKeyAndVisible()
+        window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
+    }
+    
+    private func registerSettingsAndDelegates() {
+        if UIDevice.currentDevice().systemVersion >= "8.0" {
+            let settings = UIUserNotificationSettings(forTypes: UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound, categories: nil)
+            UIApplication.sharedApplication().registerUserNotificationSettings(settings)
+        } else {
+            UIApplication.sharedApplication().registerForRemoteNotificationTypes(UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound)
+        }
+        
+        UIApplication.sharedApplication().registerForRemoteNotifications()
+        
+        var acceptAction = UIMutableUserNotificationAction()
+        acceptAction.title = NSLocalizedString("Accept", comment: "Accept invitation")
+        acceptAction.identifier = "accept"
+        acceptAction.activationMode = UIUserNotificationActivationMode.Background
+        acceptAction.authenticationRequired = false
+        
+        var categories = NSMutableSet()
+        var inviteCategory = UIMutableUserNotificationCategory()
+        inviteCategory.setActions([acceptAction], forContext: UIUserNotificationActionContext.Default)
+        inviteCategory.identifier = "invitation"
+        categories.addObject(inviteCategory)
+        
+        let type = UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound
+        let settings = UIUserNotificationSettings(forTypes: type, categories: categories)
+        UIApplication.sharedApplication().registerUserNotificationSettings(settings)
+        
+        LiftServer.sharedInstance.setDelegate(self, delegateQueue: dispatch_get_main_queue())
+    }
+    
+    // MARK: UIApplicationDelegate implementation
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // notifications et al
@@ -45,39 +86,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-    func startWithStoryboardId(storyboard: UIStoryboard, id: String) {
-        window = UIWindow(frame: UIScreen.mainScreen().bounds)
-        window!.makeKeyAndVisible()
-        window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
-    }
-    
-    func registerSettingsAndDelegates() {
-        if UIDevice.currentDevice().systemVersion >= "8.0" {
-            let settings = UIUserNotificationSettings(forTypes: UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound, categories: nil)
-            UIApplication.sharedApplication().registerUserNotificationSettings(settings)
-        } else {
-            UIApplication.sharedApplication().registerForRemoteNotificationTypes(UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound)
-        }
-        
-        UIApplication.sharedApplication().registerForRemoteNotifications()
-
-        var acceptAction = UIMutableUserNotificationAction()
-        acceptAction.title = NSLocalizedString("Accept", comment: "Accept invitation")
-        acceptAction.identifier = "accept"
-        acceptAction.activationMode = UIUserNotificationActivationMode.Background
-        acceptAction.authenticationRequired = false
-
-        var categories = NSMutableSet()
-        var inviteCategory = UIMutableUserNotificationCategory()
-        inviteCategory.setActions([acceptAction], forContext: UIUserNotificationActionContext.Default)
-        inviteCategory.identifier = "invitation"
-        categories.addObject(inviteCategory)
-        
-        let type = UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound
-        let settings = UIUserNotificationSettings(forTypes: type, categories: categories)
-        UIApplication.sharedApplication().registerUserNotificationSettings(settings)
-    }
-        
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
         self.deviceToken = deviceToken
         NSLog("Token \(deviceToken)")
@@ -119,6 +127,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
         LiftServerCache.sharedInstance.clean()
+    }
+    
+    // MARK: LiftServerDelegate implementation
+    
+    func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
+        println("Availability changed to \(newState)")
+        if !newState.shouldAttemptRequest() {
+            NSLog("*** Offline")
+            window?.rootViewController?.navigationItem.prompt = "Offline"
+        } else {
+            NSLog("*** Online")
+        }
     }
 
 }

@@ -39,7 +39,7 @@ extension Request {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 
                 var responseJSON: JSON
-                if error != nil || object == nil{
+                if error != nil || object == nil {
                     responseJSON = JSON.nullJSON
                 } else {
                     responseJSON = JSON(object!)
