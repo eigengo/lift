@@ -25,7 +25,6 @@
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */; };
-		54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54618F7D1A5744710017CA2D /* ResultContext.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		5475FA301A31E9D200877655 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5475FA2F1A31E9D200877655 /* Settings.bundle */; };
@@ -36,6 +35,7 @@
 		5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */; };
 		548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5482963F1A4D7F3A00EDCAF0 /* Devices.swift */; };
 		54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */; };
+		549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
@@ -146,7 +146,6 @@
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
 		545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseIntensityKey+Color.swift"; sourceTree = "<group>"; };
-		54618F7D1A5744710017CA2D /* ResultContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultContext.swift; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -158,6 +157,7 @@
 		5482963F1A4D7F3A00EDCAF0 /* Devices.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Devices.swift; sourceTree = "<group>"; };
 		54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Effects.swift"; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
+		549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Result+GetOrUnit.swift"; sourceTree = "<group>"; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
@@ -402,9 +402,9 @@
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
-				54618F7D1A5744710017CA2D /* ResultContext.swift */,
 				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
 				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
+				549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */,
 				54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */,
 				54F0C0051A60349300D1A9C8 /* RemoteNotificationDelegate.swift */,
 			);
@@ -760,7 +760,6 @@
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
-				54618F7E1A5744710017CA2D /* ResultContext.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
 				542611341A658DDA00A758AA /* MultiPacket.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
@@ -772,6 +771,7 @@
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
 				54C37B7F1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift in Sources */,
 				547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */,
+				549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */,
 				54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */,
 				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
 				54C6EFDB1A2F5E650044BDAB /* Operators.swift in Sources */,

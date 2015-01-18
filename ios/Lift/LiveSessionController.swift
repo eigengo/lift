@@ -147,14 +147,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                         }
                     }
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
-                    ResultContext.run { ctx in
-                        LiftServer.sharedInstance.exerciseSessionStartExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, exercise: self.exampleExercises[indexPath.row], f: ctx.unit())
-                    }
+                    LiftServer.sharedInstance.exerciseSessionStartExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, exercise: self.exampleExercises[indexPath.row], f: const(()))
                 case UITableViewCellAccessoryType.Checkmark:
                     selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                    ResultContext.run { ctx in
-                        LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
-                    }
+                    LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: const(()))
                 default: return
                 }
             }
@@ -167,9 +163,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                 //If it was still checked, send delete request before unchecking
             case UITableViewCellAccessoryType.Checkmark:
                 selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                ResultContext.run{ ctx in
-                    LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
-                }
+                LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: const(()))
             default: return
             }
         }

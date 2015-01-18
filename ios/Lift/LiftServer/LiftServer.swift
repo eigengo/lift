@@ -82,6 +82,21 @@ extension Request {
     typealias AvailabilityStateUpdate = (AvailabilityState, AvailabilityState -> Void)
     
     func responseAsResutlt<A, U>(asu: AvailabilityStateUpdate, f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
+        
+        func tryCompleteFromCache(error: NSError, request: NSURLRequest, f: Result<A> -> U, completionHandler: (JSON) -> A) {
+            if let x = NSURLCache.sharedURLCache().cachedResponseForRequest(request) {
+                // we have a cached response
+                let s = NSString(data: x.data, encoding: NSUTF8StringEncoding)
+                NSLog("--- Completed from cache: %@", s!)
+                var error: NSError? = nil
+                let json = JSON(data: x.data, options: NSJSONReadingOptions.AllowFragments, error: &error)
+                f(Result.value(completionHandler(json)))
+            } else {
+                NSLog("--- No cache value for %@.", request.URLString)
+                f(Result.error(error))
+            }
+        }
+        
         let (s, u) = asu
         
         if s.shouldAttemptRequest() {
@@ -98,17 +113,18 @@ extension Request {
                         // 4xx responses are errors, but do not mean that the server is broken
                         let userInfo = [NSLocalizedDescriptionKey : json.stringValue]
                         let err = NSError(domain: "com.eigengo.lift", code: x.statusCode, userInfo: userInfo)
-                        NSLog("Failed with %@ -> %@", request, x)
+                        NSLog("4xx %@ -> %@", request, x)
                         u(s.serverSucceeded())
                         f(Result.error(err))
                     }
                     if statusCodeFamily == 5 {
+                        NSLog("5xx %@ -> %@", request, x)
                         // we have 5xx responses. this counts as server error.
                         u(s.serverFailed())
                     }
                 } else if let x = error {
                     // we don't have a responses, and we have an error
-                    NSLog("Failed with %@", x)
+                    NSLog("--- %@ -> %@", request.URLString, x.localizedDescription)
                     
                     if x.domain == NSURLErrorDomain {
                         // unreachable server
@@ -118,20 +134,11 @@ extension Request {
                         u(s.serverFailed())
                     }
                     
-                    f(Result.error(x))
+                    tryCompleteFromCache(x, request, f, completionHandler)
                 }
             }
         } else {
-            if let x = NSURLCache.sharedURLCache().cachedResponseForRequest(request) {
-                // we have a cached response
-                let s = NSString(data: x.data, encoding: NSUTF8StringEncoding)
-                NSLog("Cached %@", s!)
-                var error: NSError? = nil
-                let json = JSON(data: x.data, options: NSJSONReadingOptions.AllowFragments, error: &error)
-                f(Result.value(completionHandler(json)))
-            } else {
-                f(Result.error(NSError.errorWithMessage("Server unavailable", code: 999)))
-            }
+            tryCompleteFromCache(NSError.errorWithMessage("Server unavailable", code: 999), request, f, completionHandler)
         }
     }
     
@@ -330,12 +337,19 @@ public class LiftServer {
     func userGetProfileImage(userId: NSUUID, f: Result<NSData> -> Void) -> Void {
         request(LiftServerURLs.UserGetProfileImage(userId))
             .response { (_, response: NSHTTPURLResponse?, responseBody, err) in
+                let (s, u) = self.asu()
                 let body = responseBody as? NSData
                 if let x = response {
                     if x.statusCode != 200 {
                         f(Result.error(NSError.errorWithMessage("Request failed", code: x.statusCode)))
                     } else {
-                        if let b = body { f(Result.value(b)) } else { f(Result.error(NSError.errorWithMessage("No body", code: x.statusCode)))}
+                        if let b = body {
+                            f(Result.value(b))
+                            u(s.serverSucceeded())
+                        } else {
+                            f(Result.error(NSError.errorWithMessage("No body", code: x.statusCode)))
+                            u(s.serverFailed())
+                        }
                     }
                 } else if let e = err {
                     f(Result.error(e))

@@ -8,11 +8,10 @@ class NewSessionMuscleGroupsController : UIViewController, UITableViewDelegate, 
     private var muscleGroups: [Exercise.MuscleGroup] = []
 
     override func viewDidAppear(animated: Bool) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseGetMuscleGroups(ctx.apply { x in
-                self.muscleGroups = x
-                self.tableView.reloadData()
-            })
+        LiftServer.sharedInstance.exerciseGetMuscleGroups { $0.getOrUnit { x in
+            self.muscleGroups = x
+            self.tableView.reloadData()
+            }
         }
     }
     
@@ -109,9 +108,7 @@ class NewSessionPropsController : UIViewController, UITableViewDelegate, UITable
     
     func startSession(muscleGroupKeys: [Exercise.MuscleGroupKey], intensity: Exercise.ExerciseIntensity) -> Void {
         let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: muscleGroupKeys, intendedIntensity: intensity.intensity)
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { x in self.segueToStartedSession(props, sessionId: x) })
-        }
+        LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) { $0.getOrUnit { x in self.segueToStartedSession(props, sessionId: x) } }
     }
     
     func segueToStartedSession(props: Exercise.SessionProps, sessionId: NSUUID) -> Void {

@@ -86,27 +86,23 @@ class HomeController : UIViewController, UITableViewDataSource,
     }
     
     override func viewDidAppear(animated: Bool) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply { publicProfile in
-                if let x = publicProfile {
-                    self.navigationItem.title = x.firstName + " " + x.lastName
-                } else {
-                    self.navigationItem.title = "Home".localized()
-                }
-            })
-//            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
-//                if let image = UIImage(data: data) {
-//                }
-//            })
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!, ctx.apply { x in
-                self.sessionDates = x
-                self.calendar.reloadData()
-                self.calendar.currentDate = NSDate()
-                self.calendar.currentDateSelected = NSDate()
-                self.calendarDidDateSelected(self.calendar, date: NSDate())
-            })
-            AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
+        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) { $0.getOrUnit { publicProfile in
+            if let x = publicProfile {
+                self.navigationItem.title = x.firstName + " " + x.lastName
+            } else {
+                self.navigationItem.title = "Home".localized()
+            }
+            }
         }
+        LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!) { $0.getOrUnit { x in
+            self.sessionDates = x
+            self.calendar.reloadData()
+            self.calendar.currentDate = NSDate()
+            self.calendar.currentDateSelected = NSDate()
+            self.calendarDidDateSelected(self.calendar, date: NSDate())
+            }
+        }
+        AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
     }
     
     override func viewDidDisappear(animated: Bool) {
@@ -118,12 +114,11 @@ class HomeController : UIViewController, UITableViewDataSource,
         switch segue.identifier {
         case .Some("sessionDetail"):
             let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
-            ResultContext.run { ctx in
-                LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
-                    if let ctrl = segue.destinationViewController as? SessionDetailController {
-                        ctrl.setExerciseSession(x)
-                    }
-                    })
+            LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id) { $0.getOrUnit { x in
+                if let ctrl = segue.destinationViewController as? SessionDetailController {
+                    ctrl.setExerciseSession(x)
+                }
+                }
             }
         case .Some("startSession"):
             if let ctrl = segue.destinationViewController as? ExerciseSessionSettable {
@@ -141,11 +136,10 @@ class HomeController : UIViewController, UITableViewDataSource,
         case 0:
             let sessionSuggestion = sessionSuggestions[tableView.indexPathForSelectedRow()!.row]
             let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: sessionSuggestion.muscleGroupKeys, intendedIntensity: sessionSuggestion.intendedIntensity)
-            ResultContext.run { ctx in
-                LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { sessionId in
+            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) { $0.getOrUnit { sessionId in
                     let session = ExerciseSession(id: sessionId, props: props)
                     self.performSegueWithIdentifier("startSession", sender: session)
-                    })
+                    }
             }
         case 1: performSegueWithIdentifier("sessionDetail", sender: self)
         default: fatalError("Match error")
@@ -220,11 +214,10 @@ class HomeController : UIViewController, UITableViewDataSource,
     }
     
     func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
-                self.sessionSummaries = x
-                self.tableView.reloadData()
-            })
+        LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date) { $0.getOrUnit { x in
+            self.sessionSummaries = x
+            self.tableView.reloadData()
+            }
         }
     }
 
