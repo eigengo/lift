@@ -28,12 +28,12 @@ object Dependencies {
   object spray {
     val version = "1.3.2"
 
-    val httpx   = "io.spray" %% "spray-httpx"   % version
-    val can     = "io.spray" %% "spray-can"     % version
-    val routing = "io.spray" %% "spray-routing" % version
-    val client  = "io.spray" %% "spray-client"  % version
+    val httpx   = "io.spray" %% "spray-httpx"              % version
+    val can     = "io.spray" %% "spray-can"                % version
+    val routing = "io.spray" %% "spray-routing-shapeless2" % version
+    val client  = "io.spray" %% "spray-client"             % version
 
-    val testkit = "io.spray" %% "spray-testkit" % version
+    val testkit = "io.spray" %% "spray-testkit"            % version
   }
 
   // object kafka {

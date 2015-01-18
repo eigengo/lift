@@ -8,7 +8,7 @@ object SVMClassifier {
 
   case class SVMScale private[svm] (center: DenseVector[Double], scale: DenseVector[Double])
   case class SVMModel private[svm] (nSV: Int, SV: DenseMatrix[Double], gamma: Double, coefs: DenseVector[Double], rho: Double, probA: Double, probB: Double, scaled: Option[SVMScale])
-  case class SVMClassification private[svm] (result: Double, notClassified: Double, isClassified: Double)
+  case class SVMClassification private[svm] (result: Double, negativeMatch: Double, positiveMatch: Double)
 
 }
 
@@ -22,7 +22,7 @@ trait SVMClassifier {
    * @param data vector of data to be transformed
    * @return     vector of DCT transform coefficients
    */
-  private def discrete_cosine_transform(data: DenseVector[Double]): DenseVector[Double] = {
+  private[svm] def discrete_cosine_transform(data: DenseVector[Double]): DenseVector[Double] = {
     val n = dim(data)
 
     DenseVector.tabulate(n) { k => sum(data :* cos(DenseVector.tabulate(n) { i => (Pi / n) * (i + 0.5) * k })) }
@@ -35,7 +35,7 @@ trait SVMClassifier {
    * @param data matrix of data to be transformed
    * @return     concatenation of type I DCT results applied to each data row
    */
-  private def discrete_cosine_transform(data: DenseMatrix[Double]): DenseVector[Double] = {
+  private[svm] def discrete_cosine_transform(data: DenseMatrix[Double]): DenseVector[Double] = {
     DenseVector.vertcat((0 to data.rows).map { c => discrete_cosine_transform(data(c,::).t) }: _*)
   }
 
@@ -63,7 +63,7 @@ trait SVMClassifier {
    * @param data (unseen) data that SVM predictor is to classify
    * @param rbf  radial basis function that the SVM predictor is to use
    */
-  def predict(svm: SVMModel, data: DenseMatrix[Double], rbf: (DenseVector[Double], DenseVector[Double], Double) => Double) {
+  def predict(svm: SVMModel, data: DenseMatrix[Double], rbf: (DenseVector[Double], DenseVector[Double], Double) => Double): SVMClassification = {
     val feature = discrete_cosine_transform(data)
     val scaled_feature = svm.scaled.map {
       case scaling =>

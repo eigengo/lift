@@ -1,28 +1,35 @@
 package com.eigengo.lift.exercise.classifiers.svm
 
-import breeze.linalg._
+import breeze.linalg.{DenseMatrix, DenseVector}
 import com.typesafe.config.Config
 import org.parboiled2._
 import scala.io.Source
+import scala.language.implicitConversions
 import scalaz.{DisjunctionFunctions, \/, -\/}
 
-private[svm] trait ParserUtils {
+private[svm] trait ParserUtils extends StringBuilding {
   this: Parser =>
 
   import CharPredicate.{Alpha, AlphaNum, Digit, Digit19}
 
-  implicit def whitespace(s: String): Rule0 = rule {
-    str(s) ~ zeroOrMore(anyOf(" \t"))
+  implicit def wsStr(s: String): Rule0 = rule {
+    str(s) ~ WS
   }
 
-  def NL: Rule0 = rule { optional('\r') | '\n' }
+  def WS: Rule0 = rule {
+    zeroOrMore(anyOf(" \t"))
+  }
+
+  def NL: Rule0 = rule {
+    optional('\r') | '\n'
+  }
 
   def Decimal: Rule1[Double] = rule {
-    capture(optional(anyOf("+-")) ~ oneOrMore(Digit) ~ optional('.' ~ oneOrMore(Digit)) ~ optional(ignoreCase('e') ~ optional(anyOf("+-")) ~ oneOrMore(Digit))) ~> (_.toDouble)
+    capture(optional(anyOf("+-")) ~ oneOrMore(Digit) ~ optional('.' ~ oneOrMore(Digit)) ~ optional(ignoreCase('e') ~ optional(anyOf("+-")) ~ oneOrMore(Digit))) ~> ((w: String) => w.toDouble)
   }
   
   def Integer: Rule1[Int] = rule {
-    capture(optional(anyOf("+-")) ~ (Digit19 ~ zeroOrMore(Digit) | Digit)) ~> (_.toInt)
+    capture(optional(anyOf("+-")) ~ (Digit19 ~ zeroOrMore(Digit) | Digit)) ~> ((w: String) => w.toInt)
   }
   
   def Identifier: Rule1[String] = rule {
@@ -40,50 +47,83 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
   import CharPredicate.AlphaNum
   import SVMClassifier._
 
-  case class SupportVector(label: Double, values: Seq[Double])
+  // (internal) AST for libsvm file
+  case class HeaderEntry(key: String, value: String)
+  case class Header(values: Seq[HeaderEntry])
+  case class SupportVectorIndex(index: Int, value: Double)
+  case class SupportVectorEntry(label: Double, values: Seq[SupportVectorIndex])
+  case class SupportVector(values: Seq[SupportVectorEntry])
 
-  def Key: Rule1[String] = capture(oneOrMore(AlphaNum | '_'))
-
-  def Value = Decimal | Integer | Identifier
-
-  def Index = ???
-
-  def Label = ???
-
-  // NOTE: we intentionally ignore fact that labels may (in general) be comma separated
-  def SupportVectorEntry: Rule1[SupportVector] = rule {
-    Label ~ zeroOrMore(Index ~ ':' ~ Value ~> ???) ~> SupportVector
+  // PEG rules
+  def ValueRule: Rule1[String] = rule {
+    (Decimal | Integer | Identifier) ~> ((w: Any) => w.toString)
   }
 
-  def parse: Rule1[SVMModel] = rule {
-    zeroOrMore(Key ~ Value).separatedBy(NL) ~
-    str("SV") ~ NL ~
-    zeroOrMore(SupportVectorEntry).separatedBy(NL) ~
-    EOI ~> {
-      case (kv, sv) =>
-        // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
-        assert(kv.contains("svm_type") && kv("svm_type") == "c_svc")
-        assert(kv.contains("kernel_type") && kv("kernel_type") == "rbf")
-        assert(kv.contains("nr_class") && kv("nr_class") == 2)
-        assert(kv.contains("total_sv") && kv("total_sv") == sv.length)
-        assert(kv.contains("gamma"))
-        assert(kv.contains("rho"))
-        assert(kv.contains("probA"))
-        assert(kv.contains("probB"))
-        assert(sv.nonEmpty)
-        assert(sv.forall(_.length == sv.head.length))
+  def HeaderEntryRule: Rule1[HeaderEntry] = rule {
+    capture(oneOrMore(AlphaNum | '_')) ~ ValueRule ~> HeaderEntry
+  }
 
-        SVMModel(
-          nSV = kv("total_sv"),
-          SV = DenseMatrix.tabulate(kv("total_sv"), sv.head.length) { case (r, c) => sv(r)(c) },
-          gamma = kv("gamma"),
-          coefs = DenseVector(sv.map(_.label): _*),
-          rho = kv("rho"),
-          probA = kv("probA"),
-          probB = kv("probB"),
-          scaled = None // Will be defined by the calling parsing context
-        )
-    }
+  def HeaderRule: Rule1[Header] = rule {
+    zeroOrMore(HeaderEntryRule).separatedBy(NL) ~> Header
+  }
+
+  def SupportVectorIndexRule: Rule1[SupportVectorIndex] = rule {
+    (Integer ~ ':' ~ Decimal) ~> SupportVectorIndex
+  }
+
+  // NOTE: we intentionally ignore the fact that labels may (in general) be comma separated
+  def SupportVectorEntryRule: Rule1[SupportVectorEntry] = rule {
+    (Decimal ~ zeroOrMore(SupportVectorIndexRule)) ~> SupportVectorEntry
+  }
+
+  def SupportVectorRule: Rule1[SupportVector] = rule {
+    zeroOrMore(SupportVectorEntryRule).separatedBy(NL) ~> SupportVector
+  }
+
+  // root parsing rule
+  def parse: Rule1[SVMModel] = rule {
+    (HeaderRule ~> ((hdr: Header) => {
+      val hdrList = hdr.values
+      val kv = Map(hdrList.map { case HeaderEntry(key, value) => (key, value) }: _*)
+
+      // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
+      test(kv.contains("svm_type") && kv("svm_type") == "c_svc") ~
+      test(kv.contains("kernel_type") && kv("kernel_type") == "rbf") ~
+      test(kv.contains("nr_class") && kv("nr_class") == 2.toString) ~
+      test(kv.contains("gamma")) ~
+      test(kv.contains("rho")) ~
+      test(kv.contains("probA")) ~
+      test(kv.contains("probB")) ~
+      push(hdr)
+    })) ~
+    str("SV") ~ NL ~
+    (SupportVectorRule ~> ((sv: SupportVector) => {
+      val svList = sv.values
+      // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
+      test(svList.nonEmpty) ~
+      push(sv)
+    })) ~
+    zeroOrMore(NL) ~
+    EOI ~> ((hdr: Header, sv: SupportVector) => {
+      val hdrList = hdr.values
+      val svList = sv.values
+      val kv = Map(hdrList.map { case HeaderEntry(key, value) => (key, value) }: _*)
+      val svSize = svList.map { case SupportVectorEntry(_, values) => values.map(_.index).max }.max
+
+      // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
+      test(kv.contains("total_sv") && kv("total_sv") == svList.length.toString) ~
+      push(SVMModel(
+        nSV = kv("total_sv").toInt,
+        // By default, missing support vector indexes are taken to have a value of zero
+        SV = DenseMatrix.tabulate(kv("total_sv").toInt, svSize) { case (r, c) => svList(r).values.find(_.index == c).map(_.value).getOrElse(0) },
+        gamma = kv("gamma").toDouble,
+        coefs = DenseVector(svList.map(_.label): _*),
+        rho = kv("rho").toDouble,
+        probA = kv("probA").toDouble,
+        probB = kv("probB").toDouble,
+        scaled = None // Will be defined by the calling parsing context
+      ))
+    })
   }
 
 }
@@ -95,10 +135,17 @@ private[svm] class SVMScaleParser(val input: ParserInput) extends Parser with Pa
 
   import SVMClassifier._
 
+  // (internal) AST for scale file
   case class ScaledData(x: Double, center: Double)
 
+  // PEG rules
+  def ScaledDataRule: Rule1[ScaledData] = rule {
+    Decimal ~ Decimal ~> ScaledData
+  }
+
+  // root parsing rule
   def parse: Rule1[SVMScale] = rule {
-    zeroOrMore(Decimal ~ Decimal ~> ScaledData).separatedBy(NL) ~ optional(NL) ~ EOI ~> ( data =>
+    zeroOrMore(ScaledDataRule).separatedBy(NL) ~ zeroOrMore(NL) ~ EOI ~> ( (data: Seq[ScaledData]) =>
       SVMScale(DenseVector(data.map(_.x): _*), DenseVector(data.map(_.center): _*))
     )
   }
@@ -120,14 +167,14 @@ class SVMModelParser(name: String)(implicit config: Config) extends DisjunctionF
   val modelName = config.getString(s"classification.gesture.$name.model")
 
   def model: \/[String, SVMModel] = {
-    Option(getClass.getResource(s"$modelPath$modelName.libsvm")).map { libSVMFile =>
-      Option(getClass.getResource(s"$modelPath$modelName.scale")).map { scaledFile =>
+    Option(getClass.getResource(s"$modelPath/$modelName.libsvm")).map { libSVMFile =>
+      Option(getClass.getResource(s"$modelPath/$modelName.scale")).map { scaledFile =>
         for {
           libsvm <- fromEither(new LibSVMParser(Source.fromURL(libSVMFile, "UTF-8").mkString).parse.run()).leftMap(_.getMessage)
           scale  <- fromEither(new SVMScaleParser(Source.fromURL(scaledFile, "UTF-8").mkString).parse.run()).leftMap(_.getMessage)
         } yield libsvm.copy(scaled = Some(scale))
-      }.getOrElse(-\/(s"$modelPath$modelName.scale does not exist on the class path!"))
-    }.getOrElse(-\/(s"$modelPath$modelName.libsvm does not exist on the class path!"))
+      }.getOrElse(-\/(s"$modelPath/$modelName.scale does not exist on the class path!"))
+    }.getOrElse(-\/(s"$modelPath/$modelName.libsvm does not exist on the class path!"))
   }
 
 }
