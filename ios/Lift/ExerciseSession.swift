@@ -9,6 +9,7 @@ class ExerciseSession : NSObject {
         self.props = props
         super.init()
     }
+    
 }
 
 @objc protocol ExerciseSessionSettable {
