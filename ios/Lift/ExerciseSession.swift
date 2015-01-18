@@ -25,6 +25,17 @@ class ExerciseSession : NSObject {
         LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: id) { _ in }
     }
     
+    func getClassificationExamples(f: Result<[Exercise.Exercise]> -> Void) -> Void {
+        return LiftServer.sharedInstance.exerciseSessionGetClassificationExamples(CurrentLiftUser.userId!, sessionId: id, f)
+    }
+    
+    func startExplicitClassification(exercise: Exercise.Exercise) -> Void {
+        LiftServer.sharedInstance.exerciseSessionStartExplicitClassification(CurrentLiftUser.userId!, sessionId: id, exercise: exercise, f: const(()))
+    }
+    
+    func endExplicitClassification() {
+        LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: id, f: const(()))
+    }
 }
 
 @objc protocol ExerciseSessionSettable {

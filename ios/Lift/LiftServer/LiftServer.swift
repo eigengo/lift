@@ -84,10 +84,18 @@ extension Request {
     func responseAsResutlt<A, U>(asu: AvailabilityStateUpdate, f: Result<A> -> U, completionHandler: (JSON) -> A) -> Void {
         
         func tryCompleteFromCache(error: NSError, request: NSURLRequest, f: Result<A> -> U, completionHandler: (JSON) -> A) {
+            if let method = request.HTTPMethod {
+                if method.lowercaseString != "get" {
+                    NSLog("--- Non-GET cannot be cached %@.", request.URLString)
+                    f(Result.error(error))
+                    
+                    return
+                }
+            }
             if let x = NSURLCache.sharedURLCache().cachedResponseForRequest(request) {
                 // we have a cached response
                 let s = NSString(data: x.data, encoding: NSUTF8StringEncoding)
-                NSLog("--- Completed from cache: %@", s!)
+                NSLog("--- Completed %@ from cache %@.", request.URLString, s!)
                 var error: NSError? = nil
                 let json = JSON(data: x.data, options: NSJSONReadingOptions.AllowFragments, error: &error)
                 f(Result.value(completionHandler(json)))
