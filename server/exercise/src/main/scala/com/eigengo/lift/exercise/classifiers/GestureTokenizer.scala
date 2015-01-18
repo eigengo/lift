@@ -15,10 +15,11 @@ object GestureTokenizer {
   /**
    * Token representing a recognised gesture.
    *
+   * @param name     unique identifier - models names of classified gesture
    * @param location sensor location for which the gesture was recognised
    * @param data     data that was recognised
    */
-  case class GestureToken private (location: SensorDataSourceLocation, data: List[AccelerometerData]) extends Token
+  case class GestureToken private (name: String, location: SensorDataSourceLocation, data: List[AccelerometerData]) extends Token
 
   /**
    * Token representing a (potential) exercising window.
@@ -43,32 +44,51 @@ class GestureTokenizer(name: String, locationFilter: Set[SensorDataSourceLocatio
   import GestureTokenizer._
 
   val windowSize = config.getInt(s"classification.gesture.$name.size")
+  assert(windowSize > 0)
 
-  def parseGestures(data: List[AccelerometerData]): (List[Token], List[AccelerometerData]) = {
-    data.zipWithIndex
+  def isGestureEvent(sample: List[AccelerometerData]): Boolean = {
+    require(sample.length == windowSize)
+
+    ???
+  }
+
+  def parseGestures(location: SensorDataSourceLocation, data: List[AccelerometerData]): (List[Token], List[AccelerometerData]) = {
+    val (parsed, unparsed) = data
       .sliding(windowSize)
       .span {
         case window if window.length == windowSize =>
-          ???
+          if (isGestureEvent(window)) {
+            false
+          } else {
+            true
+          }
 
         case window =>
           true
       }
+    if (unparsed.nonEmpty) {
+      val (gesture, partialData) = unparsed.flatten.toList.splitAt(parsed.length)
+      val (remainingTokens, remainingData) = parseGestures(location, partialData)
+
+      (List(ExerciseToken(location, parsed.flatten.toList), GestureToken(name, location, gesture)) ++ remainingTokens, remainingData)
+    } else {
+      (List(), data)
+    }
   }
 
-  def workflow(out: Source[Token]) = Flow[SensorDataWithLocation[AccelerometerData]]
-    .filter(data => locationFilter.contains(data.location))
-    .groupBy(_.location)
-    .map {
-      case (location, sensorSource) =>
-        (location,
-         sensorSource
-           .scan[(Source[Token], List[AccelerometerData])]((out, List())) {
-             case ((parsed, unparsed), sensor) =>
-               val (gestures, remaining) = parseGestures(unparsed ++ sensor.data)
-               (parsed.concat(Source(gestures)), remaining)
-           }
-        )
-    }
+  val flow: Flow[SensorDataWithLocation[AccelerometerData], List[Token]] =
+    Flow[SensorDataWithLocation[AccelerometerData]]
+      .filter(data => locationFilter.contains(data.location))
+      .groupBy(_.location)
+      .map { case (location, sensorSource) =>
+        location ->
+          sensorSource
+            .scan[(List[Token], List[AccelerometerData])]((List(), List())) {
+              case ((parsed, unparsed), sensor) =>
+                val (gestures, remaining) = parseGestures(location, unparsed ++ sensor.data)
+                (parsed ++ gestures, remaining)
+            }
+            .mapConcat(_._1)
+      }
 
 }
