@@ -12,6 +12,7 @@
 		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
 		540454961A650C1C00273425 /* MutableMultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540454951A650C1C00273425 /* MutableMultiPacket.swift */; };
 		540454981A650C4D00273425 /* SensorDataSourceLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540454971A650C4D00273425 /* SensorDataSourceLocation.swift */; };
+		541D26611A6D3B1900FB5661 /* MutableMultiPacket+Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 541D26601A6D3B1900FB5661 /* MutableMultiPacket+Test.swift */; };
 		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		542611341A658DDA00A758AA /* MultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542611331A658DDA00A758AA /* MultiPacket.swift */; };
@@ -157,6 +158,7 @@
 		54008B581A49EC730049A8EA /* String+MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+MD5.swift"; sourceTree = "<group>"; };
 		540454951A650C1C00273425 /* MutableMultiPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutableMultiPacket.swift; sourceTree = "<group>"; };
 		540454971A650C4D00273425 /* SensorDataSourceLocation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataSourceLocation.swift; sourceTree = "<group>"; };
+		541D26601A6D3B1900FB5661 /* MutableMultiPacket+Test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MutableMultiPacket+Test.swift"; sourceTree = "<group>"; };
 		54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserModel+Marshalling.swift"; sourceTree = "<group>"; };
 		54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSError+Convenience.swift"; sourceTree = "<group>"; };
 		542611331A658DDA00A758AA /* MultiPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiPacket.swift; sourceTree = "<group>"; };
@@ -346,6 +348,7 @@
 			isa = PBXGroup;
 			children = (
 				54C1587C1A651237008F6E2A /* MutableMultiPacketTests.swift */,
+				541D26601A6D3B1900FB5661 /* MutableMultiPacket+Test.swift */,
 			);
 			path = LiftServer;
 			sourceTree = "<group>";
@@ -879,6 +882,7 @@
 				54ED4EB71A6C548100490DA7 /* Box.swift in Sources */,
 				54ED4EB41A6C547B00490DA7 /* ExerciseModel.swift in Sources */,
 				54ED4EBE1A6C548700490DA7 /* Alamofire.swift in Sources */,
+				541D26611A6D3B1900FB5661 /* MutableMultiPacket+Test.swift in Sources */,
 				54ED4EC21A6C54C100490DA7 /* String+Localisation.swift in Sources */,
 				54ED4EBF1A6C54A600490DA7 /* CurrentLiftUser.swift in Sources */,
 				54ED4EB21A6C547B00490DA7 /* UserModel.swift in Sources */,

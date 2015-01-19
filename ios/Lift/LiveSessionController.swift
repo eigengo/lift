@@ -31,7 +31,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func end() {
         if let x = session {
-            x.end()
+            x.end(const(()))
             self.session = nil
         } else {
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")

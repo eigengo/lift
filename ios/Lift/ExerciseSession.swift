@@ -55,8 +55,8 @@ class ExerciseSession : NSObject {
     /**
      * Ends the current session. After ending, this instance is not re-usable
      */
-    func end() {
-        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: id) { _ in }
+    func end(f: Result<Void> -> Void) -> Void {
+        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: id, f: f)
     }
     
     /**

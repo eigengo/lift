@@ -62,7 +62,7 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     override func viewWillDisappear(animated: Bool) {
         timer!.invalidate()
         navigationItem.prompt = nil
-        session?.end()
+        session?.end(const(()))
     }
     
     @IBAction

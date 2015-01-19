@@ -36,12 +36,43 @@ class ExerciseSessionManager {
 
     // TODO: functions that get / delete offline sessions
     
+    func removeAllOfflineSessions() -> Void {
+        if let offlineSessions = NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath, error: nil) as? [String] {
+            for offlineSession in offlineSessions {
+                NSFileManager.defaultManager().removeItemAtPath(documentsPath.stringByAppendingPathComponent(offlineSession), error: nil)
+            }
+        }
+    }
+    
+    func removeOfflineSession(id: NSUUID) -> Void {
+        NSFileManager.defaultManager().removeItemAtPath(documentsPath.stringByAppendingPathComponent(id.UUIDString), error: nil)
+    }
+    
+    func listOfflineSessions(date: NSDate) -> [Exercise.SessionProps] {
+        func loadOfflineSession(offlineSessionPath: String) -> Exercise.SessionProps {
+            let realPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
+            return Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: ["arms"], intendedIntensity: 1.0)
+        }
+        
+        if let offlineSessions = NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath, error: nil) as? [String] {
+            return offlineSessions.map(loadOfflineSession)
+        } else {
+            return []
+        }
+    }
+    
     class ManagerManagedExerciseSessionIO : ManagedExerciseSessionIO {
         var allMultiPacketsFileName: String
+        var rootPath: String
         
         init(rootPath: String) {
+            self.rootPath = rootPath
             allMultiPacketsFileName = rootPath.stringByAppendingPathComponent("all.mp")
             NSFileManager.defaultManager().createFileAtPath(allMultiPacketsFileName, contents: nil, attributes: nil)
+        }
+        
+        func remove() {
+            NSFileManager.defaultManager().removeItemAtPath(rootPath, error: nil)
         }
         
         func appendMultiPacket(mp: MultiPacket) {
@@ -63,6 +94,8 @@ class ExerciseSessionManager {
 protocol ManagedExerciseSessionIO {
     
     func appendMultiPacket(mp: MultiPacket)
+
+    func remove()
     
 }
 
@@ -87,13 +120,21 @@ class ManagedExerciseSession : ExerciseSession {
     override func submitData(mp: MultiPacket, f: Result<Void> -> Void) -> Void {
         io.appendMultiPacket(mp)
         
-        managedSession.submitData(mp) { x in
-            x.cata({ _ in self.isOffline = true }, r: { _ in self.isOffline = false })
+        if !isOffline {
+            managedSession.submitData(mp) { x in
+                x.cata({ _ in self.isOffline = true }, r: { _ in self.isOffline = false })
+                f(x)
+            }
+        } else {
+            f(Result.value(()))
         }
     }
     
-    override func end() -> Void {
-        managedSession.end()
+    override func end(f: Result<Void> -> Void) -> Void {
+        if !isOffline {
+            managedSession.end { $0.cata(const(()), r: { _ in self.io.remove() }) }
+        }
+        f(Result.value(()))
     }
     
     override func getClassificationExamples(f: Result<[Exercise.Exercise]> -> Void) -> Void {
