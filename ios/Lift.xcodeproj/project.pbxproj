@@ -38,7 +38,7 @@
 		548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5482963F1A4D7F3A00EDCAF0 /* Devices.swift */; };
 		54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */; };
 		549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */; };
-		549BAE5B1A6C24B5000FBB78 /* ExerciseSessionOfflineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionOfflineManager.swift */; };
+		549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
@@ -82,9 +82,9 @@
 		54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
-		54ED4EAC1A6C544200490DA7 /* ExerciseSessionOfflineManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54ED4EAB1A6C544200490DA7 /* ExerciseSessionOfflineManagerTests.swift */; };
+		54ED4EAC1A6C544200490DA7 /* ExerciseSessionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */; };
 		54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
-		54ED4EAE1A6C547500490DA7 /* ExerciseSessionOfflineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionOfflineManager.swift */; };
+		54ED4EAE1A6C547500490DA7 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
 		54ED4EAF1A6C547B00490DA7 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54ED4EB01A6C547B00490DA7 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		54ED4EB11A6C547B00490DA7 /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
@@ -185,7 +185,7 @@
 		54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Effects.swift"; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Result+GetOrUnit.swift"; sourceTree = "<group>"; };
-		549BAE5A1A6C24B5000FBB78 /* ExerciseSessionOfflineManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionOfflineManager.swift; sourceTree = "<group>"; };
+		549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManager.swift; sourceTree = "<group>"; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
@@ -236,7 +236,7 @@
 		54DC83B31A40AF82006DD311 /* NotificationModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftUserDefaults.swift; sourceTree = "<group>"; };
 		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
-		54ED4EAB1A6C544200490DA7 /* ExerciseSessionOfflineManagerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionOfflineManagerTests.swift; sourceTree = "<group>"; };
+		54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManagerTests.swift; sourceTree = "<group>"; };
 		54ED4EC31A6C54F300490DA7 /* LiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		54F0C0051A60349300D1A9C8 /* RemoteNotificationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteNotificationDelegate.swift; sourceTree = "<group>"; };
@@ -417,7 +417,7 @@
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
 				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
-				549BAE5A1A6C24B5000FBB78 /* ExerciseSessionOfflineManager.swift */,
+				549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */,
 				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
 				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
@@ -457,7 +457,7 @@
 			children = (
 				54C1587B1A651237008F6E2A /* LiftServer */,
 				54CC69B219C4AD8E00B29EC8 /* LiftTests.swift */,
-				54ED4EAB1A6C544200490DA7 /* ExerciseSessionOfflineManagerTests.swift */,
+				54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */,
 				54ED4EC31A6C54F300490DA7 /* LiftTests-Bridging-Header.h */,
 				54CC69B019C4AD8E00B29EC8 /* Supporting Files */,
 			);
@@ -839,7 +839,7 @@
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,
 				54C37B7F1A4BFD7E0036C0C8 /* DeviceTableViewCell.swift in Sources */,
 				547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */,
-				549BAE5B1A6C24B5000FBB78 /* ExerciseSessionOfflineManager.swift in Sources */,
+				549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */,
 				549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */,
 				54DC83B41A40AF82006DD311 /* NotificationModel.swift in Sources */,
 				545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */,
@@ -859,10 +859,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54ED4EAE1A6C547500490DA7 /* ExerciseSessionOfflineManager.swift in Sources */,
+				54ED4EAE1A6C547500490DA7 /* ExerciseSessionManager.swift in Sources */,
 				54C1587D1A651237008F6E2A /* MutableMultiPacketTests.swift in Sources */,
 				54C1587E1A651299008F6E2A /* MutableMultiPacket.swift in Sources */,
-				54ED4EAC1A6C544200490DA7 /* ExerciseSessionOfflineManagerTests.swift in Sources */,
+				54ED4EAC1A6C544200490DA7 /* ExerciseSessionManagerTests.swift in Sources */,
 				54ED4EB01A6C547B00490DA7 /* LiftServerCache.swift in Sources */,
 				54ED4EB51A6C547B00490DA7 /* ExerciseModel+Marshalling.swift in Sources */,
 				54ED4EB91A6C548100490DA7 /* Operators.swift in Sources */,

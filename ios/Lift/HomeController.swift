@@ -137,10 +137,14 @@ class HomeController : UIViewController, UITableViewDataSource,
         case 0:
             let sessionSuggestion = sessionSuggestions[tableView.indexPathForSelectedRow()!.row]
             let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: sessionSuggestion.muscleGroupKeys, intendedIntensity: sessionSuggestion.intendedIntensity)
-            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) { r in
-                let session = r.cata(const(ExerciseSession(id: NSUUID(), props: props, isOffline: true)),
-                                     { x in ExerciseSession(id: x, props: props, isOffline: true) })
-                self.performSegueWithIdentifier("startSession", sender: session)
+            
+            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) { x in
+                let (isOfflineFromStart, session) = x.fold(
+                    (true, ExerciseSession(id: NSUUID(), props: props)),
+                    f: { x in (false, ExerciseSession(id: x, props: props)) }
+                )
+                let managedSession = ExerciseSessionManager.sharedInstance.managedSession(session, isOfflineFromStart: isOfflineFromStart)
+                self.performSegueWithIdentifier("startSession", sender: managedSession)
             }
         case 1: performSegueWithIdentifier("sessionDetail", sender: self)
         default: fatalError("Match error")

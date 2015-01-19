@@ -108,7 +108,7 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
         let path = tableModel!.filePathAtIndexPath(indexPath)
         let data = NSFileManager.defaultManager().contentsAtPath(path!)!
         let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-        session?.submitData(mp)        
+        session?.submitData(mp, const(()))
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
 

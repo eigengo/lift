@@ -116,7 +116,7 @@ class NewSessionPropsController : UIViewController, UITableViewDelegate, UITable
     
     func segueToStartedSession(props: Exercise.SessionProps, sessionId: NSUUID, isOffline: Bool) -> Void {
         let segueName = self.demoMode ? "demo" : "live"
-        let session = ExerciseSession(id: sessionId, props: props, isOffline: isOffline)
+        let session = ExerciseSession(id: sessionId, props: props)
         self.performSegueWithIdentifier(segueName, sender: session)
     }
 

@@ -179,7 +179,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         if let x = session {
             self.deviceSession = deviceSession
             let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-            x.submitData(mp)
+            x.submitData(mp, const(()))
 
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
                 tableView.reloadData()
