@@ -57,6 +57,9 @@ class ExerciseSessionManager {
     
 }
 
+/**
+ * IO functions for the managed session
+ */
 protocol ManagedExerciseSessionIO {
     
     func appendMultiPacket(mp: MultiPacket)
