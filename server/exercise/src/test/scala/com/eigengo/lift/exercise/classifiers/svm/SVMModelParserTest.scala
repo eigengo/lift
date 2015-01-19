@@ -4,6 +4,7 @@ import breeze.linalg.DenseVector
 import com.eigengo.lift.exercise.classifiers.svm.SVMClassifier.SVMScale
 import com.typesafe.config.ConfigFactory
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
@@ -13,9 +14,23 @@ import scalaz.DisjunctionFunctions
 
 class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with DisjunctionFunctions {
 
+  import LibSVMParser._
+
   val modelPath = "/models"
   val modelName = "svm-model-tap.features"
 
+  val ValueGen = frequency(
+    1 -> Gen.identifier,
+    1 -> (Gen.alphaStr suchThat(_.nonEmpty)),
+    1 -> (Gen.numStr suchThat(_.nonEmpty))
+    1 -> (arbitrary[Double].map(_.mkString))
+  )
+
+  val KeyValueGen: Gen[(String, String)] = for {
+    fst <- Gen.identifier
+    snd <- ValueGen
+  } yield (fst, snd)
+/*
   property("able to successfully parse real-world libsvm R files") {
     val fileUrl = getClass.getResource(s"$modelPath/$modelName.libsvm")
     new LibSVMParser(Source.fromURL(fileUrl, "UTF-8").mkString).parse.run().isSuccess
@@ -36,14 +51,16 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
 
     fileParser.model.bimap(_ => false, _.scaled.isDefined)
   }
-
+*/
   property("able to parse randomly generated libsvm key-value samples") {
-    forAll(listOf(arbitrary[(String, String)])) { (kv: Seq[(String, String)]) =>
+    forAll(nonEmptyListOf(KeyValueGen)) { (kv: Seq[(String, String)]) =>
+      println(kv)
       val testData = kv.map { case (k, v) => s"$k $v" }.mkString("\n")
+      val expectedResult = Header(kv.map { case (k, v) => HeaderEntry(k, v) })
       val kvParser = new LibSVMParser(testData)
 
       kvParser.HeaderRule.run() match {
-        case Success(`kv`) =>
+        case Success(`expectedResult`) =>
           assert(true)
 
         case _ =>
