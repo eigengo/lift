@@ -9,7 +9,7 @@ import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
 import scala.io.Source
-import scala.util.Success
+import scala.util.{Try, Success, Failure}
 import scalaz.DisjunctionFunctions
 
 class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with DisjunctionFunctions {
@@ -19,17 +19,34 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
   val modelPath = "/models"
   val modelName = "svm-model-tap.features"
 
-  val ValueGen = frequency(
+  def normaliseHeader(hdr: Header): Header = {
+    Header(hdr.values.map { case HeaderEntry(key, value) =>
+      val normalisedValue =
+        Try(value.toDouble.toString) orElse
+          Try(value.toInt.toString) orElse
+          Success(value)
+      assert(normalisedValue.isSuccess)
+
+      HeaderEntry(key, normalisedValue.get)
+    })
+  }
+
+  val ValueGen: Gen[String] = frequency(
     1 -> Gen.identifier,
     1 -> (Gen.alphaStr suchThat(_.nonEmpty)),
-    1 -> (Gen.numStr suchThat(_.nonEmpty))
-    1 -> (arbitrary[Double].map(_.mkString))
+    1 -> arbitrary[Int].map(_.toString),
+    1 -> arbitrary[Double].map(_.toString)
   )
 
   val KeyValueGen: Gen[(String, String)] = for {
     fst <- Gen.identifier
     snd <- ValueGen
   } yield (fst, snd)
+
+  val SVGen: Gen[(Int, Double)] = for {
+    index <- Gen.oneOf(1 to 100)
+    value <- arbitrary[Double]
+  } yield (index, value)
 /*
   property("able to successfully parse real-world libsvm R files") {
     val fileUrl = getClass.getResource(s"$modelPath/$modelName.libsvm")
@@ -54,14 +71,13 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
 */
   property("able to parse randomly generated libsvm key-value samples") {
     forAll(nonEmptyListOf(KeyValueGen)) { (kv: Seq[(String, String)]) =>
-      println(kv)
       val testData = kv.map { case (k, v) => s"$k $v" }.mkString("\n")
       val expectedResult = Header(kv.map { case (k, v) => HeaderEntry(k, v) })
       val kvParser = new LibSVMParser(testData)
 
       kvParser.HeaderRule.run() match {
-        case Success(`expectedResult`) =>
-          assert(true)
+        case Success(actualResult) =>
+          assert(normaliseHeader(actualResult) == normaliseHeader(expectedResult))
 
         case _ =>
           fail()
@@ -70,28 +86,30 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
   }
 
   property("able to parse randomly generated libsvm support vector samples") {
-    forAll(arbitrary[Double], listOf(arbitrary[(Int, Double)])) { (label: Double, data: Seq[(Int, Double)]) =>
-      val testData = s"$label ${data.map { case (index, support) => s"$index:$support" }.mkString(" ")}"
-      val indexMax = data.map(_._1).max
-      val expectedResult = (label, (0 to indexMax).map(i => (i, data.find(_._1 == i).getOrElse(0))))
-      val svParser = new LibSVMParser(testData)
+    forAll(Gen.oneOf(1 to 20)) { (size: Int) =>
+      forAll(arbitrary[Double], listOfN(size, SVGen)) { (label: Double, data: Seq[(Int, Double)]) =>
+        val testData = s"$label ${data.map { case (index, support) => s"$index:$support"}.mkString(" ")}"
+        val indexMax = data.map(_._1).max
+        val expectedResult = SupportVectorEntry(label, data.map { case (index, support) => SupportVectorIndex(index, support) })
+        val svParser = new LibSVMParser(testData)
 
-      svParser.SupportVectorIndexRule.run() match {
-        case Success(`expectedResult`) =>
-          assert(true)
+        svParser.SupportVectorEntryRule.run() match {
+          case Success(`expectedResult`) =>
+            assert(true)
 
-        case _ =>
-          fail()
+          case _ =>
+            fail()
+        }
       }
     }
   }
 
   property("able to parse randomly generated scale samples") {
     forAll(listOf(arbitrary[(Double, Double)])) { (data: Seq[(Double, Double)]) =>
-      val testData = data.map { case (x, center) => s"$x $center" }.mkString("\n")
+      val testData = data.map { case (center, x) => s"$center $x" }.mkString("\n")
       val expectedResult = SVMScale(
-        scale  = DenseVector(data.map(_._1): _*),
-        center = DenseVector(data.map(_._2): _*)
+        scale  = DenseVector(data.map(_._2): _*),
+        center = DenseVector(data.map(_._1): _*)
       )
       val scaleParser = new SVMScaleParser(testData)
 
@@ -99,7 +117,7 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
         case Success(`expectedResult`) =>
           assert(true)
 
-        case _ =>
+        case result =>
           fail()
       }
     }

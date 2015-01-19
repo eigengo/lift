@@ -145,12 +145,12 @@ private[svm] class SVMScaleParser(val input: ParserInput) extends Parser with Pa
 
   // PEG rules
   def ScaledDataRule: Rule1[ScaledData] = rule {
-    Decimal ~ Decimal ~> ScaledData
+    Decimal ~ WS ~ Decimal ~> ScaledData
   }
 
   // root parsing rule
   def parse: Rule1[SVMScale] = rule {
-    zeroOrMore(ScaledDataRule).separatedBy(NL) ~ zeroOrMore(NL) ~ EOI ~> ( (data: Seq[ScaledData]) =>
+    zeroOrMore(ScaledDataRule).separatedBy(WS ~ NL) ~ zeroOrMore(WS ~ NL) ~ WS ~ EOI ~> ( (data: Seq[ScaledData]) =>
       SVMScale(DenseVector(data.map(_.x): _*), DenseVector(data.map(_.center): _*))
     )
   }
