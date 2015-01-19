@@ -67,7 +67,7 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
   }
 
   def HeaderEntryRule: Rule1[HeaderEntry] = rule {
-    capture(oneOrMore(AlphaNum | '_')) ~ WS ~ oneOrMore(ValueRule).separatedBy(WS) ~> ((key: String, values: Seq[String]) => HeaderEntry(key, values.mkString(" ")))
+    !str("SV") ~ capture(oneOrMore(AlphaNum | '_')) ~ WS ~ oneOrMore(ValueRule).separatedBy(WS) ~> ((key: String, values: Seq[String]) => HeaderEntry(key, values.mkString(" ")))
   }
 
   def HeaderRule: Rule1[Header] = rule {
@@ -96,21 +96,21 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
       // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
       test(kv.contains("svm_type") && kv("svm_type") == "c_svc") ~
       test(kv.contains("kernel_type") && kv("kernel_type") == "rbf") ~
-      test(kv.contains("nr_class") && kv("nr_class") == 2.toString) ~
+      test(kv.contains("nr_class") && kv("nr_class") == 2.toDouble.toString) ~ // FIXME: remove .toDouble
       test(kv.contains("gamma")) ~
       test(kv.contains("rho")) ~
       test(kv.contains("probA")) ~
       test(kv.contains("probB")) ~
       push(hdr)
-    })) ~
-    str("SV") ~ NL ~
+    })) ~ WS ~ NL ~
+    str("SV") ~ WS ~ NL ~
     (SupportVectorRule ~> ((sv: SupportVector) => {
       val svList = sv.values
       // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
       test(svList.nonEmpty) ~
       push(sv)
     })) ~
-    zeroOrMore(NL) ~
+    zeroOrMore(WS ~ NL) ~ WS ~
     EOI ~> ((hdr: Header, sv: SupportVector) => {
       val hdrList = hdr.values
       val svList = sv.values
@@ -118,10 +118,11 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
       val svSize = svList.map { case SupportVectorEntry(_, values) => values.map(_.index).max }.max
 
       // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
-      test(kv.contains("total_sv") && kv("total_sv") == svList.length.toString) ~
+      test(kv.contains("total_sv") && kv("total_sv") == svList.length.toDouble.toString) ~ // FIXME: remove .toDouble
       push(SVMModel(
-        nSV = kv("total_sv").toInt,
+        nSV = kv("total_sv").toInt, // FIXME: .toInt
         // By default, missing support vector indexes are taken to have a value of zero
+      // FIXME: .toInt below
         SV = DenseMatrix.tabulate(kv("total_sv").toInt, svSize) { case (r, c) => svList(r).values.find(_.index == c).map(_.value).getOrElse(0) },
         gamma = kv("gamma").toDouble,
         coefs = DenseVector(svList.map(_.label): _*),

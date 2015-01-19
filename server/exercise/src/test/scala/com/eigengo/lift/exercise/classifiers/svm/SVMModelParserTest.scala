@@ -9,7 +9,7 @@ import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
 import scala.io.Source
-import scala.util.{Try, Success}
+import scala.util.{Try, Success, Failure}
 import scalaz.DisjunctionFunctions
 
 class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with DisjunctionFunctions {
