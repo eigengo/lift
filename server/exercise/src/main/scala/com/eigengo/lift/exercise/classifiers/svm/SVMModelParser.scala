@@ -5,7 +5,8 @@ import com.typesafe.config.Config
 import org.parboiled2._
 import scala.io.Source
 import scala.language.implicitConversions
-import scalaz.{DisjunctionFunctions, \/, -\/}
+import scala.util.{Try, Failure, Success}
+import scalaz.{DisjunctionFunctions, \/, -\/, \/-}
 
 private[svm] trait ParserUtils extends StringBuilding {
   this: Parser =>
@@ -166,21 +167,21 @@ private[svm] class SVMScaleParser(val input: ParserInput) extends Parser with Pa
  */
 class SVMModelParser(name: String)(implicit config: Config) extends DisjunctionFunctions {
 
-  import Parser.DeliveryScheme.Either
+  import Parser.DeliveryScheme.Try
   import SVMClassifier._
 
   val modelPath = config.getString("classification.model.path")
   val modelName = config.getString(s"classification.gesture.$name.model")
 
-  def model: \/[String, SVMModel] = {
+  def model: Try[SVMModel] = {
     Option(getClass.getResource(s"$modelPath/$modelName.libsvm")).map { libSVMFile =>
       Option(getClass.getResource(s"$modelPath/$modelName.scale")).map { scaledFile =>
-        (for {
-          libsvm <- fromEither(new LibSVMParser(Source.fromURL(libSVMFile, "UTF-8").mkString).parse.run())
-          scale  <- fromEither(new SVMScaleParser(Source.fromURL(scaledFile, "UTF-8").mkString).parse.run())
-        } yield libsvm.copy(scaled = Some(scale))).leftMap(_.getMessage)
-      }.getOrElse(-\/(s"$modelPath/$modelName.scale does not exist on the class path!"))
-    }.getOrElse(-\/(s"$modelPath/$modelName.libsvm does not exist on the class path!"))
+        for {
+          libsvm <- new LibSVMParser(Source.fromURL(libSVMFile, "UTF-8").mkString).parse.run()
+          scale  <- new SVMScaleParser(Source.fromURL(scaledFile, "UTF-8").mkString).parse.run()
+        } yield libsvm.copy(scaled = Some(scale))
+      }.getOrElse(Failure(new RuntimeException(s"$modelPath/$modelName.scale does not exist on the class path!")))
+    }.getOrElse(Failure(new RuntimeException(s"$modelPath/$modelName.libsvm does not exist on the class path!")))
   }
 
 }

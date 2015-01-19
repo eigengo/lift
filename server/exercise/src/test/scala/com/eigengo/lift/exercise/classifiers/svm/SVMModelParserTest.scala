@@ -68,7 +68,7 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
         |classification.gesture.$gesture.model = "$modelName"
       """.stripMargin))
 
-    assert(fileParser.model.isRight && fileParser.model.exists(_.scaled.isDefined))
+    assert(fileParser.model.isSuccess && fileParser.model.get.scaled.isDefined)
   }
 
   // FIXME: failure due to how integers and decimals are handled/parsed!
