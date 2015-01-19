@@ -61,11 +61,12 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
 
   // PEG rules
   def ValueRule: Rule1[String] = rule {
+    // FIXME: should get int as a prefix of double!
     (Decimal | Integer | Identifier) ~> ((w: Any) => w.toString)
   }
 
   def HeaderEntryRule: Rule1[HeaderEntry] = rule {
-    capture(oneOrMore(AlphaNum | '_')) ~ WS ~ ValueRule ~> HeaderEntry
+    capture(oneOrMore(AlphaNum | '_')) ~ WS ~ oneOrMore(ValueRule).separatedBy(WS) ~> ((key: String, values: Seq[String]) => HeaderEntry(key, values.mkString(" ")))
   }
 
   def HeaderRule: Rule1[Header] = rule {
@@ -174,10 +175,10 @@ class SVMModelParser(name: String)(implicit config: Config) extends DisjunctionF
   def model: \/[String, SVMModel] = {
     Option(getClass.getResource(s"$modelPath/$modelName.libsvm")).map { libSVMFile =>
       Option(getClass.getResource(s"$modelPath/$modelName.scale")).map { scaledFile =>
-        for {
-          libsvm <- fromEither(new LibSVMParser(Source.fromURL(libSVMFile, "UTF-8").mkString).parse.run()).leftMap(_.getMessage)
-          scale  <- fromEither(new SVMScaleParser(Source.fromURL(scaledFile, "UTF-8").mkString).parse.run()).leftMap(_.getMessage)
-        } yield libsvm.copy(scaled = Some(scale))
+        (for {
+          libsvm <- fromEither(new LibSVMParser(Source.fromURL(libSVMFile, "UTF-8").mkString).parse.run())
+          scale  <- fromEither(new SVMScaleParser(Source.fromURL(scaledFile, "UTF-8").mkString).parse.run())
+        } yield libsvm.copy(scaled = Some(scale))).leftMap(_.getMessage)
       }.getOrElse(-\/(s"$modelPath/$modelName.scale does not exist on the class path!"))
     }.getOrElse(-\/(s"$modelPath/$modelName.libsvm does not exist on the class path!"))
   }

@@ -9,7 +9,7 @@ import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
 import scala.io.Source
-import scala.util.{Try, Success, Failure}
+import scala.util.{Try, Success}
 import scalaz.DisjunctionFunctions
 
 class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with DisjunctionFunctions {
@@ -17,17 +17,18 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
   import LibSVMParser._
 
   val modelPath = "/models"
-  val modelName = "svm-model-tap.features"
+  val modelName = "svm-model-tap-features"
 
   def normaliseHeader(hdr: Header): Header = {
-    Header(hdr.values.map { case HeaderEntry(key, value) =>
+    Header(hdr.values.map { case HeaderEntry(k, v) =>
       val normalisedValue =
-        Try(value.toDouble.toString) orElse
-          Try(value.toInt.toString) orElse
-          Success(value)
+      // FIXME: should really do int then double here!
+        Try(v.toDouble.toString) orElse
+          Try(v.toInt.toString) orElse
+          Success(v)
       assert(normalisedValue.isSuccess)
 
-      HeaderEntry(key, normalisedValue.get)
+      HeaderEntry(k, normalisedValue.get)
     })
   }
 
@@ -35,7 +36,8 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
     1 -> Gen.identifier,
     1 -> (Gen.alphaStr suchThat(_.nonEmpty)),
     1 -> arbitrary[Int].map(_.toString),
-    1 -> arbitrary[Double].map(_.toString)
+    1 -> arbitrary[Double].map(_.toString),
+    1 -> nonEmptyListOf(arbitrary[Int]).map(_.mkString(" "))
   )
 
   val KeyValueGen: Gen[(String, String)] = for {
@@ -47,15 +49,15 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
     index <- Gen.oneOf(1 to 100)
     value <- arbitrary[Double]
   } yield (index, value)
-/*
+
   property("able to successfully parse real-world libsvm R files") {
     val fileUrl = getClass.getResource(s"$modelPath/$modelName.libsvm")
-    new LibSVMParser(Source.fromURL(fileUrl, "UTF-8").mkString).parse.run().isSuccess
+    assert(new LibSVMParser(Source.fromURL(fileUrl, "UTF-8").mkString).parse.run().isSuccess)
   }
 
   property("able to successfully parse real-world scale R files") {
     val fileUrl = getClass.getResource(s"$modelPath/$modelName.scale")
-    new LibSVMParser(Source.fromURL(fileUrl, "UTF-8").mkString).parse.run().isSuccess
+    assert(new SVMScaleParser(Source.fromURL(fileUrl, "UTF-8").mkString).parse.run().isSuccess)
   }
 
   property("able to successfully parse real-world libsvm and scale R files") {
@@ -66,15 +68,15 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
         |classification.gesture.$gesture.model = "$modelName"
       """.stripMargin))
 
-    fileParser.model.bimap(_ => false, _.scaled.isDefined)
+    assert(fileParser.model.isRight && fileParser.model.exists(_.scaled.isDefined))
   }
-*/
+
+  // FIXME: failure due to how integers and decimals are handled/parsed!
   property("able to parse randomly generated libsvm key-value samples") {
     forAll(nonEmptyListOf(KeyValueGen)) { (kv: Seq[(String, String)]) =>
       val testData = kv.map { case (k, v) => s"$k $v" }.mkString("\n")
       val expectedResult = Header(kv.map { case (k, v) => HeaderEntry(k, v) })
       val kvParser = new LibSVMParser(testData)
-
       kvParser.HeaderRule.run() match {
         case Success(actualResult) =>
           assert(normaliseHeader(actualResult) == normaliseHeader(expectedResult))
