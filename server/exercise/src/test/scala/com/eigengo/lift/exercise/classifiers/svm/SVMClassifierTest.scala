@@ -89,10 +89,14 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     (115.13651,    -4.939932,    3.735270e+01)
   )
 
-  val DenseVectorGen: Gen[DenseVector[Double]] = for {
-    size <- posNum[Int]
+  def DenseVectorOfNGen(size: Int): Gen[DenseVector[Double]] = for {
     data <- listOfN(size, arbitrary[Double])
   } yield DenseVector(data: _*)
+
+  val DenseVectorGen: Gen[DenseVector[Double]] = for {
+    size <- posNum[Int]
+    vector <- DenseVectorOfNGen(size)
+  } yield vector
 
   val DenseMatrixGen: Gen[DenseMatrix[Double]] = for {
     rows <- posNum[Int]
@@ -129,10 +133,11 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     assert(abs(discrete_cosine_transform(data) :- result).forall(v => v === (0.0 +- 0.0001)))
   }
 
-  // FIXME: x and y need to be same length
   property("standard and taylor approximated RDFs are equal") {
-    forAll(posNum[Int] suchThat(2 <= _), DenseVectorGen, DenseVectorGen, arbitrary[Double]) { (degree: Int, x: DenseVector[Double], y: DenseVector[Double], gamma: Double) =>
-      (radial_kernel(x, y, gamma) - taylor_radial_kernel(degree)(x, y, gamma)) === (0.0 +- 0.03)
+    forAll(Gen.oneOf(2, 3, 4), Gen.oneOf(1 to 5)) { (degree: Int, size: Int) =>
+      forAll(DenseVectorOfNGen(size), DenseVectorOfNGen(size), arbitrary[Double]) { (x: DenseVector[Double], y: DenseVector[Double], gamma: Double) =>
+        (radial_kernel(x, y, gamma) - taylor_radial_kernel(degree)(x, y, gamma)) === (0.0 +- 0.03)
+      }
     }
   }
 
