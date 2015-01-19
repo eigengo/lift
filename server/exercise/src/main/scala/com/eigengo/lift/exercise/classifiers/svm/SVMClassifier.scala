@@ -25,7 +25,7 @@ trait SVMClassifier {
   private[svm] def discrete_cosine_transform(data: DenseVector[Double]): DenseVector[Double] = {
     val n = dim(data)
 
-    DenseVector.tabulate(n) { k => sum(data :* cos(DenseVector.tabulate(n) { i => (Pi / n) * (i + 0.5) * k })) }
+    DenseVector.tabulate(n) { (k: Int) => sum(data :* cos(DenseVector.tabulate(n) { (i: Int) => (Pi / n) * (i + 0.5) * k })) }
   }
 
   /**
@@ -35,8 +35,10 @@ trait SVMClassifier {
    * @param data matrix of data to be transformed
    * @return     concatenation of type I DCT results applied to each data row
    */
-  private[svm] def discrete_cosine_transform(data: DenseMatrix[Double]): DenseVector[Double] = {
-    DenseVector.vertcat((0 until data.rows).map { c => discrete_cosine_transform(data(c,::).t) }: _*)
+  private[svm] def discrete_cosine_transform(data: DenseMatrix[Double]): DenseMatrix[Double] = {
+    val rowDCT = DenseMatrix.vertcat((0 until data.rows).map { r => discrete_cosine_transform(data(r,::).t).toDenseMatrix }: _*)
+
+    DenseVector.horzcat((0 until data.cols).map { c => discrete_cosine_transform(rowDCT(::,c)) }: _*)
   }
 
   /**
@@ -65,10 +67,11 @@ trait SVMClassifier {
    */
   def predict(svm: SVMModel, data: DenseMatrix[Double], rbf: (DenseVector[Double], DenseVector[Double], Double) => Double): SVMClassification = {
     val feature = discrete_cosine_transform(data)
+    val featureVector = feature.t.toDenseVector // row-major transformation
     val scaled_feature = svm.scaled.map {
       case scaling =>
-        (feature :- scaling.center) :/ scaling.scale
-    }.getOrElse(feature)
+        (featureVector :- scaling.center) :/ scaling.scale
+    }.getOrElse(featureVector)
     val result = sum((0 until svm.nSV).map(j => rbf(svm.SV(j,::).t, scaled_feature, svm.gamma) * svm.coefs(j))) - svm.rho
     val probability = 1 / (1 + exp(svm.probA * result + svm.probB))
 
