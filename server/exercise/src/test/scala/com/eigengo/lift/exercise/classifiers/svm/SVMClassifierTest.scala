@@ -98,27 +98,36 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     vector <- DenseVectorOfNGen(size)
   } yield vector
 
-  val DenseMatrixGen: Gen[DenseMatrix[Double]] = for {
-    rows <- posNum[Int]
-    cols <- posNum[Int]
+  def DenseMatrixOfNGen(rows: Int, cols: Int): Gen[DenseMatrix[Double]] = for {
     data <- listOfN(rows, listOfN(cols, arbitrary[Double]))
   } yield DenseMatrix.tabulate(rows, cols) { case (i, j) => data(i)(j) }
 
-  val SVMScaleGen: Gen[SVMScale] = for {
-    center <- DenseVectorGen
-    scale  <- DenseVectorGen
+  val DenseMatrixGen: Gen[DenseMatrix[Double]] = for {
+    rows <- posNum[Int]
+    cols <- posNum[Int]
+    matrix <- DenseMatrixOfNGen(rows, cols)
+  } yield matrix
+
+  def SVMScaleGen(size: Int): Gen[SVMScale] = for {
+    center <- DenseVectorOfNGen(size)
+    scale  <- DenseVectorOfNGen(size)
   } yield SVMScale(center, scale)
 
-  val SVMModelGen: Gen[SVMModel] = for {
-    nSV    <- posNum[Int]
-    sv     <- DenseMatrixGen
+  def SVMModelOfNGen(rows: Int, cols: Int): Gen[SVMModel] = for {
+    sv     <- DenseMatrixOfNGen(rows, rows * cols)
     gamma  <- arbitrary[Double]
-    coefs  <- DenseVectorGen
+    coefs  <- DenseVectorOfNGen(rows)
     rho    <- arbitrary[Double]
     probA  <- arbitrary[Double]
     probB  <- arbitrary[Double]
-    scaled <- option(SVMScaleGen)
-  } yield SVMModel(nSV, sv, gamma, coefs, rho, probA, probB, scaled)
+    scaled <- option(SVMScaleGen(rows * cols))
+  } yield SVMModel(rows, sv, gamma, coefs, rho, probA, probB, scaled)
+
+  val SVMModelGen: Gen[SVMModel] = for {
+    rows <- posNum[Int]
+    cols <- posNum[Int]
+    model <- SVMModelOfNGen(rows, cols)
+  } yield model
 
   property("vector and matrix DCTs are equal when matrix is a vector") {
     forAll(DenseVectorGen) { (data: DenseVector[Double]) =>
@@ -141,23 +150,37 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     }
   }
 
-  // FIXME: data needs to be of a size suitable for the SVM model?
   property("SVM model displays consistent prediction with a standard RDF") {
-    forAll(SVMModelGen, DenseMatrixGen) { (svm: SVMModel, data: DenseMatrix[Double]) =>
-      val classification = predict(svm, data, rbf = radial_kernel)
+    forAll(Gen.oneOf(1 to 10), Gen.oneOf(1 to 3)) { (rows: Int, cols: Int) =>
+      forAll(SVMModelOfNGen(rows, cols)) { (svm: SVMModel) =>
+        val dataRows = svm.SV.rows
+        val dataCols = svm.SV.cols / svm.SV.rows
 
-      (classification.result < 0) === (classification.negativeMatch > classification.positiveMatch)
-      (classification.negativeMatch + classification.positiveMatch) === 1
+        forAll(DenseMatrixOfNGen(dataRows, dataCols)) { (data: DenseMatrix[Double]) =>
+          val classification = predict(svm, data, rbf = radial_kernel)
+
+          (classification.result < 0) === (classification.negativeMatch > classification.positiveMatch)
+          (classification.result >= 0) === (classification.negativeMatch <= classification.positiveMatch)
+          (classification.negativeMatch + classification.positiveMatch) === 1
+        }
+      }
     }
   }
 
-  // FIXME: data needs to be of a size suitable for the SVM model?
   property("SVM model displays consistent prediction with a taylor approximated RDF") {
-    forAll(posNum[Int] suchThat(2 <= _), SVMModelGen, DenseMatrixGen) { (degree: Int, svm: SVMModel, data: DenseMatrix[Double]) =>
-      val classification = predict(svm, data, rbf = taylor_radial_kernel(degree))
+    forAll(Gen.oneOf(2, 3, 4), Gen.oneOf(1 to 10), Gen.oneOf(1 to 3)) { (degree: Int, rows: Int, cols: Int) =>
+      forAll(SVMModelOfNGen(rows, cols)) { (svm: SVMModel) =>
+        val dataRows = svm.SV.rows
+        val dataCols = svm.SV.cols / svm.SV.rows
 
-      (classification.result < 0) === (classification.negativeMatch > classification.positiveMatch)
-      (classification.negativeMatch + classification.positiveMatch) === 1
+        forAll(DenseMatrixOfNGen(dataRows, dataCols)) { (data: DenseMatrix[Double]) =>
+          val classification = predict(svm, data, rbf = taylor_radial_kernel(degree))
+
+          (classification.result < 0) === (classification.negativeMatch > classification.positiveMatch)
+          (classification.result >= 0) === (classification.negativeMatch <= classification.positiveMatch)
+          (classification.negativeMatch + classification.positiveMatch) === 1
+        }
+      }
     }
   }
 
