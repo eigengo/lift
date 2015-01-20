@@ -16,5 +16,6 @@ object ResolverSettings {
     Resolver.typesafeRepo("snapshots"),
     Resolver.sonatypeRepo("snapshots"),    
     "Linter" at "http://hairyfotr.github.io/linteRepo/releases",
-    "krasserm" at "http://dl.bintray.com/krasserm/maven")
+    "krasserm" at "http://dl.bintray.com/krasserm/maven"
+  )
 }
