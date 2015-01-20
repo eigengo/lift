@@ -3,6 +3,8 @@ package com.eigengo.lift.exercise
 package classifiers
 
 import akka.stream.scaladsl._
+import breeze.linalg.DenseMatrix
+import com.eigengo.lift.exercise.classifiers.svm.{SVMClassifier, SVMModelParser}
 import com.typesafe.config.Config
 
 object GestureTokenizer {
@@ -39,19 +41,25 @@ object GestureTokenizer {
  * @param locationFilter collection of locations for which we are to (gesture) tokenize sensor streams
  * @param config
  */
-class GestureTokenizer(name: String, locationFilter: Set[SensorDataSourceLocation])(implicit config: Config) {
+class GestureTokenizer(name: String, locationFilter: Set[SensorDataSourceLocation])(implicit config: Config) extends SVMClassifier {
 
   import GestureTokenizer._
 
+  val threshold = config.getDouble(s"classification.gesture$name.threshold")
+  assert(0 <= threshold && threshold <= 1)
   val windowSize = config.getInt(s"classification.gesture.$name.size")
   assert(windowSize > 0)
 
-  def isGestureEvent(sample: List[AccelerometerData]): Boolean = {
+  val model = new SVMModelParser(name).model.get
+
+  def probabilityOfGestureEvent(sample: List[AccelerometerValue]): Double = {
     require(sample.length == windowSize)
 
-    ???
-  }
+    val data = DenseMatrix(sample.map(v => (v.x.toDouble, v.y.toDouble, v.z.toDouble)): _*)
 
+    predict(model, data, taylor_radial_kernel()).positiveMatch
+  }
+/*
   def parseGestures(location: SensorDataSourceLocation, data: List[AccelerometerData]): (List[Token], List[AccelerometerData]) = {
     val (parsed, unparsed) = data
       .sliding(windowSize)
@@ -75,8 +83,9 @@ class GestureTokenizer(name: String, locationFilter: Set[SensorDataSourceLocatio
       (List(), data)
     }
   }
-
-  val flow: Flow[SensorDataWithLocation[AccelerometerData], List[Token]] =
+*/
+  val flow: Flow[SensorDataWithLocation[AccelerometerData], List[Token]] = ???
+  /*
     Flow[SensorDataWithLocation[AccelerometerData]]
       .filter(data => locationFilter.contains(data.location))
       .groupBy(_.location)
@@ -90,5 +99,5 @@ class GestureTokenizer(name: String, locationFilter: Set[SensorDataSourceLocatio
         }
           .mapConcat(_._1)
     }
-
+*/
 }
