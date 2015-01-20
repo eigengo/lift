@@ -73,7 +73,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
         Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
     ]
-    private var sessions: [ExerciseSession] = []
+    private var offlineSessions: [OfflineExerciseSession] = []
     private let calendar = JTCalendar()
 
     override func viewDidLoad() {
@@ -103,6 +103,7 @@ class HomeController : UIViewController, UITableViewDataSource,
             self.calendarDidDateSelected(self.calendar, date: NSDate())
             }
         }
+        offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
         AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
     }
     
@@ -147,6 +148,7 @@ class HomeController : UIViewController, UITableViewDataSource,
                 self.performSegueWithIdentifier("startSession", sender: managedSession)
             }
         case 1: performSegueWithIdentifier("sessionDetail", sender: self)
+        case 2: return
         default: fatalError("Match error")
         }
     }
@@ -167,13 +169,14 @@ class HomeController : UIViewController, UITableViewDataSource,
         
     // MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 2
+        return 3
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return sessionSuggestions.count
         case 1: return sessionSummaries.count
+        case 2: return offlineSessions.count
         default: fatalError("Match error")
         }
     }
@@ -182,6 +185,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         switch section {
         case 0: return "HomeController.SessionSuggestions".localized()
         case 1: return "HomeController.SessionSummaries".localized()
+        case 2: return "HomeController.OfflineSessions".localized()
         default: fatalError("Match error")
         }
     }
@@ -190,6 +194,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         switch indexPath.section {
         case 0: return 40
         case 1: return 90
+        case 2: return 40
         default: fatalError("Match error")
         }
     }
@@ -207,6 +212,13 @@ class HomeController : UIViewController, UITableViewDataSource,
             let sessionSummary = sessionSummaries[x]
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as SessionTableViewCell
             cell.setSessionSummary(sessionSummary)
+            return cell
+        case (2, let x):
+            let cell = tableView.dequeueReusableCellWithIdentifier("suggestion") as UITableViewCell
+            let offlineSession = offlineSessions[x]
+            let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(offlineSession.props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
+            cell.textLabel!.text = ", ".join(mgs.map { $0.title })
+            cell.detailTextLabel!.text = ", ".join(mgs.map { ", ".join($0.exercises) })
             return cell
         default: fatalError("Match error")
         }

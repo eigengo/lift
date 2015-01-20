@@ -1,5 +1,30 @@
 import Foundation
 
+struct OfflineExerciseSession {
+    var id: NSUUID
+    var offlineFromStart: Bool
+    var props: Exercise.SessionProps
+}
+
+extension OfflineExerciseSession {
+    
+    static func unmarshal(json: JSON) -> OfflineExerciseSession {
+        let id = NSUUID(UUIDString: json["id"].stringValue)!
+        let offlineFromStart = json["offlineFromStart"].boolValue
+        let props = Exercise.SessionProps.unmarshal(json["props"])
+        return OfflineExerciseSession(id: id, offlineFromStart: offlineFromStart, props: props)
+    }
+    
+    func marshal() -> [String : AnyObject] {
+        var params: [String : AnyObject] = [:]
+        params["id"] = id.UUIDString
+        params["offlineFromStart"] = offlineFromStart
+        params["props"] = props.marshal()
+        return params
+    }
+    
+}
+
 /**
  * Offline manager maintains a list of offline sessions.
  */
@@ -30,6 +55,13 @@ class ExerciseSessionManager {
         let rootPath = documentsPath.stringByAppendingPathComponent(managedSession.id.UUIDString)
         NSFileManager.defaultManager().createDirectoryAtPath(rootPath, withIntermediateDirectories: false, attributes: nil, error: nil)
         let io = ManagerManagedExerciseSessionIO(rootPath: rootPath)
+
+        var error: NSError?
+        let x = OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, props: managedSession.props).marshal()
+        let os = NSOutputStream(toFileAtPath: rootPath.stringByAppendingPathComponent("props.json"), append: false)!
+        os.open()
+        NSJSONSerialization.writeJSONObject(x, toStream: os, options: NSJSONWritingOptions.PrettyPrinted, error: &error)
+        os.close()
         
         return ManagedExerciseSession(io: io, managedSession: managedSession, isOfflineFromStart: isOfflineFromStart)
     }
@@ -48,17 +80,26 @@ class ExerciseSessionManager {
         NSFileManager.defaultManager().removeItemAtPath(documentsPath.stringByAppendingPathComponent(id.UUIDString), error: nil)
     }
     
-    func listOfflineSessions(date: NSDate) -> [Exercise.SessionProps] {
-        func loadOfflineSession(offlineSessionPath: String) -> Exercise.SessionProps {
-            let realPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
-            return Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: ["arms"], intendedIntensity: 1.0)
-        }
+    func listOfflineSessions() -> [OfflineExerciseSession] {
         
-        if let offlineSessions = NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath, error: nil) as? [String] {
-            return offlineSessions.map(loadOfflineSession)
-        } else {
+        func loadOfflineSession(offlineSessionPath: String) -> [OfflineExerciseSession] {
+            let rootPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
+            let propsJsonPath = rootPath.stringByAppendingPathComponent("props.json")
+            if let propsJsonData = NSData(contentsOfFile: propsJsonPath) {
+                let json = JSON(data: propsJsonData, options: NSJSONReadingOptions.AllowFragments, error: nil)
+                return [OfflineExerciseSession.unmarshal(json)]
+            }
             return []
         }
+        
+        var result: [OfflineExerciseSession] = []
+        if let offlineSessions = NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath, error: nil) as? [String] {
+            for offlineSession in offlineSessions {
+                result += loadOfflineSession(offlineSession)
+            }
+        }
+        
+        return result
     }
     
     class ManagerManagedExerciseSessionIO : ManagedExerciseSessionIO {
@@ -72,6 +113,7 @@ class ExerciseSessionManager {
         }
         
         func remove() {
+            NSLog("Removed %@", rootPath)
             NSFileManager.defaultManager().removeItemAtPath(rootPath, error: nil)
         }
         
@@ -132,7 +174,10 @@ class ManagedExerciseSession : ExerciseSession {
     
     override func end(f: Result<Void> -> Void) -> Void {
         if !isOffline {
-            managedSession.end { $0.cata(const(()), r: { _ in self.io.remove() }) }
+            managedSession.end { x in
+                x.cata(const(()), r: { _ in self.io.remove() })
+                f(x)
+            }
         }
         f(Result.value(()))
     }
@@ -142,11 +187,15 @@ class ManagedExerciseSession : ExerciseSession {
     }
     
     override func startExplicitClassification(exercise: Exercise.Exercise) -> Void {
-        managedSession.startExplicitClassification(exercise)
+        if !isOffline {
+            managedSession.startExplicitClassification(exercise)
+        }
     }
     
     override func endExplicitClassification() -> Void {
-        managedSession.endExplicitClassification()
+        if !isOffline {
+            managedSession.endExplicitClassification()
+        }
     }
     
 }
