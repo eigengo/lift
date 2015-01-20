@@ -2,9 +2,8 @@ package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
 import com.eigengo.lift.exercise.UserExercisesClassifier._
-import UserExercises._
-
 import scala.util.Random
+import UserExercises._
 
 /**
  * Companion object for the classifier
