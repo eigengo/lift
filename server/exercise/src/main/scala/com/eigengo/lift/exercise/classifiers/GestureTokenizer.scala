@@ -139,13 +139,15 @@ class GestureTokenizer(name: String, monitoring: Set[SensorDataSourceLocation], 
    * a action or modulation function that is extracted from a "trigger" input node. Sensor message flow synchronously with
    * the messages on the "trigger" input node.
    *
-   * @param sensorIn map representing the location tagged sensor network
-   * @return         flowgraph that transforms sensor messages using "trigger" modulation signals
+   * @param sensorIn  map representing the location tagged sensor network
+   * @param sensorOut sensor outputs transformed by "trigger" signal
+   * @return          flowgraph that transforms sensor messages using "trigger" modulation signals
    */
-  def sensorTransformation[A, B, L](sensorIn: Map[L, Source[A]]) = FlowGraph { implicit builder =>
+  def sensorTransformation[A, B, L](sensorIn: Map[L, Source[A]], sensorOut: Map[L, Sink[B]]) = FlowGraph { implicit builder =>
+    require(sensorIn.keys == sensorOut.keys)
+
     val transform = UndefinedSource[Transformation[A, B]] // Transformation signal used to modulate sensor data
     val broadcast = Broadcast[Transformation[A, B]]
-    val sensorOut = sensorIn.map { case (loc, _) => (loc, UndefinedSink[B]) } // Transformed sensor outputs (transform signal determines transformation output)
 
     transform ~> broadcast
     for ((location, sensor) <- sensorIn) {
