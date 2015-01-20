@@ -13,13 +13,23 @@ abstract class KafkaProducerPersistentActor extends PersistentActor {
    * Persists message and at the same time produces it to kafka broker
    * Same intefrace as persist
    *
-   * @param event
-   * @param handler
-   * @tparam A
+   * @param event event to be produced
+   * @param handler handler passed to persist
+   * @tparam A eventy type
    * @return
    */
   final def persistAndProduceToKafka[A](event: A)(handler: A ⇒ Unit): Unit = {
     persist(event)(handler)
+    kafka ! event
+  }
+
+  /**
+   * Produces event to kafka
+   *
+   * @param event event to be produced
+   * @tparam A event type
+   */
+  final def produceToKafka[A](event: A): Unit = {
     kafka ! event
   }
 
@@ -29,13 +39,15 @@ abstract class KafkaProducerPersistentActor extends PersistentActor {
       false
     }
 
+    //isDefinedAt always false so apply does not have to be implemented
     override def apply(v1: Any): Unit = ???
   }
 
   /**
    * Wrapper for receive
    * All messages in the inner receive go through this one first
-   * They are never handled, but as side effect sent to kafka
+   * They are never handled, but as <b>side effect</b> sent to kafka
+   *
    * @param receive inner receive
    * @return concatenated receive
    */

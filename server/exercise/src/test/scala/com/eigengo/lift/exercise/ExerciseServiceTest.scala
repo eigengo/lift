@@ -37,6 +37,7 @@ object ExerciseServiceTest {
       0x00, 0x04, 0x01, 0xff, 0x01, 0x02, 0x03,
       0x00, 0x02, 0x02, 0xf0, 0x01).map(_.toByte)
     val emptyResponse = "{\"b\":{}}"
+    val emptyListResponse = "\"\""
   }
 
   def probe(implicit system: ActorSystem) = {
@@ -64,7 +65,7 @@ object ExerciseServiceTest {
             sender ! \/.right(())
             TestActor.KeepRunning
           case UserExerciseExplicitClassificationStart(_, _, _) =>
-            sender ! \/.right(())
+            sender ! List(TestData.squat)
             TestActor.KeepRunning
         }
       }
@@ -97,7 +98,7 @@ class ExerciseServiceTest
     }
   }
 
-  it should "listen at POST exercise/:UserIdValue endpoint" in {
+  it should "listen at POST exercise/:UserIdValue/start endpoint" in {
     Post(s"/exercise/${TestData.userId.id}/start", TestData.sessionProps) ~> underTest ~> check {
       UserId(response.entity.asString.replace("\"", "")) should be(TestData.userId)
     }
@@ -159,7 +160,7 @@ class ExerciseServiceTest
 
   it should "listen at POST exercise/:UserIdValue/:SessionIdValue/classification endpoint" in {
     Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/classification", TestData.squat) ~> underTest ~> check {
-      response.entity.asString should be(TestData.emptyResponse)
+      response.entity.asString should be(TestData.emptyListResponse)
     }
 
     probe.expectMsg(UserExerciseExplicitClassificationStart(TestData.userId, TestData.sessionId, TestData.squat))

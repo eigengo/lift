@@ -3,6 +3,11 @@ package com.eigengo.lift.kafka
 import akka.actor.{ActorLogging, Actor, Props}
 import com.eigengo.lift.common.JavaSerializationCodecs
 import com.typesafe.config.Config
+import scala.collection.JavaConverters.asScalaSetConverter
+
+import scalaz.\/
+import com.eigengo.lift.kafka.PropertiesConfig._
+import scala.language.implicitConversions
 
 /**
  * Kafka producer actor companion for actor construction
@@ -30,18 +35,17 @@ class KafkaProducerActor(config: Config)
   with KafkaProducer
   with JavaSerializationCodecs {
 
-  override val kafkaConfig = config.getConfig("kafka.producer")
+  override def kafkaConfig = config.getConfig("kafka.producer")
 
   private val topic = kafkaConfig.getString("topic")
 
-  private def logs[T](event: T) =
-    log.info(s"""${self.path} producing "$event" to Kafka""")
+  private def logs[T](event: T, result: String \/ Unit) =
+    log.info(s"""${self.path} producing "$event" to Kafka with result "$result"""")
 
   override def receive: Receive = {
-    case event @ _ => {
-      logs(event)
+    case event @ _ =>
       val produced = produce(event, topic)
-    }
+      logs(event, produced)
   }
 
   override def postStop() = {

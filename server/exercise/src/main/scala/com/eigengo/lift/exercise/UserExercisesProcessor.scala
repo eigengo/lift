@@ -170,8 +170,8 @@ object UserExercisesProcessor {
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercisesProcessor(kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
-  extends PersistentActor
+class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
+  extends KafkaProducerPersistentActor
   with ActorLogging
   with AutoPassivation {
 
@@ -236,7 +236,7 @@ class UserExercisesProcessor(kafka: ActorRef, notification: ActorRef, userProfil
 
     // explicit classification
     case ExerciseExplicitClassificationStart(`id`, exercise) =>
-      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
+      persistAndProduceToKafka(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
 
     case ExerciseExplicitClassificationEnd(`id`) ⇒
       self ! NoExercise(ModelMetadata.user)
@@ -270,11 +270,10 @@ class UserExercisesProcessor(kafka: ActorRef, notification: ActorRef, userProfil
       sender() ! \/.left("Not in session")
 
     case ExerciseSessionDelete(sessionId) ⇒
-      persist(SessionDeletedEvt(sessionId)) { evt ⇒
+      persistAndProduceToKafka(SessionDeletedEvt(sessionId)) { evt ⇒
         sender() ! \/.right(())
       }
   }
 
   override def receiveCommand: Receive = notExercising
-
 }

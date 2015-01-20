@@ -28,17 +28,21 @@ trait KafkaProducer extends DisjunctionFunctions {
    *
    * Required kafka.producer
    */
-  val kafkaConfig: Config
+  def kafkaConfig: Config
 
   private lazy val producer =
-    new Producer[String, Payload](new ProducerConfig(kafkaConfig.getConfig("kafka.producer").properties))
+    new Producer[String, Payload](new ProducerConfig(kafkaConfig.properties))
 
   //TODO: Implement retry for sync sending?
   //Similar to https://github.com/mighdoll/sparkle/blob/master/kafka/src/main/scala/nest/sparkle/loader/kafka/KafkaWriter.scala
   //(but working and without sleeping)
   //kafka producer internally has message.send.max.retries which should be enough
-  private def send(message: KeyedMessage[String, Payload]): Throwable \/ Unit =
+  private def send(message: KeyedMessage[String, Payload]): Throwable \/ Unit = {
+    println("KAFKA BROKER LIST")
+    println(kafkaConfig.getString("metadata.broker.list"))
+
     fromTryCatchNonFatal(producer.send(message))
+  }
 
   /**
    * Encodes and produces a message to Kafka
