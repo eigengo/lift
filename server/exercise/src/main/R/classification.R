@@ -3,6 +3,7 @@ library(dtt)
 library(ggplot2)
 library(grid)
 library(gridExtra)
+library(pracma)
 
 debug = FALSE
 
@@ -106,14 +107,44 @@ extractFeatures = function(inputList, size, tag, inc = 10) {
 #
 ########################################################################################################################
 
+# Function used to calculate an N-fold cross validation cost.
+#
+# @param tag        tag that data has been (potentially) labeled with (for training)
+# @param data       training data we are to use
+# @param testData   randomised indexes into the data parameter
+# @param buckets    number of buckets or folds to be used
+# @param costParam  
+# @param gammaParam 
+parameterCost = function(tag, data, testData, buckets, costParam, gammaParam) {
+  sampleSize = nrow(data)
+  bucketCount = (sampleSize %/% buckets)-1
+  extraCount = sampleSize %% buckets
+  result = 0
+  for (n in 1:bucketCount) { 
+    testIndexes = testData[(n*buckets):((n+1)*buckets)]
+    if (n <= extraCount) {
+      testIndexes = c(testIndexes, testData[((bucketCount+1)*buckets) + n])
+    }
+    testSet = data[testIndexes,]
+    trainingSet = data[-testIndexes,]
+    svm.model = svm(tag ~ ., data = trainingSet, cost = costParam, gamma = gammaParam)
+    svm.pred = predict(svm.model, testSet[,2:ncol(data)])
+    svmTable = table(pred = svm.pred, true = testSet[,1])
+    result = result + ((svmTable[1,1] + svmTable[2,2])/sum(svmTable))
+  }
+
+  result / bucketCount
+}
+
 # Function used to train a support vector machine (SVM). Trained SVM model is saved to a file.
 #
-# @param tag          tag that data has been (potentially) labeled with (for training)
-# @param approx       (positive) integer describing the number of coefficients (i.e. level of approximation) that the
-#                     underlying DCT algorithm should use
+# @param tag        tag that data has been (potentially) labeled with (for training)
+# @param size       size of sampling window
+# @param buckets    number of buckets or folds to be used
+# @param repeats    how many attempts at fitting a model for a given cost and gamma parameter
 # @param costParam
 # @param gammaParam
-trainSVM = function(tag, size, costParam = 100, gammaParam = 1) {
+trainSVM = function(tag, size, buckets = 10, repeats = 10, costParams = 10^(0:4), gammaParams = 10^(0:-4)) {
   data = read.csv(file=paste("svm", "-", tag, "-features", ".csv", sep=""))
   xLabels = lapply(rep(1:size), function(index) { paste("x", index, sep="") })
   yLabels = lapply(rep(1:size), function(index) { paste("y", index, sep="") })
@@ -121,35 +152,90 @@ trainSVM = function(tag, size, costParam = 100, gammaParam = 1) {
   names(data) = c("tag", xLabels, yLabels, zLabels)
 
   sampleSize = nrow(data)
-  testData = sample(sampleSize, trunc(sampleSize * 2/5))
-  testSet = data[testData,]
-  trainingSet = data[-testData,]
-  svm.model = svm(tag ~ ., data = trainingSet, cost = costParam, gamma = gammaParam, probability = TRUE)
 
-  print("SVM confusion matrix and model accuracy rates:")
-  svm.pred = predict(svm.model, testSet[,2:ncol(data)], probability = TRUE)
-  svmTable = table(pred = svm.pred, true = testSet[,1])
-  print(svmTable)
-  print(classAgreement(svmTable))
+  # Perform a grid search and locate the SVM model with the highest cost (in terms of an N-fold cross validation)
+  bestCostParam = NULL
+  bestGammaParam = NULL
+  maxCost = NULL
+  for (iter in 1:repeats) {
+    testData = sample(sampleSize, sampleSize)
+    for (costParam in costParams) {
+      for (gammaParam in gammaParams) {
+        cost = parameterCost(tag, data, testData, buckets, costParam, gammaParam)
+        if (debug) {
+          print(paste(costParam, gammaParam, cost))
+        }
+        if (is.null(bestCostParam)) {
+          bestCostParam = costParam
+          bestGammaParam = gammaParam
+          maxCost = cost
+          print(paste("[Initial step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+        }
+        if (cost > maxCost) {
+          bestCostParam = costParam
+          bestGammaParam = gammaParam
+          maxCost = cost
+          print(paste("[Search step] SVM model (", costParam, ",", gammaParam, ") has ", buckets, "-fold cross correlation value of ", cost, sep=""))
+        }
+      }
+    }
+  }
+  print(paste("Tuned SVM model (", bestCostParam, ",", bestGammaParam, ") has ", buckets, "-fold cross correlation value of ", maxCost, sep=""))
 
+  svm.model = svm(tag ~ ., data = data, cost = bestCostParam, gamma = bestGammaParam, probability = TRUE)
   saveRDS(svm.model, paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   write.svm(svm.model, svm.file = paste("svm-model", "-", tag, "-features", ".libsvm", sep=""), scale.file = paste("svm-model", "-", tag, "-features", ".scale", sep=""))
 }
 
-# TODO: document
-tuneSVM = function() {
-  # TODO: implement
+# Function implementing a radial basis function - for reusing trained model in non-R environments
+#
+# @param x     input vector
+# @param y     input vector (for efficiency, calling context calculates this RBF component)
+# @param gamma "reach" (user defined parameter)
+radial_kernel = function(x, y, gamma) {
+  exp(-gamma * sum((x - y) * (x - y)))
+}
+
+# Taylor series approximation to the radial basis function - for reusing trained model in non-R environments on large data sets
+#
+# @param x      input vector
+# @param y      input vector (for efficiency, calling context calculates this RBF component)
+# @param gamma  "reach" (user defined parameter)
+# @param degree degree to which taylor series will be expanded (around zero)
+taylor_radial_kernel = function(x, y, gamma, degree = 2) {
+  taylor_expansion = taylor(f = exp, x0 = 0, n = degree)
+  exp(-gamma * sum(x * x)) * exp(-gamma * sum(y * y)) * polyval(taylor_expansion, gamma * sum(2 * x * y))
+}
+
+# Function that generates a function implementing data classification - for reusing trained model in non-R environments
+#
+# NOTE: following values need to be extracted from (R) SVM models for portability to non-R environments:
+#   x.scale; tot.nSV; SV; gamma; coefs; rho; probA; probB
+#
+# @param tag label or tag this SVM has been classified for (used to load previously stored RDS SVM object)
+# @param rbf radial basis function that we are to use (allows for approximation via taylor series etc.)
+svm_predict = function(tag, rbf = radial_kernel) { 
+  function(svm, data, probability = TRUE) {
+    scaled_data = (data - svm$x.scale$"scaled:center") / svm$x.scale$"scaled:scale"
+    result = sum(sapply(1:svm$tot.nSV, function(j) { rbf(svm$SV[j,], scaled_data, svm$gamma) * svm$coefs[j] })) - svm$rho
+    if (probability) {
+      probability = 1 / (1 + exp(svm$probA * result + svm$probB))
+      attr(result, "probabilities") = matrix(c(probability, 1-probability), nrow = 1, ncol=2, dimnames=list(list("feature"), list("", tag)))
+    }
+    result
+  }
 }
 
 # Used to classify events in a given accelerometer data file (the `input`) using an SVM classifier (which is loaded from
 # a previously saved RDS file).
 #
-# @param input       CSV file containing accelerometer data within which we need to classify events
-# @param tag         label used to classify data
-# @param size        sample window size (used to sample input for classification purposes)
-# @param inc         distance by which sampling window will iteratively move
-# @param threshold   probability threshold - over this value and we classify window as being labeled by `tag`
-classify = function(input, tag, size, inc = 10, threshold = 0.75) {
+# @param input         CSV file containing accelerometer data within which we need to classify events
+# @param tag           label used to classify data
+# @param size          sample window size (used to sample input for classification purposes)
+# @param inc           distance by which sampling window will iteratively move
+# @param threshold     probability threshold - over this value and we classify window as being labeled by `tag`
+# @param model.predict function to be used in making model predictions (default is to use e1071 `predict` function)
+classify = function(input, tag, size, inc = 10, threshold = 0.75, model.predict = predict) {
   svm = readRDS(paste("svm-model", "-", tag, "-features", ".rds", sep=""))
   csv = read.csv(file=input, col.names=(c("x", "y", "z")))
   xLabels = lapply(rep(1:size), function(index) { paste("x", index, sep="") })
@@ -176,7 +262,7 @@ classify = function(input, tag, size, inc = 10, threshold = 0.75) {
     names(feature) = c("feature")
     row.names(feature) = c(xLabels, yLabels, zLabels)
 
-    pred = predict(svm, newdata = t(feature), probability = TRUE)
+    pred = model.predict(svm, t(feature), probability = TRUE)
     probability = as.data.frame(attr(pred, "probabilities"))
     if (debug) {
       print(paste(window[1], format(round(probability[tag], 2), nsmall=2)))
@@ -206,23 +292,8 @@ classify = function(input, tag, size, inc = 10, threshold = 0.75) {
 # @param size      TODO:
 # @param tag       TODO:
 # @param inc       TODO:
-# @param gamma     TODO:
-# @param threshold TODO:
-main = function(inputList, size, tag, inc = 10, gamma = 1, threshold = 0.75) {
+main = function(inputList, size, tag, inc = 10) {
   extractFeatures(inputList, size, tag, inc)
 
-  answer = "y"
-  while (toString(answer) != "n") {
-    trainSVM(tag, size, gamma)
-    print("Retrain the SVM (Y/n)? ")
-    answer = scan(what=character(), nmax=1, quiet=TRUE)
-  }
-
-  print("Enter name of file for classification ('stop' to terminate): ")
-  answer = scan(what=string(), nmax=1, quiet=TRUE)
-  while (toString(answer) != "stop") {
-    classify(input, tag, size, threshold)
-    print("Enter name of file for classification ('stop' to terminate): ")
-    answer = scan(what=string(), nmax=1, quiet=TRUE)
-  }
+  trainSVM(tag, size)
 }

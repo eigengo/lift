@@ -29,7 +29,7 @@ object UserExercises {
    * @param sessionProps the session
    * @param sensorData the sensor data
    */
-  case class ClassifyExerciseEvt(sessionProps: SessionProps, sensorData: List[SensorDataWithLocation])
+  case class ClassifyExerciseEvt[D <: SensorData](sessionProps: SessionProps, sensorData: List[SensorDataWithLocation[D]])
 
   /**
    * The session has started
@@ -70,5 +70,12 @@ object UserExercises {
    * @param metadata the model metadata
    */
   case class NoExerciseEvt(sessionId: SessionId, metadata: ModelMetadata)
+
+  /**
+   * Set metric on all un-metriced exercises in the current set
+   * @param sessionId the session id
+   * @param metric the metric to be set
+   */
+  case class ExerciseSetExerciseMetricEvt(sessionId: SessionId, metric: Metric)
   
 }

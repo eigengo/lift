@@ -70,6 +70,14 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       }
     } ~
+    path("exercise" / UserIdValue / SessionIdValue / "metric") { (userId, sessionId) ⇒
+      post {
+        handleWith { metric: Metric ⇒
+          userExercises ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
+          ""
+        }
+      }
+    } ~
     path("exercise" / UserIdValue / SessionIdValue / "classification") { (userId, sessionId) ⇒
       get {
         complete {

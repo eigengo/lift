@@ -34,6 +34,23 @@ object UserExercisesProcessor {
   case class UserExerciseExplicitClassificationStart(userId: UserId, sessionId: SessionId, exercise: Exercise)
 
   /**
+   * Sets the metric of all the exercises in the current set that don't have a metric yet. So, suppose the user is in
+   * a set doing squats, and the system's events are
+   *
+   * - ExerciseEvt(squat) // without metric
+   * - ExerciseEvt(squat) // without metric
+   * - ExerciseEvt(squat) // without metric
+   * *** UserExerciseSetExerciseMetric
+   *
+   * The system generates the ExerciseMetricSetEvt, and the views should add the metric to the previous three exercises
+   *
+   * @param userId the user identity
+   * @param sessionId the session identity
+   * @param metric the received metric
+   */
+  case class UserExerciseSetExerciseMetric(userId: UserId, sessionId: SessionId, metric: Metric)
+
+  /**
    * Obtains a list of example exercises for the given session
    * @param userId the user
    * @param sessionId the session
@@ -94,6 +111,13 @@ object UserExercisesProcessor {
   private case class ExerciseExplicitClassificationExamples(sessionId: SessionId)
 
   /**
+   * Sets the metric for the unmarked exercises in the currently open set
+   * @param sessionId the session identity
+   * @param metric the metric
+   */
+  private case class ExerciseSetExerciseMetric(sessionId: SessionId, metric: Metric)
+
+  /**
    * User classified exercise.
    * @param sessionId session
    */
@@ -150,6 +174,8 @@ object UserExercisesProcessor {
     case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
     case UserExerciseExplicitClassificationEnd(userId, sessionId)             ⇒ (userId.toString, ExerciseExplicitClassificationEnd(sessionId))
     case UserExerciseExplicitClassificationExamples(userId, sessionId)        ⇒ (userId.toString, ExerciseExplicitClassificationExamples(sessionId))
+    case UserExerciseSetExerciseMetric(userId, sessionId, metric)             ⇒ (userId.toString, ExerciseExplicitClassificationExamples(sessionId))
+
   }
 
   /**
@@ -243,6 +269,10 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
 
     case ExerciseExplicitClassificationExamples(`id`) ⇒
       classifier.tell(ClassificationExamples(sessionProps), sender())
+
+    // explicit metrics
+    case ExerciseSetExerciseMetric(`id`, metric) ⇒
+      persist(ExerciseSetExerciseMetricEvt(id, metric)) { evt ⇒ }
 
     // classification results
     case FullyClassifiedExercise(metadata, confidence, exercise) ⇒

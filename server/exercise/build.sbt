@@ -10,8 +10,10 @@ libraryDependencies ++= Seq(
   akka.cluster,
   akka.contrib,
   akka.persistence,
+  akka.streams.core,
   // Breeze
   scalanlp.breeze,
+  scalanlp.natives, // FIXME: for our needs, which is more efficient: jBLAS; native packaged BLAS; or commercial BLAS?
   scalanlp.nak,
   // For REST API
   spray.httpx,
@@ -22,6 +24,8 @@ libraryDependencies ++= Seq(
   // Codec
   scodec_bits,
   scalaz.core,
+  // Parsing
+  parboiled,
   // Apple push notifications
   apns,
   slf4j_simple,
