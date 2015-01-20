@@ -26,6 +26,14 @@ extension Exercise.SessionProps {
         return Exercise.SessionProps(startDate: startDate, muscleGroupKeys: muscleGroupKeys, intendedIntensity: intendedIntensity)
     }
     
+    func marshal() -> [String : AnyObject] {
+        var params: [String : AnyObject] = [:]
+        params["startDate"] = isoDateFormatter.stringFromDate(startDate)
+        params["intendedIntensity"] = intendedIntensity
+        params["muscleGroupKeys"] = muscleGroupKeys
+        return params
+    }
+    
 }
 
 extension Exercise.Exercise {

@@ -650,6 +650,10 @@ public class Request {
     */
     public func response(queue: dispatch_queue_t? = nil, serializer: Serializer, completionHandler: (NSURLRequest, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void) -> Self {
         dispatch_async(delegate.queue) {
+            if self.delegate.data != nil && self.response != nil && self.delegate.error == nil {
+                let cachedResponse = NSCachedURLResponse(response: self.response!, data: self.delegate.data!)
+                NSURLCache.sharedURLCache().storeCachedResponse(cachedResponse, forRequest: self.request)
+            }
             let (responseObject: AnyObject?, serializationError: NSError?) = serializer(self.request, self.response, self.delegate.data)
 
             dispatch_async(queue ?? dispatch_get_main_queue()) {

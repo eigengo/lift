@@ -9,7 +9,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
-    private var sessionId: NSUUID?
+    private var session: ExerciseSession?
     private var device: ConnectedDevice?
     @IBOutlet var stopSessionButton: UIBarButtonItem!
 
@@ -30,11 +30,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func end() {
-        if let x = sessionId {
-            LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: x) { x in
-                NSLog("[INFO] LiveSessionController.end() session ended")
-                self.sessionId = nil
-            }
+        if let x = session {
+            x.end(const(()))
+            self.session = nil
         } else {
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
@@ -69,14 +67,13 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        sessionId = session.id
+        self.session = session
         device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
         device!.start()
-        LiftServer.sharedInstance.exerciseSessionGetClassificationExamples(CurrentLiftUser.userId!, sessionId: session.id) {
-            $0.cata(const(()), { x in
+        session.getClassificationExamples { $0.getOrUnit { x in
                 self.exampleExercises = x
                 self.tableView.reloadData()
-            })
+            }
         }
         UIApplication.sharedApplication().idleTimerDisabled = true
     }
@@ -147,14 +144,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                         }
                     }
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
-                    ResultContext.run { ctx in
-                        LiftServer.sharedInstance.exerciseSessionStartExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, exercise: self.exampleExercises[indexPath.row], f: ctx.unit())
-                    }
+                    session?.startExplicitClassification(exampleExercises[indexPath.row])
                 case UITableViewCellAccessoryType.Checkmark:
                     selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                    ResultContext.run { ctx in
-                        LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
-                    }
+                    session?.endExplicitClassification()
                 default: return
                 }
             }
@@ -167,9 +160,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                 //If it was still checked, send delete request before unchecking
             case UITableViewCellAccessoryType.Checkmark:
                 selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                ResultContext.run{ ctx in
-                    LiftServer.sharedInstance.exerciseSessionEndExplicitClassification(CurrentLiftUser.userId!, sessionId: self.sessionId!, f: ctx.unit())
-                }
+                session?.endExplicitClassification()
             default: return
             }
         }
@@ -185,12 +176,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: AccelerometerReceiverDelegate
     
     func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
-        if let x = sessionId {
+        if let x = session {
             self.deviceSession = deviceSession
             let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-            LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: x, data: mp) {
-                $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
-            }
+            x.submitData(mp, const(()))
+
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
                 tableView.reloadData()
             }

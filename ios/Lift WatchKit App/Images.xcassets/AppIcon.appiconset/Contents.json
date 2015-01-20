@@ -53,20 +53,6 @@
       "scale" : "2x",
       "role" : "quickLook",
       "subtype" : "42mm"
-    },
-    {
-      "scale" : "2x",
-      "idiom" : "watch",
-      "unassigned" : true,
-      "role" : "notificationCenter",
-      "subtype" : "38mm"
-    },
-    {
-      "scale" : "2x",
-      "idiom" : "watch",
-      "unassigned" : true,
-      "role" : "notificationCenter",
-      "subtype" : "42mm"
     }
   ],
   "info" : {
