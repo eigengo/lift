@@ -36,11 +36,19 @@ internal func !=(l: AvailabilityState, r: AvailabilityState) -> Bool {
  * Operations on AS
  */
 internal extension AvailabilityState {
+    
+    func isOnline() -> Bool {
+        let sar = shouldAttemptRequest()
+        if sar {
+            return isServerReachable
+        }
+        return false
+    }
 
     func shouldAttemptRequest() -> Bool {
         if let x = lastServerFailureDate {
             // regardless of situation, we try every 60 seconds
-            return NSDate().timeIntervalSinceDate(x) > 60
+            if NSDate().timeIntervalSinceDate(x) > 60 { return true }
         }
 
         if isNetworkReachable {
@@ -61,15 +69,15 @@ internal extension AvailabilityState {
     }
     
     func serverSucceeded() -> AvailabilityState {
-        return AvailabilityState(isNetworkReachable: true, isServerReachable: true, lastServerFailureDate: lastServerFailureDate)
+        return AvailabilityState(isNetworkReachable: true, isServerReachable: true, lastServerFailureDate: nil)
     }
     
     func networkReachable(reachable: Bool) -> AvailabilityState {
-        return AvailabilityState(isNetworkReachable: reachable, isServerReachable: isServerReachable, lastServerFailureDate: lastServerFailureDate)
+        return AvailabilityState(isNetworkReachable: reachable, isServerReachable: reachable, lastServerFailureDate: reachable ? nil : lastServerFailureDate)
     }
     
     func serverReachable(reachable: Bool) -> AvailabilityState {
-        return AvailabilityState(isNetworkReachable: isNetworkReachable, isServerReachable: reachable, lastServerFailureDate: NSDate())
+        return AvailabilityState(isNetworkReachable: isNetworkReachable, isServerReachable: reachable, lastServerFailureDate: reachable ? nil : lastServerFailureDate)
     }
     
 }
@@ -169,6 +177,10 @@ public class LiftServer {
         return Singleton.instance
     }
     
+    init() {
+        registerReachability()
+    }
+    
     private func registerReachability() {
         let reachability = Reachability.reachabilityForInternetConnection()
         reachability.reachableBlock = { _ in
@@ -177,6 +189,7 @@ public class LiftServer {
         reachability.unreachableBlock = { _ in
             self.updateAvailabiltyState(self.availabilityState.networkReachable(false))
         }
+        reachability.startNotifier()
     }
 
     /// indicates that the server is reachable
@@ -256,8 +269,11 @@ public class LiftServer {
     
     private var baseUrlString: String = LiftUserDefaults.liftServerUrl
     
-    func setBaseUrlString(baseUrlString: String) {
+    func setBaseUrlString(baseUrlString: String) -> Bool {
+        if self.baseUrlString == baseUrlString { return false }
+        
         self.baseUrlString = baseUrlString
+        return true
     }
     
     ///

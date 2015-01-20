@@ -7,6 +7,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     var deviceToken: NSData?
     var window: UIWindow?
     var alertView: UIAlertView? = nil
+    var lastAlertTime: NSDate? = nil
     
     // MARK: Application-wide public functions
     
@@ -63,12 +64,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
         // notifications et al
         registerSettingsAndDelegates()
         
-        // perform initialization
-        let start = NSDate()
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
         // main initialization
         // Prepare the cache
         LiftServerCache.sharedInstance.build { _ in
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let userId = CurrentLiftUser.userId {
                 // We have previously-known user id. But is the account still there?
                 LiftServer.sharedInstance.userCheckAccount(userId) { r in
@@ -127,8 +126,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     }
     
     func applicationDidBecomeActive(application: UIApplication) {
-        LiftServer.sharedInstance.setBaseUrlString(LiftUserDefaults.liftServerUrl)
-        LiftServerCache.sharedInstance.build(const(()))
+        if LiftServer.sharedInstance.setBaseUrlString(LiftUserDefaults.liftServerUrl) {
+            LiftServerCache.sharedInstance.build(const(()))
+        }
     }
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
@@ -137,16 +137,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     
     // MARK: LiftServerDelegate implementation
     
+    private func notTooLoud(f: @autoclosure () -> Void) -> Void {
+        let minimumAlertTime: NSTimeInterval = 5.0
+        if let x = lastAlertTime {
+            if NSDate().timeIntervalSinceDate(x) < minimumAlertTime { return }
+        }
+        lastAlertTime = NSDate()
+        f()
+    }
+    
     func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
-        println("Availability changed to \(newState)")
-        if !newState.shouldAttemptRequest() {
-            NSLog("*** Offline")
-            RKDropdownAlert.title("Offline".localized(), backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
-            UINavigationBar.appearance().barTintColor = UIColor.orangeColor()
-        } else {
+        println("Availability changed: isNetworkReachable -> \(newState.isNetworkReachable)")
+        println("Availability changed: isServerReachable -> \(newState.isServerReachable)")
+        println("Availability changed: lastServerFailureDate -> \(newState.lastServerFailureDate)")
+        
+        if newState.isOnline() {
             NSLog("*** Online")
-            RKDropdownAlert.title("Online".localized(), backgroundColor: UIColor.greenColor(), textColor: UIColor.blackColor(), time: 3)
+            notTooLoud(RKDropdownAlert.title("Online".localized(), backgroundColor: UIColor.greenColor(), textColor: UIColor.blackColor(), time: 3))
             UINavigationBar.appearance().barTintColor = nil
+        } else {
+            NSLog("*** Offline")
+            notTooLoud(RKDropdownAlert.title("Offline".localized(), backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3))
+            UINavigationBar.appearance().barTintColor = UIColor.orangeColor()
         }
     }
 

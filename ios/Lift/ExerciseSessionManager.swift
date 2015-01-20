@@ -164,7 +164,7 @@ class ManagedExerciseSession : ExerciseSession {
         
         if !isOffline {
             managedSession.submitData(mp) { x in
-                x.cata({ _ in self.isOffline = true }, r: { _ in self.isOffline = false })
+                x.cata({ _ in self.isOffline = true }, r: const(()))
                 f(x)
             }
         } else {

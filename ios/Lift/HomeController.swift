@@ -154,15 +154,24 @@ class HomeController : UIViewController, UITableViewDataSource,
     }
     
     func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return indexPath.section == 1
+        return indexPath.section == 1 || indexPath.section == 2
     }
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == UITableViewCellEditingStyle.Delete {
-            let sessionId = sessionSummaries[indexPath.row].id
-            LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
-                self.sessionSummaries = self.sessionSummaries.filter { $0.id != sessionId }
-                self.tableView.reloadData()
+            switch indexPath.section {
+            case 1:
+                let sessionId = sessionSummaries[indexPath.row].id
+                LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
+                    self.sessionSummaries = self.sessionSummaries.filter { $0.id != sessionId }
+                    self.tableView.reloadData()
+                }
+            case 2:
+                let offlineSessionId = offlineSessions[indexPath.row].id
+                ExerciseSessionManager.sharedInstance.removeOfflineSession(offlineSessionId)
+                offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+                tableView.reloadData()
+            default: fatalError("Match error")
             }
         }
     }
@@ -214,11 +223,12 @@ class HomeController : UIViewController, UITableViewDataSource,
             cell.setSessionSummary(sessionSummary)
             return cell
         case (2, let x):
-            let cell = tableView.dequeueReusableCellWithIdentifier("suggestion") as UITableViewCell
+            let cell = tableView.dequeueReusableCellWithIdentifier("offlineSession") as UITableViewCell
             let offlineSession = offlineSessions[x]
             let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(offlineSession.props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
             cell.textLabel!.text = ", ".join(mgs.map { $0.title })
-            cell.detailTextLabel!.text = ", ".join(mgs.map { ", ".join($0.exercises) })
+            let dateText = NSDateFormatter.localizedStringFromDate(offlineSession.props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
+            cell.detailTextLabel!.text = "On \(dateText)" // ", ".join(mgs.map { ", ".join($0.exercises) })
             return cell
         default: fatalError("Match error")
         }
