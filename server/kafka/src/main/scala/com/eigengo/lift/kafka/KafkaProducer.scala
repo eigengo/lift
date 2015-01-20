@@ -37,12 +37,8 @@ trait KafkaProducer extends DisjunctionFunctions {
   //Similar to https://github.com/mighdoll/sparkle/blob/master/kafka/src/main/scala/nest/sparkle/loader/kafka/KafkaWriter.scala
   //(but working and without sleeping)
   //kafka producer internally has message.send.max.retries which should be enough
-  private def send(message: KeyedMessage[String, Payload]): Throwable \/ Unit = {
-    println("KAFKA BROKER LIST")
-    println(kafkaConfig.getString("metadata.broker.list"))
-
+  private def send(message: KeyedMessage[String, Payload]): Throwable \/ Unit =
     fromTryCatchNonFatal(producer.send(message))
-  }
 
   /**
    * Encodes and produces a message to Kafka
