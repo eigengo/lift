@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   akka.streams.core,
   // Breeze
   scalanlp.breeze,
-  scalanlp.natives,
+  scalanlp.natives, // FIXME: for our needs, which is more efficient: jBLAS; native packaged BLAS; or commercial BLAS?
   scalanlp.nak,
   // For REST API
   spray.httpx,

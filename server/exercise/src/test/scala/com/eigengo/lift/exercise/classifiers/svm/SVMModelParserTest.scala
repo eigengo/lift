@@ -22,9 +22,8 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
   def normaliseHeader(hdr: Header): Header = {
     Header(hdr.values.map { case HeaderEntry(k, v) =>
       val normalisedValue =
-      // FIXME: should really do int then double here!
-        Try(v.toDouble.toString) orElse
-          Try(v.toInt.toString) orElse
+        Try(v.toInt.toString) orElse
+          Try(v.toDouble.toString) orElse
           Success(v)
       assert(normalisedValue.isSuccess)
 
@@ -71,7 +70,6 @@ class SVMModelParserTest extends PropSpec with PropertyChecks with Matchers with
     assert(fileParser.model.isSuccess && fileParser.model.get.scaled.isDefined)
   }
 
-  // FIXME: failure due to how integers and decimals are handled/parsed!
   property("able to parse randomly generated libsvm key-value samples") {
     forAll(nonEmptyListOf(KeyValueGen)) { (kv: Seq[(String, String)]) =>
       val testData = kv.map { case (k, v) => s"$k $v" }.mkString("\n")

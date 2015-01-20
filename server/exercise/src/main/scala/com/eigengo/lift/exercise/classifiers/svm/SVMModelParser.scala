@@ -28,9 +28,17 @@ private[svm] trait ParserUtils extends StringBuilding {
   def Decimal: Rule1[Double] = rule {
     capture(optional(anyOf("+-")) ~ oneOrMore(Digit) ~ optional('.' ~ oneOrMore(Digit)) ~ optional(ignoreCase('e') ~ optional(anyOf("+-")) ~ oneOrMore(Digit))) ~> ((w: String) => w.toDouble)
   }
-  
+
   def Integer: Rule1[Int] = rule {
     capture(optional(anyOf("+-")) ~ (Digit19 ~ zeroOrMore(Digit) | Digit)) ~> ((w: String) => w.toInt)
+  }
+
+  def FractionalPart = rule {
+    optional('.' ~ oneOrMore(Digit)) ~ optional(ignoreCase('e') ~ optional(anyOf("+-")) ~ oneOrMore(Digit))
+  }
+  
+  def Number: Rule1[String] = rule {
+    capture(optional(anyOf("+-")) ~ oneOrMore(Digit) ~ optional(FractionalPart)) ~> ((n: String) => push((Try(n.toInt) orElse Try(n.toDouble)).get.toString))
   }
   
   def Identifier: Rule1[String] = rule {
@@ -60,12 +68,15 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
   import LibSVMParser._
   import SVMClassifier._
 
-  // PEG rules
+  /**
+   * PEG parsing rules
+   */
+
   def ValueRule: Rule1[String] = rule {
-    // FIXME: should get int as a prefix of double!
-    (Decimal | Integer | Identifier) ~> ((w: Any) => w.toString)
+    (Number | Identifier) ~> ((w: Any) => w.toString)
   }
 
+  // `SV` is a reserved keyword and so it can not be a header key
   def HeaderEntryRule: Rule1[HeaderEntry] = rule {
     !str("SV") ~ capture(oneOrMore(AlphaNum | '_')) ~ WS ~ oneOrMore(ValueRule).separatedBy(WS) ~> ((key: String, values: Seq[String]) => HeaderEntry(key, values.mkString(" ")))
   }
@@ -96,7 +107,7 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
       // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
       test(kv.contains("svm_type") && kv("svm_type") == "c_svc") ~
       test(kv.contains("kernel_type") && kv("kernel_type") == "rbf") ~
-      test(kv.contains("nr_class") && kv("nr_class") == 2.toDouble.toString) ~ // FIXME: remove .toDouble
+      test(kv.contains("nr_class") && kv("nr_class") == 2.toString) ~
       test(kv.contains("gamma")) ~
       test(kv.contains("rho")) ~
       test(kv.contains("probA")) ~
@@ -118,11 +129,10 @@ private[svm] class LibSVMParser(val input: ParserInput) extends Parser with Pars
       val svSize = svList.map { case SupportVectorEntry(_, values) => values.map(_.index).max }.max
 
       // Sanity checking of the parsed libsvm model description - any deviation is a parse error!
-      test(kv.contains("total_sv") && kv("total_sv") == svList.length.toDouble.toString) ~ // FIXME: remove .toDouble
+      test(kv.contains("total_sv") && kv("total_sv") == svList.length.toString) ~
       push(SVMModel(
-        nSV = kv("total_sv").toInt, // FIXME: .toInt
+        nSV = kv("total_sv").toInt,
         // By default, missing support vector indexes are taken to have a value of zero
-      // FIXME: .toInt below
         SV = DenseMatrix.tabulate(kv("total_sv").toInt, svSize) { case (r, c) => svList(r).values.find(_.index == c).map(_.value).getOrElse(0) },
         gamma = kv("gamma").toDouble,
         coefs = DenseVector(svList.map(_.label): _*),
