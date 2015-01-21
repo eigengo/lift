@@ -46,3 +46,7 @@ adapter:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
+spark:
+  image: sequenceiq/spark:1.2.0
+  ports:
+    - "1234"
