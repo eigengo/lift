@@ -2,6 +2,7 @@ package com.eigengo.lift.exercise
 
 package classifiers
 
+import akka.stream.FlowMaterializer
 import akka.stream.scaladsl._
 import akka.stream.stage.{TerminationDirective, PushStage, Context, Directive}
 import breeze.linalg.DenseMatrix
@@ -11,12 +12,12 @@ import scala.collection.mutable
 
 /**
  * Streaming stage that buffers events (the sample window). Once the buffer has filled, a callback  action is executed
- * for each new sample that we receive.
+ * for each new sample message that we receive.
  *
  * @param size   size of the internal buffer and so the sampling window size
- * @param action when buffer is full, action to be performed for each sample that we receive
+ * @param action when buffer is full, action to be performed for each sample that we subsequently receive
  */
-class SamplingWindow[A](size: Int)(action: Seq[A] => Unit) extends PushStage[A, A] {
+class SamplingWindow[A] private (size: Int, action: PartialFunction[List[A], Unit]) extends PushStage[A, A] {
   require(size > 0)
 
   private val buffer = mutable.Queue[A]()
@@ -47,38 +48,61 @@ class SamplingWindow[A](size: Int)(action: Seq[A] => Unit) extends PushStage[A, 
   }
 }
 
+object SamplingWindow {
+
+  def apply[A](size: Int)(action: PartialFunction[List[A], Unit]): SamplingWindow[A] = {
+    new SamplingWindow(size, action)
+  }
+
+}
+
+/**
+ * Node that expects a message on each of its inputs. The collection of input messages is then outputted. This merge node
+ * can be thought of as a generalised Zip or ZipWith node.
+ *
+ * @param size number of inputs that may be joined to this merge node
+ */
+class ZipSet[A] private (size: Int) extends FlexiMerge[Set[A]] {
+  require(size >= 0)
+
+  import FlexiMerge._
+
+  val in = (0 until size).map { _ => createInputPort[A]() }.toVector
+
+  def createMergeLogic() = new MergeLogic[Set[A]] {
+    def initialState = State[ReadAllInputs](ReadAll(in)) { (ctx, _, inputs) =>
+      ctx.emit(in.flatMap(port => inputs.get[A](port)).toSet)
+
+      SameState[A]
+    }
+
+    def inputHandles(inputCount: Int) = {
+      require(inputCount == size, s"ZipSet must have $size connected inputs, was $inputCount")
+
+      in
+    }
+
+    override def initialCompletionHandling = eagerClose
+  }
+
+}
+
+object ZipSet {
+
+  def apply[A](size: Int) = {
+    new ZipSet[A](size)
+  }
+
+}
+
+// TODO: document
 object GestureTokenizer {
 
-  /**
-   * Marker trait identifying the collection of tokens that may be recognised
-   */
-  sealed trait Token
+  sealed trait TaggedAccelerometerValue
 
-  /**
-   * Token representing a recognised gesture.
-   *
-   * @param name     unique identifier - models name of classified gesture
-   * @param location sensor location on which the gesture data was received
-   * @param data     accelerometer data values received during the (recognised) gesture classification window
-   */
-  case class GestureToken private (name: String, location: SensorDataSourceLocation, data: List[AccelerometerValue]) extends Token
+  case class GestureTag(name: String, matchProbability: Double, value: AccelerometerValue) extends TaggedAccelerometerValue
 
-  /**
-   * Token holding data from a (potential) activity or exercising window.
-   *
-   * @param location sensor location on which the accelerometer data was received
-   * @param value    accelerometer data value that is to be part of the activity or exercising window
-   */
-  case class ActivityToken private (location: SensorDataSourceLocation, value: AccelerometerValue) extends Token
-
-  /**
-   * Internal event: measures probability that a gesture was recognised. Message is sent to aggregate sensor processor ]
-   * so that they may either split the listening sensor streams or synchronously progress all the streams forward by an
-   * event.
-   *
-   * @param probability probabilistic measure signifying the degree to which a gesture was recognised
-   */
-  case class GestureMatch(probability: Double)
+  case class ActivityTag(value: AccelerometerValue) extends TaggedAccelerometerValue
 
 }
 
@@ -90,7 +114,7 @@ object GestureTokenizer {
  * @param monitoring collection of sensor locations in which we are to detect gestures
  * @param listeners  collection of locations whose sensor streams will be tokenized when we match a gesture
  */
-// TODO: calling code needs to "normalise" sensor stream against the time dimension - i.e. here we assume that events occur with a known frequency
+// TODO: calling code needs to "normalise" sensor stream against the time dimension - i.e. here we assume that events occur with a known frequency (use `TickSource` as a driver for this?)
 class GestureTokenizer(name: String, monitoring: Set[SensorDataSourceLocation], listeners: Set[SensorDataSourceLocation])(implicit config: Config) extends SVMClassifier {
 
   import FlowGraphImplicits._
@@ -121,18 +145,44 @@ class GestureTokenizer(name: String, monitoring: Set[SensorDataSourceLocation], 
   }
 
   /**
-   * Sensor based stream parser that sends split stream events (to listeners or subscribers) whenever it recognises a
-   * gesture event.
+   * Sensor based stream parser that sends tagging events (as a side effect) to a monitor whenever it recognises a gesture
+   * event. If the sample window is detected as a gesture match, then data is tagged `GestureTag`, otherwise it is tagged
+   * `ActivityTag`. Sensor stream messages are otherwise untouched by this function.
    *
-   * @param sensor sensor stream that is to be monitored for matching gesture events
+   * @param sensor  sensor stream that is to be sampled for matching gesture events
+   * @param monitor monitoring sink node to which we send data tagging events
+   * @return        input sensor stream unchanged
    */
-  /*
-  def identifyGestureEvents(sensor: Source[AccelerometerValue]): Source[AccelerometerValue] = {
-    sensor.transform(() => new ProbableMatch(windowSize, probabilityOfGestureEvent, threshold)( (probability: Double) =>
-      ??? // TODO: send GestureMatch(probability) to subscribers or listeners
-    ))
+  def identifyGestureEvents(sensor: Source[AccelerometerValue], monitor: Sink[Transformation[AccelerometerValue, TaggedAccelerometerValue]])(implicit materializer: FlowMaterializer): Source[AccelerometerValue] = {
+    sensor.transform(() => SamplingWindow[AccelerometerValue](windowSize) {
+      case (sample: List[AccelerometerValue]) if sample.length == windowSize =>
+        val matchProbability = probabilityOfGestureEvent(sample)
+
+        if (matchProbability > threshold) {
+          Source(List(Transformation[AccelerometerValue, TaggedAccelerometerValue](GestureTag(name, matchProbability, _)))).to(monitor).run
+        } else {
+          Source(List(Transformation[AccelerometerValue, TaggedAccelerometerValue](ActivityTag))).to(monitor).run
+        }
+    })
   }
-*/
+
+  /**
+   * Flowgraph that merges a collection of transformations into a single transformation.
+   *
+   * @param monitors set of transformation messages that we need to merge
+   * @param out      node to which the merged transformation message will be sent
+   * @param merge    function that defines how to merge transformations
+   * @return         flowgraph that merges transformations into one transformation
+   */
+  def mergeTransformations[A, B](monitors: Set[Source[Transformation[A, B]]], out: Sink[Transformation[A, B]])(merge: PartialFunction[Set[Transformation[A, B]], Transformation[A, B]]) = FlowGraph { implicit builder =>
+    val zip = ZipSet[Transformation[A, B]](monitors.size)
+
+    for ((probe, index) <- monitors.zipWithIndex) {
+      probe ~> zip.in(index)
+    }
+    zip.out ~> Flow[Set[Transformation[A, B]]].map(merge) ~> out
+  }
+
   /**
    * Trigger action used to modulate sensor signals.
    *
@@ -141,18 +191,18 @@ class GestureTokenizer(name: String, monitoring: Set[SensorDataSourceLocation], 
   case class Transformation[A, B](action: A => B)
 
   /**
-   * Flowgraph that monitors each sensor (in a network of location tagged sensors). Sensor messages are transformed using
-   * a action or modulation function that is extracted from a "trigger" input node. Sensor message flow synchronously with
-   * the messages on the "trigger" input node.
+   * Flowgraph that transforms or modulates each sensor in a network of location tagged sensors. Messages on the `transform`
+   * node determine how signals in the sensor net are modulated or transformed.
    *
    * @param sensorIn  map representing the location tagged sensor network
-   * @param sensorOut sensor outputs transformed by "trigger" signal
-   * @return          flowgraph that transforms sensor messages using "trigger" modulation signals
+   * @param transform transformation signal used to modulate sensor data
+   * @param sensorOut map representing the transformed or modulated signals in the location tagged sensor network
+   * @return          flowgraph that modulates sensor net messages (from input to output) using synchronised messages on
+   *                  the transform node
    */
-  def sensorTransformation[A, B, L](sensorIn: Map[L, Source[A]], sensorOut: Map[L, Sink[B]]) = FlowGraph { implicit builder =>
+  def modulateSensorNet[A, B, L](sensorIn: Map[L, Source[A]], transform: Source[Transformation[A, B]], sensorOut: Map[L, Sink[B]]) = FlowGraph { implicit builder =>
     require(sensorIn.keys == sensorOut.keys)
 
-    val transform = UndefinedSource[Transformation[A, B]] // Transformation signal used to modulate sensor data
     val broadcast = Broadcast[Transformation[A, B]]
 
     transform ~> broadcast
@@ -164,5 +214,7 @@ class GestureTokenizer(name: String, monitoring: Set[SensorDataSourceLocation], 
       zip.out   ~> sensorOut(location)
     }
   }
+
+  // TODO: define aggregation strategies!
 
 }
