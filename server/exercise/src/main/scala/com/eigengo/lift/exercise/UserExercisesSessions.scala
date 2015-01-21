@@ -21,6 +21,7 @@ object UserExercisesSessions {
    * @param exercises the exercises in the set
    */
   case class ExerciseSet(exercises: List[Exercise]) {
+
     /** true if empty */
     def isEmpty = exercises.isEmpty
 
@@ -28,6 +29,11 @@ object UserExercisesSessions {
     def intensity: ExerciseIntensity = {
       val kie = exercises.filter(_.intensity.isDefined).flatMap(_.intensity)
       if (kie.isEmpty) 0.5 else kie.sum / kie.size
+    }
+
+    def withMetric(metric: Metric): ExerciseSet = {
+      val newExercises = exercises.map(e ⇒ Exercise(e.name, e.intensity, Some(metric)))
+      copy(exercises = newExercises)
     }
 
     def withNewExercise(modelMetadata: ModelMetadata, exercise: Exercise): ExerciseSet = copy(exercises :+ exercise)
@@ -103,20 +109,20 @@ object UserExercisesSessions {
    * All user's exercises
    * @param sessions the list of exercises
    */
-  case class Exercises(sessions: List[ExerciseSession]) extends AnyVal {
+  case class Sessions(sessions: List[ExerciseSession]) extends AnyVal {
     
     /**
      * Adds a session to the exercises
      * @return the exercises with new session
      */
-    def withNewSession(session: ExerciseSession): Exercises = copy(sessions = sessions :+ session)
+    def withNewSession(session: ExerciseSession): Sessions = copy(sessions = sessions :+ session)
 
     /**
      * Removes a session
      * @param id the session to be removed
      * @return the exercises without the specified session
      */
-    def withoutSession(id: SessionId): Exercises = copy(sessions = sessions.dropWhile(_.id == id))
+    def withoutSession(id: SessionId): Sessions = copy(sessions = sessions.dropWhile(_.id == id))
 
     /**
      * Gets a session identified by ``sessionId``
@@ -149,8 +155,8 @@ object UserExercisesSessions {
   /**
    * Companion object for our state
    */
-  object Exercises {
-    val empty: Exercises = Exercises(List.empty)
+  object Sessions {
+    val empty: Sessions = Sessions(List.empty)
   }
 
   /**
@@ -222,7 +228,7 @@ class UserExercisesSessions(notification: ActorRef, userProfile: ActorRef) exten
   import scala.concurrent.duration._
 
   // our internal state
-  private var exercises = Exercises.empty
+  private var exercises = Sessions.empty
 
   // values from the profile
   private val userId = UserId(self.path.name)
@@ -251,7 +257,7 @@ class UserExercisesSessions(notification: ActorRef, userProfile: ActorRef) exten
   }
 
   private lazy val notExercising: Receive = {
-    case SnapshotOffer(_, offeredSnapshot: Exercises) ⇒
+    case SnapshotOffer(_, offeredSnapshot: Sessions) ⇒
       log.info("SnapshotOffer: not exercising -> not exercising.")
       exercises = offeredSnapshot
 
@@ -276,6 +282,10 @@ class UserExercisesSessions(notification: ActorRef, userProfile: ActorRef) exten
       log.debug("ExerciseSetExplicitMarkEvt: in a set -> exercising.")
       context.become(exercising(session.withNewExerciseSet(set)).orElse(queries))
 
+    case ExerciseSetExerciseMetricEvt(_, metric) ⇒
+      log.debug("ExerciseSetExerciseMetricEvt: in a set -> exercising.")
+      context.become(inASet(session, set.withMetric(metric)).orElse(queries))
+
     case SessionEndedEvt(_) if isPersistent ⇒
       log.info("SessionEndedEvt: in a set -> not exercising.")
       exercises = exercises.withNewSession(session.withNewExerciseSet(set))
@@ -299,6 +309,8 @@ class UserExercisesSessions(notification: ActorRef, userProfile: ActorRef) exten
       exercises = exercises.withNewSession(session)
       notificationSender ! DataMessagePayload("{}")
       saveSnapshot(exercises)
+
+      context.become(notExercising.orElse(queries))
   }
 
   override def receive: Receive = withPassivation {

@@ -1,11 +1,15 @@
 import UIKit
+import SystemConfiguration
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
 
     var deviceToken: NSData?
     var window: UIWindow?
     var alertView: UIAlertView? = nil
+    var lastAlertTime: NSDate? = nil
+    
+    // MARK: Application-wide public functions
     
     class func becomeCurrentRemoteNotificationDelegate(delegate: RemoteNotificationDelegate) {
         (UIApplication.sharedApplication().delegate! as AppDelegate).currentRemoteNotificationDelegate = delegate
@@ -17,40 +21,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     weak var currentRemoteNotificationDelegate: RemoteNotificationDelegate?
 
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // notifications et al
-        registerSettingsAndDelegates()
-
-        // perform initialization
-        let start = NSDate()
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        // main initialization
-        // Prepare the cache
-        LiftServerCache.sharedInstance.build { _ in
-            if let userId = CurrentLiftUser.userId {
-                // We have previously-known user id. But is the account still there?
-                LiftServer.sharedInstance.userCheckAccount(userId) { r in
-                    if let x = self.deviceToken {
-                        LiftServer.sharedInstance.userRegisterDeviceToken(userId, deviceToken: x)
-                    }
-
-                    self.startWithStoryboardId(storyboard, id: r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" }))
-                }
-            } else {
-                self.startWithStoryboardId(storyboard, id: "login")
-            }
-        }
-
-        return true
-    }
+    // MARK: Private functions
     
-    func startWithStoryboardId(storyboard: UIStoryboard, id: String) {
+    private func startWithStoryboardId(storyboard: UIStoryboard, id: String) {
         window = UIWindow(frame: UIScreen.mainScreen().bounds)
         window!.makeKeyAndVisible()
         window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController!
     }
     
-    func registerSettingsAndDelegates() {
+    private func registerSettingsAndDelegates() {
         if UIDevice.currentDevice().systemVersion >= "8.0" {
             let settings = UIUserNotificationSettings(forTypes: UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound, categories: nil)
             UIApplication.sharedApplication().registerUserNotificationSettings(settings)
@@ -59,13 +38,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         UIApplication.sharedApplication().registerForRemoteNotifications()
-
+        
         var acceptAction = UIMutableUserNotificationAction()
         acceptAction.title = NSLocalizedString("Accept", comment: "Accept invitation")
         acceptAction.identifier = "accept"
         acceptAction.activationMode = UIUserNotificationActivationMode.Background
         acceptAction.authenticationRequired = false
-
+        
         var categories = NSMutableSet()
         var inviteCategory = UIMutableUserNotificationCategory()
         inviteCategory.setActions([acceptAction], forContext: UIUserNotificationActionContext.Default)
@@ -75,8 +54,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let type = UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound
         let settings = UIUserNotificationSettings(forTypes: type, categories: categories)
         UIApplication.sharedApplication().registerUserNotificationSettings(settings)
+        
+        LiftServer.sharedInstance.setDelegate(self, delegateQueue: dispatch_get_main_queue())
     }
         
+    // MARK: UIApplicationDelegate implementation
+
+    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        // notifications et al
+        registerSettingsAndDelegates()
+        
+        // main initialization
+        // Prepare the cache
+        LiftServerCache.sharedInstance.build { _ in
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let userId = CurrentLiftUser.userId {
+                // We have previously-known user id. But is the account still there?
+                LiftServer.sharedInstance.userCheckAccount(userId) { r in
+                    if let x = self.deviceToken {
+                        LiftServer.sharedInstance.userRegisterDeviceToken(userId, deviceToken: x)
+                    }
+
+                    //self.startWithStoryboardId(storyboard, id: r.cata({ err in if err.code == 404 { return "login" } else { return "offline" } }, { x in return "main" }))
+                    
+                    // notice that we have no concept of "offline": if the server is unreachable, we'll
+                    // give the user the benefit of doubt.
+                    
+                    self.startWithStoryboardId(storyboard, id: r.cata({ err in if err.code == 404 { return "login" } else { return "main" } }, { x in return "main" }))
+                }
+            } else {
+                self.startWithStoryboardId(storyboard, id: "login")
+            }
+        }
+
+        return true
+    }
+    
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
         self.deviceToken = deviceToken
         NSLog("Token \(deviceToken)")
@@ -113,11 +126,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func applicationDidBecomeActive(application: UIApplication) {
-        LiftServerCache.sharedInstance.build(const(()))
+        if LiftServer.sharedInstance.setBaseUrlString(LiftUserDefaults.liftServerUrl) {
+            LiftServerCache.sharedInstance.build(const(()))
+        }
     }
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
         LiftServerCache.sharedInstance.clean()
+    }
+    
+    // MARK: LiftServerDelegate implementation
+    
+    private func notTooLoud(f: @autoclosure () -> Void) -> Void {
+        let minimumAlertTime: NSTimeInterval = 5.0
+        if let x = lastAlertTime {
+            if NSDate().timeIntervalSinceDate(x) < minimumAlertTime { return }
+        }
+        lastAlertTime = NSDate()
+        f()
+    }
+    
+    func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
+        println("Availability changed: isNetworkReachable -> \(newState.isNetworkReachable)")
+        println("Availability changed: isServerReachable -> \(newState.isServerReachable)")
+        println("Availability changed: lastServerFailureDate -> \(newState.lastServerFailureDate)")
+        
+        if newState.isOnline() {
+            NSLog("*** Online")
+            notTooLoud(RKDropdownAlert.title("Online".localized(), backgroundColor: UIColor.greenColor(), textColor: UIColor.blackColor(), time: 3))
+            UINavigationBar.appearance().barTintColor = nil
+        } else {
+            NSLog("*** Offline")
+            notTooLoud(RKDropdownAlert.title("Offline".localized(), backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3))
+            UINavigationBar.appearance().barTintColor = UIColor.orangeColor()
+        }
     }
 
 }

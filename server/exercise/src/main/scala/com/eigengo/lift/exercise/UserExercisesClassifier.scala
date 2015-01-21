@@ -2,9 +2,8 @@ package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
 import com.eigengo.lift.exercise.UserExercisesClassifier._
-import UserExercises._
-
 import scala.util.Random
+import UserExercises._
 
 /**
  * Companion object for the classifier
@@ -28,6 +27,12 @@ object UserExercisesClassifier {
     MuscleGroup(key = "arms",  title = "Arms",  exercises = List("biceps curl", "triceps press down")),
     MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over"))
   )
+
+  /**
+   * Provides List[Exercise] as examples of exercises for the given ``sessionProps``
+   * @param sessionProps the session props
+   */
+  case class ClassificationExamples(sessionProps: SessionProps)
   
   /**
    * ADT holding the classification result
@@ -73,7 +78,7 @@ class UserExercisesClassifier extends Actor {
 
   private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None)))
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None, None)))
   }
 
   override def receive: Receive = {
@@ -90,6 +95,8 @@ class UserExercisesClassifier extends Actor {
           }
         }
       sender() ! randomExercise(sessionProps)
+    case ClassificationExamples(sessionProps) ⇒
+      sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }
 
 }

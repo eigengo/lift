@@ -6,9 +6,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     private var deviceInfo: DeviceInfo?
     private var deviceInfoDetail: DeviceInfo.Detail?
     private var deviceSession: DeviceSession?
+    private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
-    private var sessionId: NSUUID?
+    private var session: ExerciseSession?
     private var device: ConnectedDevice?
     @IBOutlet var stopSessionButton: UIBarButtonItem!
 
@@ -29,11 +30,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func end() {
-        if let x = sessionId {
-            LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: x) { x in
-                NSLog("[INFO] LiveSessionController.end() session ended")
-                self.sessionId = nil
-            }
+        if let x = session {
+            x.end(const(()))
+            self.session = nil
         } else {
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
@@ -68,9 +67,14 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        sessionId = session.id
+        self.session = session
         device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
         device!.start()
+        session.getClassificationExamples { $0.getOrUnit { x in
+                self.exampleExercises = x
+                self.tableView.reloadData()
+            }
+        }
         UIApplication.sharedApplication().idleTimerDisabled = true
     }
     
@@ -91,7 +95,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                 return 1
             }
         // section 2: exercise log
-        case 1: return 10
+        case 1: return exampleExercises.count
         default: return 0
         }
     }
@@ -110,9 +114,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log
-        case (1, _):
+        case (1, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
-            cell.textLabel!.text = "LiveSessionController.exercise".localized()
+            cell.textLabel!.text = exampleExercises[x].name
+            cell.selectionStyle = UITableViewCellSelectionStyle.None
+            cell.accessoryType = UITableViewCellAccessoryType.None
             return cell
         default: return UITableViewCell()
         }
@@ -126,6 +132,40 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         }
     }
     
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if indexPath.section == 1 {
+            if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+                switch selectedCell.accessoryType {
+                case UITableViewCellAccessoryType.None:
+                    for i in 0...(tableView.numberOfRowsInSection(1) - 1) {
+                        let indexPath = NSIndexPath(forRow: i, inSection: 1)
+                        if (tableView.cellForRowAtIndexPath(indexPath)!.accessoryType == UITableViewCellAccessoryType.Checkmark) {
+                            tableView.cellForRowAtIndexPath(indexPath)!.accessoryType = UITableViewCellAccessoryType.None
+                        }
+                    }
+                    selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
+                    session?.startExplicitClassification(exampleExercises[indexPath.row])
+                case UITableViewCellAccessoryType.Checkmark:
+                    selectedCell.accessoryType = UITableViewCellAccessoryType.None
+                    session?.endExplicitClassification()
+                default: return
+                }
+            }
+        }
+    }
+    
+    override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+        if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
+            switch selectedCell.accessoryType {
+                //If it was still checked, send delete request before unchecking
+            case UITableViewCellAccessoryType.Checkmark:
+                selectedCell.accessoryType = UITableViewCellAccessoryType.None
+                session?.endExplicitClassification()
+            default: return
+            }
+        }
+    }
+    
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch (indexPath.section, indexPath.row) {
         case (0, 0): return 60
@@ -136,12 +176,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: AccelerometerReceiverDelegate
     
     func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
-        if let x = sessionId {
+        if let x = session {
             self.deviceSession = deviceSession
             let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-            LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: x, data: mp) {
-                $0.cata({ _ in /* TODO: offline mode save */ }, const(()))
-            }
+            x.submitData(mp, const(()))
+
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
                 tableView.reloadData()
             }

@@ -22,7 +22,7 @@ class RepetitionExtractorTest extends FlatSpec with Matchers with RepetitionExtr
     val pebbleMovementTolerance = MovementTolerance(80 / 2048.0, 80 / 2048.0, 160 / 2048.0)
     extract(pebbleMovementTolerance)(ad)
 
-    true
+    assert(true)
   }
 
 }

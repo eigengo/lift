@@ -31,7 +31,7 @@ struct LiftUserDefaults {
             if let url = NSUserDefaults.standardUserDefaults().stringForKey("lift_server_url") {
                 return url
             } else {
-                return "http://192.168.0.8:12551"
+                return "http://localhost:12551"
             }
         }
     }

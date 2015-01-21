@@ -23,7 +23,7 @@ object ExerciseServiceTest {
     val userId = UserId.randomId()
     val sessionId = SessionId.randomId()
 
-    val squat = Exercise("squat", Some(1.0))
+    val squat = Exercise("squat", Some(1.0), None)
     val intensity = Some(1.0)
     val startDate = dateFormat.parse("1970-01-01")
     val endDate = dateFormat.parse("1970-01-01")
@@ -36,7 +36,7 @@ object ExerciseServiceTest {
       0xca, 0xb0, 0x02,
       0x00, 0x04, 0x01, 0xff, 0x01, 0x02, 0x03,
       0x00, 0x02, 0x02, 0xf0, 0x01).map(_.toByte)
-    val emptyResponse = "{\"b\":{}}"
+    val emptyResponse = "{}"
   }
 
   def probe(implicit system: ActorSystem) = {

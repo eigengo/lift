@@ -102,9 +102,24 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseSessionSubmitData(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
+    /// Gets exercise classification examples for the given ``userId`` and ``sessionId``
+    ///
+    case ExerciseSessionGetClassificationExamples(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
     /// Ends the session for the given ``userId`` and ``sessionId``
     ///
     case ExerciseSessionEnd(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
+    /// Starts the explicit exercise classification for ``userId`` and ``sessionId``
+    ///
+    case ExplicitExerciseClassificationStart(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
+    /// Stops the explicit exercise classification for ``userId`` and ``sessionId``
+    ///
+    case ExplicitExerciseClassificationStop(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     private struct Format {
         private static let simpleDateFormatter: NSDateFormatter = {
@@ -144,6 +159,10 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/start", method: Method.POST)
                 case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
                 case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
+                    
+                case .ExerciseSessionGetClassificationExamples(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.GET)
+                case .ExplicitExerciseClassificationStart(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.POST)
+                case .ExplicitExerciseClassificationStop(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.DELETE)
                 }
                 }()
             

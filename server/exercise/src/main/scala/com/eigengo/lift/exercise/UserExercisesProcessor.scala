@@ -34,6 +34,30 @@ object UserExercisesProcessor {
   case class UserExerciseExplicitClassificationStart(userId: UserId, sessionId: SessionId, exercise: Exercise)
 
   /**
+   * Sets the metric of all the exercises in the current set that don't have a metric yet. So, suppose the user is in
+   * a set doing squats, and the system's events are
+   *
+   * - ExerciseEvt(squat) // without metric
+   * - ExerciseEvt(squat) // without metric
+   * - ExerciseEvt(squat) // without metric
+   * *** UserExerciseSetExerciseMetric
+   *
+   * The system generates the ExerciseMetricSetEvt, and the views should add the metric to the previous three exercises
+   *
+   * @param userId the user identity
+   * @param sessionId the session identity
+   * @param metric the received metric
+   */
+  case class UserExerciseSetExerciseMetric(userId: UserId, sessionId: SessionId, metric: Metric)
+
+  /**
+   * Obtains a list of example exercises for the given session
+   * @param userId the user
+   * @param sessionId the session
+   */
+  case class UserExerciseExplicitClassificationExamples(userId: UserId, sessionId: SessionId)
+
+  /**
    * User classification end
    * @param userId the user
    * @param sesionId the session
@@ -79,6 +103,19 @@ object UserExercisesProcessor {
    * @param exercise the exercise
    */
   private case class ExerciseExplicitClassificationStart(sessionId: SessionId, exercise: Exercise)
+
+  /**
+   * Obtain list of classification examples
+   * @param sessionId the session
+   */
+  private case class ExerciseExplicitClassificationExamples(sessionId: SessionId)
+
+  /**
+   * Sets the metric for the unmarked exercises in the currently open set
+   * @param sessionId the session identity
+   * @param metric the metric
+   */
+  private case class ExerciseSetExerciseMetric(sessionId: SessionId, metric: Metric)
 
   /**
    * User classified exercise.
@@ -136,6 +173,9 @@ object UserExercisesProcessor {
     case UserExerciseSessionDelete(userId, sessionId)                         ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
     case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
     case UserExerciseExplicitClassificationEnd(userId, sessionId)             ⇒ (userId.toString, ExerciseExplicitClassificationEnd(sessionId))
+    case UserExerciseExplicitClassificationExamples(userId, sessionId)        ⇒ (userId.toString, ExerciseExplicitClassificationExamples(sessionId))
+    case UserExerciseSetExerciseMetric(userId, sessionId, metric)             ⇒ (userId.toString, ExerciseExplicitClassificationExamples(sessionId))
+
   }
 
   /**
@@ -148,6 +188,7 @@ object UserExercisesProcessor {
     case UserExerciseSessionDelete(userId, _)                  ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationStart(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseExplicitClassificationExamples(userId, _) ⇒ s"${userId.hashCode() % 10}"
   }
 
 }
@@ -185,6 +226,7 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
+    // start and end
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
       persist(Seq(SessionEndedEvt(id), SessionStartedEvt(newId, newSessionProps))) { case (_::newSession::Nil) ⇒
@@ -195,6 +237,15 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
         context.become(exercising(newId, newSessionProps))
       }
 
+    case ExerciseSessionEnd(`id`) ⇒
+      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
+      persist(SessionEndedEvt(id)) { evt ⇒
+        saveSnapshot(evt)
+        context.become(notExercising)
+        sender() ! \/.right(())
+      }
+
+    // packet from the mobile / wearables
     case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
 
@@ -207,26 +258,27 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
       result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
                   { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
 
-    case ExerciseSessionEnd(`id`) ⇒
-      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
-      persist(SessionEndedEvt(id)) { evt ⇒
-        saveSnapshot(evt)
-        context.become(notExercising)
-        sender() ! \/.right(())
-      }
+    // explicit classification
+    case ExerciseExplicitClassificationStart(`id`, exercise) =>
+      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
 
+    case ExerciseExplicitClassificationEnd(`id`) ⇒
+      self ! NoExercise(ModelMetadata.user)
+
+    case ExerciseExplicitClassificationExamples(`id`) ⇒
+      classifier.tell(ClassificationExamples(sessionProps), sender())
+
+    // explicit metrics
+    case ExerciseSetExerciseMetric(`id`, metric) ⇒
+      persist(ExerciseSetExerciseMetricEvt(id, metric)) { evt ⇒ }
+
+    // classification results
     case FullyClassifiedExercise(metadata, confidence, exercise) ⇒
       log.debug("FullyClassifiedExercise: exercising -> exercising.")
       persist(ExerciseEvt(id, metadata, exercise)) { evt ⇒ }
 
     case Tap ⇒
       persist(ExerciseSetExplicitMarkEvt(id)) { evt ⇒ }
-
-    case ExerciseExplicitClassificationStart(`id`, exercise) =>
-      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
-
-    case ExerciseExplicitClassificationEnd(`id`) ⇒
-      self ! NoExercise(ModelMetadata.user)
 
     case UnclassifiedExercise(_) ⇒
 

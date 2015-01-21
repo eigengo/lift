@@ -70,16 +70,30 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       }
     } ~
+    path("exercise" / UserIdValue / SessionIdValue / "metric") { (userId, sessionId) ⇒
+      post {
+        handleWith { metric: Metric ⇒
+          userExercises ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
+          ()
+        }
+      }
+    } ~
     path("exercise" / UserIdValue / SessionIdValue / "classification") { (userId, sessionId) ⇒
+      get {
+        complete {
+          (userExercises ? UserExerciseExplicitClassificationExamples(userId, sessionId)).mapTo[List[Exercise]]
+        }
+      } ~
       post {
         handleWith { exercise: Exercise ⇒
-          (userExercises ? UserExerciseExplicitClassificationStart(userId, sessionId, exercise)).mapRight[Unit]
+          userExercises ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
+          ()
         }
       } ~
       delete {
         complete {
           userExercises ! UserExerciseExplicitClassificationEnd(userId, sessionId)
-          ""
+          ()
         }
       }
     }
