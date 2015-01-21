@@ -74,7 +74,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       post {
         handleWith { metric: Metric ⇒
           userExercises ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
-          ""
+          ()
         }
       }
     } ~
@@ -87,13 +87,13 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       post {
         handleWith { exercise: Exercise ⇒
           userExercises ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
-          ""
+          ()
         }
       } ~
       delete {
         complete {
           userExercises ! UserExerciseExplicitClassificationEnd(userId, sessionId)
-          ""
+          ()
         }
       }
     }

@@ -1,20 +1,12 @@
 import XCTest
 
 class MutableMultiPacketTests : XCTestCase {
-    private func payload(bytes: Byte...) -> NSData {
-        return NSData(bytes: bytes, length: bytes.count)
-    }
-    
-    private func repeatedPayload(size: UInt16, const: UInt8) -> NSData {
-        let buffer: [UInt8] = [UInt8](count: Int(size), repeatedValue: const)
-        return NSData(bytes: buffer, length: Int(size))
-    }
-    
+   
     func testBuild() {
         let mp = MutableMultiPacket()
-        mp.append(SensorDataSourceLocation.Wrist, data: payload(0xff, 0x01, 0x02, 0x03))
-        mp.append(SensorDataSourceLocation.Waist, data: payload(0xf0, 0x01))
-        mp.append(SensorDataSourceLocation.Any,   data: repeatedPayload(0xffff, const: 0x8f))
+        mp.appendPayload(SensorDataSourceLocation.Wrist, payload: 0xff, 0x01, 0x02, 0x03)
+        mp.appendPayload(SensorDataSourceLocation.Waist, payload: 0xf0, 0x01)
+        mp.appendRepeatedPayload(SensorDataSourceLocation.Any, size: 0xffff, const: 0x8f)
         let result = mp.data()
         
         // the output should be

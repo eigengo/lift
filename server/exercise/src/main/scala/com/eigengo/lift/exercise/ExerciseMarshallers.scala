@@ -1,9 +1,9 @@
 package com.eigengo.lift.exercise
 
 import com.eigengo.lift.common.{CommonMarshallers, CommonPathDirectives}
-import scodec.bits.BitVector
-import spray.http.HttpRequest
-import spray.httpx.unmarshalling.{MalformedContent, Deserialized, FromRequestUnmarshaller}
+import spray.http.{HttpEntity, HttpResponse, HttpRequest}
+import spray.httpx.marshalling.{ToResponseMarshallingContext, ToResponseMarshaller}
+import spray.httpx.unmarshalling.{Deserialized, FromRequestUnmarshaller, MalformedContent}
 import spray.routing._
 import spray.routing.directives.{MarshallingDirectives, PathDirectives}
 
@@ -16,6 +16,10 @@ trait ExerciseMarshallers extends MarshallingDirectives with PathDirectives with
     override def apply(request: HttpRequest): Deserialized[MultiPacket] = {
       MultiPacketDecoder.decode(request.entity.data.toByteString.asByteBuffer).fold(x ⇒ Left(MalformedContent(x)), Right.apply)
     }
+  }
+
+  implicit object UnitToResponseMarshaller extends ToResponseMarshaller[Unit] {
+    override def apply(value: Unit, ctx: ToResponseMarshallingContext): Unit = ctx.marshalTo(HttpResponse(entity = HttpEntity("{}")))
   }
 
   val SessionIdValue: PathMatcher1[SessionId] = JavaUUID.map(SessionId.apply)

@@ -30,7 +30,7 @@
 
 "HomeController.SessionSuggestions"="Suggestions";
 "HomeController.SessionSummaries"="Sessions";
-
+"HomeController.OfflineSessions"="Offline sessions";
 
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
 
