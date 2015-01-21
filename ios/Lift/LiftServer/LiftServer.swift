@@ -473,6 +473,24 @@ public class LiftServer {
     }
     
     ///
+    /// Instructs the server to abandon the session; typically issued when the we notice transmission error
+    /// in a session that started online.
+    ///
+    func exerciseAbandonExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionAbandon(userId, sessionId))
+            .responseAsResutlt(asu(), f, const(()))
+    }
+    
+    ///
+    /// Replays previously saved session by sending *all* data that would have been sent during the session run to the
+    /// server in one request.
+    ///
+    func exerciseReplayExerciseSession(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionReplay(userId, sessionId), body: .Data(data: data))
+            .responseAsResutlt(asu(), f, const(()))
+    }
+    
+    ///
     /// Get one particular session
     ///
     func exerciseGetExerciseSession(userId: NSUUID, sessionId: NSUUID, f: Result<Exercise.ExerciseSession> -> Void) -> Void {

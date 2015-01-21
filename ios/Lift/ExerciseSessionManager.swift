@@ -102,6 +102,10 @@ class ExerciseSessionManager {
         return result
     }
     
+    func dataForOfflineSession(id: NSUUID) -> NSData? {
+        return nil
+    }
+    
     class ManagerManagedExerciseSessionIO : ManagedExerciseSessionIO {
         var allMultiPacketsFileName: String
         var rootPath: String
@@ -149,6 +153,7 @@ class ManagedExerciseSession : ExerciseSession {
     var isOffline: Bool
     var isOfflineFromStart: Bool
     var io: ManagedExerciseSessionIO
+    private var isAbandoned: Bool = false
     
     init(io: ManagedExerciseSessionIO, managedSession: ExerciseSession, isOfflineFromStart: Bool) {
         self.managedSession = managedSession
@@ -159,15 +164,38 @@ class ManagedExerciseSession : ExerciseSession {
         super.init(id: managedSession.id, props: managedSession.props)
     }
     
+    ///
+    /// Instruct the server to abandon the session. This is just us being nice to the server: we know now that
+    /// the session will not continue, so it's only nice to tell the server.
+    ///
+    /// Note that the server will abandon the session even without this message, but it will take the (passivation)
+    /// timeout in the UserExerciseProcessor.
+    ///
+    private func abandon() {
+        LiftServer.sharedInstance.exerciseAbandonExerciseSession(CurrentLiftUser.userId!, sessionId: managedSession.id) {
+            $0.cata(const(()), r: { _ in self.isAbandoned = true })
+        }
+    }
+    
+    ///
+    /// Failed to transmit the data: go offline and start attempting to abandon the session
+    ///
+    private func submitDataFailed(error: NSError) -> Void {
+        // we have failed to
+        self.isOffline = true
+        self.abandon()
+    }
+    
     override func submitData(mp: MultiPacket, f: Result<Void> -> Void) -> Void {
         io.appendMultiPacket(mp)
         
         if !isOffline {
             managedSession.submitData(mp) { x in
-                x.cata({ _ in self.isOffline = true }, r: const(()))
+                x.cata(self.submitDataFailed, r: const(()))
                 f(x)
             }
         } else {
+            if !isAbandoned { abandon() }
             f(Result.value(()))
         }
     }
