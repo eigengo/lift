@@ -340,7 +340,33 @@ trait GestureWorkflows extends SVMClassifier {
       }
     })
   }
-
+/*
   // TODO: define main classification workflow
+  def gestureClassifingWorkflow[L](sensorIn: Map[L, Source[AccelerometerValue]], sensorOut: Map[L, Sink[GroupValue[TaggedValue[AccelerometerValue]]]]) = FlowGraph { implicit builder =>
+    require(sensorIn.nonEmpty)
+    require(sensorOut.nonEmpty)
 
+    val monitor = sensorIn.mapValues(_ => UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]])
+    val trigger = UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]
+    val modulatedSensor = ???
+
+    // Tap sensorIn and generate classification signals
+    for ((locn, sensor) <- sensorIn) {
+      identifyGestureEvents(sensor, monitor(locn))
+    }
+
+    // Merge classification signals into a single trigger signal
+    mergeTransformations(monitor.values.toSet, trigger) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
+      ??? // FIXME:
+    }
+
+    // Modulate sensorOut using trigger signal (generates tagged events)
+    modulateSensorNet(sensorOut, trigger, modulatedSensor)
+
+    // Aggregate tagged events
+    for ((locn, sensor) <- modulatedSensor) {
+      gestureCollector(sensor)
+    }
+  }
+*/
 }
