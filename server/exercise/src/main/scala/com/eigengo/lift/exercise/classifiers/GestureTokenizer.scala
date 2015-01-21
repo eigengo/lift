@@ -3,42 +3,47 @@ package com.eigengo.lift.exercise
 package classifiers
 
 import akka.stream.scaladsl._
-import akka.stream.stage.{PushStage, Context, Directive}
+import akka.stream.stage.{TerminationDirective, PushStage, Context, Directive}
 import breeze.linalg.DenseMatrix
 import com.eigengo.lift.exercise.classifiers.svm.{SVMClassifier, SVMModelParser}
 import com.typesafe.config.Config
 import scala.collection.mutable
 
 /**
- * Streaming stage that buffers events looking for a sample match. When a match is found, a specified action is executed.
+ * Streaming stage that buffers events (the sample window). Once the buffer has filled, a callback  action is executed
+ * for each new sample that we receive.
  *
- * @param size             size of the internal buffer and so the sample window size
- * @param matchProbability probability that the (full) buffer elements are a match
- * @param threshold        threshold value at which matching probability is considered a match
- * @param action           action to be performed on detecting a match (matching probability is passed as a parameter to the function)
+ * @param size   size of the internal buffer and so the sampling window size
+ * @param action when buffer is full, action to be performed for each sample that we receive
  */
-class WindowMatcher[A](size: Int, matchProbability: List[A] => Double, threshold: Double)(action: Double => Unit) extends PushStage[A, A] {
+class SamplingWindow[A](size: Int)(action: Seq[A] => Unit) extends PushStage[A, A] {
   require(size > 0)
-  require(0 <= threshold && threshold <= 1)
 
   private val buffer = mutable.Queue[A]()
 
   override def onPush(elem: A, ctx: Context[A]): Directive = {
-    if (buffer.length == size) {
-      // Buffer is full, so determine if the current sample window matches or not
-      val emit = buffer.dequeue()
-      buffer.enqueue(elem)
-      val probability = matchProbability(buffer.toList)
-      if (probability > threshold) {
-        action(probability)
+    if (!ctx.isFinishing) {
+      if (buffer.length == size) {
+        // Buffer is full, so enable action callback
+        val emit = buffer.dequeue()
+        buffer.enqueue(elem)
+        action(buffer.toList)
+        // Allow old events to propagate downstream
+        ctx.push(emit)
+      } else {
+        // Buffer is not yet full, so keep consuming from our upstream
+        buffer.enqueue(elem)
+        ctx.pull()
       }
-      // Allow old events to propagate upstream
-      ctx.push(emit)
     } else {
-      // Buffer is not yet full, so keep consuming from our downstream
-      buffer.enqueue(elem)
-      ctx.pull()
+      // As the stage is terminating, ensure buffer is flushed into downstream
+      buffer.foreach(ctx.push)
+      ctx.finish()
     }
+  }
+
+  override def onUpstreamFinish(ctx: Context[A]): TerminationDirective = {
+    ctx.absorbTermination()
   }
 }
 
@@ -121,12 +126,13 @@ class GestureTokenizer(name: String, monitoring: Set[SensorDataSourceLocation], 
    *
    * @param sensor sensor stream that is to be monitored for matching gesture events
    */
+  /*
   def identifyGestureEvents(sensor: Source[AccelerometerValue]): Source[AccelerometerValue] = {
-    sensor.transform(() => new WindowMatcher(windowSize, probabilityOfGestureEvent, threshold)( (probability: Double) =>
+    sensor.transform(() => new ProbableMatch(windowSize, probabilityOfGestureEvent, threshold)( (probability: Double) =>
       ??? // TODO: send GestureMatch(probability) to subscribers or listeners
     ))
   }
-
+*/
   /**
    * Trigger action used to modulate sensor signals.
    *
