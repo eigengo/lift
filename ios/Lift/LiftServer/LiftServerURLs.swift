@@ -97,6 +97,16 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseSessionStart(/*userId: */NSUUID)
     
     ///
+    /// Abandons the exercise session for the given ``userId`` and ``sessionId``.
+    ///
+    case ExerciseSessionAbandon(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
+    /// Replays the exercise session for the given ``userId`` and ``sessionId``.
+    ///
+    case ExerciseSessionReplay(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    
+    ///
     /// Submits the data (received from the smartwatch) for the given ``userId``, ``sessionId``
     ///
     case ExerciseSessionSubmitData(/*userId: */NSUUID, /*sessionId: */NSUUID)
@@ -159,6 +169,9 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .ExerciseSessionStart(let userId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/start", method: Method.POST)
                 case .ExerciseSessionSubmitData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)", method: Method.PUT)
                 case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
+                    
+                case .ExerciseSessionAbandon(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/abandon", method: Method.POST)
+                case .ExerciseSessionReplay(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/replay", method: Method.POST)
                     
                 case .ExerciseSessionGetClassificationExamples(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.GET)
                 case .ExplicitExerciseClassificationStart(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.POST)
