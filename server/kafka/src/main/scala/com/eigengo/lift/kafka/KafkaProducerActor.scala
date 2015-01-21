@@ -43,13 +43,13 @@ class KafkaProducerActor(config: Config)
     log.info(s"""${self.path} producing "$event" to Kafka with result "$result"""")
 
   override def receive: Receive = {
-    case event @ _ =>
+    case event =>
       val produced = produce(event, topic)
       logs(event, produced)
   }
 
   override def postStop() = {
     close
-    postStop
+    super.postStop
   }
 }

@@ -37,7 +37,6 @@ object ExerciseServiceTest {
       0x00, 0x04, 0x01, 0xff, 0x01, 0x02, 0x03,
       0x00, 0x02, 0x02, 0xf0, 0x01).map(_.toByte)
     val emptyResponse = "{}"
-    val emptyListResponse = "\"\""
   }
 
   def probe(implicit system: ActorSystem) = {
@@ -160,7 +159,7 @@ class ExerciseServiceTest
 
   it should "listen at POST exercise/:UserIdValue/:SessionIdValue/classification endpoint" in {
     Post(s"/exercise/${TestData.userId.id}/${TestData.sessionId.id}/classification", TestData.squat) ~> underTest ~> check {
-      response.entity.asString should be(TestData.emptyListResponse)
+      response.entity.asString should be(TestData.emptyResponse)
     }
 
     probe.expectMsg(UserExerciseExplicitClassificationStart(TestData.userId, TestData.sessionId, TestData.squat))

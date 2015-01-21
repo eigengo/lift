@@ -6,7 +6,7 @@ name := "domain"
 //Common code, but not protocols
 lazy val common = project.in(file("common")).dependsOn(contrib)
 
-//Kafka intergration
+//Kafka integration
 lazy val kafka = project.in(file("kafka")).dependsOn(common)
 
 //Exercise
