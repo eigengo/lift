@@ -141,6 +141,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                         let indexPath = NSIndexPath(forRow: i, inSection: 1)
                         if (tableView.cellForRowAtIndexPath(indexPath)!.accessoryType == UITableViewCellAccessoryType.Checkmark) {
                             tableView.cellForRowAtIndexPath(indexPath)!.accessoryType = UITableViewCellAccessoryType.None
+                            session?.endExplicitClassification()
                         }
                     }
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
@@ -157,10 +158,6 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
         if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
             switch selectedCell.accessoryType {
-                //If it was still checked, send delete request before unchecking
-            case UITableViewCellAccessoryType.Checkmark:
-                selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                session?.endExplicitClassification()
             default: return
             }
         }
