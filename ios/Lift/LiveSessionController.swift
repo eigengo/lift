@@ -156,11 +156,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
-            switch selectedCell.accessoryType {
-            default: return
-            }
-        }
+        return
     }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
@@ -179,7 +175,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             x.submitData(mp, const(()))
 
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                tableView.reloadData()
+                tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
