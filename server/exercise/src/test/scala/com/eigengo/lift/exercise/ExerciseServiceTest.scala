@@ -64,7 +64,7 @@ object ExerciseServiceTest {
             sender ! \/.right(())
             TestActor.KeepRunning
           case UserExerciseExplicitClassificationStart(_, _, _) =>
-            sender ! \/.right(())
+            sender ! List(TestData.squat)
             TestActor.KeepRunning
         }
       }
@@ -87,7 +87,7 @@ class ExerciseServiceTest
 
   val probe = ExerciseServiceTest.probe
 
-  val underTest = exerciseRoute(probe.ref, probe.ref)
+  val underTest = exerciseRoute(probe.ref, probe.ref, probe.ref)
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 
@@ -97,7 +97,7 @@ class ExerciseServiceTest
     }
   }
 
-  it should "listen at POST exercise/:UserIdValue endpoint" in {
+  it should "listen at POST exercise/:UserIdValue/start endpoint" in {
     Post(s"/exercise/${TestData.userId.id}/start", TestData.sessionProps) ~> underTest ~> check {
       UserId(response.entity.asString.replace("\"", "")) should be(TestData.userId)
     }
