@@ -21,16 +21,16 @@
 <p>A tap on the watch turned out to be such an event.</p>
 <IMG src="images/tap-punctuations.png" />
 
-<p>As you can see (see above), a tap is a very short event with very a sharp peak in the values along all three axes. And so, we set out to define a machine learning pipeline to train and build an SVM model for classifying taps.</p>
+<p>As you can see, a tap is a very short event with very a sharp peak in the values along all three co-ordinate axes. And so, we set out to define a machine learning pipeline to train and build an SVM model for classifying taps.</p>
 <IMG src="images/svm-ml-pipeline.png" />
 
-<p>Looking at taps, we estimated that they occur within a 250ms time window. So, by sliding a 250 ms window across streamed data from an exercise session, we can analyse the sample data in each window and measure the confidence with which the model detects a tap.</p>
+<p>Looking at taps, we estimated that they occur within a 250 ms time window. So, by sliding a 250 ms window across streamed data from an exercise session, we can analyse the sample data in each window and measure the confidence with which a model detects a tap.</p>
 
-<p>Training an SVM consists in first codifying each sample window as a feature vector. If, in addition, we have previously labelled the training data so that we know which windows contains tap events and which do not, then we can perform <a href="http://en.wikipedia.org/wiki/Supervised_learning">supervised learning</a> and train an SVM model.</p>
+<p>Training an SVM consists in first codifying each 250 ms sample window as a feature vector. If, in addition, we have previously labelled the training data so that we know which windows contain tap events and which do not, then we can perform <a href="http://en.wikipedia.org/wiki/Supervised_learning">supervised learning</a> and train an SVM model.</p>
 
-<p>Codifying sample windows amounted to using a <a href="http://en.wikipedia.org/wiki/Discrete_cosine_transform">discrete cosine transform</a> (a popular lossy compression algorithm used in audio and images) to extract a vector of numbers - i.e. our feature vector. Labelling of the sample windows/feature vectors was performed manually. Training the SVM model consisted of identifying coefficients (<em>cost</em>em> and &gamma;) for which we had the best classification results. <a href="http://en.wikipedia.org/wiki/Supervised_learning">Supervised learning</a> allowed us to utilise a <a href="http://en.wikipedia.org/wiki/Confusion_matrix">confusion matrix</a> to enable classification <a href="http://en.wikipedia.org/wiki/Accuracy_and_precision">accuracy</a> to be calculated.</p>
+<p>Codifying sample windows amounted to using a <a href="http://en.wikipedia.org/wiki/Discrete_cosine_transform">discrete cosine transform</a> (a popular lossy compression algorithm used in audio and images) to extract a vector of numbers - i.e. our feature vector. Labelling of the sample windows/feature vectors was performed manually. Training the SVM model consisted of identifying coefficients (i.e. <em>cost</em> and &gamma;) for which we had the best classification results. Here, <a href="http://en.wikipedia.org/wiki/Supervised_learning">supervised learning</a> allows us to utilise a <a href="http://en.wikipedia.org/wiki/Confusion_matrix">confusion matrix</a> to calculate classification <a href="http://en.wikipedia.org/wiki/Accuracy_and_precision">accuracy</a>.</p>
 
-<p>The trained model was then exported using the <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html#f402">libsvm</a> file format. This allows the SVM tap classification model to be reused in other programming contexts.</p>
+<p>The trained model was then exported using the <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html#f402">libsvm</a> file format. This allows the SVM tap classification model to be reused in other programming contexts (e.g. Scala, Spark, etc.).</p>
 
 <p>Applying the trained tap classifier to the training data produced the following results (red highlights indicate positively classified sample windows):</p>
 <IMG src="images/svm-trained-classifications.png" />
