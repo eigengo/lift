@@ -15,11 +15,13 @@
 <IMG src="images/bicep-curl.png" />
 
 <p>Entire session</p>
-<p>As you can see, an isolated bicep curl in lab conditions (just moving one's arm without any weight while sitting next to the desk) is nice and clear, but attempting to find something meaningful in an hour's worth of real exercise in the gym is <em>very hard</em>. We had to find a way to make it possible for us to start tagging the data to construct the model to train the SVM to perform the analysis to ... ultimately let me keep on top of my exercise without having to take a notepad and a pen to the gym. We needed to find a very distinct event that will allow us to separate our exercise from non-exercise. 
-<IMG src="images/tap-punctuations.png" />
+<p>As you can see, an isolated bicep curl in lab conditions (just moving one's arm without any weight while sitting next to the desk) is nice and clear, but attempting to find something meaningful in an hour's worth of real exercise in the gym is <em>very hard</em>. We had to find a way to make it possible for us: to start tagging the data; to construct the model; to train the SVM; to perform the analysis; to ... and ultimately, to let me keep on top of my exercise without having to take a notepad and a pen to the gym. We needed to find a very distinct event that would allow us to separate our exercise from non-exercise. 
 
 <h3>Tap</h3>
-<p>A tap on the watch turned out to be such an event. As you can see (see above), a tap is a very short event with very a sharp peak in the values along all three axes. And so, we set out to define a machine learning pipeline to train and build an SVM model for classifying taps.</p>
+<p>A tap on the watch turned out to be such an event.</p>
+<IMG src="images/tap-punctuations.png" />
+
+<p>As you can see (see above), a tap is a very short event with very a sharp peak in the values along all three axes. And so, we set out to define a machine learning pipeline to train and build an SVM model for classifying taps.</p>
 <IMG src="images/svm-ml-pipeline.png" />
 
 <p>Looking at taps, we estimated that they occur within a 250ms time window. So, by sliding a 250 ms window across streamed data from an exercise session, we can analyse the sample data in each window and measure the confidence with which the model detects a tap.</p>
