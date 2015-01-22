@@ -61,8 +61,33 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
+class OfflineSessionTableViewCell : UITableViewCell {
+    
+    override func awakeFromNib() {
+    }
+    
+    func setOfflineExerciseSession(session: OfflineExerciseSession) -> Void {
+        let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(session.props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
+        textLabel!.text = ", ".join(mgs.map { $0.title })
+        let dateText = NSDateFormatter.localizedStringFromDate(session.props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
+        detailTextLabel!.text = "On \(dateText)" // ", ".join(mgs.map { ", ".join($0.exercises) })
+        setIsReplaying(session.isReplaying())
+    }
+    
+    func setIsReplaying(isReplaying: Bool) {
+        if isReplaying {
+            if accessoryView == nil {
+                accessoryView = UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+            }
+            (accessoryView! as UIActivityIndicatorView).startAnimating()
+        } else {
+            accessoryView = nil
+        }
+    }
+}
+
 class HomeController : UIViewController, UITableViewDataSource,
-    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource, RemoteNotificationDelegate {
+    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource, RemoteNotificationDelegate, LiftServerDelegate {
     
     @IBOutlet var tableView: UITableView!
     @IBOutlet var calendarContentView: JTCalendarContentView!
@@ -104,12 +129,16 @@ class HomeController : UIViewController, UITableViewDataSource,
             }
         }
         offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+        tableView.reloadData()
+        replayOfflineSessions()
         AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
+        AppDelegate.becomeCurrentLiftServerDelegate(self)
     }
     
     override func viewDidDisappear(animated: Bool) {
         super.viewDidDisappear(animated)
         AppDelegate.unbecomeCurrentRemoteNotificationDelegate()
+        AppDelegate.unbecomeCurrentLiftServerDelegate()
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -223,14 +252,32 @@ class HomeController : UIViewController, UITableViewDataSource,
             cell.setSessionSummary(sessionSummary)
             return cell
         case (2, let x):
-            let cell = tableView.dequeueReusableCellWithIdentifier("offlineSession") as UITableViewCell
+            let cell = tableView.dequeueReusableCellWithIdentifier("offlineSession") as OfflineSessionTableViewCell
             let offlineSession = offlineSessions[x]
-            let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(offlineSession.props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
-            cell.textLabel!.text = ", ".join(mgs.map { $0.title })
-            let dateText = NSDateFormatter.localizedStringFromDate(offlineSession.props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
-            cell.detailTextLabel!.text = "On \(dateText)" // ", ".join(mgs.map { ", ".join($0.exercises) })
+            cell.setOfflineExerciseSession(offlineSession)
             return cell
         default: fatalError("Match error")
+        }
+    }
+    
+    private func replayOfflineSessions() {
+        for (index, offlineSession) in enumerate(offlineSessions) {
+            if offlineSession.isReplaying() { continue }
+            
+            // foreach submit offline sessions
+            if let cell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: index, inSection: 2)) as? OfflineSessionTableViewCell {
+                cell.setIsReplaying(true)
+                
+                ExerciseSessionManager.sharedInstance.replayOfflineSession(offlineSession.id, removeAfterSuccess: true) {
+                    $0.cata(
+                        { _ in cell.setIsReplaying(false) },
+                        {_ in
+                            self.offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+                            self.tableView.reloadSections(NSIndexSet(index: 2), withRowAnimation: UITableViewRowAnimation.Automatic)
+                        }
+                    )
+                }
+            }
         }
     }
     
@@ -259,6 +306,13 @@ class HomeController : UIViewController, UITableViewDataSource,
     // MARK: RemoteNotificationDelegate
     func remoteNotificationReceivedAlert(alert: String) {
         calendarDidDateSelected(self.calendar, date: NSDate())
+    }
+    
+    // MARK: LiftServerDelegate
+    func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
+        if !newState.isOnline() { return }
+        
+        replayOfflineSessions()
     }
     
     // MARK: Actions

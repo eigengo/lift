@@ -19,7 +19,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
         (UIApplication.sharedApplication().delegate! as AppDelegate).currentRemoteNotificationDelegate = nil
     }
     
+    class func becomeCurrentLiftServerDelegate(delegate: LiftServerDelegate) {
+        (UIApplication.sharedApplication().delegate! as AppDelegate).currentLiftServerDelegate = delegate
+    }
+    
+    class func unbecomeCurrentLiftServerDelegate() {
+        (UIApplication.sharedApplication().delegate! as AppDelegate).currentLiftServerDelegate = nil
+    }
+
     weak var currentRemoteNotificationDelegate: RemoteNotificationDelegate?
+    var currentLiftServerDelegate: LiftServerDelegate?
 
     // MARK: Private functions
     

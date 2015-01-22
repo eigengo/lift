@@ -3,7 +3,23 @@ import Foundation
 struct OfflineExerciseSession {
     var id: NSUUID
     var offlineFromStart: Bool
+    var replayingPid: Int32?
     var props: Exercise.SessionProps
+    
+    mutating func setReplaying(replaying: Bool) {
+        if replaying {
+            replayingPid = NSProcessInfo.processInfo().processIdentifier
+        } else {
+            replayingPid = nil
+        }
+    }
+    
+    func isReplaying() -> Bool {
+        if let x = replayingPid {
+            return x == NSProcessInfo.processInfo().processIdentifier
+        }
+        return false
+    }
 }
 
 extension OfflineExerciseSession {
@@ -11,13 +27,17 @@ extension OfflineExerciseSession {
     static func unmarshal(json: JSON) -> OfflineExerciseSession {
         let id = NSUUID(UUIDString: json["id"].stringValue)!
         let offlineFromStart = json["offlineFromStart"].boolValue
+        let replayingPid = json["replayingPid"].int32
         let props = Exercise.SessionProps.unmarshal(json["props"])
-        return OfflineExerciseSession(id: id, offlineFromStart: offlineFromStart, props: props)
+        return OfflineExerciseSession(id: id, offlineFromStart: offlineFromStart, replayingPid: replayingPid, props: props)
     }
     
     func marshal() -> [String : AnyObject] {
         var params: [String : AnyObject] = [:]
         params["id"] = id.UUIDString
+        if let x = replayingPid {
+            params["replayingPid"] = NSNumber(int: x)
+        }
         params["offlineFromStart"] = offlineFromStart
         params["props"] = props.marshal()
         return params
@@ -56,12 +76,7 @@ class ExerciseSessionManager {
         NSFileManager.defaultManager().createDirectoryAtPath(rootPath, withIntermediateDirectories: false, attributes: nil, error: nil)
         let io = ManagerManagedExerciseSessionIO(rootPath: rootPath)
 
-        var error: NSError?
-        let x = OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, props: managedSession.props).marshal()
-        let os = NSOutputStream(toFileAtPath: rootPath.stringByAppendingPathComponent("props.json"), append: false)!
-        os.open()
-        NSJSONSerialization.writeJSONObject(x, toStream: os, options: NSJSONWritingOptions.PrettyPrinted, error: &error)
-        os.close()
+        saveOfflineSessionDescriptor(OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, replayingPid: nil, props: managedSession.props))
         
         return ManagedExerciseSession(io: io, managedSession: managedSession, isOfflineFromStart: isOfflineFromStart)
     }
@@ -80,30 +95,66 @@ class ExerciseSessionManager {
         NSFileManager.defaultManager().removeItemAtPath(documentsPath.stringByAppendingPathComponent(id.UUIDString), error: nil)
     }
     
-    func listOfflineSessions() -> [OfflineExerciseSession] {
-        
-        func loadOfflineSession(offlineSessionPath: String) -> [OfflineExerciseSession] {
-            let rootPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
-            let propsJsonPath = rootPath.stringByAppendingPathComponent("props.json")
-            if let propsJsonData = NSData(contentsOfFile: propsJsonPath) {
-                let json = JSON(data: propsJsonData, options: NSJSONReadingOptions.AllowFragments, error: nil)
-                return [OfflineExerciseSession.unmarshal(json)]
-            }
-            return []
+    private func saveOfflineSessionDescriptor(session: OfflineExerciseSession) -> Void {
+        var error: NSError?
+        let x = session.marshal()
+        let rootPath = documentsPath.stringByAppendingPathComponent(session.id.UUIDString)
+        let os = NSOutputStream(toFileAtPath: rootPath.stringByAppendingPathComponent("props.json"), append: false)!
+        os.open()
+        NSJSONSerialization.writeJSONObject(x, toStream: os, options: NSJSONWritingOptions.PrettyPrinted, error: &error)
+        os.close()
+    }
+    
+    private func loadOfflineSession(offlineSessionPath: String, loadData: Bool) -> (OfflineExerciseSession, NSData?)? {
+        let rootPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
+        let propsJsonPath = rootPath.stringByAppendingPathComponent("props.json")
+        if let propsJsonData = NSData(contentsOfFile: propsJsonPath) {
+            let json = JSON(data: propsJsonData, options: NSJSONReadingOptions.AllowFragments, error: nil)
+            let data = NSData(contentsOfFile: rootPath.stringByAppendingPathComponent("all.mp"))
+            return (OfflineExerciseSession.unmarshal(json), data)
         }
+        return nil
+    }
+    
+    func listOfflineSessions() -> [OfflineExerciseSession] {
         
         var result: [OfflineExerciseSession] = []
         if let offlineSessions = NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath, error: nil) as? [String] {
             for offlineSession in offlineSessions {
-                result += loadOfflineSession(offlineSession)
+                if let (s, _) = loadOfflineSession(offlineSession, loadData: false) {
+                    result += [s]
+                }
             }
         }
         
         return result
     }
     
-    func dataForOfflineSession(id: NSUUID) -> NSData? {
-        return nil
+    func replayOfflineSession(id: NSUUID, removeAfterSuccess: Bool, f: Result<Void> -> Void) -> Void {
+        if var (s, maybeD) = loadOfflineSession(id.UUIDString, loadData: true) {
+            if s.id != id {
+                f(Result.error(NSError.errorWithMessage("Session \(id) reports its id as \(s.id)", code: 1003)))
+            } else if s.isReplaying() {
+                f(Result.error(NSError.errorWithMessage("Session \(id) is already being replayed", code: 1004)))
+            } else if let d = maybeD {
+                s.setReplaying(true)
+                saveOfflineSessionDescriptor(s)
+                
+                LiftServer.sharedInstance.exerciseReplayExerciseSession(CurrentLiftUser.userId!, sessionId: id, data: d) { x in
+                    s.setReplaying(false)
+                    self.saveOfflineSessionDescriptor(s)
+                    
+                    if removeAfterSuccess {
+                        x.cata(const(()), { _ in self.removeOfflineSession(id) })
+                    }
+                    f(x)
+                }
+            } else {
+                f(Result.error(NSError.errorWithMessage("Session \(id) has not recorded data", code: 1002)))
+            }
+        } else {
+            f(Result.error(NSError.errorWithMessage("No session with identifier \(id)", code: 1001)))
+        }
     }
     
     class ManagerManagedExerciseSessionIO : ManagedExerciseSessionIO {
