@@ -21,11 +21,13 @@ object UserExercisesClassifier {
   case class MuscleGroup(key: String, title: String, exercises: List[String])
 
   val supportedMuscleGroups = List(
-    MuscleGroup(key = "legs",  title = "Legs",  exercises = List("squat", "extension", "curl")),
-    MuscleGroup(key = "core",  title = "Core",  exercises = List("crunch", "side bend", "cable crunch")),
-    MuscleGroup(key = "back",  title = "Back",  exercises = List("pull up", "row", "deadlift", "fly")),
+    MuscleGroup(key = "legs",  title = "Legs",  exercises = List("squat", "extension", "curl", "lunge")),
+    MuscleGroup(key = "core",  title = "Core",  exercises = List("crunch", "side bend", "cable crunch", "situp", "leg raises")),
+    MuscleGroup(key = "back",  title = "Back",  exercises = List("pull up", "row", "deadlift", "fly", "hyper-extension")),
     MuscleGroup(key = "arms",  title = "Arms",  exercises = List("biceps curl", "triceps press down")),
-    MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over"))
+    MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over", "incline chest press")),
+    MuscleGroup(key = "shoulders", title = "Shoulders", exercises = List("shoulder press", "lateral raises", "front raises", "rear raises", "upright rows")),
+    MuscleGroup(key = "cardiovascular", title = "Cardiovascular", exercises = List("running", "cycling", "swimming", "elliptical", "rowing"))
   )
 
   /**
