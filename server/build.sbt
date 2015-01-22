@@ -6,8 +6,11 @@ name := "domain"
 //Common code, but not protocols
 lazy val common = project.in(file("common")).dependsOn(contrib)
 
+//Kafka integration
+lazy val kafka = project.in(file("kafka")).dependsOn(common)
+
 //Exercise
-lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common)
+lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common, kafka)
 
 //User profiles
 lazy val profile = project.in(file("profile")).dependsOn(profileProtocol, common)
@@ -17,7 +20,7 @@ lazy val profileProtocol = project.in(file("profile-protocol")).dependsOn(common
 lazy val notification = project.in(file("notification")).dependsOn(common, notificationProtocol)
 lazy val notificationProtocol = project.in(file("notification-protocol")).dependsOn(common)
 
-//Main 
+//Main
 lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
 
 //The unified API adapter
@@ -30,7 +33,7 @@ lazy val contrib = project.in(file("contrib"))
 lazy val spark = project.in(file("spark")).dependsOn(common)
 
 //The main aggregate
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, spark)
+lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, kafka, spark)
 
 fork in Test := false
 

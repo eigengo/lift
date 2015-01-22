@@ -1,0 +1,8 @@
+<%
+  @image          = @docker[:kafka]
+  @description    = "Supporting Service: Kafka"
+  @ip_address     = "10.42.6.%i"
+  @affinity_rules = "MachineMetadata=type=kafka"
+%>
+
+<%= ERB.new(File.read("unit-files/lift/default-service.erb"), 0, "<>", "_unit").result(binding) %>

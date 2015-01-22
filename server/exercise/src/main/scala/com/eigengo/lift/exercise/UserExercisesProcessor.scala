@@ -16,7 +16,7 @@ object UserExercisesProcessor {
   /** The shard name */
   val shardName = "user-exercises"
   /** The sessionProps to create the actor on a node */
-  def props(notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], notification, userProfile)
+  def props(kafka: ActorRef, notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], kafka, notification, userProfile)
 
   /**
    * Remove a session identified by ``sessionId`` for user identified by ``userId``
@@ -190,15 +190,17 @@ object UserExercisesProcessor {
     case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationExamples(userId, _) ⇒ s"${userId.hashCode() % 10}"
   }
-
 }
 
 /**
  * Models each user's exercises as its state, which is updated upon receiving and classifying the
  * ``AccelerometerData``. It also provides the query for the current state.
  */
-class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
-  extends PersistentActor with ActorLogging with AutoPassivation {
+class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
+  extends KafkaProducerPersistentActor
+  with ActorLogging
+  with AutoPassivation {
+
   import com.eigengo.lift.exercise.UserExercisesClassifier._
   import com.eigengo.lift.exercise.UserExercisesProcessor._
   import scala.concurrent.duration._
@@ -260,7 +262,7 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
 
     // explicit classification
     case ExerciseExplicitClassificationStart(`id`, exercise) =>
-      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
+      persistAndProduceToKafka(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
 
     case ExerciseExplicitClassificationEnd(`id`) ⇒
       self ! NoExercise(ModelMetadata.user)
@@ -298,11 +300,10 @@ class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
       sender() ! \/.left("Not in session")
 
     case ExerciseSessionDelete(sessionId) ⇒
-      persist(SessionDeletedEvt(sessionId)) { evt ⇒
+      persistAndProduceToKafka(SessionDeletedEvt(sessionId)) { evt ⇒
         sender() ! \/.right(())
       }
   }
 
   override def receiveCommand: Receive = notExercising
-
 }
