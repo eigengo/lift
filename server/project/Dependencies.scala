@@ -21,7 +21,7 @@ object Dependencies {
     }
 
     val leveldb               = "org.iq80.leveldb"        % "leveldb"                       % "0.7"
-    
+
     val testkit               = "com.typesafe.akka"      %% "akka-testkit"                  % version
   }
 
@@ -36,17 +36,17 @@ object Dependencies {
     val testkit = "io.spray" %% "spray-testkit"            % version
   }
 
-  // object kafka {
-  //   val version = "0.8.2-beta"
-  //   val kafka = "org.apache.kafka" %% "kafka"  % version exclude("log4j", "log4j") exclude("org.slf4j","slf4j-log4j12")
-  // }
+  object kafka {
+    val version = "0.8.2-beta"
+    val kafka   = "org.apache.kafka" %% "kafka"  % version exclude("org.slf4j", "slf4j-simple") exclude("org.slf4j","slf4j-log4j12")
+  }
 
   object scalaz {
     val core = "org.scalaz" %% "scalaz-core" % "7.1.0"
   }
 
   object json4s {
-    val native = "org.json4s" %% "json4s-native" % "3.2.11"
+    val native  = "org.json4s" %% "json4s-native" % "3.2.11"
     val jackson = "org.json4s" %% "json4s-jackson" % "3.2.11"
   }
 

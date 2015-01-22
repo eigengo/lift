@@ -5,6 +5,7 @@ import akka.cluster.Cluster
 import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
+import com.typesafe.config.Config
 import spray.can.Http
 import spray.routing._
 
@@ -24,7 +25,7 @@ object AdapterBoot {
 
 object AdapterMicroservice extends MicroserviceApp(MicroserviceProps("Adapter")) {
 
-  override def boot(implicit system: ActorSystem, cluster: Cluster): BootedNode = {
+  override def boot(config: Config)(implicit system: ActorSystem, cluster: Cluster): BootedNode = {
     AdapterBoot.boot
   }
 }

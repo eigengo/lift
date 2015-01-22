@@ -23,6 +23,7 @@ main:
     JOURNAL: journal.lift.eigengo.com
     SNAPSHOT: snapshot.lift.eigengo.com
     ETCD_URL: http://etcd.lift.eigengo.com:4001
+    KAFKA_BROKER_LIST: 192.168.59.103:9092
   ports:
     - "2552"
     - "8080"
@@ -46,3 +47,17 @@ adapter:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
+zookeeper:
+  image: wurstmeister/zookeeper
+  ports:
+    - "2181:2181"
+kafka:
+  image: wurstmeister/kafka:0.8.1.1-1
+  ports:
+    - "9092:9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
