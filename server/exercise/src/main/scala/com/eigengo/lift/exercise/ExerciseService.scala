@@ -6,6 +6,7 @@ import akka.actor.ActorRef
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
 import scodec.bits.BitVector
+import spray.http.{StatusCodes, HttpResponse}
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -75,6 +76,14 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         handleWith { metric: Metric ⇒
           userExercises ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
           ()
+        }
+      }
+    } ~
+    path("exercise" / UserIdValue / SessionIdValue / "replay") { (userId, sessionId) ⇒
+      post {
+        complete {
+          println("Not acceptable")
+          HttpResponse(status = StatusCodes.NotAcceptable)
         }
       }
     } ~

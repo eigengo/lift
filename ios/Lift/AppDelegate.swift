@@ -156,16 +156,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     }
     
     func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
-        println("Availability changed: isNetworkReachable -> \(newState.isNetworkReachable)")
-        println("Availability changed: isServerReachable -> \(newState.isServerReachable)")
-        println("Availability changed: lastServerFailureDate -> \(newState.lastServerFailureDate)")
+        currentLiftServerDelegate?.liftServer(liftServer, availabilityStateChanged: newState)
         
         if newState.isOnline() {
-            NSLog("*** Online")
             notTooLoud(RKDropdownAlert.title("Online".localized(), backgroundColor: UIColor.greenColor(), textColor: UIColor.blackColor(), time: 3))
             UINavigationBar.appearance().barTintColor = nil
         } else {
-            NSLog("*** Offline")
             notTooLoud(RKDropdownAlert.title("Offline".localized(), backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3))
             UINavigationBar.appearance().barTintColor = UIColor.orangeColor()
         }
