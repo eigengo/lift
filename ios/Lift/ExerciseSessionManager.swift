@@ -221,8 +221,10 @@ class ManagedExerciseSession : ExerciseSession {
     /// timeout in the UserExerciseProcessor.
     ///
     private func abandon() {
-        LiftServer.sharedInstance.exerciseAbandonExerciseSession(CurrentLiftUser.userId!, sessionId: managedSession.id) {
-            $0.cata(const(()), r: { _ in self.isAbandoned = true })
+        if !isOfflineFromStart {
+            LiftServer.sharedInstance.exerciseAbandonExerciseSession(CurrentLiftUser.userId!, sessionId: managedSession.id) {
+                $0.cata(const(()), r: { _ in self.isAbandoned = true })
+            }
         }
     }
     
