@@ -86,7 +86,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
           val fos = new FileOutputStream(s"/Users/janmachacek/$sessionId.mp")
           fos.write(ctx.request.entity.data.toByteArray)
           fos.close()
-          
+
           HttpResponse(status = StatusCodes.OK)
         }
       }
