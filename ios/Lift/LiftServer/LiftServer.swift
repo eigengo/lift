@@ -405,16 +405,8 @@ public class LiftServer {
     /// Start exercise session for the user, with the props
     ///
     func exerciseSessionStart(userId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
-        let startDateString = isoDateFormatter.stringFromDate(props.startDate)
-        let params: [String : AnyObject] = [
-            "startDate": startDateString,
-            "muscleGroupKeys": props.muscleGroupKeys,
-            "intendedIntensity": props.intendedIntensity
-        ]
-        request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: params))
-            .responseAsResutlt(asu(), f) { json in
-                return NSUUID(UUIDString: json["id"].stringValue)!
-            }
+        request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: props.marshal()))
+            .responseAsResutlt(asu(), f) { json in return NSUUID(UUIDString: json["id"].stringValue)! }
     }
 
     ///
@@ -482,11 +474,19 @@ public class LiftServer {
     }
     
     ///
+    /// Starts the replay of exercise session
+    ///
+    func exerciseExerciseSessionReplayStart(userId: NSUUID, sessionId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: props.marshal()))
+            .responseAsResutlt(asu(), f) { json in return NSUUID(UUIDString: json["id"].stringValue)! }
+    }
+    
+    ///
     /// Replays previously saved session by sending *all* data that would have been sent during the session run to the
     /// server in one request.
     ///
-    func exerciseReplayExerciseSession(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseSessionReplay(userId, sessionId), body: .Data(data: data))
+    func exerciseExerciseSessionReplaySubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionReplayData(userId, sessionId), body: .Data(data: data))
             .responseAsResutlt(asu(), f, const(()))
     }
     

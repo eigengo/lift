@@ -102,9 +102,14 @@ enum LiftServerURLs : LiftServerRequestConvertible {
     case ExerciseSessionAbandon(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
+    /// Starts the replay of an existing session for the given user
+    ///
+    case ExerciseSessionReplayStart(/*userId: */NSUUID, /* sessionId */ NSUUID)
+    
+    ///
     /// Replays the exercise session for the given ``userId`` and ``sessionId``.
     ///
-    case ExerciseSessionReplay(/*userId: */NSUUID, /*sessionId: */NSUUID)
+    case ExerciseSessionReplayData(/*userId: */NSUUID, /*sessionId: */NSUUID)
     
     ///
     /// Submits the data (received from the smartwatch) for the given ``userId``, ``sessionId``
@@ -171,7 +176,8 @@ enum LiftServerURLs : LiftServerRequestConvertible {
                 case .ExerciseSessionEnd(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/end", method: Method.POST)
                     
                 case .ExerciseSessionAbandon(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/abandon", method: Method.POST)
-                case .ExerciseSessionReplay(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/replay", method: Method.POST)
+                case .ExerciseSessionReplayStart(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/replay", method: Method.POST)
+                case .ExerciseSessionReplayData(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/replay", method: Method.PUT)
                     
                 case .ExerciseSessionGetClassificationExamples(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.GET)
                 case .ExplicitExerciseClassificationStart(let userId, let sessionId): return LiftServerRequest(path: "/exercise/\(userId.UUIDString)/\(sessionId.UUIDString)/classification", method: Method.POST)

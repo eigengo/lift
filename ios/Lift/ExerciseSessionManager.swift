@@ -128,15 +128,20 @@ class ExerciseSessionManager {
                 NSLog("Starting replay of session \(id) with \(d.length) bytes")
                 replayingSessionIds += [id]
                 
-                LiftServer.sharedInstance.exerciseReplayExerciseSession(CurrentLiftUser.userId!, sessionId: id, data: d) { x in
-                    self.replayingSessionIds.removeObject(id)
-                    
-                    if removeAfterSuccess {
-                        x.cata(const(()), { _ in self.removeOfflineSession(id) })
-                    }
-                    
-                    NSLog("Finished replay of session \(id)")
-                    f(x)
+                LiftServer.sharedInstance.exerciseExerciseSessionReplayStart(CurrentLiftUser.userId!, sessionId: id, props: s.props) {
+                    $0.cata({err in f(Result.error(err)) },
+                            { sessionId in
+                                LiftServer.sharedInstance.exerciseExerciseSessionReplaySubmitData(CurrentLiftUser.userId!, sessionId: id, data: d) { x in
+                                self.replayingSessionIds.removeObject(id)
+                        
+                                if removeAfterSuccess {
+                                    x.cata(const(()), { _ in self.removeOfflineSession(id) })
+                                }
+                        
+                                NSLog("Finished replay of session \(id)")
+                                f(x)
+                            }
+                    })
                 }
             } else {
                 f(Result.error(NSError.errorWithMessage("Session \(id) has not recorded data", code: 1002)))

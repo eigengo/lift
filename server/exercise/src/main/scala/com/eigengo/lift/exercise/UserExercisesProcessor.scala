@@ -1,5 +1,6 @@
 package com.eigengo.lift.exercise
 
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 
 import akka.actor._
@@ -33,7 +34,15 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    * @param data all session data
    */
-  case class UserExerciseSessionReplay(userId: UserId, sessionId: SessionId, data: ByteBuffer)
+  case class UserExerciseSessionReplayProcessData(userId: UserId, sessionId: SessionId, data: ByteBuffer)
+
+  /**
+   * Starts the replay all data received for a possibly existing ``sessionId`` for the given ``userId``
+   * @param userId the user identity
+   * @param sessionId the session identity
+   * @param sessionProps the session props
+   */
+  case class UserExerciseSessionReplayStart(userId: UserId, sessionId: SessionId, sessionProps: SessionProps)
 
   /**
    * User classified exercise start.
@@ -125,7 +134,14 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    * @param data all session data
    */
-  private case class ExerciseSessionReplay(sessionId: SessionId, data: ByteBuffer)
+  private case class ExerciseSessionReplayProcessData(sessionId: SessionId, data: ByteBuffer)
+
+  /**
+   * Starts the replay the ``sessionId`` by re-processing all data in ``data``
+   * @param sessionId the session identity
+   * @param sessionProps the session props
+   */
+  private case class ExerciseSessionReplayStart(sessionId: SessionId, sessionProps: SessionProps)
 
   /**
    * Sets the metric for the unmarked exercises in the currently open set
@@ -188,7 +204,8 @@ object UserExercisesProcessor {
     case UserExerciseSessionEnd(userId, sessionId)                            ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
     case UserExerciseDataProcessMultiPacket(userId, sessionId, packets)       ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
     case UserExerciseSessionDelete(userId, sessionId)                         ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
-    case UserExerciseSessionReplay(userId, sessionId, data)                   ⇒ (userId.toString, ExerciseSessionReplay(sessionId, data))
+    case UserExerciseSessionReplayProcessData(userId, sessionId, data)        ⇒ (userId.toString, ExerciseSessionReplayProcessData(sessionId, data))
+    case UserExerciseSessionReplayStart(userId, sessionId, props)             ⇒ (userId.toString, ExerciseSessionReplayStart(sessionId, props))
     case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
     case UserExerciseExplicitClassificationEnd(userId, sessionId)             ⇒ (userId.toString, ExerciseExplicitClassificationEnd(sessionId))
     case UserExerciseExplicitClassificationExamples(userId, sessionId)        ⇒ (userId.toString, ExerciseExplicitClassificationExamples(sessionId))
@@ -207,7 +224,8 @@ object UserExercisesProcessor {
     case UserExerciseExplicitClassificationStart(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationExamples(userId, _) ⇒ s"${userId.hashCode() % 10}"
-    case UserExerciseSessionReplay(userId, _, _)               ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionReplayProcessData(userId, _, _)    ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionReplayStart(userId, _, _)          ⇒ s"${userId.hashCode() % 10}"
   }
 }
 
@@ -244,6 +262,18 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, SessionStartedEvt(sessionId, sessionProps)) ⇒
       context.become(exercising(sessionId, sessionProps))
+  }
+
+  private def replaying(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
+    case ExerciseSessionReplayProcessData(`id`, data) ⇒
+      log.warning("Not yet handling processing of the data")
+
+      // TODO: fixme
+      val fos = new FileOutputStream(s"/Users/janmachacek/$id.mp")
+      fos.write(data.array())
+      fos.close()
+
+      context.become(notExercising)
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
@@ -314,6 +344,15 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
         sender() ! \/.right(evt.sessionId)
         context.become(exercising(evt.sessionId, sessionProps))
       }
+
+    case ExerciseSessionReplayStart(oldSessionId, sessionProps) ⇒
+      val id = SessionId.randomId()
+      persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(id, sessionProps))) { case _ :: started :: Nil ⇒
+        saveSnapshot(started)
+        sender() ! \/.right(id)
+        context.become(replaying(id, sessionProps))
+      }
+
     case ExerciseSessionEnd(_) ⇒
       sender() ! \/.left("Not in session")
 
