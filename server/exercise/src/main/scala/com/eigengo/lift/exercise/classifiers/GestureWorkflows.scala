@@ -2,7 +2,6 @@ package com.eigengo.lift.exercise
 
 package classifiers
 
-import akka.stream.FlowMaterializer
 import akka.stream.scaladsl._
 import akka.stream.stage.{TerminationDirective, PushStage, Context, Directive}
 import breeze.linalg.DenseMatrix
@@ -264,12 +263,18 @@ trait GestureWorkflows extends SVMClassifier {
     }
   }
 
+  object IdentifyGestureEvents {
+
+    def apply() = new IdentifyGestureEvents()
+
+  }
+
   /**
    * Flowgraph that merges (via a user supplied function) a collection of input sources into a single output sink.
    *
-   * @param size number of input sources that we are to merge
+   * @param size number of input sources that we are to bundle and merge
    */
-  class MergeTransformations[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) {
+  class MergeTransformations[A, B](size: Int, merge: Set[Transformation[A, B]] => Transformation[A, B]) {
     require(size > 0)
 
     val in = (0 until size).map(_ => UndefinedSource[Transformation[A, B]])
@@ -283,6 +288,14 @@ trait GestureWorkflows extends SVMClassifier {
       }
       zip.out ~> Flow[Set[Transformation[A, B]]].map(merge) ~> out
     }
+  }
+
+  object MergeTransformations {
+
+    def apply[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) = {
+      new MergeTransformations[A, B](size, merge)
+    }
+
   }
 
   /**
@@ -308,6 +321,12 @@ trait GestureWorkflows extends SVMClassifier {
         zip.out   ~> out(location)
       }
     }
+  }
+
+  object ModulateSensorNet {
+
+    def apply[A, B, L](locations: Set[L]) = new ModulateSensorNet[A, B, L](locations)
+
   }
 
   /**
@@ -345,7 +364,13 @@ trait GestureWorkflows extends SVMClassifier {
         }) ~> out
     }
   }
-/*
+
+  object GestureGrouping {
+
+    def apply[A]() = new GestureGrouping[A]()
+
+  }
+
   /**
    * Flowgraph that monitors the `inputLocations` sensoir network for recognisable gestures. When gestures are detected,
    * messages on the `outputLocations` sensor network are tagged and grouped.
@@ -365,17 +390,17 @@ trait GestureWorkflows extends SVMClassifier {
     val groupedOutput = outputLocations.map(loc => (loc, UndefinedSink[GroupValue[TaggedValue[AccelerometerValue]]])).toMap
 
     val graph = FlowGraph { implicit builder =>
-      val merge = new MergeTransformations(inputLocations.size) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
+      val merge = MergeTransformations[AccelerometerValue, TaggedValue[AccelerometerValue]](inputLocations.size) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
         ??? // FIXME:
       }
-      val modulate = new ModulateSensorNet(outputLocations)
-
+      val modulate = ModulateSensorNet[AccelerometerValue, TaggedValue[AccelerometerValue], L](outputLocations)
+/*
       // Wire in tapped sensors
       for ((loc, index) <- inputLocations.zipWithIndex) {
-        val identify = new IdentifyGestureEvents()
+        val identify = IdentifyGestureEvents()
 
         inputTap(loc) ~> identify.in
-        identify.monitor ~> merge.in(index)
+        identify.tap ~> merge.in(index)
         identify.out ~> outputTap(loc)
       }
 
@@ -384,13 +409,20 @@ trait GestureWorkflows extends SVMClassifier {
 
       // Wire in modulation and grouping
       for (loc <- outputLocations) {
-        val group = new GestureGrouping()
+        val group = GestureGrouping[AccelerometerValue]()
 
         groupedIn(loc) ~> modulate.in(loc)
         modulate.out(loc) ~> group.in
         group.out ~> groupedOutput(loc)
-      }
+      }*/
     }
+
   }
-*/
+
+  object GestureClassificationWorkflow {
+
+    def apply[L](inputLocations: Set[L], outputLocations: Set[L]) = new GestureClassificationWorkflow[L](inputLocations, outputLocations)
+
+  }
+
 }
