@@ -66,12 +66,12 @@ class OfflineSessionTableViewCell : UITableViewCell {
     override func awakeFromNib() {
     }
     
-    func setOfflineExerciseSession(session: OfflineExerciseSession) -> Void {
+    func setOfflineExerciseSession(session: OfflineExerciseSession, isReplaying: Bool) -> Void {
         let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(session.props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
         textLabel!.text = ", ".join(mgs.map { $0.title })
         let dateText = NSDateFormatter.localizedStringFromDate(session.props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
         detailTextLabel!.text = "On \(dateText)" // ", ".join(mgs.map { ", ".join($0.exercises) })
-        setIsReplaying(session.isReplaying())
+        setIsReplaying(isReplaying)
     }
     
     func setIsReplaying(isReplaying: Bool) {
@@ -254,7 +254,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         case (2, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("offlineSession") as OfflineSessionTableViewCell
             let offlineSession = offlineSessions[x]
-            cell.setOfflineExerciseSession(offlineSession)
+            cell.setOfflineExerciseSession(offlineSession, isReplaying: ExerciseSessionManager.sharedInstance.isReplaying(offlineSession.id))
             return cell
         default: fatalError("Match error")
         }
@@ -262,7 +262,7 @@ class HomeController : UIViewController, UITableViewDataSource,
     
     private func replayOfflineSessions() {
         for (index, offlineSession) in enumerate(offlineSessions) {
-            if offlineSession.isReplaying() { continue }
+            if ExerciseSessionManager.sharedInstance.isReplaying(offlineSession.id) { continue }
             
             // foreach submit offline sessions
             if let cell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: index, inSection: 2)) as? OfflineSessionTableViewCell {
@@ -274,9 +274,12 @@ class HomeController : UIViewController, UITableViewDataSource,
                         {_ in
                             self.offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
                             self.tableView.reloadSections(NSIndexSet(index: 2), withRowAnimation: UITableViewRowAnimation.Automatic)
+                            self.replayOfflineSessions()
                         }
                     )
                 }
+                
+                break   // we replay only one at a time
             }
         }
     }

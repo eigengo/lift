@@ -3,23 +3,7 @@ import Foundation
 struct OfflineExerciseSession {
     var id: NSUUID
     var offlineFromStart: Bool
-    var replayingPid: Int32?
     var props: Exercise.SessionProps
-    
-    mutating func setReplaying(replaying: Bool) {
-        if replaying {
-            replayingPid = NSProcessInfo.processInfo().processIdentifier
-        } else {
-            replayingPid = nil
-        }
-    }
-    
-    func isReplaying() -> Bool {
-        if let x = replayingPid {
-            return x == NSProcessInfo.processInfo().processIdentifier
-        }
-        return false
-    }
 }
 
 extension OfflineExerciseSession {
@@ -27,17 +11,13 @@ extension OfflineExerciseSession {
     static func unmarshal(json: JSON) -> OfflineExerciseSession {
         let id = NSUUID(UUIDString: json["id"].stringValue)!
         let offlineFromStart = json["offlineFromStart"].boolValue
-        let replayingPid = json["replayingPid"].int32
         let props = Exercise.SessionProps.unmarshal(json["props"])
-        return OfflineExerciseSession(id: id, offlineFromStart: offlineFromStart, replayingPid: replayingPid, props: props)
+        return OfflineExerciseSession(id: id, offlineFromStart: offlineFromStart, props: props)
     }
     
     func marshal() -> [String : AnyObject] {
         var params: [String : AnyObject] = [:]
         params["id"] = id.UUIDString
-        if let x = replayingPid {
-            params["replayingPid"] = NSNumber(int: x)
-        }
         params["offlineFromStart"] = offlineFromStart
         params["props"] = props.marshal()
         return params
@@ -63,7 +43,8 @@ class ExerciseSessionManager {
     }
     
     private let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first as String
-
+    private var replayingSessionIds: [NSUUID] = []
+    
     /**
      * Wraps a session in the manager, which allows it to be safely recorded in case the connection to the
      * Lift server drops or becomes unreliable
@@ -76,7 +57,7 @@ class ExerciseSessionManager {
         NSFileManager.defaultManager().createDirectoryAtPath(rootPath, withIntermediateDirectories: false, attributes: nil, error: nil)
         let io = ManagerManagedExerciseSessionIO(rootPath: rootPath)
 
-        saveOfflineSessionDescriptor(OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, replayingPid: nil, props: managedSession.props))
+        saveOfflineSessionDescriptor(OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, props: managedSession.props))
         
         return ManagedExerciseSession(io: io, managedSession: managedSession, isOfflineFromStart: isOfflineFromStart)
     }
@@ -130,19 +111,24 @@ class ExerciseSessionManager {
         return result
     }
     
+    func isReplaying(id: NSUUID) -> Bool {
+        return replayingSessionIds.exists({ x in x == id })
+    }
+    
     func replayOfflineSession(id: NSUUID, removeAfterSuccess: Bool, f: Result<Void> -> Void) -> Void {
+        if isReplaying(id) {
+            f(Result.error(NSError.errorWithMessage("Session \(id) is already being replayed", code: 1005)))
+            return
+        }
+        
         if var (s, maybeD) = loadOfflineSession(id.UUIDString, loadData: true) {
             if s.id != id {
                 f(Result.error(NSError.errorWithMessage("Session \(id) reports its id as \(s.id)", code: 1003)))
-            } else if s.isReplaying() {
-                f(Result.error(NSError.errorWithMessage("Session \(id) is already being replayed", code: 1004)))
             } else if let d = maybeD {
-                s.setReplaying(true)
-                saveOfflineSessionDescriptor(s)
+                replayingSessionIds += [id]
                 
                 LiftServer.sharedInstance.exerciseReplayExerciseSession(CurrentLiftUser.userId!, sessionId: id, data: d) { x in
-                    s.setReplaying(false)
-                    self.saveOfflineSessionDescriptor(s)
+                    self.replayingSessionIds.removeObject(id)
                     
                     if removeAfterSuccess {
                         x.cata(const(()), { _ in self.removeOfflineSession(id) })
