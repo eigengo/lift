@@ -1,12 +1,13 @@
 package com.eigengo.lift.exercise
 
+import java.io.FileOutputStream
 import java.util.{Date, UUID}
 
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
 import scodec.bits.BitVector
-import spray.http.{StatusCodes, HttpResponse}
+import spray.http.{HttpEntity, StatusCodes, HttpResponse}
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -81,9 +82,12 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "replay") { (userId, sessionId) ⇒
       post {
-        complete {
-          println("Not acceptable")
-          HttpResponse(status = StatusCodes.NotAcceptable)
+        ctx ⇒ ctx.complete {
+          val fos = new FileOutputStream(s"/Users/janmachacek/$sessionId.mp")
+          fos.write(ctx.request.entity.data.toByteArray)
+          fos.close()
+          
+          HttpResponse(status = StatusCodes.OK)
         }
       }
     } ~

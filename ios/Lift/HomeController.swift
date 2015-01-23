@@ -262,24 +262,24 @@ class HomeController : UIViewController, UITableViewDataSource,
     
     private func replayOfflineSessions() {
         for (index, offlineSession) in enumerate(offlineSessions) {
-            if ExerciseSessionManager.sharedInstance.isReplaying(offlineSession.id) { continue }
-            
-            // foreach submit offline sessions
-            if let cell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: index, inSection: 2)) as? OfflineSessionTableViewCell {
-                cell.setIsReplaying(true)
-                
-                ExerciseSessionManager.sharedInstance.replayOfflineSession(offlineSession.id, removeAfterSuccess: true) {
-                    $0.cata(
-                        { _ in cell.setIsReplaying(false) },
-                        {_ in
-                            self.offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
-                            self.tableView.reloadSections(NSIndexSet(index: 2), withRowAnimation: UITableViewRowAnimation.Automatic)
-                            self.replayOfflineSessions()
-                        }
-                    )
+            if !ExerciseSessionManager.sharedInstance.isReplaying(offlineSession.id) {
+                if let cell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: index, inSection: 2)) as? OfflineSessionTableViewCell {
+                    cell.setIsReplaying(true)
+                    NSLog("Replaying \(index)")
+                    
+                    ExerciseSessionManager.sharedInstance.replayOfflineSession(offlineSession.id, removeAfterSuccess: true) {
+                        $0.cata(
+                            { _ in cell.setIsReplaying(false) },
+                            { _ in
+                                self.offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+                                self.tableView.reloadSections(NSIndexSet(index: 2), withRowAnimation: UITableViewRowAnimation.Automatic)
+                                self.replayOfflineSessions()
+                            }
+                        )
+                    }
+                    
+                    return   // we replay only one at a time
                 }
-                
-                break   // we replay only one at a time
             }
         }
     }

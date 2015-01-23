@@ -125,6 +125,7 @@ class ExerciseSessionManager {
             if s.id != id {
                 f(Result.error(NSError.errorWithMessage("Session \(id) reports its id as \(s.id)", code: 1003)))
             } else if let d = maybeD {
+                NSLog("Starting replay of session \(id) with \(d.length) bytes")
                 replayingSessionIds += [id]
                 
                 LiftServer.sharedInstance.exerciseReplayExerciseSession(CurrentLiftUser.userId!, sessionId: id, data: d) { x in
@@ -133,6 +134,8 @@ class ExerciseSessionManager {
                     if removeAfterSuccess {
                         x.cata(const(()), { _ in self.removeOfflineSession(id) })
                     }
+                    
+                    NSLog("Finished replay of session \(id)")
                     f(x)
                 }
             } else {
