@@ -16,16 +16,12 @@ class AccountViewController : UIViewController {
     @IBAction
     func login(sender: UIButton) {
         view.endEditing(true)
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.userLogin(self.username.text, password: self.password.text, ctx.apply(self.showAccount))
-        }
+        LiftServer.sharedInstance.userLogin(self.username.text, password: self.password.text) { $0.getOrUnit(self.showAccount) }
     }
     
     @IBAction
     func register(sender: UIButton) {
         view.endEditing(true)
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.userRegister(self.username.text, password: self.password.text, ctx.apply(self.showAccount))
-        }
+        LiftServer.sharedInstance.userRegister(self.username.text, password: self.password.text) { $0.getOrUnit(self.showAccount) }
     }
 }

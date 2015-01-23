@@ -1,7 +1,14 @@
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '8.2'
 
-pod "PebbleKit"
-pod "JBChartView"
-pod "RKDropdownAlert"
-pod "JTCalendar"
+link_with 'Lift', 'LiftTests'
+
+pod 'PebbleKit'
+pod 'JBChartView'
+pod 'RKDropdownAlert'
+pod 'JTCalendar'
+pod 'Reachability'
+
+target :LiftTests do
+    pod 'CocoaHTTPServer'
+end

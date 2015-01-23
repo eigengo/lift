@@ -8,7 +8,7 @@ import akka.contrib.pattern.ClusterInventory.UnresolvedDependencies
 import akka.contrib.pattern._
 import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import spray.can.Http
 import spray.routing.{HttpServiceActor, Route, RouteConcatenation}
 
@@ -87,7 +87,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
    * @param system the local ActorSystem
    * @param cluster the cluster hosting the AS
    */
-  def boot(implicit system: ActorSystem, cluster: Cluster): BootedNode
+  def boot(config: Config)(implicit system: ActorSystem, cluster: Cluster): BootedNode
 
   import com.eigengo.lift.common.MicroserviceApp._
   import scala.concurrent.duration._
@@ -120,7 +120,7 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
           val selfAddress = cluster.selfAddress
           log.debug(s"Node $selfAddress booting up")
           // boot the microservice code
-          val bootedNode = boot(system, cluster)
+          val bootedNode = boot(config)(system, cluster)
           log.debug(s"Node $selfAddress booted up $bootedNode")
           bootedNode.api.foreach { api ⇒
             import RouteConcatenation._

@@ -1,11 +1,13 @@
 package com.eigengo.lift
 
 import akka.actor._
+import akka.contrib.pattern.{ClusterSingletonProxy, ClusterSingletonManager}
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.common.MicroserviceApp.MicroserviceProps
 import com.eigengo.lift.exercise._
+import com.eigengo.lift.kafka.{KafkaBoot, KafkaProducerActor}
 import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.ProfileBoot
 import com.typesafe.config.ConfigFactory
@@ -44,9 +46,11 @@ object LiftLocalApp extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-      val profile = ProfileBoot.boot(system)
+
+      val kafka = KafkaBoot.boot(config)
+      val profile = ProfileBoot.boot
       val notification = NotificationBoot.boot
-      val exercise = ExerciseBoot.boot(notification.notification, profile.userProfile)
+      val exercise = ExerciseBoot.boot(kafka.kafka, notification.notification, profile.userProfile)
 
       startupHttpService(system, port, exercise.route(system.dispatcher), profile.route(system.dispatcher))
     }

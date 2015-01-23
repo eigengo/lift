@@ -8,11 +8,10 @@ class NewSessionMuscleGroupsController : UIViewController, UITableViewDelegate, 
     private var muscleGroups: [Exercise.MuscleGroup] = []
 
     override func viewDidAppear(animated: Bool) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseGetMuscleGroups(ctx.apply { x in
-                self.muscleGroups = x
-                self.tableView.reloadData()
-            })
+        LiftServer.sharedInstance.exerciseGetMuscleGroups { $0.getOrUnit { x in
+            self.muscleGroups = x
+            self.tableView.reloadData()
+            }
         }
     }
     
@@ -109,12 +108,13 @@ class NewSessionPropsController : UIViewController, UITableViewDelegate, UITable
     
     func startSession(muscleGroupKeys: [Exercise.MuscleGroupKey], intensity: Exercise.ExerciseIntensity) -> Void {
         let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: muscleGroupKeys, intendedIntensity: intensity.intensity)
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { x in self.segueToStartedSession(props, sessionId: x) })
+        LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) {
+            $0.cata({ x in self.segueToStartedSession(props, sessionId: NSUUID(), isOffline: true) },
+                    { x in self.segueToStartedSession(props, sessionId: x, isOffline: false) })
         }
     }
     
-    func segueToStartedSession(props: Exercise.SessionProps, sessionId: NSUUID) -> Void {
+    func segueToStartedSession(props: Exercise.SessionProps, sessionId: NSUUID, isOffline: Bool) -> Void {
         let segueName = self.demoMode ? "demo" : "live"
         let session = ExerciseSession(id: sessionId, props: props)
         self.performSegueWithIdentifier(segueName, sender: session)
