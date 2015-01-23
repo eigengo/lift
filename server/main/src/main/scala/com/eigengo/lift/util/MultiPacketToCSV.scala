@@ -10,7 +10,7 @@ import scodec.bits.BitVector
 object MultiPacketToCSV extends App {
 
   if (args.length != 2) {
-    println("Usage: AccelerometerDataToCSV <input raw accelerometer binary filename> <output CSV filename>")
+    println("Usage: MultiPacketToCSV <input raw accelerometer binary filename> <output CSV filename>")
     sys.exit(1)
   }
 
