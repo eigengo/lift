@@ -477,7 +477,7 @@ public class LiftServer {
     /// Starts the replay of exercise session
     ///
     func exerciseExerciseSessionReplayStart(userId: NSUUID, sessionId: NSUUID, props: Exercise.SessionProps, f: Result<NSUUID> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseSessionStart(userId), body: .Json(params: props.marshal()))
+        request(LiftServerURLs.ExerciseSessionReplayStart(userId, sessionId), body: .Json(params: props.marshal()))
             .responseAsResutlt(asu(), f) { json in return NSUUID(UUIDString: json["id"].stringValue)! }
     }
     

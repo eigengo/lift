@@ -129,9 +129,12 @@ class ExerciseSessionManager {
                 replayingSessionIds += [id]
                 
                 LiftServer.sharedInstance.exerciseExerciseSessionReplayStart(CurrentLiftUser.userId!, sessionId: id, props: s.props) {
-                    $0.cata({err in f(Result.error(err)) },
+                    $0.cata({err in
+                                self.replayingSessionIds.removeObject(id);
+                                f(Result.error(err))
+                            },
                             { sessionId in
-                                LiftServer.sharedInstance.exerciseExerciseSessionReplaySubmitData(CurrentLiftUser.userId!, sessionId: id, data: d) { x in
+                                LiftServer.sharedInstance.exerciseExerciseSessionReplaySubmitData(CurrentLiftUser.userId!, sessionId: sessionId, data: d) { x in
                                 self.replayingSessionIds.removeObject(id)
                         
                                 if removeAfterSuccess {

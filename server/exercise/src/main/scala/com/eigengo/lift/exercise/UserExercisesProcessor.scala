@@ -34,7 +34,7 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    * @param data all session data
    */
-  case class UserExerciseSessionReplayProcessData(userId: UserId, sessionId: SessionId, data: ByteBuffer)
+  case class UserExerciseSessionReplayProcessData(userId: UserId, sessionId: SessionId, data: Array[Byte])
 
   /**
    * Starts the replay all data received for a possibly existing ``sessionId`` for the given ``userId``
@@ -134,7 +134,7 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    * @param data all session data
    */
-  private case class ExerciseSessionReplayProcessData(sessionId: SessionId, data: ByteBuffer)
+  private case class ExerciseSessionReplayProcessData(sessionId: SessionId, data: Array[Byte])
 
   /**
    * Starts the replay the ``sessionId`` by re-processing all data in ``data``
@@ -270,9 +270,10 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
 
       // TODO: fixme
       val fos = new FileOutputStream(s"/Users/janmachacek/$id.mp")
-      fos.write(data.array())
+      fos.write(data)
       fos.close()
 
+      sender() ! \/.right(())
       context.become(notExercising)
   }
 

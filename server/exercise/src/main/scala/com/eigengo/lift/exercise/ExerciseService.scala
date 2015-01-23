@@ -85,7 +85,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       put {
         ctx ⇒ ctx.complete {
-          (userExercises ? UserExerciseSessionReplayProcessData(userId, sessionId, ctx.request.entity.data.toByteString.asByteBuffer)).mapRight[Unit]
+          (userExercises ? UserExerciseSessionReplayProcessData(userId, sessionId, ctx.request.entity.data.toByteArray)).mapRight[Unit]
         }
       }
     } ~
