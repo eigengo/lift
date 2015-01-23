@@ -117,15 +117,15 @@ class ExerciseSessionManager {
     
     func replayOfflineSession(id: NSUUID, removeAfterSuccess: Bool, f: Result<Void> -> Void) -> Void {
         if isReplaying(id) {
-            f(Result.error(NSError.errorWithMessage("Session \(id) is already being replayed", code: 1005)))
+            f(Result.error(NSError.errorWithMessage("Session \(id.UUIDString) is already being replayed", code: 1005)))
             return
         }
         
         if var (s, maybeD) = loadOfflineSession(id.UUIDString, loadData: true) {
             if s.id != id {
-                f(Result.error(NSError.errorWithMessage("Session \(id) reports its id as \(s.id)", code: 1003)))
+                f(Result.error(NSError.errorWithMessage("Session \(id.UUIDString) reports its id as \(s.id.UUIDString)", code: 1003)))
             } else if let d = maybeD {
-                NSLog("Starting replay of session \(id) with \(d.length) bytes")
+                NSLog("Starting replay of session \(id.UUIDString) with \(d.length) bytes")
                 replayingSessionIds += [id]
                 
                 LiftServer.sharedInstance.exerciseExerciseSessionReplayStart(CurrentLiftUser.userId!, sessionId: id, props: s.props) {
@@ -134,6 +134,7 @@ class ExerciseSessionManager {
                                 f(Result.error(err))
                             },
                             { sessionId in
+                                println("replaying \(sessionId.UUIDString)")
                                 LiftServer.sharedInstance.exerciseExerciseSessionReplaySubmitData(CurrentLiftUser.userId!, sessionId: sessionId, data: d) { x in
                                 self.replayingSessionIds.removeObject(id)
                         
@@ -141,13 +142,13 @@ class ExerciseSessionManager {
                                     x.cata(const(()), { _ in self.removeOfflineSession(id) })
                                 }
                         
-                                NSLog("Finished replay of session \(id)")
+                                NSLog("Finished replay of session \(id.UUIDString)")
                                 f(x)
                             }
                     })
                 }
             } else {
-                f(Result.error(NSError.errorWithMessage("Session \(id) has not recorded data", code: 1002)))
+                f(Result.error(NSError.errorWithMessage("Session \(id.UUIDString) has not recorded data", code: 1002)))
             }
         } else {
             f(Result.error(NSError.errorWithMessage("No session with identifier \(id)", code: 1001)))

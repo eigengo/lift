@@ -351,6 +351,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(id, sessionProps))) { case _ :: started :: Nil ⇒
         saveSnapshot(started)
         sender() ! \/.right(id)
+        println("Sending " + id)
         context.become(replaying(id, sessionProps))
       }
 
