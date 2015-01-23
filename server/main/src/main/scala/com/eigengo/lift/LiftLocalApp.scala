@@ -1,13 +1,12 @@
 package com.eigengo.lift
 
 import akka.actor._
-import akka.contrib.pattern.{ClusterSingletonProxy, ClusterSingletonManager}
 import akka.io.IO
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
 import com.eigengo.lift.common.MicroserviceApp.MicroserviceProps
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.kafka.{KafkaBoot, KafkaProducerActor}
+import com.eigengo.lift.kafka.KafkaBoot
 import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.ProfileBoot
 import com.typesafe.config.ConfigFactory

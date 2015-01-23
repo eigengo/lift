@@ -43,7 +43,8 @@ class ExerciseSessionManager {
     }
     
     private let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first as String
-
+    private var replayingSessionIds: [NSUUID] = []
+    
     /**
      * Wraps a session in the manager, which allows it to be safely recorded in case the connection to the
      * Lift server drops or becomes unreliable
@@ -56,12 +57,7 @@ class ExerciseSessionManager {
         NSFileManager.defaultManager().createDirectoryAtPath(rootPath, withIntermediateDirectories: false, attributes: nil, error: nil)
         let io = ManagerManagedExerciseSessionIO(rootPath: rootPath)
 
-        var error: NSError?
-        let x = OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, props: managedSession.props).marshal()
-        let os = NSOutputStream(toFileAtPath: rootPath.stringByAppendingPathComponent("props.json"), append: false)!
-        os.open()
-        NSJSONSerialization.writeJSONObject(x, toStream: os, options: NSJSONWritingOptions.PrettyPrinted, error: &error)
-        os.close()
+        saveOfflineSessionDescriptor(OfflineExerciseSession(id: managedSession.id, offlineFromStart: isOfflineFromStart, props: managedSession.props))
         
         return ManagedExerciseSession(io: io, managedSession: managedSession, isOfflineFromStart: isOfflineFromStart)
     }
@@ -80,26 +76,83 @@ class ExerciseSessionManager {
         NSFileManager.defaultManager().removeItemAtPath(documentsPath.stringByAppendingPathComponent(id.UUIDString), error: nil)
     }
     
-    func listOfflineSessions() -> [OfflineExerciseSession] {
-        
-        func loadOfflineSession(offlineSessionPath: String) -> [OfflineExerciseSession] {
-            let rootPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
-            let propsJsonPath = rootPath.stringByAppendingPathComponent("props.json")
-            if let propsJsonData = NSData(contentsOfFile: propsJsonPath) {
-                let json = JSON(data: propsJsonData, options: NSJSONReadingOptions.AllowFragments, error: nil)
-                return [OfflineExerciseSession.unmarshal(json)]
-            }
-            return []
+    private func saveOfflineSessionDescriptor(session: OfflineExerciseSession) -> Void {
+        var error: NSError?
+        let x = session.marshal()
+        let rootPath = documentsPath.stringByAppendingPathComponent(session.id.UUIDString)
+        let os = NSOutputStream(toFileAtPath: rootPath.stringByAppendingPathComponent("props.json"), append: false)!
+        os.open()
+        NSJSONSerialization.writeJSONObject(x, toStream: os, options: NSJSONWritingOptions.PrettyPrinted, error: &error)
+        os.close()
+    }
+    
+    private func loadOfflineSession(offlineSessionPath: String, loadData: Bool) -> (OfflineExerciseSession, NSData?)? {
+        let rootPath = documentsPath.stringByAppendingPathComponent(offlineSessionPath)
+        let propsJsonPath = rootPath.stringByAppendingPathComponent("props.json")
+        if let propsJsonData = NSData(contentsOfFile: propsJsonPath) {
+            let json = JSON(data: propsJsonData, options: NSJSONReadingOptions.AllowFragments, error: nil)
+            let data = NSData(contentsOfFile: rootPath.stringByAppendingPathComponent("all.mp"))
+            return (OfflineExerciseSession.unmarshal(json), data)
         }
+        return nil
+    }
+    
+    func listOfflineSessions() -> [OfflineExerciseSession] {
         
         var result: [OfflineExerciseSession] = []
         if let offlineSessions = NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath, error: nil) as? [String] {
             for offlineSession in offlineSessions {
-                result += loadOfflineSession(offlineSession)
+                if let (s, _) = loadOfflineSession(offlineSession, loadData: false) {
+                    result += [s]
+                }
             }
         }
         
         return result
+    }
+    
+    func isReplaying(id: NSUUID) -> Bool {
+        return replayingSessionIds.exists({ x in x == id })
+    }
+    
+    func replayOfflineSession(id: NSUUID, removeAfterSuccess: Bool, f: Result<Void> -> Void) -> Void {
+        if isReplaying(id) {
+            f(Result.error(NSError.errorWithMessage("Session \(id.UUIDString) is already being replayed", code: 1005)))
+            return
+        }
+        
+        if var (s, maybeD) = loadOfflineSession(id.UUIDString, loadData: true) {
+            if s.id != id {
+                f(Result.error(NSError.errorWithMessage("Session \(id.UUIDString) reports its id as \(s.id.UUIDString)", code: 1003)))
+            } else if let d = maybeD {
+                NSLog("Starting replay of session \(id.UUIDString) with \(d.length) bytes")
+                replayingSessionIds += [id]
+                
+                LiftServer.sharedInstance.exerciseExerciseSessionReplayStart(CurrentLiftUser.userId!, sessionId: id, props: s.props) {
+                    $0.cata({err in
+                                self.replayingSessionIds.removeObject(id);
+                                f(Result.error(err))
+                            },
+                            { sessionId in
+                                println("replaying \(sessionId.UUIDString)")
+                                LiftServer.sharedInstance.exerciseExerciseSessionReplaySubmitData(CurrentLiftUser.userId!, sessionId: sessionId, data: d) { x in
+                                self.replayingSessionIds.removeObject(id)
+                        
+                                if removeAfterSuccess {
+                                    x.cata(const(()), { _ in self.removeOfflineSession(id) })
+                                }
+                        
+                                NSLog("Finished replay of session \(id.UUIDString)")
+                                f(x)
+                            }
+                    })
+                }
+            } else {
+                f(Result.error(NSError.errorWithMessage("Session \(id.UUIDString) has not recorded data", code: 1002)))
+            }
+        } else {
+            f(Result.error(NSError.errorWithMessage("No session with identifier \(id)", code: 1001)))
+        }
     }
     
     class ManagerManagedExerciseSessionIO : ManagedExerciseSessionIO {
@@ -149,6 +202,7 @@ class ManagedExerciseSession : ExerciseSession {
     var isOffline: Bool
     var isOfflineFromStart: Bool
     var io: ManagedExerciseSessionIO
+    private var isAbandoned: Bool = false
     
     init(io: ManagedExerciseSessionIO, managedSession: ExerciseSession, isOfflineFromStart: Bool) {
         self.managedSession = managedSession
@@ -159,15 +213,40 @@ class ManagedExerciseSession : ExerciseSession {
         super.init(id: managedSession.id, props: managedSession.props)
     }
     
+    ///
+    /// Instruct the server to abandon the session. This is just us being nice to the server: we know now that
+    /// the session will not continue, so it's only nice to tell the server.
+    ///
+    /// Note that the server will abandon the session even without this message, but it will take the (passivation)
+    /// timeout in the UserExerciseProcessor.
+    ///
+    private func abandon() {
+        if !isOfflineFromStart {
+            LiftServer.sharedInstance.exerciseAbandonExerciseSession(CurrentLiftUser.userId!, sessionId: managedSession.id) {
+                $0.cata(const(()), r: { _ in self.isAbandoned = true })
+            }
+        }
+    }
+    
+    ///
+    /// Failed to transmit the data: go offline and start attempting to abandon the session
+    ///
+    private func submitDataFailed(error: NSError) -> Void {
+        // we have failed to
+        self.isOffline = true
+        self.abandon()
+    }
+    
     override func submitData(mp: MultiPacket, f: Result<Void> -> Void) -> Void {
         io.appendMultiPacket(mp)
         
         if !isOffline {
             managedSession.submitData(mp) { x in
-                x.cata({ _ in self.isOffline = true }, r: const(()))
+                x.cata(self.submitDataFailed, r: const(()))
                 f(x)
             }
         } else {
+            if !isAbandoned { abandon() }
             f(Result.value(()))
         }
     }

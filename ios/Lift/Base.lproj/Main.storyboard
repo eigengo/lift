@@ -404,7 +404,7 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="offlineSession" textLabel="rSj-Vr-8yN" detailTextLabel="zZd-bI-bLa" rowHeight="91" style="IBUITableViewCellStyleValue2" id="JAt-Ej-QOT">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="offlineSession" textLabel="rSj-Vr-8yN" detailTextLabel="zZd-bI-bLa" rowHeight="91" style="IBUITableViewCellStyleValue2" id="JAt-Ej-QOT" customClass="OfflineSessionTableViewCell" customModule="Lift" customModuleProvider="target">
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="JAt-Ej-QOT" id="Mbd-7T-kS8">
                                             <autoresizingMask key="autoresizingMask"/>
