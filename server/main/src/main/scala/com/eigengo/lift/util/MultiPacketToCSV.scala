@@ -21,7 +21,7 @@ object MultiPacketToCSV extends App {
 
   val fd = new FileWriter(outFileName, true)
   try {
-    fd.write("\"location\",\"samplingRate\",\"x\",\"y\",\"z\"\n")
+    fd.write("\"location\",\"rate\",\"x\",\"y\",\"z\"\n")
     for (block <- MultiPacketDecoder.decode(decoderData.toByteBuffer)) {
       for (pkt <- block.packets) {
         for (data <- RootSensorDataDecoder(AccelerometerDataDecoder).decodeAll(pkt.payload)) {
