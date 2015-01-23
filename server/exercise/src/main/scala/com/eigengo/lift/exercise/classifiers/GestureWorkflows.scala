@@ -226,7 +226,7 @@ trait GestureWorkflows extends SVMClassifier {
    *
    * @param action modulation action that is to be used to transform a sensor message
    */
-  private case class Transformation[A, B](action: A => B)
+  case class Transformation[A, B](action: A => B)
 
   /**
    * Measures probability that sampled window is recognised as a gesture event.
@@ -243,129 +243,153 @@ trait GestureWorkflows extends SVMClassifier {
   }
 
   /**
-   * Sensor based stream parser that sends tagging events (as a side effect) to a monitor whenever it recognises a gesture
-   * event. If the sample window is detected as a gesture match, then data is tagged `GestureTag`, otherwise it is tagged
-   * `ActivityTag`. Sensor stream messages are otherwise untouched by this function.
-   *
-   * @param sensor  sensor stream that is to be sampled for matching gesture events
-   * @param monitor monitoring sink node to which we send data tagging events
-   * @return        input sensor stream unchanged
+   * Flowgraph that taps the in-out stream and, if a gesture is recognised, sends a tagged message to the `tap` sink.
    */
-  def identifyGestureEvents(sensor: Source[AccelerometerValue], monitor: Sink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]])(implicit materializer: FlowMaterializer): Source[AccelerometerValue] = {
-    sensor.transform(() => SamplingWindow[AccelerometerValue](windowSize) {
-      case (sample: List[AccelerometerValue]) if sample.length == windowSize =>
-        val matchProbability = probabilityOfGestureEvent(sample)
+  class IdentifyGestureEvents {
+    val in = UndefinedSource[AccelerometerValue]
+    val out = UndefinedSink[AccelerometerValue]
+    val tap = UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]
 
-        if (matchProbability > threshold) {
-          Source(List(Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]](GestureTag[AccelerometerValue](name, matchProbability, _)))).to(monitor).run
-        } else {
-          Source(List(Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]](ActivityTag[AccelerometerValue]))).to(monitor).run
-        }
-    })
-  }
+    val graph = FlowGraph { implicit builder =>
+      in ~> Flow[AccelerometerValue].transform(() => SamplingWindow[AccelerometerValue](windowSize) {
+        case (sample: List[AccelerometerValue]) if sample.length == windowSize =>
+          val matchProbability = probabilityOfGestureEvent(sample)
 
-  /**
-   * Flowgraph that merges a collection of transformations into a single transformation.
-   *
-   * @param monitors set of transformation messages that we need to merge
-   * @param out      node to which the merged transformation message will be sent
-   * @param merge    function that defines how to merge transformations
-   * @return         flowgraph that merges transformations into one transformation
-   */
-  def mergeTransformations[A, B](monitors: Set[Source[Transformation[A, B]]], out: Sink[Transformation[A, B]])(merge: Set[Transformation[A, B]] => Transformation[A, B]) = FlowGraph { implicit builder =>
-    val zip = ZipSet[Transformation[A, B]](monitors.size)
-
-    for ((probe, index) <- monitors.zipWithIndex) {
-      probe ~> zip.in(index)
-    }
-    zip.out ~> Flow[Set[Transformation[A, B]]].map(merge) ~> out
-  }
-
-  /**
-   * Flowgraph that transforms or modulates each sensor in a network of location tagged sensors. Messages on the `transform`
-   * node determine how signals in the sensor net are modulated or transformed.
-   *
-   * @param sensorIn  map representing the location tagged sensor network
-   * @param transform transformation signal used to modulate sensor data
-   * @param sensorOut map representing the transformed or modulated signals in the location tagged sensor network
-   * @return          flowgraph that modulates sensor net messages (from input to output) using synchronised messages on
-   *                  the transform node
-   */
-  def modulateSensorNet[A, B, L](sensorIn: Map[L, Source[A]], transform: Source[Transformation[A, B]], sensorOut: Map[L, Sink[B]]) = FlowGraph { implicit builder =>
-    require(sensorIn.keys == sensorOut.keys)
-
-    val broadcast = Broadcast[Transformation[A, B]]
-
-    transform ~> broadcast
-    for ((location, sensor) <- sensorIn) {
-      val zip = ZipWith[A, Transformation[A, B], B]((msg: A, transform: Transformation[A, B]) => transform.action(msg))
-
-      sensor    ~> zip.left
-      broadcast ~> zip.right
-      zip.out   ~> sensorOut(location)
+          if (matchProbability > threshold) {
+            Source.single(Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]](GestureTag[AccelerometerValue](name, matchProbability, _)))
+          } else {
+            Source.single(Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]](ActivityTag[AccelerometerValue]))
+          } ~> tap
+      }) ~> out
     }
   }
 
   /**
-   * Transforms a tagged sensor stream by grouping values into gesture event windows. Grouped event window represents
-   * best (i.e. highest probability) match in a given region.
+   * Flowgraph that merges (via a user supplied function) a collection of input sources into a single output sink.
    *
-   * @param sensor tagged sensor stream that is to be grouped
-   * @return
+   * @param size number of input sources that we are to merge
    */
-  def gestureCollector[A](sensor: Source[TaggedValue[A]]): Source[GroupValue[TaggedValue[A]]] = {
-    sensor.transform(() => GroupBySample[TaggedValue[A]](2 * windowSize) { (sample: List[TaggedValue[A]]) =>
-      require(sample.length == 2 * windowSize)
+  class MergeTransformations[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) {
+    require(size > 0)
 
-      val gestures = sample.take(windowSize).takeWhile {
-        case elem: GestureTag[A] =>
-          true
+    val in = (0 until size).map(_ => UndefinedSource[Transformation[A, B]])
+    val out = UndefinedSink[Transformation[A, B]]
 
-        case _ =>
-          false
-      }.map(_.asInstanceOf[GestureTag[A]])
+    val graph = FlowGraph { implicit builder =>
+      val zip = ZipSet[Transformation[A, B]](in.size)
 
-      if (gestures.isEmpty) {
-        // Sample prefix contains no recognisable gestures
-        SingleValue(sample.head)
-      } else {
-        // Sample prefix contains at least one recognisable gesture - we need to check if the head message has highest recognition probability
-        if (gestures.head.matchProbability >= gestures.map(_.matchProbability).max) {
-          // Head of sample window is our best match - emit it
-          BlobValue(gestures.slice(0, windowSize))
-        } else {
-          // Sample window is not yet at the best match
-          SingleValue(gestures.head)
-        }
+      for ((probe, index) <- in.zipWithIndex) {
+        probe ~> zip.in(index)
       }
-    })
+      zip.out ~> Flow[Set[Transformation[A, B]]].map(merge) ~> out
+    }
+  }
+
+  /**
+   * Flowgraph that modulates all sensors in a network of location tagged sensors. Messages on the `transform` source
+   * determine how signals in the sensor net are modulated or transformed.
+   *
+   * @param locations set of locations that make up the sensor network
+   */
+  class ModulateSensorNet[A, B, L](locations: Set[L]) {
+    val in = locations.map(loc => (loc, UndefinedSource[A])).toMap
+    val transform = UndefinedSource[Transformation[A, B]]
+    val out = locations.map(loc => (loc, UndefinedSink[B])).toMap
+
+    val graph = FlowGraph { implicit builder =>
+      val broadcast = Broadcast[Transformation[A, B]]
+
+      transform ~> broadcast
+      for ((location, sensor) <- in) {
+        val zip = ZipWith[A, Transformation[A, B], B]((msg: A, transform: Transformation[A, B]) => transform.action(msg))
+
+        sensor    ~> zip.left
+        broadcast ~> zip.right
+        zip.out   ~> out(location)
+      }
+    }
+  }
+
+  /**
+   * Flowgraph that groups messages on the input source.
+   */
+  class GestureGrouping[A] {
+    val in = UndefinedSource[TaggedValue[A]]
+    val out = UndefinedSink[GroupValue[TaggedValue[A]]]
+
+    val graph = FlowGraph { implicit builder =>
+      in ~> Flow[TaggedValue[A]].transform(() => GroupBySample[TaggedValue[A]](2 * windowSize) { (sample: List[TaggedValue[A]]) =>
+          require(sample.length == 2 * windowSize)
+
+          val gestures = sample.take(windowSize).takeWhile {
+            case elem: GestureTag[A] =>
+              true
+
+            case _ =>
+              false
+          }.map(_.asInstanceOf[GestureTag[A]])
+
+          if (gestures.isEmpty) {
+            // Sample prefix contains no recognisable gestures
+            SingleValue(sample.head)
+          } else {
+            // Sample prefix contains at least one recognisable gesture - we need to check if the head message has highest recognition probability
+            if (gestures.head.matchProbability >= gestures.map(_.matchProbability).max) {
+              // Head of sample window is our best match - emit it
+              BlobValue(gestures.slice(0, windowSize))
+            } else {
+              // Sample window is not yet at the best match
+              SingleValue(gestures.head)
+            }
+          }
+        }) ~> out
+    }
   }
 /*
-  // TODO: define main classification workflow
-  def gestureClassifingWorkflow[L](sensorIn: Map[L, Source[AccelerometerValue]], sensorOut: Map[L, Sink[GroupValue[TaggedValue[AccelerometerValue]]]]) = FlowGraph { implicit builder =>
-    require(sensorIn.nonEmpty)
-    require(sensorOut.nonEmpty)
+  /**
+   * Flowgraph that monitors the `inputLocations` sensoir network for recognisable gestures. When gestures are detected,
+   * messages on the `outputLocations` sensor network are tagged and grouped.
+   *
+   * @param inputLocations  locations that make up the input sensor network
+   * @param outputLocations locations that make up the output sensor network
+   */
+  class GestureClassificationWorkflow[L](inputLocations: Set[L], outputLocations: Set[L]) {
+    require(inputLocations.nonEmpty)
+    require(outputLocations.nonEmpty)
 
-    val monitor = sensorIn.mapValues(_ => UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]])
-    val trigger = UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]
-    val modulatedSensor = ???
+    // Tapped sensors - monitored for recognisable gestures
+    val inputTap = inputLocations.map(loc => (loc, UndefinedSource[AccelerometerValue])).toMap
+    val outputTap = inputLocations.map(loc => (loc, UndefinedSink[AccelerometerValue])).toMap
+    // Grouped sensors - event streams are tagged and grouped
+    val groupedIn = outputLocations.map(loc => (loc, UndefinedSource[AccelerometerValue])).toMap
+    val groupedOutput = outputLocations.map(loc => (loc, UndefinedSink[GroupValue[TaggedValue[AccelerometerValue]]])).toMap
 
-    // Tap sensorIn and generate classification signals
-    for ((locn, sensor) <- sensorIn) {
-      identifyGestureEvents(sensor, monitor(locn))
-    }
+    val graph = FlowGraph { implicit builder =>
+      val merge = new MergeTransformations(inputLocations.size) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
+        ??? // FIXME:
+      }
+      val modulate = new ModulateSensorNet(outputLocations)
 
-    // Merge classification signals into a single trigger signal
-    mergeTransformations(monitor.values.toSet, trigger) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
-      ??? // FIXME:
-    }
+      // Wire in tapped sensors
+      for ((loc, index) <- inputLocations.zipWithIndex) {
+        val identify = new IdentifyGestureEvents()
 
-    // Modulate sensorOut using trigger signal (generates tagged events)
-    modulateSensorNet(sensorOut, trigger, modulatedSensor)
+        inputTap(loc) ~> identify.in
+        identify.monitor ~> merge.in(index)
+        identify.out ~> outputTap(loc)
+      }
 
-    // Aggregate tagged events
-    for ((locn, sensor) <- modulatedSensor) {
-      gestureCollector(sensor)
+      // Connect tapped array to tagging/grouping array
+      merge.out ~> modulate.transform
+
+      // Wire in modulation and grouping
+      for (loc <- outputLocations) {
+        val group = new GestureGrouping()
+
+        groupedIn(loc) ~> modulate.in(loc)
+        modulate.out(loc) ~> group.in
+        group.out ~> groupedOutput(loc)
+      }
     }
   }
 */
