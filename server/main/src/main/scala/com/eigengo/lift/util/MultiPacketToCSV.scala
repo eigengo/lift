@@ -24,6 +24,11 @@ object MultiPacketToCSV extends App {
   val inFileName = args(0)
   val outFileName = args(1)
 
+  // List of decoders that this utility supports
+  val decoderSupport = Seq(
+    AccelerometerDataDecoder
+  )
+
   val decoderData = BitVector.fromMmap(new FileInputStream(new File(inFileName)).getChannel)
 
   val fd = new FileWriter(outFileName, true)
@@ -31,7 +36,7 @@ object MultiPacketToCSV extends App {
     fd.write("\"location\",\"rate\",\"x\",\"y\",\"z\"\n")
     for (block <- MultiPacketDecoder.decode(decoderData.toByteBuffer)) {
       for (pkt <- block.packets) {
-        for (data <- RootSensorDataDecoder(AccelerometerDataDecoder).decodeAll(pkt.payload)) {
+        for (data <- RootSensorDataDecoder(decoderSupport: _*).decodeAll(pkt.payload)) {
           val csv = data.asInstanceOf[List[AccelerometerData]].flatMap { d => d.values.map(v => s"${pkt.sourceLocation},${d.samplingRate},${v.x},${v.y},${v.z}")}.mkString("", "\n", "\n")
 
           fd.write(csv)
