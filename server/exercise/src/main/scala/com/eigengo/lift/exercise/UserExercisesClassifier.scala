@@ -1,16 +1,15 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
-import com.eigengo.lift.exercise.UserExerciseClassifier._
-import UserExercises._
-
+import com.eigengo.lift.exercise.UserExercisesClassifier._
 import scala.util.Random
+import UserExercises._
 
 /**
  * Companion object for the classifier
  */
-object UserExerciseClassifier {
-  val props: Props = Props[UserExerciseClassifier]
+object UserExercisesClassifier {
+  val props: Props = Props[UserExercisesClassifier]
 
   /**
    * Muscle group information
@@ -22,28 +21,21 @@ object UserExerciseClassifier {
   case class MuscleGroup(key: String, title: String, exercises: List[String])
 
   val supportedMuscleGroups = List(
-    MuscleGroup(key = "legs",  title = "Legs",  exercises = List("squat", "extension", "curl")),
-    MuscleGroup(key = "core",  title = "Core",  exercises = List("crunch", "side bend", "cable crunch")),
-    MuscleGroup(key = "back",  title = "Back",  exercises = List("pull up", "row", "deadlift", "fly")),
-    MuscleGroup(key = "arms",  title = "Arms",  exercises = List("biceps curl", "triceps press down")),
-    MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over"))
+    MuscleGroup(key = "legs",  title = "Legs",  exercises = List("squat", "leg press", "leg extension", "leg curl", "lunge")),
+    MuscleGroup(key = "core",  title = "Core",  exercises = List("crunch", "side bend", "cable crunch", "sit up", "leg raises")),
+    MuscleGroup(key = "back",  title = "Back",  exercises = List("pull up", "row", "deadlift", "hyper-extension")),
+    MuscleGroup(key = "arms",  title = "Arms",  exercises = List("bicep curl", "hammer curl", "pronated curl", "tricep push down", "tricep overhead extension", "tricep dip", "close-grip bench press")),
+    MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over", "incline chest press", "push up")),
+    MuscleGroup(key = "shoulders", title = "Shoulders", exercises = List("shoulder press", "lateral raise", "front raise", "rear raise", "upright row", "shrug")),
+    MuscleGroup(key = "cardiovascular", title = "Cardiovascular", exercises = List("running", "cycling", "swimming", "elliptical", "rowing"))
   )
 
-
   /**
-   * Model version and other metadata
-   * @param version the model version
+   * Provides List[Exercise] as examples of exercises for the given ``sessionProps``
+   * @param sessionProps the session props
    */
-  case class ModelMetadata(version: Int)
-
-  /**
-   * The MD companion
-   */
-  object ModelMetadata {
-    /** Special user-classified metadata */
-    val user = ModelMetadata(-1231344)
-  }
-
+  case class ClassificationExamples(sessionProps: SessionProps)
+  
   /**
    * ADT holding the classification result
    */
@@ -78,7 +70,7 @@ object UserExerciseClassifier {
 /**
  * Match the received exercise data using the given model
  */
-class UserExerciseClassifier extends Actor {
+class UserExercisesClassifier extends Actor {
   val exercises =
     Map(
       "arms" → List("Biceps curl", "Triceps press"),
@@ -88,7 +80,7 @@ class UserExerciseClassifier extends Actor {
 
   private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None)))
+    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None, None)))
   }
 
   override def receive: Receive = {
@@ -105,6 +97,8 @@ class UserExerciseClassifier extends Actor {
           }
         }
       sender() ! randomExercise(sessionProps)
+    case ClassificationExamples(sessionProps) ⇒
+      sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }
 
 }

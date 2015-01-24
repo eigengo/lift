@@ -61,8 +61,33 @@ class SessionTableViewCell : UITableViewCell, JBBarChartViewDataSource, JBBarCha
     }
 }
 
+class OfflineSessionTableViewCell : UITableViewCell {
+    
+    override func awakeFromNib() {
+    }
+    
+    func setOfflineExerciseSession(session: OfflineExerciseSession, isReplaying: Bool) -> Void {
+        let mgs = Exercise.MuscleGroup.muscleGroupsFromMuscleGroupKeys(session.props.muscleGroupKeys, groups: LiftServerCache.sharedInstance.exerciseGetMuscleGroups())
+        textLabel!.text = ", ".join(mgs.map { $0.title })
+        let dateText = NSDateFormatter.localizedStringFromDate(session.props.startDate, dateStyle: NSDateFormatterStyle.LongStyle, timeStyle: NSDateFormatterStyle.MediumStyle)
+        detailTextLabel!.text = "On \(dateText)" // ", ".join(mgs.map { ", ".join($0.exercises) })
+        setIsReplaying(isReplaying)
+    }
+    
+    func setIsReplaying(isReplaying: Bool) {
+        if isReplaying {
+            if accessoryView == nil {
+                accessoryView = UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+            }
+            (accessoryView! as UIActivityIndicatorView).startAnimating()
+        } else {
+            accessoryView = nil
+        }
+    }
+}
+
 class HomeController : UIViewController, UITableViewDataSource,
-    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource, RemoteNotificationDelegate {
+    UITableViewDelegate, UIActionSheetDelegate, JTCalendarDataSource, RemoteNotificationDelegate, LiftServerDelegate {
     
     @IBOutlet var tableView: UITableView!
     @IBOutlet var calendarContentView: JTCalendarContentView!
@@ -73,6 +98,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         Exercise.SessionSuggestion(muscleGroupKeys: ["arms"], intendedIntensity: 0.6),
         Exercise.SessionSuggestion(muscleGroupKeys: ["chest"], intendedIntensity: 0.8)
     ]
+    private var offlineSessions: [OfflineExerciseSession] = []
     private let calendar = JTCalendar()
 
     override func viewDidLoad() {
@@ -86,44 +112,44 @@ class HomeController : UIViewController, UITableViewDataSource,
     }
     
     override func viewDidAppear(animated: Bool) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!, ctx.apply { publicProfile in
-                if let x = publicProfile {
-                    self.navigationItem.title = x.firstName + " " + x.lastName
-                } else {
-                    self.navigationItem.title = "Home".localized()
-                }
-            })
-//            LiftServer.sharedInstance.userGetProfileImage(CurrentLiftUser.userId!, ctx.apply { data in
-//                if let image = UIImage(data: data) {
-//                }
-//            })
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!, ctx.apply { x in
-                self.sessionDates = x
-                self.calendar.reloadData()
-                self.calendar.currentDate = NSDate()
-                self.calendar.currentDateSelected = NSDate()
-                self.calendarDidDateSelected(self.calendar, date: NSDate())
-            })
-            AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
+        LiftServer.sharedInstance.userGetPublicProfile(CurrentLiftUser.userId!) { $0.getOrUnit { publicProfile in
+            if let x = publicProfile {
+                self.navigationItem.title = x.firstName + " " + x.lastName
+            } else {
+                self.navigationItem.title = "Home".localized()
+            }
+            }
         }
+        LiftServer.sharedInstance.exerciseGetExerciseSessionsDates(CurrentLiftUser.userId!) { $0.getOrUnit { x in
+            self.sessionDates = x
+            self.calendar.reloadData()
+            self.calendar.currentDate = NSDate()
+            self.calendar.currentDateSelected = NSDate()
+            self.calendarDidDateSelected(self.calendar, date: NSDate())
+            }
+        }
+        offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+        tableView.reloadData()
+        replayOfflineSessions()
+        AppDelegate.becomeCurrentRemoteNotificationDelegate(self)
+        AppDelegate.becomeCurrentLiftServerDelegate(self)
     }
     
     override func viewDidDisappear(animated: Bool) {
         super.viewDidDisappear(animated)
         AppDelegate.unbecomeCurrentRemoteNotificationDelegate()
+        AppDelegate.unbecomeCurrentLiftServerDelegate()
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         switch segue.identifier {
         case .Some("sessionDetail"):
             let summary = sessionSummaries[tableView.indexPathForSelectedRow()!.row]
-            ResultContext.run { ctx in
-                LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id, ctx.apply { x in
-                    if let ctrl = segue.destinationViewController as? SessionDetailController {
-                        ctrl.setExerciseSession(x)
-                    }
-                    })
+            LiftServer.sharedInstance.exerciseGetExerciseSession(CurrentLiftUser.userId!, sessionId: summary.id) { $0.getOrUnit { x in
+                if let ctrl = segue.destinationViewController as? SessionDetailController {
+                    ctrl.setExerciseSession(x)
+                }
+                }
             }
         case .Some("startSession"):
             if let ctrl = segue.destinationViewController as? ExerciseSessionSettable {
@@ -141,40 +167,54 @@ class HomeController : UIViewController, UITableViewDataSource,
         case 0:
             let sessionSuggestion = sessionSuggestions[tableView.indexPathForSelectedRow()!.row]
             let props = Exercise.SessionProps(startDate: NSDate(), muscleGroupKeys: sessionSuggestion.muscleGroupKeys, intendedIntensity: sessionSuggestion.intendedIntensity)
-            ResultContext.run { ctx in
-                LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props, ctx.apply { sessionId in
-                    let session = ExerciseSession(id: sessionId, props: props)
-                    self.performSegueWithIdentifier("startSession", sender: session)
-                    })
+            
+            LiftServer.sharedInstance.exerciseSessionStart(CurrentLiftUser.userId!, props: props) { x in
+                let (isOfflineFromStart, session) = x.fold(
+                    (true, ExerciseSession(id: NSUUID(), props: props)),
+                    f: { x in (false, ExerciseSession(id: x, props: props)) }
+                )
+                let managedSession = ExerciseSessionManager.sharedInstance.managedSession(session, isOfflineFromStart: isOfflineFromStart)
+                self.performSegueWithIdentifier("startSession", sender: managedSession)
             }
         case 1: performSegueWithIdentifier("sessionDetail", sender: self)
+        case 2: return
         default: fatalError("Match error")
         }
     }
     
     func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return indexPath.section == 1
+        return indexPath.section == 1 || indexPath.section == 2
     }
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == UITableViewCellEditingStyle.Delete {
-            let sessionId = sessionSummaries[indexPath.row].id
-            LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
-                self.sessionSummaries = self.sessionSummaries.filter { $0.id != sessionId }
-                self.tableView.reloadData()
+            switch indexPath.section {
+            case 1:
+                let sessionId = sessionSummaries[indexPath.row].id
+                LiftServer.sharedInstance.exerciseDeleteExerciseSession(CurrentLiftUser.userId!, sessionId: sessionId) { _ in
+                    self.sessionSummaries = self.sessionSummaries.filter { $0.id != sessionId }
+                    self.tableView.reloadData()
+                }
+            case 2:
+                let offlineSessionId = offlineSessions[indexPath.row].id
+                ExerciseSessionManager.sharedInstance.removeOfflineSession(offlineSessionId)
+                offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+                tableView.reloadData()
+            default: fatalError("Match error")
             }
         }
     }
         
     // MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 2
+        return 3
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return sessionSuggestions.count
         case 1: return sessionSummaries.count
+        case 2: return offlineSessions.count
         default: fatalError("Match error")
         }
     }
@@ -183,6 +223,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         switch section {
         case 0: return "HomeController.SessionSuggestions".localized()
         case 1: return "HomeController.SessionSummaries".localized()
+        case 2: return "HomeController.OfflineSessions".localized()
         default: fatalError("Match error")
         }
     }
@@ -191,6 +232,7 @@ class HomeController : UIViewController, UITableViewDataSource,
         switch indexPath.section {
         case 0: return 40
         case 1: return 90
+        case 2: return 40
         default: fatalError("Match error")
         }
     }
@@ -209,7 +251,36 @@ class HomeController : UIViewController, UITableViewDataSource,
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as SessionTableViewCell
             cell.setSessionSummary(sessionSummary)
             return cell
+        case (2, let x):
+            let cell = tableView.dequeueReusableCellWithIdentifier("offlineSession") as OfflineSessionTableViewCell
+            let offlineSession = offlineSessions[x]
+            cell.setOfflineExerciseSession(offlineSession, isReplaying: ExerciseSessionManager.sharedInstance.isReplaying(offlineSession.id))
+            return cell
         default: fatalError("Match error")
+        }
+    }
+    
+    private func replayOfflineSessions() {
+        for (index, offlineSession) in enumerate(offlineSessions) {
+            if !ExerciseSessionManager.sharedInstance.isReplaying(offlineSession.id) {
+                if let cell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: index, inSection: 2)) as? OfflineSessionTableViewCell {
+                    cell.setIsReplaying(true)
+                    NSLog("Replaying \(index)")
+                    
+                    ExerciseSessionManager.sharedInstance.replayOfflineSession(offlineSession.id, removeAfterSuccess: true) {
+                        $0.cata(
+                            { _ in cell.setIsReplaying(false) },
+                            { _ in
+                                self.offlineSessions = ExerciseSessionManager.sharedInstance.listOfflineSessions()
+                                self.tableView.reloadSections(NSIndexSet(index: 2), withRowAnimation: UITableViewRowAnimation.Automatic)
+                                self.replayOfflineSessions()
+                            }
+                        )
+                    }
+                    
+                    return   // we replay only one at a time
+                }
+            }
         }
     }
     
@@ -220,11 +291,10 @@ class HomeController : UIViewController, UITableViewDataSource,
     }
     
     func calendarDidDateSelected(calendar: JTCalendar!, date: NSDate!) {
-        ResultContext.run { ctx in
-            LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date, ctx.apply { x in
-                self.sessionSummaries = x
-                self.tableView.reloadData()
-            })
+        LiftServer.sharedInstance.exerciseGetExerciseSessionsSummary(CurrentLiftUser.userId!, date: date) { $0.getOrUnit { x in
+            self.sessionSummaries = x
+            self.tableView.reloadData()
+            }
         }
     }
 
@@ -239,6 +309,13 @@ class HomeController : UIViewController, UITableViewDataSource,
     // MARK: RemoteNotificationDelegate
     func remoteNotificationReceivedAlert(alert: String) {
         calendarDidDateSelected(self.calendar, date: NSDate())
+    }
+    
+    // MARK: LiftServerDelegate
+    func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
+        if !newState.isOnline() { return }
+        
+        replayOfflineSessions()
     }
     
     // MARK: Actions

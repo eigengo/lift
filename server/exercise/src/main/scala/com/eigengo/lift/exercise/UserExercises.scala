@@ -1,18 +1,20 @@
 package com.eigengo.lift.exercise
 
-import com.eigengo.lift.exercise.UserExerciseClassifier.ModelMetadata
-import com.eigengo.lift.exercise.packet.MultiPacket
-import scodec.bits.BitVector
-
 object UserExercises {
 
   /**
-   * Failed to decode single packet for the given session with an error message and the original packet
-   * @param id the session identity
-   * @param error the decoding error
-   * @param packet the failing packet
+   * Model version and other metadata
+   * @param version the model version
    */
-  case class SinglePacketDecodingFailedEvt(id: SessionId, error: String, packet: BitVector)
+  case class ModelMetadata(version: Int)
+
+  /**
+   * The MD companion
+   */
+  object ModelMetadata {
+    /** Special user-classified metadata */
+    val user = ModelMetadata(-1231344)
+  }
 
   /**
    * Failed to decode multi-packet for the given session with an error message and the original packet
@@ -27,7 +29,7 @@ object UserExercises {
    * @param sessionProps the session
    * @param sensorData the sensor data
    */
-  case class ClassifyExerciseEvt(sessionProps: SessionProps, sensorData: List[SensorDataWithLocation])
+  case class ClassifyExerciseEvt[D <: SensorData](sessionProps: SessionProps, sensorData: List[SensorDataWithLocation[D]])
 
   /**
    * The session has started
@@ -35,6 +37,14 @@ object UserExercises {
    * @param sessionProps the session props
    */
   case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProps)
+
+  /**
+   * The session has been abandoned. Typically, the mobile application has detected a loss of
+   * network connectivity or the processor has detected serious gaps in the data stream
+   *
+   * @param sessionId the session being abandoned
+   */
+  case class SessionAbandonedEvt(sessionId: SessionId)
 
   /**
    * The session has been deleted
@@ -68,5 +78,12 @@ object UserExercises {
    * @param metadata the model metadata
    */
   case class NoExerciseEvt(sessionId: SessionId, metadata: ModelMetadata)
+
+  /**
+   * Set metric on all un-metriced exercises in the current set
+   * @param sessionId the session id
+   * @param metric the metric to be set
+   */
+  case class ExerciseSetExerciseMetricEvt(sessionId: SessionId, metric: Metric)
   
 }

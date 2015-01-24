@@ -54,7 +54,7 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     @IBOutlet var stopSessionButton: UIBarButtonItem!
     
     private var tableModel: DemoSessionTableModel?
-    private var sessionId: NSUUID?
+    private var session: ExerciseSession?
     private var timer: NSTimer?
     private var startTime: NSDate?
     
@@ -62,7 +62,7 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     override func viewWillDisappear(animated: Bool) {
         timer!.invalidate()
         navigationItem.prompt = nil
-        LiftServer.sharedInstance.exerciseSessionEnd(CurrentLiftUser.userId!, sessionId: sessionId!) { _ in }
+        session?.end(const(()))
     }
     
     @IBAction
@@ -99,18 +99,16 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        sessionId = session.id
+        self.session = session
         tableModel = DemoSessionTableModel(muscleGroupKeys: session.props.muscleGroupKeys)
     }
     
     // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let path = tableModel!.filePathAtIndexPath(indexPath)
-        let data = NSFileManager.defaultManager().contentsAtPath(path!)
-        LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: sessionId!, data: data!) { x in
-            NSLog("Sent...")
-        }
-        
+        let data = NSFileManager.defaultManager().contentsAtPath(path!)!
+        let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
+        session?.submitData(mp, const(()))
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
 

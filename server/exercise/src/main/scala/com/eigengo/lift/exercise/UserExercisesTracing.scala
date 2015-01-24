@@ -5,9 +5,7 @@ import java.io.FileOutputStream
 import akka.actor.Props
 import akka.persistence.PersistentView
 import com.eigengo.lift.common.UserId
-import com.eigengo.lift.exercise.UserExerciseClassifier._
-import com.eigengo.lift.exercise.packet.MultiPacket
-import scodec.bits.BitVector
+import com.eigengo.lift.exercise.UserExercisesClassifier._
 
 import scala.util.Try
 
@@ -26,12 +24,12 @@ object UserExercisesTracing {
     val empty = Tag(tapped = false, None, None)
   }
 
-  def appendSensorData(id: SessionId, tag: Tag, sdwls: List[SensorDataWithLocation]): Unit = {
+  def appendSensorData[D <: SensorData](id: SessionId, tag: Tag, sdwls: List[SensorDataWithLocation[D]]): Unit = {
     def tagged(tag: Tag, s: String): String = {
       s"${tag.tapped},${tag.systemExercise.getOrElse("")},${tag.userExercise.getOrElse("")},$s"
     }
 
-    def save(id: SessionId, tag: Tag)(sdwl: SensorDataWithLocation): Unit = {
+    def save(id: SessionId, tag: Tag)(sdwl: SensorDataWithLocation[D]): Unit = {
       val fos = new FileOutputStream(s"/tmp/lift-$id-${sdwl.location}.csv", true)
       sdwl.data.foreach {
         case AccelerometerData(_, values) ⇒
@@ -46,14 +44,10 @@ object UserExercisesTracing {
     sdwls.foreach(save(id, tag))
   }
 
-  def saveBits(counter: Int, id: SessionId, bits: BitVector): Int = {
-    Try { val fos = new FileOutputStream(s"/tmp/lift-$id.dat", true); fos.write(bits.toByteArray); fos.close() }
-    counter + 1
-  }
-
   def saveMultiPacket(counter: Int, id: SessionId, packet: MultiPacket): Int = {
-    // TODO: complete me
-    ???
+    packet.packets.foreach { pwl ⇒
+      Try { val fos = new FileOutputStream(s"/tmp/lift-$id-${pwl.sourceLocation}-$counter.dat", true); fos.write(pwl.payload.toByteArray); fos.close() }
+    }
     counter + 1
   }
 
@@ -73,10 +67,9 @@ class UserExercisesTracing(userId: String) extends PersistentView {
     case SessionEndedEvt(`id`)       ⇒ context.become(notExercising)
     case SessionStartedEvt(newId, _) ⇒ context.become(inASession(newId))
 
-    case SinglePacketDecodingFailedEvt(_, _, packet) ⇒ counter = saveBits(counter, id, packet)
     case MultiPacketDecodingFailedEvt(_, _, packet)  ⇒ counter = saveMultiPacket(counter, id, packet)
 
-    case ClassifyExerciseEvt(props, sdwl)            ⇒ appendSensorData(id, tag, sdwl)
+    case ClassifyExerciseEvt(_, sdwl)                ⇒ appendSensorData(id, tag, sdwl)
 
     case ExerciseEvt(`id`, ModelMetadata.user, exercise) ⇒ tag = tag.withUserExercise(Some(exercise))
     case ExerciseEvt(`id`, metadata, exercise)           ⇒ tag = tag.withSystemExercise(Some(exercise))

@@ -5,7 +5,6 @@ import java.util.{Date, UUID}
 import akka.actor.ActorRef
 import com.eigengo.lift.exercise.UserExercisesProcessor._
 import com.eigengo.lift.exercise.UserExercisesSessions._
-import scodec.bits.BitVector
 import spray.routing.Directives
 
 import scala.concurrent.ExecutionContext
@@ -14,11 +13,11 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(kafkaProducer: ActorRef, userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
     path("exercise" / "musclegroups") {
       get {
         complete {
-          UserExerciseClassifier.supportedMuscleGroups
+          UserExercisesClassifier.supportedMuscleGroups
         }
       }
     } ~
@@ -60,9 +59,8 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       } ~
       put {
-        // TODO: content type negotiation
-        handleWith { bits: BitVector ⇒
-          (userExercises ? UserExerciseDataProcessSinglePacket(userId, sessionId, bits)).mapRight[Unit]
+        handleWith { mp: MultiPacket ⇒
+          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, mp)).mapRight[Unit]
         }
       } ~
       delete {
@@ -71,16 +69,42 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
         }
       }
     } ~
+    path("exercise" / UserIdValue / SessionIdValue / "metric") { (userId, sessionId) ⇒
+      post {
+        handleWith { metric: Metric ⇒
+          userExercises ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
+          ()
+        }
+      }
+    } ~
+    path("exercise" / UserIdValue / SessionIdValue / "replay") { (userId, sessionId) ⇒
+      post {
+        handleWith { sessionProps: SessionProps ⇒
+          (userExercises ? UserExerciseSessionReplayStart(userId, sessionId, sessionProps)).mapRight[UUID]
+        }
+      } ~
+      put {
+        ctx ⇒ ctx.complete {
+          (userExercises ? UserExerciseSessionReplayProcessData(userId, sessionId, ctx.request.entity.data.toByteArray)).mapRight[Unit]
+        }
+      }
+    } ~
     path("exercise" / UserIdValue / SessionIdValue / "classification") { (userId, sessionId) ⇒
+      get {
+        complete {
+          (userExercises ? UserExerciseExplicitClassificationExamples(userId, sessionId)).mapTo[List[Exercise]]
+        }
+      } ~
       post {
         handleWith { exercise: Exercise ⇒
-          (userExercises ? UserExerciseExplicitClassificationStart(userId, sessionId, exercise)).mapRight[Unit]
+          userExercises ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
+          ()
         }
       } ~
       delete {
         complete {
           userExercises ! UserExerciseExplicitClassificationEnd(userId, sessionId)
-          ""
+          ()
         }
       }
     }
