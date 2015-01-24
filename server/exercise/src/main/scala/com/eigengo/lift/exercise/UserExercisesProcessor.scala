@@ -1,11 +1,10 @@
 package com.eigengo.lift.exercise
 
 import java.io.FileOutputStream
-import java.nio.ByteBuffer
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.SnapshotOffer
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 
 import scala.language.postfixOps
@@ -238,10 +237,11 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
   with ActorLogging
   with AutoPassivation {
 
+  import com.eigengo.lift.exercise.UserExercises._
   import com.eigengo.lift.exercise.UserExercisesClassifier._
   import com.eigengo.lift.exercise.UserExercisesProcessor._
-  import scala.concurrent.duration._
-  import UserExercises._
+
+import scala.concurrent.duration._
 
   // user reference and notifier
   private val userId = UserId(self.path.name)
@@ -264,17 +264,24 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       context.become(exercising(sessionId, sessionProps))
   }
 
-  private def replaying(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
-    case ExerciseSessionReplayProcessData(`id`, data) ⇒
-      log.warning("Not yet handling processing of the data")
+  private def replaying(oldSessionId: SessionId, newSessionId: SessionId, sessionProps: SessionProps): Receive = withPassivation {
+    case ExerciseSessionReplayStart(_, _) ⇒
+      sender() ! \/.left("Another session replay in progress")
 
-      // TODO: fixme
-      val fos = new FileOutputStream(s"/Users/janmachacek/$id.mp")
-      fos.write(data)
-      fos.close()
+    case ExerciseSessionReplayProcessData(`newSessionId`, data) ⇒
+      persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(newSessionId, sessionProps))) { case _ :: started :: Nil ⇒
+        log.warning("Not yet handling processing of the data")
+        sender() ! \/.right(())
 
-      sender() ! \/.right(())
-      context.become(notExercising)
+        // TODO: Implement proper replay handling. For now, we save the file and end the session.
+        val fos = new FileOutputStream(s"/Users/janmachacek/$newSessionId.mp")
+        fos.write(data)
+        fos.close()
+
+        persist(SessionEndedEvt(newSessionId)) { _ ⇒
+          context.become(notExercising)
+        }
+      }
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
@@ -347,13 +354,9 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       }
 
     case ExerciseSessionReplayStart(oldSessionId, sessionProps) ⇒
-      val id = SessionId.randomId()
-      persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(id, sessionProps))) { case _ :: started :: Nil ⇒
-        saveSnapshot(started)
-        sender() ! \/.right(id)
-        println("Sending " + id)
-        context.become(replaying(id, sessionProps))
-      }
+      val newSessionId = SessionId.randomId()
+      sender() ! \/.right(newSessionId)
+      context.become(replaying(oldSessionId, newSessionId, sessionProps))
 
     case ExerciseSessionEnd(_) ⇒
       sender() ! \/.left("Not in session")
