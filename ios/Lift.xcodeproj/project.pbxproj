@@ -24,6 +24,8 @@
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
+		54571B161A728594001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
+		54571B171A728690001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
@@ -173,6 +175,7 @@
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleAccelerometerRecorder.swift; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		54571B151A728594001419B4 /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
@@ -382,6 +385,7 @@
 				54C6EFD61A2F5E650044BDAB /* Operators.swift */,
 				54C6EFD71A2F5E650044BDAB /* Predef.swift */,
 				54C6EFD81A2F5E650044BDAB /* Result.swift */,
+				54571B151A728594001419B4 /* Array.swift */,
 			);
 			path = Predef;
 			sourceTree = "<group>";
@@ -826,6 +830,7 @@
 				54DB071B1A49E65400DC1E91 /* Device.swift in Sources */,
 				54F0C0061A60349300D1A9C8 /* RemoteNotificationDelegate.swift in Sources */,
 				54C37B851A4C116C0036C0C8 /* PropertyTableViewCell.swift in Sources */,
+				54571B161A728594001419B4 /* Array.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
 				540454981A650C4D00273425 /* SensorDataSourceLocation.swift in Sources */,
@@ -902,6 +907,7 @@
 				54ED4EBB1A6C548100490DA7 /* Result.swift in Sources */,
 				54ED4EC01A6C54C100490DA7 /* LiftUserDefaults.swift in Sources */,
 				54ED4EB81A6C548100490DA7 /* Either.swift in Sources */,
+				54571B171A728690001419B4 /* Array.swift in Sources */,
 				542611351A658F2C00A758AA /* MultiPacket.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

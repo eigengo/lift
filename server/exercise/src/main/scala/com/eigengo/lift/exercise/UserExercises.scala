@@ -39,6 +39,14 @@ object UserExercises {
   case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProps)
 
   /**
+   * The session has been abandoned. Typically, the mobile application has detected a loss of
+   * network connectivity or the processor has detected serious gaps in the data stream
+   *
+   * @param sessionId the session being abandoned
+   */
+  case class SessionAbandonedEvt(sessionId: SessionId)
+
+  /**
    * The session has been deleted
    * @param sessionId the session that was deleted
    */
