@@ -245,7 +245,6 @@ trait GestureWorkflows extends SVMClassifier {
    * Flowgraph that taps the in-out stream and, if a gesture is recognised, sends a tagged message to the `tap` sink.
    */
   class IdentifyGestureEvents {
-
     val in = UndefinedSource[AccelerometerValue]
     val out = UndefinedSink[AccelerometerValue]
     val tap = UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]
@@ -263,7 +262,6 @@ trait GestureWorkflows extends SVMClassifier {
           } ~> tap
       }) ~> out
     }
-
   }
 
   object IdentifyGestureEvents {
@@ -292,11 +290,9 @@ trait GestureWorkflows extends SVMClassifier {
   }
 
   object MergeTransformations {
-
     def apply[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) = {
       new MergeTransformations[A, B](size, merge)
     }
-
   }
 
   /**
@@ -325,9 +321,7 @@ trait GestureWorkflows extends SVMClassifier {
   }
 
   object ModulateSensorNet {
-
     def apply[A, B, L](locations: Set[L]) = new ModulateSensorNet[A, B, L](locations)
-
   }
 
   /**
@@ -367,9 +361,7 @@ trait GestureWorkflows extends SVMClassifier {
   }
 
   object GestureGrouping {
-
     def apply[A]() = new GestureGrouping[A]()
-
   }
 
   /**
@@ -420,13 +412,10 @@ trait GestureWorkflows extends SVMClassifier {
         builder.connect(group.out, Flow[GroupValue[TaggedValue[AccelerometerValue]]], groupedOutput(loc))
       }
     }
-
   }
 
   object GestureClassificationWorkflow {
-
     def apply[L](inputLocations: Set[L], outputLocations: Set[L]) = new GestureClassificationWorkflow[L](inputLocations, outputLocations)
-
   }
 
 }
