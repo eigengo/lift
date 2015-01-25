@@ -391,14 +391,7 @@ trait GestureWorkflows extends SVMClassifier {
     val groupedOutput = outputLocations.map(loc => (loc, UndefinedSink[GroupValue[TaggedValue[AccelerometerValue]]])).toMap
 
     val graph = PartialFlowGraph { implicit builder =>
-      val modulateIn: Map[L, UndefinedSource] = ???
-      val modulateOut: Map[L, UndefinedSink] = ???
-
-      val mergeIn: Set[UndefinedSource] = ???
-      val mergeOut: UndefinedSink = ???
-
       val modulate = ModulateSensorNet[AccelerometerValue, TaggedValue[AccelerometerValue], L](outputLocations)
-
       val merge = MergeTransformations[AccelerometerValue, TaggedValue[AccelerometerValue]](inputLocations.size) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
         ??? // FIXME:
       }
@@ -423,6 +416,7 @@ trait GestureWorkflows extends SVMClassifier {
 
         builder.importPartialFlowGraph(group.graph)
         builder.connect(modulate.out(loc), Flow[TaggedValue[AccelerometerValue]], group.in)
+        builder.connect(groupedIn(loc), Flow[AccelerometerValue], modulate.in(loc))
         builder.connect(group.out, Flow[GroupValue[TaggedValue[AccelerometerValue]]], groupedOutput(loc))
       }
     }
