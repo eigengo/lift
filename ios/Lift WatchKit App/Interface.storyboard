@@ -21,10 +21,34 @@
             <objects>
                 <glanceController spacing="0.0" id="0uZ-2p-rRc" customClass="GlanceController" customModule="Lift_WatchKit_App" customModuleProvider="target">
                     <items>
-                        <group alignment="left" id="t8f-Gd-c4y"/>
-                        <group alignment="left" id="uCw-4Q-Ouw"/>
+                        <group alignment="left" layout="vertical" id="F47-4d-YF4">
+                            <items>
+                                <timer width="83.5" alignment="left" previewedSeconds="1733" id="mB0-5u-luZ"/>
+                                <label width="119.5" alignment="left" text="Arms" textAlignment="left" id="zgo-dN-0mm">
+                                    <fontDescription key="font" type="system" pointSize="20"/>
+                                </label>
+                            </items>
+                        </group>
+                        <group alignment="left" id="uCw-4Q-Ouw">
+                            <items>
+                                <table alignment="left" id="Lcc-7p-GOQ">
+                                    <items>
+                                        <tableRow identifier="set" id="9ge-HJ-7uz">
+                                            <group key="rootItem" width="1" alignment="left" id="rEx-Qm-HlJ">
+                                                <items>
+                                                    <label width="1" alignment="left" text="Bicep curl" id="cho-og-VVe"/>
+                                                </items>
+                                            </group>
+                                        </tableRow>
+                                    </items>
+                                </table>
+                            </items>
+                        </group>
                     </items>
                     <edgeInsets key="margins" left="0.0" right="0.0" top="0.0" bottom="14"/>
+                    <connections>
+                        <outlet property="tableView" destination="Lcc-7p-GOQ" id="EAq-GU-FoW"/>
+                    </connections>
                 </glanceController>
             </objects>
             <point key="canvasLocation" x="235" y="672"/>
