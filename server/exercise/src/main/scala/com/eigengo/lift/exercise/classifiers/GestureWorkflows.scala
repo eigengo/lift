@@ -275,18 +275,26 @@ trait GestureWorkflows extends SVMClassifier {
    *
    * @param size number of input sources that we are to bundle and merge
    */
-  object MergeTransformations {
+  class MergeTransformations[A, B](size: Int, merge: Set[Transformation[A, B]] => Transformation[A, B]) {
+    require(size > 0)
 
-    def apply[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) = PartialFlowGraph { implicit builder =>
-      val in = (0 until size).map(_ => UndefinedSource[Transformation[A, B]])
-      val out = UndefinedSink[Transformation[A, B]]
+    val in = (0 until size).map(_ => UndefinedSource[Transformation[A, B]])
+    val out = UndefinedSink[Transformation[A, B]]
 
+    val graph = PartialFlowGraph { implicit builder =>
       val zip = ZipSet[Transformation[A, B]](in.size)
 
       for ((probe, index) <- in.zipWithIndex) {
         probe ~> zip.in(index)
       }
       zip.out ~> Flow[Set[Transformation[A, B]]].map(merge) ~> out
+    }
+  }
+
+  object MergeTransformations {
+
+    def apply[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) = {
+      new MergeTransformations[A, B](size, merge)
     }
 
   }
@@ -297,13 +305,12 @@ trait GestureWorkflows extends SVMClassifier {
    *
    * @param locations set of locations that make up the sensor network
    */
-  object ModulateSensorNet {
+  class ModulateSensorNet[A, B, L](locations: Set[L]) {
+    val in = locations.map(loc => (loc, UndefinedSource[A])).toMap
+    val transform = UndefinedSource[Transformation[A, B]]
+    val out = locations.map(loc => (loc, UndefinedSink[B])).toMap
 
-    def apply[A, B, L](locations: Set[L]) = PartialFlowGraph { implicit builder =>
-      val in = locations.map(loc => (loc, UndefinedSource[A])).toMap
-      val transform = UndefinedSource[Transformation[A, B]]
-      val out = locations.map(loc => (loc, UndefinedSink[B])).toMap
-
+    val graph = PartialFlowGraph { implicit builder =>
       val broadcast = Broadcast[Transformation[A, B]]
 
       transform ~> broadcast
@@ -315,18 +322,22 @@ trait GestureWorkflows extends SVMClassifier {
         zip.out   ~> out(location)
       }
     }
+  }
+
+  object ModulateSensorNet {
+
+    def apply[A, B, L](locations: Set[L]) = new ModulateSensorNet[A, B, L](locations)
 
   }
 
   /**
    * Flowgraph that groups messages on the input source.
    */
-  object GestureGrouping {
+  class GestureGrouping[A] {
+    val in = UndefinedSource[TaggedValue[A]]
+    val out = UndefinedSink[GroupValue[TaggedValue[A]]]
 
-    def apply[A]() = PartialFlowGraph { implicit builder =>
-      val in = UndefinedSource[TaggedValue[A]]
-      val out = UndefinedSink[GroupValue[TaggedValue[A]]]
-
+    val graph = PartialFlowGraph { implicit builder =>
       in ~> Flow[TaggedValue[A]].transform(() => GroupBySample[TaggedValue[A]](2 * windowSize) { (sample: List[TaggedValue[A]]) =>
         require(sample.length == 2 * windowSize)
 
@@ -353,6 +364,11 @@ trait GestureWorkflows extends SVMClassifier {
         }
       }) ~> out
     }
+  }
+
+  object GestureGrouping {
+
+    def apply[A]() = new GestureGrouping[A]()
 
   }
 
@@ -398,14 +414,14 @@ trait GestureWorkflows extends SVMClassifier {
       }
 
       // Wire in modulation
-      builder.importPartialFlowGraph(modulate)
+      builder.importPartialFlowGraph(modulate.graph)
       builder.connect(merge.out, Flow[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]], modulate.transform)
 
       // Wire in grouping
       for (loc <- outputLocations) {
         val group = GestureGrouping[AccelerometerValue]()
 
-        builder.importPartialFlowGraph(group)
+        builder.importPartialFlowGraph(group.graph)
         builder.connect(modulate.out(loc), Flow[TaggedValue[AccelerometerValue]], group.in)
         builder.connect(group.out, Flow[GroupValue[TaggedValue[AccelerometerValue]]], groupedOutput(loc))
       }
