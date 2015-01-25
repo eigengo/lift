@@ -365,7 +365,7 @@ trait GestureWorkflows extends SVMClassifier {
   }
 
   /**
-   * Flowgraph that monitors the `inputLocations` sensoir network for recognisable gestures. When gestures are detected,
+   * Flowgraph that monitors the `inputLocations` sensor network for recognisable gestures. When gestures are detected,
    * messages on the `outputLocations` sensor network are tagged and grouped.
    *
    * @param inputLocations  locations that make up the input sensor network
@@ -375,12 +375,15 @@ trait GestureWorkflows extends SVMClassifier {
     require(inputLocations.nonEmpty)
     require(outputLocations.nonEmpty)
 
+    private val identify = inputLocations.map(loc => (loc, IdentifyGestureEvents())).toMap
+    private val group = inputLocations.map(loc => (loc, GestureGrouping[AccelerometerValue]())).toMap
+
     // Tapped sensors - monitored for recognisable gestures
-    val inputTap = inputLocations.map(loc => (loc, UndefinedSource[AccelerometerValue])).toMap
-    val outputTap = inputLocations.map(loc => (loc, UndefinedSink[AccelerometerValue])).toMap
+    val inputTap = inputLocations.map(loc => (loc, identify(loc).in)).toMap
+    val outputTap = inputLocations.map(loc => (loc, identify(loc).out)).toMap
     // Grouped sensors - event streams are tagged and grouped
-    val groupedIn = outputLocations.map(loc => (loc, UndefinedSource[AccelerometerValue])).toMap
-    val groupedOutput = outputLocations.map(loc => (loc, UndefinedSink[GroupValue[TaggedValue[AccelerometerValue]]])).toMap
+    val groupedIn = outputLocations.map(loc => (loc, group(loc).in)).toMap
+    val groupedOutput = outputLocations.map(loc => (loc, group(loc).out)).toMap
 
     val graph = PartialFlowGraph { implicit builder =>
       val modulate = ModulateSensorNet[AccelerometerValue, TaggedValue[AccelerometerValue], L](outputLocations)
@@ -390,12 +393,8 @@ trait GestureWorkflows extends SVMClassifier {
 
       // Wire in tapped sensors
       for ((loc, index) <- inputLocations.zipWithIndex) {
-        val identify = IdentifyGestureEvents()
-
-        builder.importPartialFlowGraph(identify.graph)
-        builder.connect(inputTap(loc), Flow[AccelerometerValue], identify.in)
-        builder.connect(identify.out, Flow[AccelerometerValue], outputTap(loc))
-        builder.connect(identify.tap, Flow[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]], merge.in(index))
+        builder.importPartialFlowGraph(identify(loc).graph)
+        builder.connect(identify(loc).tap, Flow[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]], merge.in(index))
       }
 
       // Wire in modulation
@@ -404,12 +403,8 @@ trait GestureWorkflows extends SVMClassifier {
 
       // Wire in grouping
       for (loc <- outputLocations) {
-        val group = GestureGrouping[AccelerometerValue]()
-
-        builder.importPartialFlowGraph(group.graph)
-        builder.connect(modulate.out(loc), Flow[TaggedValue[AccelerometerValue]], group.in)
-        builder.connect(groupedIn(loc), Flow[AccelerometerValue], modulate.in(loc))
-        builder.connect(group.out, Flow[GroupValue[TaggedValue[AccelerometerValue]]], groupedOutput(loc))
+        builder.importPartialFlowGraph(group(loc).graph)
+        builder.connect(modulate.out(loc), Flow[TaggedValue[AccelerometerValue]], group(loc).in)
       }
     }
   }
