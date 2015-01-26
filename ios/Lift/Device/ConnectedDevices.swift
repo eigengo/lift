@@ -11,14 +11,14 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
         let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000000")!
         self.sensorDataDelegate = sensorDataDelegate
         super.init(deviceInfo: DeviceInfo.ConnectedDeviceInfo(id: id, type: "", name: "", serialNumber: ""))
-                
+        
         for (device, info) in Devices.connectedDevices() {
-            device.connect(deviceDelegate, sensorDataDelegate: self, onDone: const(()))
+            device.connect(deviceDelegate, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
         }
     }
     
     func start() -> Void {
-        
+        for d in devices { d.start() }
     }
     
     func deviceInfo(index: Int) -> (DeviceInfo, DeviceInfo.Detail?)? {
@@ -49,7 +49,7 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
     
     // MARK: DeviceSession implementation
     override func stop() {
-        
+        for d in devices { d.stop() }
     }
     
     // MARK: SensorDataDelegate implementation
@@ -59,6 +59,9 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
     }
     
     func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
+        combinedStats.merge(deviceSession.stats) { k in
+            return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: DeviceInfo.Location.Wrist)
+        }
         sensorDataDelegate.sensorDataReceived(self, data: NSData())
     }
 }

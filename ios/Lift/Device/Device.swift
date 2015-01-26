@@ -182,9 +182,9 @@ final class DeviceSessionStats<K : Hashable> {
     /**
      * Merge the statistics kept in this session with the statistics kept in ``that`` session
      */
-    final internal func merge(that: DeviceSessionStats) {
+    final internal func merge<B>(that: DeviceSessionStats<B>, keyMapper: B -> K) {
         for (k, v) in that.stats {
-            stats[k] = v
+            stats[keyMapper(k)] = v
         }
     }
     

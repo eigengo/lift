@@ -1,7 +1,7 @@
 import Foundation
 
 class ThisDevice : NSObject, Device {
-    private struct Info {
+    internal struct Info {
         static let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000001")!
         static let deviceInfo: DeviceInfo = {
             let serialNumber = UIDevice.currentDevice().identifierForVendor.UUIDString
@@ -42,7 +42,7 @@ class ThisConnectedDevice : ThisDevice, ConnectedDevice {
         deviceDelegate.deviceGotDeviceInfoDetail(Info.id, detail: Info.deviceInfoDetail)
         deviceDelegate.deviceAppLaunched(Info.id)
         currentDeviceSession?.stop()
-        currentDeviceSession = ThisDeviceSession(deviceInfo: Info.deviceInfo)
+        currentDeviceSession = ThisDeviceSession(deviceInfo: Info.deviceInfo, sensorDataDelegate: sensorDataDelegate)
     }
     
     func stop() {

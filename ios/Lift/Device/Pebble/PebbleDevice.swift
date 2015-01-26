@@ -41,7 +41,7 @@ class PebbleDeviceSession : DeviceSession {
     }
     
     private func accelerometerDataReceived(data: NSData) {
-        let x = stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: deviceId), update: { prev in
+        stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: deviceId), update: { prev in
             return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         

@@ -47,6 +47,7 @@
 		54AECC451A769CDE008BD812 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB071A1A49E65400DC1E91 /* Device.swift */; };
 		54AECC471A76AB8A008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
 		54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
+		54AECC491A76B022008BD812 /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* SensorData.swift */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54C1587D1A651237008F6E2A /* MutableMultiPacketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C1587C1A651237008F6E2A /* MutableMultiPacketTests.swift */; };
@@ -919,6 +920,7 @@
 				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */,
 				54ED4EAF1A6C547B00490DA7 /* LiftServer.swift in Sources */,
+				54AECC491A76B022008BD812 /* SensorData.swift in Sources */,
 				54ED4EB11A6C547B00490DA7 /* LiftServerURLs.swift in Sources */,
 				54ED4EB61A6C547B00490DA7 /* NotificationModel.swift in Sources */,
 				54ED4EC11A6C54C100490DA7 /* NSError+Convenience.swift in Sources */,
