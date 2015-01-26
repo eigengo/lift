@@ -4,8 +4,7 @@ class ThisDevice : NSObject, Device {
     internal struct Info {
         static let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000001")!
         static let deviceInfo: DeviceInfo = {
-            let serialNumber = UIDevice.currentDevice().identifierForVendor.UUIDString
-            return DeviceInfo.ConnectedDeviceInfo(id: id, type: "this", name: UIDevice.currentDevice().name, serialNumber: serialNumber)
+            return DeviceInfo.ConnectedDeviceInfo(id: id, type: "this", name: UIDevice.currentDevice().name, description: UIDevice.currentDevice().localizedModel)
         }()
         static let deviceInfoDetail: DeviceInfo.Detail = {
             return DeviceInfo.Detail(address: "", hardwareVersion: UIDevice.currentDevice().model, osVersion: UIDevice.currentDevice().systemVersion)

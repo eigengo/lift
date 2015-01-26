@@ -22,13 +22,13 @@ enum DeviceInfo {
     var isConnected: Bool {
         get {
             switch self {
-            case .ConnectedDeviceInfo(id: _, type: _, name: _, serialNumber: _): return true
+            case .ConnectedDeviceInfo(id: _, type: _, name: _, description: _): return true
             default: return false
             }
         }
     }
     
-    case ConnectedDeviceInfo(id: DeviceId, type: DeviceType, name: String, serialNumber: String)
+    case ConnectedDeviceInfo(id: DeviceId, type: DeviceType, name: String, description: String)
     
     case DisconnectedDeviceInfo(id: DeviceId, type: DeviceType, error: NSError?)
     

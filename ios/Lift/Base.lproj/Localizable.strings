@@ -2,8 +2,8 @@
 "Device.Pebble.noWatches"="No connected watches";
 
 "DeviceTableViewCell.noDevice"="No device";
-"DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
-"DeviceTableViewCell.deviceInfo"="Serial %@";
+"DeviceTableViewCell.deviceInfoWithDetail"="Model %@\nAddress: %@";
+"DeviceTableViewCell.deviceInfo"="Model %@";
 "DeviceTableViewCell.disconnectedType.pebble"="Pebble";
 "DeviceTableViewCell.disconnectedType.androidwear"="Android Wear";
 "DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch";

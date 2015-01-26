@@ -1,22 +1,22 @@
 import Foundation
 
-class ConnectedDevices : DeviceSession, SensorDataDelegate {
+class ConnectedDevices : DeviceSession, SensorDataDelegate, DeviceDelegate {
     private var deviceInfos: [DeviceId : DeviceInfo] = [:]
+    private var deviceInfoDetails: [DeviceId: DeviceInfo.Detail] = [:]
     private var deviceSessions: [DeviceId : DeviceSession] = [:]
     private var devices: [ConnectedDevice] = []
     private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
+    
     private var sensorDataDelegate: SensorDataDelegate!
+    private var deviceDelegate: DeviceDelegate!
     
     required init(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate) {
         let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000000")!
         self.sensorDataDelegate = sensorDataDelegate
-        super.init(deviceInfo: DeviceInfo.ConnectedDeviceInfo(id: id, type: "", name: "", serialNumber: ""))
+        self.deviceDelegate = deviceDelegate
+        super.init(deviceInfo: DeviceInfo.ConnectedDeviceInfo(id: id, type: "", name: "", description: ""))
         
         for (device, info) in Devices.connectedDevices() {
-            switch info {
-            case .ConnectedDeviceInfo(id: let id, type: _, name: _, serialNumber: _): deviceInfos[id] = info
-            default: fatalError("Connected device reports info != .ConnectedDeviceInfo")
-            }
             device.connect(deviceDelegate, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
         }
     }
@@ -25,14 +25,12 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
         for d in devices { d.start() }
     }
     
-    func deviceInfo(index: Int) -> DeviceInfo? {
-        for (i, (_, let x)) in enumerate(deviceInfos) {
-            if i == index {
-                return x
-            }
+    func getDeviceInfos() -> [(DeviceInfo, DeviceInfo.Detail?)] {
+        var r: [(DeviceInfo, DeviceInfo.Detail?)] = []
+        for (k, v) in deviceInfos {
+            r += [(v, deviceInfoDetails[k])]
         }
-        
-        return nil
+        return r
     }
     
     func sessionStats(index: Int) -> (DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry) {
@@ -41,7 +39,7 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
     
     var deviceCount: Int {
         get {
-            return devices.count
+            return deviceInfos.count
         }
     }
     
@@ -54,6 +52,33 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
     // MARK: DeviceSession implementation
     override func stop() {
         for d in devices { d.stop() }
+    }
+    
+    // MARK: DeviceDelegate implementation
+    func deviceAppLaunched(deviceId: DeviceId) {
+        deviceDelegate.deviceAppLaunched(deviceId)
+    }
+    
+    func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
+        deviceDelegate.deviceAppLaunchFailed(deviceId, error: error)
+    }
+    
+    func deviceDidNotConnect(error: NSError) {
+        deviceDelegate.deviceDidNotConnect(error)
+    }
+    
+    func deviceDisconnected(deviceId: DeviceId) {
+        deviceDelegate.deviceDisconnected(deviceId)
+    }
+    
+    func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
+        deviceInfos[deviceId] = deviceInfo
+        deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
+    }
+    
+    func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
+        deviceInfoDetails[deviceId] = detail
+        deviceDelegate.deviceGotDeviceInfoDetail(deviceId, detail: detail)
     }
     
     // MARK: SensorDataDelegate implementation

@@ -5,7 +5,8 @@ internal struct DeviceTableViewCellImages {
         [
             "pebble"      : UIImage(named: "pebble")!,
             "androidwear" : UIImage(named: "androidwear")!,
-            "applewatch"  : UIImage(named: "applewatch")!
+            "applewatch"  : UIImage(named: "applewatch")!,
+            "this"        : UIImage(named: "this")!
     ]
 }
 
@@ -61,15 +62,15 @@ class DeviceTableViewCell : UITableViewCell {
     private func setDeviceInfo(deviceInfo: DeviceInfo, deviceInfoDetail: DeviceInfo.Detail?) {
         typeImage.image = DeviceTableViewCellImages.images[deviceInfo.type]
         switch deviceInfo {
-        case .ConnectedDeviceInfo(let id, let t, let n, let sn):
+        case .ConnectedDeviceInfo(let id, let t, let n, let d):
             name.text = n
             name.textColor = tintColor
             detail.textColor = UIColor.blackColor()
             deviceId = id
             if let did = deviceInfoDetail {
-                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(sn, did.address)
+                detail.text = "DeviceTableViewCell.deviceInfoWithDetail".localized(d, did.address)
             } else {
-                detail.text = "DeviceTableViewCell.deviceInfo".localized(sn)
+                detail.text = "DeviceTableViewCell.deviceInfo".localized(d)
             }
             if let d = delegate {
                 accessorySwitch.on = d.deviceTableViewCellAccessorySwitchValue(id)

@@ -54,7 +54,7 @@ class PebbleDevice : NSObject, Device {
     internal let pebbleDeviceType = "pebble"
     
     private func getDeviceInfo(watch: PBWatch) -> DeviceInfo {
-        return DeviceInfo.ConnectedDeviceInfo(id: watch.serialNumber.md5UUID(), type: pebbleDeviceType, name: watch.name, serialNumber: watch.serialNumber)
+        return DeviceInfo.ConnectedDeviceInfo(id: watch.serialNumber.md5UUID(), type: pebbleDeviceType, name: watch.name, description: watch.serialNumber)
     }
     
     // MARK: Device implementation
