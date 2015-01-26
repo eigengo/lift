@@ -39,20 +39,6 @@ enum DeviceInfo {
 }
 
 /**
- * Holds the delegates that react to the data received from the device. At the very least,
- * the ``AccelerometerDelegate`` must be set.
- *
- * In the future, other delegates may include heart rate, glucose, ...
- */
-class DeviceDataDelegates {
-    var accelerometerDelegate: AccelerometerDelegate
-    
-    required init(accelerometerDelegate: AccelerometerDelegate) {
-        self.accelerometerDelegate = accelerometerDelegate
-    }
-}
-
-/**
 * Common device communication protocol
 */
 protocol Device {

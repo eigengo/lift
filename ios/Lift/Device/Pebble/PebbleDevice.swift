@@ -9,14 +9,14 @@ import Foundation
 class PebbleDeviceSession : DeviceSession {
     private var id: NSUUID!
     private var stats: [DeviceSessionStatsKey : DeviceSessionStats] = [:]
-    private var deviceDataDelegates: DeviceDataDelegates!
+    private var sensorDataDelegate: SensorDataDelegate!
     private var startTime: NSDate!
     private var updateHandler: AnyObject?
 
-    required init(watch: PBWatch!, deviceDataDelegates: DeviceDataDelegates) {
+    required init(watch: PBWatch!, sensorDataDelegate: SensorDataDelegate) {
         self.id = NSUUID()
         self.startTime = NSDate()
-        self.deviceDataDelegates = deviceDataDelegates
+        self.sensorDataDelegate = sensorDataDelegate
         self.updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceiveUpdateHandler)
     }
     
@@ -38,7 +38,7 @@ class PebbleDeviceSession : DeviceSession {
     
     internal func stop(watch: PBWatch!) {
         if let x: AnyObject = updateHandler { watch.appMessagesRemoveUpdateHandler(x) }
-        deviceDataDelegates.accelerometerDelegate.accelerometerDataEnded(self)
+        sensorDataDelegate.sensorDataEnded(self)
     }
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
@@ -66,7 +66,7 @@ class PebbleDeviceSession : DeviceSession {
             return DeviceSessionStats(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
-        deviceDataDelegates.accelerometerDelegate.accelerometerDataReceived(self, data: data)
+        sensorDataDelegate.sensorDataReceived(self, data: data)
     }
 }
 
@@ -103,12 +103,12 @@ class PebbleDevice : NSObject, Device {
  */
 class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDelegate, ConnectedDevice {
     private var deviceDelegate: DeviceDelegate!
-    private var deviceDataDelegates: DeviceDataDelegates!
+    private var sensorDataDelegate: SensorDataDelegate!
     private var currentDeviceSession: PebbleDeviceSession?
     
-    required init(deviceDelegate: DeviceDelegate, deviceDataDelegates: DeviceDataDelegates) {
+    required init(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate) {
         self.deviceDelegate = deviceDelegate
-        self.deviceDataDelegates = deviceDataDelegates
+        self.sensorDataDelegate = sensorDataDelegate
         super.init()
         
         let uuid = NSMutableData(length: 16)!
@@ -141,7 +141,7 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
             deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: getDeviceInfo(watch))
             deviceDelegate.deviceAppLaunched(deviceId)
             currentDeviceSession?.stop(watch)
-            currentDeviceSession = PebbleDeviceSession(watch: watch, deviceDataDelegates: deviceDataDelegates)
+            currentDeviceSession = PebbleDeviceSession(watch: watch, sensorDataDelegate: sensorDataDelegate)
         }
     }
     

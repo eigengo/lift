@@ -6,9 +6,10 @@ import Foundation
 struct Devices {
     internal static let devices : [Device] =
     [
+        ThisDevice(),
         PebbleDevice(),
         AppleWatchDevice(),
-        AndroidWearDevice()
+        AndroidWearDevice(),
     ]
     
     static func peek(onDone: DeviceInfo -> Void) {

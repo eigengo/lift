@@ -20,9 +20,8 @@
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		5434CCDA1A69839400B0735C /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5434CCD91A69839400B0735C /* SystemConfiguration.framework */; };
-		543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* Accelerometer.swift */; };
+		543B26FD1A49D18800381298 /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* SensorData.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
-		543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		54571B161A728594001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
 		54571B171A728690001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
@@ -88,6 +87,7 @@
 		54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
+		54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */; };
 		54ED4EAC1A6C544200490DA7 /* ExerciseSessionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */; };
 		54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
 		54ED4EAE1A6C547500490DA7 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
@@ -172,9 +172,8 @@
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
 		5434CCD91A69839400B0735C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		543B26FC1A49D18800381298 /* Accelerometer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accelerometer.swift; sourceTree = "<group>"; };
+		543B26FC1A49D18800381298 /* SensorData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorData.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
-		543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleAccelerometerRecorder.swift; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		54571B151A728594001419B4 /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
@@ -249,6 +248,7 @@
 		54DC83B31A40AF82006DD311 /* NotificationModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftUserDefaults.swift; sourceTree = "<group>"; };
 		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
+		54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThisDevice.swift; sourceTree = "<group>"; };
 		54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManagerTests.swift; sourceTree = "<group>"; };
 		54ED4EC31A6C54F300490DA7 /* LiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
@@ -319,8 +319,9 @@
 			children = (
 				548296361A4D792D00EDCAF0 /* AndroidWear */,
 				548296381A4D792D00EDCAF0 /* AppleWatch */,
+				54E99ED31A767B8400BA1BD3 /* This */,
 				543B26FE1A49D1A800381298 /* Pebble */,
-				543B26FC1A49D18800381298 /* Accelerometer.swift */,
+				543B26FC1A49D18800381298 /* SensorData.swift */,
 				54DB071A1A49E65400DC1E91 /* Device.swift */,
 				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
 			);
@@ -331,7 +332,6 @@
 			isa = PBXGroup;
 			children = (
 				543B26FF1A49D1A800381298 /* PebbleDevice.swift */,
-				543B27011A49D1C400381298 /* PebbleAccelerometerRecorder.swift */,
 			);
 			path = Pebble;
 			sourceTree = "<group>";
@@ -540,6 +540,14 @@
 				54DC83A41A40ACEA006DD311 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		54E99ED31A767B8400BA1BD3 /* This */ = {
+			isa = PBXGroup;
+			children = (
+				54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */,
+			);
+			path = This;
 			sourceTree = "<group>";
 		};
 		54F780B71A278EFC00E4F3C5 /* LiftServer */ = {
@@ -842,9 +850,9 @@
 				545E06041A304CB500AB633B /* UserModel.swift in Sources */,
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
-				543B27021A49D1C400381298 /* PebbleAccelerometerRecorder.swift in Sources */,
+				54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */,
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
-				543B26FD1A49D18800381298 /* Accelerometer.swift in Sources */,
+				543B26FD1A49D18800381298 /* SensorData.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
 				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,

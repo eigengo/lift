@@ -1,7 +1,7 @@
 import UIKit
 
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
-    AccelerometerDelegate, DeviceDelegate {
+    SensorDataDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
     private var deviceInfo: DeviceInfo?
     private var deviceInfoDetail: DeviceInfo.Detail?
@@ -68,7 +68,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.session = session
-        device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
+        device = PebbleConnectedDevice(deviceDelegate: self, sensorDataDelegate: self)
         device!.start()
         session.getClassificationExamples { $0.getOrUnit { x in
                 self.exampleExercises = x
@@ -162,9 +162,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         }
     }
 
-    // MARK: AccelerometerReceiverDelegate
+    // MARK: SensorDataDelegate
     
-    func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
+    func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
         if let x = session {
             self.deviceSession = deviceSession
             let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
@@ -178,7 +178,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         }
     }
     
-    func accelerometerDataEnded(deviceSession: DeviceSession) {
+    func sensorDataEnded(deviceSession: DeviceSession) {
         end()
     }
     
