@@ -81,7 +81,7 @@ trait i8tn {
   def exerciseCardioRowing: String
 }
 
-object English extends i8tn {
+object en_GB extends i8tn {
   val appName = "Lift"
   val okCaption = "OK"
 
@@ -160,7 +160,7 @@ object English extends i8tn {
 }
 
 object Localized {
-  @volatile private var currenti8tn: i8tn = English
+  @volatile private var currenti8tn: i8tn = en_GB
 
   def apply(f: i8tn ⇒ String): String = f(currenti8tn)
 
