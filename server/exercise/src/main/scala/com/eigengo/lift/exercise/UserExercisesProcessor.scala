@@ -303,7 +303,7 @@ import scala.concurrent.duration._
         sender() ! \/.right(())
 
         // TODO: Implement proper replay handling. For now, we save the file and end the session.
-        val fos = new FileOutputStream(s"/Users/janmachacek/$newSessionId.mp")
+        val fos = new FileOutputStream(s"$newSessionId.mp")
         fos.write(data)
         fos.close()
 
