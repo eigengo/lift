@@ -68,6 +68,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.session = session
+        
+        // TODO: Sort out multiple sessions
+        
         device = PebbleConnectedDevice(deviceDelegate: self, sensorDataDelegate: self)
         device!.start()
         session.getClassificationExamples { $0.getOrUnit { x in
@@ -89,7 +92,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case 0:
             if deviceSession != nil {
                 // device connected
-                return showSessionDetails ? 1 + deviceSession!.sessionStats().count : 1
+                return showSessionDetails ? 1 + deviceSession!.stats.count : 1
             } else {
                 // no device
                 return 1
@@ -108,9 +111,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (0, let x):
             let index = x - 1
             // TODO: iterate over all values, accelerometer now acceptable
-            let (key, stats) = deviceSession!.sessionStats()[index]
+            let (key, stats) = deviceSession!.stats[index]
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
-            cell.textLabel!.text = key.localized()
+            cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log
@@ -167,8 +170,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
         if let x = session {
             self.deviceSession = deviceSession
-            let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-            x.submitData(mp, const(()))
+            
+            // TODO: Implement me
+            //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
+            //x.submitData(mp, const(()))
 
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
                 tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)

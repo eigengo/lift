@@ -21,4 +21,3 @@ protocol SensorDataDelegate {
      */
     func sensorDataEnded(deviceSession: DeviceSession)
 }
-

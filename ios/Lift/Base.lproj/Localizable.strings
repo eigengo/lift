@@ -33,6 +33,9 @@
 "HomeController.OfflineSessions"="Offline sessions";
 
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
+"DeviceSessionStatsKey.Gyroscope"="Gyroscope";
+"DeviceSessionStatsKey.GPS"="GPS";
+"DeviceSessionStatsKey.HeartRate"="Heart rate";
 
 "Profile.firstName"="First name";
 "Profile.lastName"="Last name";

@@ -15,13 +15,13 @@ enum MutableMultiPacketEntry {
  * ``NSData`` that can be sent & decoded on the server.
  */
 class MutableMultiPacket : MultiPacket {
-    private var buffer: [SensorDataSourceLocation : MutableMultiPacketEntry] = [:]
+    private var buffer: [DeviceInfo.Location : MutableMultiPacketEntry] = [:]
     
     /**
      * Append ``data`` received from a sensor at ``location``. If there is already
      * value at the given ``location``, the passed ``data`` will be appended to it.
      */
-    func append(location: SensorDataSourceLocation, data: NSData) -> Self {
+    func append(location: DeviceInfo.Location, data: NSData) -> Self {
         switch buffer[location] {
         case .Some(.Data(data: let x)): x.appendData(data)
         case .Some(.Empty): buffer[location] = MutableMultiPacketEntry.Data(data: NSMutableData(data: data))

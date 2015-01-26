@@ -4,9 +4,9 @@ class MutableMultiPacketTests : XCTestCase {
    
     func testBuild() {
         let mp = MutableMultiPacket()
-        mp.appendPayload(SensorDataSourceLocation.Wrist, payload: 0xff, 0x01, 0x02, 0x03)
-        mp.appendPayload(SensorDataSourceLocation.Waist, payload: 0xf0, 0x01)
-        mp.appendRepeatedPayload(SensorDataSourceLocation.Any, size: 0xffff, const: 0x8f)
+        mp.appendPayload(DeviceInfo.Location.Wrist, payload: 0xff, 0x01, 0x02, 0x03)
+        mp.appendPayload(DeviceInfo.Location.Waist, payload: 0xf0, 0x01)
+        mp.appendRepeatedPayload(DeviceInfo.Location.Any, size: 0xffff, const: 0x8f)
         let result = mp.data()
         
         // the output should be

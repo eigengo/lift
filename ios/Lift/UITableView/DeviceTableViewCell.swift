@@ -61,7 +61,7 @@ class DeviceTableViewCell : UITableViewCell {
     private func setDeviceInfo(deviceInfo: DeviceInfo, deviceInfoDetail: DeviceInfo.Detail?) {
         typeImage.image = DeviceTableViewCellImages.images[deviceInfo.type]
         switch deviceInfo {
-        case .ConnectedDeviceInfo(let id, let t, let n, let sn):
+        case .ConnectedDeviceInfo(let id, let l, let t, let n, let sn):
             name.text = n
             name.textColor = tintColor
             detail.textColor = UIColor.blackColor()
@@ -77,7 +77,7 @@ class DeviceTableViewCell : UITableViewCell {
             } else {
                 accessorySwitch.hidden = true
             }
-        case .DisconnectedDeviceInfo(let id, let t, let e):
+        case .DisconnectedDeviceInfo(let id, let l, let t, let e):
             typeImage.alpha = 0.4
             name.textColor = UIColor.grayColor()
             detail.textColor = UIColor.grayColor()
@@ -92,7 +92,7 @@ class DeviceTableViewCell : UITableViewCell {
             } else {
                 accessorySwitch.hidden = true
             }
-        case .NotAvailableDeviceInfo(let t, let e):
+        case .NotAvailableDeviceInfo(let t, let l, let e):
             typeImage.alpha = 0.4
             name.textColor = UIColor.grayColor()
             detail.textColor = UIColor.grayColor()
