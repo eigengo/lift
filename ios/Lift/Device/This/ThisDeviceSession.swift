@@ -25,13 +25,13 @@ class ThisDeviceSession : DeviceSession {
         
         if count % 100 == 0 {
             stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 5, packets: prev.packets + 1)
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 625, packets: prev.packets + 1)
             })
             stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Gyroscope, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 5, packets: prev.packets + 1)
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 625, packets: prev.packets + 1)
             })
             stats.update(DeviceSessionStatsTypes.Key(sensorKind: .GPS, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 5, packets: prev.packets + 1)
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 625, packets: prev.packets + 1)
             })
         
             sensorDataDelegate.sensorDataReceived(self, data: NSData())

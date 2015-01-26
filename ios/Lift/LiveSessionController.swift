@@ -143,8 +143,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        switch (indexPath.section, indexPath.row) {
-        case (0, 0): return 60
+        switch indexPath.section {
+        case 0: return 60
         default: return 40
         }
     }
