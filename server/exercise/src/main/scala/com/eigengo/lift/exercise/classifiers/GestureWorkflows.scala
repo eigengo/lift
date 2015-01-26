@@ -388,7 +388,16 @@ trait GestureWorkflows extends SVMClassifier {
     val graph = PartialFlowGraph { implicit builder =>
       val modulate = ModulateSensorNet[AccelerometerValue, TaggedValue[AccelerometerValue], L](outputLocations)
       val merge = MergeTransformations[AccelerometerValue, TaggedValue[AccelerometerValue]](inputLocations.size) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
-        ??? // FIXME:
+        require(obs.nonEmpty)
+
+        Transformation({ value =>
+          val results = obs.map(_.action(value))
+          if (results.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).nonEmpty) {
+            results.asInstanceOf[Set[GestureTag[AccelerometerValue]]].maxBy(_.matchProbability)
+          } else {
+            results.head
+          }
+        })
       }
 
       // Wire in tapped sensors
