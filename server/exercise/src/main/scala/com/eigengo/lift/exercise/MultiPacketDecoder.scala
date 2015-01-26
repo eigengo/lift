@@ -10,11 +10,12 @@ import scalaz.\/
  * The multi packet message follows a simple structure
  *
  * {{{
- *    header: UInt16     = 0xcab0 // 2
- *    count: Byte        = ...    // 3
+ *    header: UInt16     = 0xcab1 // + 2 B
+ *    count: Byte        = ...    // + 3 B
+ *    timestamp: UInt32  = ...    // + 7 B
  *    ===
- *    size0: UInt16      = ...    // 5
- *    sloc0: Byte        = ...    // 6
+ *    size0: UInt16      = ...    // + 9 B
+ *    sloc0: Byte        = ...    // + 10 B
  *    data0: Array[Byte] = ...
  *    size1: UInt16      = ...
  *    sloc1: Byte        = ...
@@ -26,10 +27,14 @@ import scalaz.\/
  * }}}
  */
 object MultiPacketDecoder {
-  private val header = 0xcab0.toShort
+  private val header = 0xcab1.toShort
 
   def decodeShort(b0: Byte, b1: Byte): Int = {
     ByteVector(b0, b1).toInt(signed = false, ordering = ByteOrdering.BigEndian)
+  }
+
+  def decodeUInt32(b0: Byte, b1: Byte, b2: Byte, b3: Byte): Long = {
+    ByteVector(b0, b1, b2, b3).toLong(signed = false, ordering = ByteOrdering.BigEndian)
   }
 
   def decodeSensorDataSourceLocation(sloc: Byte): String \/ SensorDataSourceLocation = sloc match {
@@ -42,12 +47,13 @@ object MultiPacketDecoder {
   }
 
   def decode(input: ByteBuffer): String \/ MultiPacket = {
-    if (input.limit() < 7) \/.left("No viable input: size < 7.")
+    if (input.limit() < 10) \/.left("No viable input: size < 10.")
     else {
       val inputHeader = input.getShort
       if (inputHeader != header) \/.left(s"Incorrect header. Expected $header, got $inputHeader.")
       else {
         val count = input.get()
+        val timestamp = decodeUInt32(input.get(), input.get(), input.get(), input.get())
         if (count == 0) \/.left("No content.")
         else {
           val (h :: t) = (0 until count).toList.map { x ⇒
@@ -65,7 +71,7 @@ object MultiPacketDecoder {
             }
           }
 
-          t.foldLeft(h.map(MultiPacket.single))((r, b) ⇒ r.flatMap(mp ⇒ b.map(mp.withNewPacket)))
+          t.foldLeft(h.map(MultiPacket.single(timestamp)))((r, b) ⇒ r.flatMap(mp ⇒ b.map(mp.withNewPacket)))
         }
       }
     }

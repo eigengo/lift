@@ -69,6 +69,7 @@
 		54CC69A219C4AD8E00B29EC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A019C4AD8E00B29EC8 /* Main.storyboard */; };
 		54CC69A419C4AD8E00B29EC8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54CC69A319C4AD8E00B29EC8 /* Images.xcassets */; };
 		54CC69BD19C4AE0E00B29EC8 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */; };
+		54CFACB01A7568C700E3803C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54CFACAF1A7568C700E3803C /* QuartzCore.framework */; };
 		54D320811A276747002527C8 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD291A2E58660005E2ED /* DemoSessionController.swift */; };
 		54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
@@ -227,6 +228,7 @@
 		54CC69AC19C4AD8E00B29EC8 /* LiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		54CC69B119C4AD8E00B29EC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54CC69BC19C4AE0E00B29EC8 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		54CFACAF1A7568C700E3803C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		54D3207F1A276747002527C8 /* Alamofire.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Alamofire.h; sourceTree = "<group>"; };
 		54D320801A276747002527C8 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
 		54D8DD291A2E58660005E2ED /* DemoSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoSessionController.swift; sourceTree = "<group>"; };
@@ -276,6 +278,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54CFACB01A7568C700E3803C /* QuartzCore.framework in Frameworks */,
 				549ED2B21A6D8884002588B9 /* libxml2.dylib in Frameworks */,
 				549ED2AD1A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a in Frameworks */,
 				549ED2AE1A6D8867002588B9 /* libPods-LiftTests-CocoaHTTPServer.a in Frameworks */,
@@ -560,6 +563,7 @@
 		8D64789A58A65961D3659708 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				54CFACAF1A7568C700E3803C /* QuartzCore.framework */,
 				549ED2B11A6D8884002588B9 /* libxml2.dylib */,
 				549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */,
 				549ED2AA1A6D8867002588B9 /* libPods-LiftTests-CocoaHTTPServer.a */,

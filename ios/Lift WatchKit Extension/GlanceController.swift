@@ -11,12 +11,12 @@ import Foundation
 
 
 class GlanceController: WKInterfaceController {
+    @IBOutlet var tableView: WKInterfaceTable!
 
     override func awakeWithContext(context: AnyObject?) {
         super.awakeWithContext(context)
         
-        // Configure interface objects here.
-        NSLog("%@ awakeWithContext", self)
+        tableView.setNumberOfRows(3, withRowType: "set")
     }
 
     override func willActivate() {
