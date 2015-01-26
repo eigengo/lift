@@ -33,11 +33,11 @@ object MultiPacketToCSV extends App {
 
   val fd = new FileWriter(outFileName, true)
   try {
-    fd.write("\"location\",\"rate\",\"x\",\"y\",\"z\"\n")
+    fd.write("\"timestamp\",\"location\",\"rate\",\"x\",\"y\",\"z\"\n")
     for (block <- MultiPacketDecoder.decode(decoderData.toByteBuffer)) {
       for (pkt <- block.packets) {
         for (data <- RootSensorDataDecoder(decoderSupport: _*).decodeAll(pkt.payload)) {
-          val csv = data.asInstanceOf[List[AccelerometerData]].flatMap { d => d.values.map(v => s"${pkt.sourceLocation},${d.samplingRate},${v.x},${v.y},${v.z}")}.mkString("", "\n", "\n")
+          val csv = data.asInstanceOf[List[AccelerometerData]].flatMap { d => d.values.map(v => s"${block.packets},${pkt.sourceLocation},${d.samplingRate},${v.x},${v.y},${v.z}")}.mkString("", "\n", "\n")
 
           fd.write(csv)
         }

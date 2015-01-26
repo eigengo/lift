@@ -33,7 +33,7 @@ object ExerciseServiceTest {
     val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(squat)))))
     val sessionDates = List(SessionDate(startDate, List(SessionIntensity(intensity.get, intensity.get))))
     val multiPacket: Array[Byte] = Array(
-      0xca, 0xb0, 0x02,
+      0xca, 0xb1, 0x02, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x04, 0x01, 0xff, 0x01, 0x02, 0x03,
       0x00, 0x02, 0x02, 0xf0, 0x01).map(_.toByte)
     val emptyResponse = "{}"

@@ -4,10 +4,10 @@ import scodec.bits.BitVector
 
 case class PacketWithLocation(sourceLocation: SensorDataSourceLocation, payload: BitVector)
 
-case class MultiPacket(packets: List[PacketWithLocation]) {
+case class MultiPacket(timestamp: Long, packets: List[PacketWithLocation]) {
   def withNewPacket(packet: PacketWithLocation): MultiPacket = copy(packets = packets :+ packet)
 }
 
 object MultiPacket {
-  def single(pwl: PacketWithLocation): MultiPacket = MultiPacket(List(pwl))
+  def single(timestamp: Long)(pwl: PacketWithLocation): MultiPacket = MultiPacket(timestamp, List(pwl))
 }

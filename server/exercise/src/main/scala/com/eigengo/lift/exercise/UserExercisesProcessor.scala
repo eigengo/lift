@@ -1,11 +1,10 @@
 package com.eigengo.lift.exercise
 
 import java.io.FileOutputStream
-import java.nio.ByteBuffer
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.SnapshotOffer
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 
 import scala.language.postfixOps
@@ -27,6 +26,13 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    */
   case class UserExerciseSessionDelete(userId: UserId, sessionId: SessionId)
+
+  /**
+   * Abandons the session identified by ``userId`` and ``sessionId``
+   * @param userId the user identity
+   * @param sessionId the session identity
+   */
+  case class UserExerciseSessionAbandon(userId: UserId, sessionId: SessionId)
 
   /**
    * Replay all data received for a possibly existing ``sessionId`` for the given ``userId``
@@ -157,6 +163,12 @@ object UserExercisesProcessor {
   private case class ExerciseExplicitClassificationEnd(sessionId: SessionId)
 
   /**
+   * Abandons the give exercise session
+   * @param sessionId the session identity
+   */
+  private case class ExerciseSessionAbandon(sessionId: SessionId)
+
+  /**
    * Starts the user exercise sessionProps
    * @param userId the user identity
    * @param sessionProps the sessionProps details
@@ -204,6 +216,7 @@ object UserExercisesProcessor {
     case UserExerciseSessionEnd(userId, sessionId)                            ⇒ (userId.toString, ExerciseSessionEnd(sessionId))
     case UserExerciseDataProcessMultiPacket(userId, sessionId, packets)       ⇒ (userId.toString, ExerciseDataProcessMultiPacket(sessionId, packets))
     case UserExerciseSessionDelete(userId, sessionId)                         ⇒ (userId.toString, ExerciseSessionDelete(sessionId))
+    case UserExerciseSessionAbandon(userId, sessionId)                        ⇒ (userId.toString, ExerciseSessionAbandon(sessionId))
     case UserExerciseSessionReplayProcessData(userId, sessionId, data)        ⇒ (userId.toString, ExerciseSessionReplayProcessData(sessionId, data))
     case UserExerciseSessionReplayStart(userId, sessionId, props)             ⇒ (userId.toString, ExerciseSessionReplayStart(sessionId, props))
     case UserExerciseExplicitClassificationStart(userId, sessionId, exercise) ⇒ (userId.toString, ExerciseExplicitClassificationStart(sessionId, exercise))
@@ -221,6 +234,7 @@ object UserExercisesProcessor {
     case UserExerciseSessionEnd(userId, _)                     ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseDataProcessMultiPacket(userId, _, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseSessionDelete(userId, _)                  ⇒ s"${userId.hashCode() % 10}"
+    case UserExerciseSessionAbandon(userId, _)                 ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationStart(userId, _, _) ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationEnd(userId, _)      ⇒ s"${userId.hashCode() % 10}"
     case UserExerciseExplicitClassificationExamples(userId, _) ⇒ s"${userId.hashCode() % 10}"
@@ -230,18 +244,33 @@ object UserExercisesProcessor {
 }
 
 /**
- * Models each user's exercises as its state, which is updated upon receiving and classifying the
- * ``AccelerometerData``. It also provides the query for the current state.
+ * Processes each user's exercise sessions. It contains three main states:
+ *
+ * - not exercising
+ * - exercising
+ * - replaying
+ *
+ * The sunny day flow is that this actor moves from not exercising to exercising, receives all
+ * sensor data from the client, and then moves back to not exercising.
+ *
+ * This actor can instruct the mobile to switch to offline session mode—that is to stop sending
+ * any sensor data, and prepare to send all sensor data in one block in a replay request—if it
+ * notices serious inconsistency in the received data.
+ *
+ * Finally, the client can replay an offline session by sending all sensor data in one request
+ * and this instance must process them as though it received the data by parts as part of an online
+ * session.
  */
 class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
   extends KafkaProducerPersistentActor
   with ActorLogging
   with AutoPassivation {
 
+  import com.eigengo.lift.exercise.UserExercises._
   import com.eigengo.lift.exercise.UserExercisesClassifier._
   import com.eigengo.lift.exercise.UserExercisesProcessor._
-  import scala.concurrent.duration._
-  import UserExercises._
+
+import scala.concurrent.duration._
 
   // user reference and notifier
   private val userId = UserId(self.path.name)
@@ -264,17 +293,24 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       context.become(exercising(sessionId, sessionProps))
   }
 
-  private def replaying(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
-    case ExerciseSessionReplayProcessData(`id`, data) ⇒
-      log.warning("Not yet handling processing of the data")
+  private def replaying(oldSessionId: SessionId, newSessionId: SessionId, sessionProps: SessionProps): Receive = withPassivation {
+    case ExerciseSessionReplayStart(_, _) ⇒
+      sender() ! \/.left("Another session replay in progress")
 
-      // TODO: fixme
-      val fos = new FileOutputStream(s"/Users/janmachacek/$id.mp")
-      fos.write(data)
-      fos.close()
+    case ExerciseSessionReplayProcessData(`newSessionId`, data) ⇒
+      persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(newSessionId, sessionProps))) { case _ :: started :: Nil ⇒
+        log.warning("Not yet handling processing of the data")
+        sender() ! \/.right(())
 
-      sender() ! \/.right(())
-      context.become(notExercising)
+        // TODO: Implement proper replay handling. For now, we save the file and end the session.
+        val fos = new FileOutputStream(s"$newSessionId.mp")
+        fos.write(data)
+        fos.close()
+
+        persist(SessionEndedEvt(newSessionId)) { _ ⇒
+          context.become(notExercising)
+        }
+      }
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
@@ -292,6 +328,14 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
     case ExerciseSessionEnd(`id`) ⇒
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
+        saveSnapshot(evt)
+        context.become(notExercising)
+        sender() ! \/.right(())
+      }
+
+    case ExerciseSessionAbandon(`id`) ⇒
+      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
+      persist(SessionAbandonedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)
         sender() ! \/.right(())
@@ -347,13 +391,9 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       }
 
     case ExerciseSessionReplayStart(oldSessionId, sessionProps) ⇒
-      val id = SessionId.randomId()
-      persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(id, sessionProps))) { case _ :: started :: Nil ⇒
-        saveSnapshot(started)
-        sender() ! \/.right(id)
-        println("Sending " + id)
-        context.become(replaying(id, sessionProps))
-      }
+      val newSessionId = SessionId.randomId()
+      sender() ! \/.right(newSessionId)
+      context.become(replaying(oldSessionId, newSessionId, sessionProps))
 
     case ExerciseSessionEnd(_) ⇒
       sender() ! \/.left("Not in session")
