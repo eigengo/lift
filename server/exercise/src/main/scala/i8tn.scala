@@ -15,8 +15,10 @@ trait i8tn {
   def exerciseArmsBicepCurl: String
   def exerciseArmsHammerCurl: String
   def exerciseArmsPronatedCurl: String
+  def exerciseArmsDip: String
   def exericseArmsTricepPushdown: String
   def exerciseArmsTricepOverheadExtension: String
+  def exerciseArmsCloseGripBenchPress: String
 
   /**
    * Back localization
@@ -50,6 +52,7 @@ trait i8tn {
   /**
    * Legs localization
    */
+  def exerciseLegs: String
   def exerciseLegsSquat: String
   def exerciseLegsLegPress: String
   def exerciseLegsLegExtension: String
@@ -89,8 +92,10 @@ object English extends i8tn {
   val exerciseArmsBicepCurl = "Bicep curl"
   val exerciseArmsHammerCurl = "Hammer curl"
   val exerciseArmsPronatedCurl = "Pronated curl"
+  val exerciseArmsDip = "Dip"
   val exericseArmsTricepPushdown = "Tricep push down"
   val exerciseArmsTricepOverheadExtension = "Tricep overhead extension"
+  val exerciseArmsCloseGripBenchPress = "Close-grip bench press"
 
   /**
    * Back localization
@@ -124,6 +129,7 @@ object English extends i8tn {
   /**
    * Legs localization
    */
+  val exerciseLegs = "Legs"
   val exerciseLegsSquat = "Squat"
   val exerciseLegsLegPress = "Leg press"
   val exerciseLegsLegExtension = "Leg extension"

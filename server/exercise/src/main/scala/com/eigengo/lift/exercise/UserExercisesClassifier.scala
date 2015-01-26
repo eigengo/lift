@@ -22,13 +22,50 @@ object UserExercisesClassifier {
   case class MuscleGroup(key: String, title: String, exercises: List[String])
 
   val supportedMuscleGroups = List(
-    MuscleGroup(key = "legs",  title = "Legs",  exercises = List("squat", "leg press", "leg extension", "leg curl", "lunge")),
-    MuscleGroup(key = "core",  title = "Core",  exercises = List("crunch", "side bend", "cable crunch", "sit up", "leg raises")),
-    MuscleGroup(key = "back",  title = "Back",  exercises = List("pull up", "row", "deadlift", "hyper-extension")),
-    MuscleGroup(key = "arms",  title = Localized(_.exerciseArms),  exercises = List(Localized(_.exerciseArmsBicepCurl), "hammer curl", "pronated curl", "tricep push down", "tricep overhead extension", "tricep dip", "close-grip bench press")),
-    MuscleGroup(key = "chest", title = Localized(_.exerciseChest), exercises = List(Localized(_.exerciseChest), "butterfly", "cable cross-over", "incline chest press", "push up")),
-    MuscleGroup(key = "shoulders", title = "Shoulders", exercises = List("shoulder press", "lateral raise", "front raise", "rear raise", "upright row", "shrug")),
-    MuscleGroup(key = "cardiovascular", title = "Cardiovascular", exercises = List("running", "cycling", "swimming", "elliptical", "rowing"))
+    MuscleGroup(key = "legs",  title = Localized(_.exerciseLegs),  exercises = List(
+      Localized(_.exerciseLegsSquat),
+      Localized(_.exerciseLegsLegPress),
+      Localized(_.exerciseLegsLegExtension),
+      Localized(_.exerciseLegsLegCurl),
+      Localized(_.exerciseLegsLunge))),
+    MuscleGroup(key = "core",  title = Localized(_.exerciseCore),  exercises = List(
+      Localized(_.exerciseCoreCrunch),
+      Localized(_.exerciseCoreSideBend),
+      Localized(_.exerciseCoreCableCrunch),
+      Localized(_.exerciseCoreSitup),
+      Localized(_.exerciseCoreLegRaises))),
+    MuscleGroup(key = "back",  title = Localized(_.exerciseBack),  exercises = List(
+      Localized(_.exerciseBackPullup),
+      Localized(_.exeriseBackRow),
+      Localized(_.exerciseBackDeadlift),
+      Localized(_.exerciseBackHyperExtension))),
+    MuscleGroup(key = "arms",  title = Localized(_.exerciseArms),  exercises = List(
+      Localized(_.exerciseArmsBicepCurl),
+      Localized(_.exerciseArmsHammerCurl),
+      Localized(_.exerciseArmsPronatedCurl),
+      Localized(_.exericseArmsTricepPushdown),
+      Localized(_.exerciseArmsTricepOverheadExtension),
+      Localized(_.exerciseArmsDip),
+      Localized(_.exerciseArmsCloseGripBenchPress))),
+    MuscleGroup(key = "chest", title = Localized(_.exerciseChest), exercises = List(
+      Localized(_.exerciseChest),
+      Localized(_.exerciseChestButterfly),
+      Localized(_.exerciseChestCableCrossover),
+      Localized(_.exerciseChestInclinePress),
+      Localized(_.exerciseChestPushup))),
+    MuscleGroup(key = "shoulders", title = Localized(_.exerciseShoulders), exercises = List(
+      Localized(_.exerciseShouldersShoulderPress),
+      Localized(_.exerciseShouldersLateralRaise),
+      Localized(_.exerciseShouldersFrontRaise),
+      Localized(_.exerciseShouldersRearRaise),
+      Localized(_.exerciseShouldersUprightRow),
+      Localized(_.exerciseShouldersShrug))),
+    MuscleGroup(key = "cardiovascular", title = Localized(_.exerciseCardio), exercises = List(
+      Localized(_.exerciseCardioRunning),
+      Localized(_.exerciseCardioCycling),
+      Localized(_.exerciseCardioSwimming),
+      Localized(_.exerciseCardioElliptical),
+      Localized(_.exerciseCardioRowing)))
   )
 
   /**
