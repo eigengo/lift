@@ -5,6 +5,7 @@ class ThisDeviceSession : DeviceSession {
     private var motionManager: CMMotionManager!
     private var queue: NSOperationQueue! = NSOperationQueue.currentQueue()
     private var sensorDataDelegate: SensorDataDelegate!
+    private var count: Int = 0
     
     init(deviceInfo: DeviceInfo, sensorDataDelegate: SensorDataDelegate) {
         super.init(deviceInfo: deviceInfo)
@@ -30,8 +31,12 @@ class ThisDeviceSession : DeviceSession {
             return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 100, packets: prev.packets + 1)
         })
         
-        // TODO: Implement me
-        sensorDataDelegate.sensorDataReceived(self, data: NSData())
+        count += 1
+        
+        if count % 100 == 0 {
+            // TODO: Implement me
+            sensorDataDelegate.sensorDataReceived(self, data: NSData())
+        }
     }
     
 }

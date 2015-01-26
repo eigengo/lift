@@ -22,18 +22,21 @@ struct Devices {
     }
     
     static func allDevices() -> [(Device, DeviceInfo)] {
-        let done = NSCondition()
-        var count: Int32 = Int32(devices.count)
+        let done = dispatch_semaphore_create(0)
+        var count = devices.count
         var result: [(Device, DeviceInfo)] = []
         dispatch_sync(queue, {
             for d in self.devices {
-                d.peek { x in result += [(d, x)] }
-            }
-            if OSAtomicDecrement32(&count) == 0 {
-                done.signal()
+                d.peek { x in
+                    result += [(d, x)]
+                    count = count - 1
+                    if count == 0 {
+                        dispatch_semaphore_signal(done)
+                    }
+                }
             }
         })
-        done.wait()
+        dispatch_semaphore_wait(done, DISPATCH_TIME_FOREVER)
         
         return result
     }

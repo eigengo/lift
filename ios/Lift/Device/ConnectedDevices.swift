@@ -1,7 +1,7 @@
 import Foundation
 
 class ConnectedDevices : DeviceSession, SensorDataDelegate {
-    private var deviceInfos: [DeviceId : (DeviceInfo, DeviceInfo.Detail?)] = [:]
+    private var deviceInfos: [DeviceId : DeviceInfo] = [:]
     private var deviceSessions: [DeviceId : DeviceSession] = [:]
     private var devices: [ConnectedDevice] = []
     private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
@@ -13,6 +13,10 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
         super.init(deviceInfo: DeviceInfo.ConnectedDeviceInfo(id: id, type: "", name: "", serialNumber: ""))
         
         for (device, info) in Devices.connectedDevices() {
+            switch info {
+            case .ConnectedDeviceInfo(id: let id, type: _, name: _, serialNumber: _): deviceInfos[id] = info
+            default: fatalError("Connected device reports info != .ConnectedDeviceInfo")
+            }
             device.connect(deviceDelegate, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
         }
     }
@@ -21,8 +25,8 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
         for d in devices { d.start() }
     }
     
-    func deviceInfo(index: Int) -> (DeviceInfo, DeviceInfo.Detail?)? {
-        for (i, (_, (let x))) in enumerate(deviceInfos) {
+    func deviceInfo(index: Int) -> DeviceInfo? {
+        for (i, (_, let x)) in enumerate(deviceInfos) {
             if i == index {
                 return x
             }
@@ -60,7 +64,8 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate {
     
     func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
         combinedStats.merge(deviceSession.stats) { k in
-            return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: DeviceInfo.Location.Wrist)
+            let location = k.deviceId == ThisDevice.Info.id ? DeviceInfo.Location.Waist : DeviceInfo.Location.Wrist
+            return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
         }
         sensorDataDelegate.sensorDataReceived(self, data: NSData())
     }

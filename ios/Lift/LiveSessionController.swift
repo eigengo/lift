@@ -90,9 +90,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch (indexPath.section, indexPath.row) {
         // section 1: device
         case (0, let x):
-            let (deviceInfo, deviceInfoDetail) = connected!.deviceInfo(x)!
-            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
-        case (0, let x):
+            let deviceInfo = connected!.deviceInfo(x)!
+            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: nil, delegate: nil)
+        case (1, let x):
             // TODO: iterate over all values, accelerometer now acceptable
             let (key, stats) = connected!.sessionStats(x)
             let cell = tableView.dequeueReusableCellWithIdentifier("sensor") as UITableViewCell
@@ -100,7 +100,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log
-        case (1, let x):
+        case (2, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
             cell.textLabel!.text = exampleExercises[x].name
             cell.selectionStyle = UITableViewCellSelectionStyle.None
@@ -158,7 +158,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             //x.submitData(mp, const(()))
 
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
+                tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
