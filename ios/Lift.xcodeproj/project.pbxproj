@@ -88,7 +88,7 @@
 		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
 		54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */; };
 		54E99EDA1A76823F00BA1BD3 /* ThisDeviceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */; };
-		54E99EDC1A76882300BA1BD3 /* MultiSensorDataDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99EDB1A76882300BA1BD3 /* MultiSensorDataDelegate.swift */; };
+		54E99EDC1A76882300BA1BD3 /* ConnectedDevices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99EDB1A76882300BA1BD3 /* ConnectedDevices.swift */; };
 		54E99EDE1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99EDD1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift */; };
 		54ED4EAC1A6C544200490DA7 /* ExerciseSessionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */; };
 		54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
@@ -251,7 +251,7 @@
 		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
 		54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThisDevice.swift; sourceTree = "<group>"; };
 		54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThisDeviceSession.swift; sourceTree = "<group>"; };
-		54E99EDB1A76882300BA1BD3 /* MultiSensorDataDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiSensorDataDelegate.swift; sourceTree = "<group>"; };
+		54E99EDB1A76882300BA1BD3 /* ConnectedDevices.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectedDevices.swift; sourceTree = "<group>"; };
 		54E99EDD1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorDataSourceLocation+Localization.swift"; sourceTree = "<group>"; };
 		54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManagerTests.swift; sourceTree = "<group>"; };
 		54ED4EC31A6C54F300490DA7 /* LiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -328,7 +328,7 @@
 				543B26FC1A49D18800381298 /* SensorData.swift */,
 				54DB071A1A49E65400DC1E91 /* Device.swift */,
 				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
-				54E99EDB1A76882300BA1BD3 /* MultiSensorDataDelegate.swift */,
+				54E99EDB1A76882300BA1BD3 /* ConnectedDevices.swift */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -853,7 +853,7 @@
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
 				54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */,
 				545E06041A304CB500AB633B /* UserModel.swift in Sources */,
-				54E99EDC1A76882300BA1BD3 /* MultiSensorDataDelegate.swift in Sources */,
+				54E99EDC1A76882300BA1BD3 /* ConnectedDevices.swift in Sources */,
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */,

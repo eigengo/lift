@@ -1,6 +1,6 @@
 import Foundation
 
-extension DeviceSessionStats.SensorKind {
+extension DeviceSessionStatsTypes.SensorKind {
     
     func localized() -> String {
         switch self {

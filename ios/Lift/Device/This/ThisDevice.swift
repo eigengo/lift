@@ -5,7 +5,7 @@ class ThisDevice : NSObject, Device {
         static let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000001")!
         static let deviceInfo: DeviceInfo = {
             let serialNumber = UIDevice.currentDevice().identifierForVendor.UUIDString
-            return DeviceInfo.ConnectedDeviceInfo(id: id, location: .Waist, type: "this", name: UIDevice.currentDevice().name, serialNumber: serialNumber)
+            return DeviceInfo.ConnectedDeviceInfo(id: id, type: "this", name: UIDevice.currentDevice().name, serialNumber: serialNumber)
         }()
         static let deviceInfoDetail: DeviceInfo.Detail = {
             return DeviceInfo.Detail(address: "", hardwareVersion: UIDevice.currentDevice().model, osVersion: UIDevice.currentDevice().systemVersion)
@@ -16,6 +16,10 @@ class ThisDevice : NSObject, Device {
     
     func peek(onDone: DeviceInfo -> Void) {
         onDone(Info.deviceInfo)
+    }
+    
+    func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) {
+        onDone(ThisConnectedDevice(deviceDelegate: deviceDelegate, sensorDataDelegate: sensorDataDelegate))
     }
     
 }

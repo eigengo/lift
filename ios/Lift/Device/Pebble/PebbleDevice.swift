@@ -73,6 +73,10 @@ class PebbleDevice : NSObject, Device {
             onR: { watch in onDone(self.getDeviceInfo(watch)) })
     }
     
+    func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) {
+        onDone(PebbleConnectedDevice(deviceDelegate: deviceDelegate, sensorDataDelegate: SensorDataDelegate))
+    }
+    
 }
 
 /**

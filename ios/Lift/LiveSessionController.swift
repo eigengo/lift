@@ -3,14 +3,11 @@ import UIKit
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     SensorDataDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
-    private var deviceInfo: DeviceInfo?
-    private var deviceInfoDetail: DeviceInfo.Detail?
-    private var deviceSession: DeviceSession?
+    private var devices: ConnectedDevices?
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
     private var session: ExerciseSession?
-    private var device: ConnectedDevice?
     @IBOutlet var stopSessionButton: UIBarButtonItem!
 
     // MARK: main
@@ -37,12 +34,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
     
+        devices?.stopAll()
         UIApplication.sharedApplication().idleTimerDisabled = false
-        device?.stop()
-        device = nil
-        deviceSession = nil
-        deviceInfo = nil
-        deviceInfoDetail = nil
         if let x = navigationController {
             x.popToRootViewControllerAnimated(true)
         }
@@ -68,11 +61,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.session = session
-        
-        // TODO: Sort out multiple sessions
-        
-        device = PebbleConnectedDevice(deviceDelegate: self, sensorDataDelegate: self)
-        device!.start()
+        devices = ConnectedDevices(deviceDelegate: self, sensorDataDelegate: self)
+        devices!.startAll()
+
         session.getClassificationExamples { $0.getOrUnit { x in
                 self.exampleExercises = x
                 self.tableView.reloadData()
@@ -90,12 +81,12 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch section {
         // section 1: device & session
         case 0:
-            if deviceSession != nil {
+            if let x = devices {
                 // device connected
-                return showSessionDetails ? 1 + deviceSession!.stats.count : 1
+                return showSessionDetails ? x.deviceCount + x.stats.count : 1
             } else {
                 // no device
-                return 1
+                return 0
             }
         // section 2: exercise log
         case 1: return exampleExercises.count
@@ -109,9 +100,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (0, 0):
             return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
         case (0, let x):
-            let index = x - 1
+            let index = x - devices!.deviceCount
             // TODO: iterate over all values, accelerometer now acceptable
-            let (key, stats) = deviceSession!.stats[index]
+            let (key, stats) = devices!.stats[index]
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
             cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
@@ -169,8 +160,6 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
         if let x = session {
-            self.deviceSession = deviceSession
-            
             // TODO: Implement me
             //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
             //x.submitData(mp, const(()))
@@ -189,12 +178,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        self.deviceInfo = deviceInfo
         tableView.reloadData()
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        deviceInfoDetail = detail
         tableView.reloadData()
     }
     
@@ -203,17 +190,14 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
-        NSLog("deviceAppLaunchFailed %@ -> %@", deviceId, error)
         tableView.reloadData()
     }
     
     func deviceDidNotConnect(error: NSError) {
-        NSLog("deviceDidNotConnect %@", error)
         tableView.reloadData()
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        NSLog("deviceDisconnected %@", deviceId)
         tableView.reloadData()
     }
     
