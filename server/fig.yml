@@ -61,7 +61,14 @@ kafka:
     KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
-spark:
-  image: sequenceiq/spark:1.2.0
+sparkmaster:
+  build: ./provisioning/docker/spark-master
   ports:
-    - "1234"
+    - "8080"
+    - "7077:7077"
+sparkworker:
+  build: ./provisioning/docker/spark-worker
+  ports:
+    - "8081:8081"
+  links:
+    - sparkmaster
