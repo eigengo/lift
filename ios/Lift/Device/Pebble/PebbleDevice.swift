@@ -42,7 +42,7 @@ class PebbleDeviceSession : DeviceSession {
     
     private func accelerometerDataReceived(data: NSData) {
         let x = stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: deviceId), update: { prev in
-            return DeviceSessionStats.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
+            return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
         sensorDataDelegate.sensorDataReceived(self, data: data)
@@ -76,7 +76,7 @@ class PebbleDevice : NSObject, Device {
     }
     
     func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) {
-        onDone(PebbleConnectedDevice(deviceDelegate: deviceDelegate, sensorDataDelegate: SensorDataDelegate))
+        onDone(PebbleConnectedDevice(deviceDelegate: deviceDelegate, sensorDataDelegate: sensorDataDelegate))
     }
     
 }
