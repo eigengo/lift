@@ -1,6 +1,7 @@
 package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
+import com.eigengo.lift.exercise.i8tn.Localized
 import com.eigengo.lift.exercise.UserExercisesClassifier._
 import scala.util.Random
 import UserExercises._
@@ -24,8 +25,8 @@ object UserExercisesClassifier {
     MuscleGroup(key = "legs",  title = "Legs",  exercises = List("squat", "leg press", "leg extension", "leg curl", "lunge")),
     MuscleGroup(key = "core",  title = "Core",  exercises = List("crunch", "side bend", "cable crunch", "sit up", "leg raises")),
     MuscleGroup(key = "back",  title = "Back",  exercises = List("pull up", "row", "deadlift", "hyper-extension")),
-    MuscleGroup(key = "arms",  title = "Arms",  exercises = List("bicep curl", "hammer curl", "pronated curl", "tricep push down", "tricep overhead extension", "tricep dip", "close-grip bench press")),
-    MuscleGroup(key = "chest", title = "Chest", exercises = List("chest press", "butterfly", "cable cross-over", "incline chest press", "push up")),
+    MuscleGroup(key = "arms",  title = Localized(_.exerciseArms),  exercises = List(Localized(_.exerciseArmsBicepCurl), "hammer curl", "pronated curl", "tricep push down", "tricep overhead extension", "tricep dip", "close-grip bench press")),
+    MuscleGroup(key = "chest", title = Localized(_.exerciseChest), exercises = List(Localized(_.exerciseChest), "butterfly", "cable cross-over", "incline chest press", "push up")),
     MuscleGroup(key = "shoulders", title = "Shoulders", exercises = List("shoulder press", "lateral raise", "front raise", "rear raise", "upright row", "shrug")),
     MuscleGroup(key = "cardiovascular", title = "Cardiovascular", exercises = List("running", "cycling", "swimming", "elliptical", "rowing"))
   )
@@ -98,7 +99,7 @@ class UserExercisesClassifier extends Actor {
         }
       sender() ! randomExercise(sessionProps)
     case ClassificationExamples(sessionProps) ⇒
-      sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
+      sender() ! List(Exercise(Localized(_.exerciseChestChestPress), Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise(Localized(_.exerciseArmsBicepCurl), Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }
 
 }
