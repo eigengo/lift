@@ -15,8 +15,9 @@
 
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
-"LiveSessionController.section.deviceAndSession"="Device and session";
-"LiveSessionController.section.exercise"="Exercise";
+"LiveSessionController.devices"="Devices";
+"LiveSessionController.sensors"="Sensors";
+"LiveSessionController.exercise"="Exercise";
 "LiveSessionController.elapsed"="Elapsed %d:%02d";
 
 "PublicProfileController.pictures"="Pictures";

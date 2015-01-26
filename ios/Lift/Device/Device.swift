@@ -197,19 +197,8 @@ final class DeviceSessionStats<K : Hashable> {
         return curr
     }
     
-    /**
-    * Return the session stats as a list of tuples, ordered by the key
-    */
-    private func toList() -> [(K, DeviceSessionStatsTypes.Entry)] {
-        var r: [(K, DeviceSessionStatsTypes.Entry)] = []
-        for (k, v) in stats {
-            r += [(k, v)]
-        }
-        return r
-    }
-    
     final subscript(index: Int) -> (K, DeviceSessionStatsTypes.Entry) {
-        return toList()[index]
+        return stats.toList()[index]
     }
     
     var count: Int {
@@ -226,7 +215,7 @@ final class DeviceSessionStats<K : Hashable> {
 class DeviceSession {
     internal var deviceInfo: DeviceInfo!
     internal var id: NSUUID!
-    internal let stats: DeviceSessionStats = DeviceSessionStats<DeviceSessionStatsTypes.Key>()
+    internal let stats = DeviceSessionStats<DeviceSessionStatsTypes.Key>()
     
     ///
     /// Constructs a new session with generated identity

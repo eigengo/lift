@@ -3,7 +3,7 @@ import UIKit
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     SensorDataDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
-    private var devices: ConnectedDevices?
+    private var connected: ConnectedDevices?
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
@@ -34,7 +34,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
     
-        devices?.stopAll()
+        connected?.stop()
         UIApplication.sharedApplication().idleTimerDisabled = false
         if let x = navigationController {
             x.popToRootViewControllerAnimated(true)
@@ -61,8 +61,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.session = session
-        devices = ConnectedDevices(deviceDelegate: self, sensorDataDelegate: self)
-        devices!.startAll()
+        connected = ConnectedDevices(deviceDelegate: self, sensorDataDelegate: self)
+        connected!.start()
 
         session.getClassificationExamples { $0.getOrUnit { x in
                 self.exampleExercises = x
@@ -74,22 +74,14 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     // MARK: UITableViewDataSource
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 2 // section 1: device & session, section 2: exercise log
+        return 3 // section 1: device & session, section 2: exercise log
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        // section 1: device & session
-        case 0:
-            if let x = devices {
-                // device connected
-                return showSessionDetails ? x.deviceCount + x.stats.count : 1
-            } else {
-                // no device
-                return 0
-            }
-        // section 2: exercise log
-        case 1: return exampleExercises.count
+        case 0: if let x = connected { return x.deviceCount } else { return 0 }
+        case 1: if let x = connected { return x.statsCount } else { return 0 }
+        case 2: return exampleExercises.count
         default: return 0
         }
     }
@@ -97,12 +89,12 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
         switch (indexPath.section, indexPath.row) {
         // section 1: device
-        case (0, 0):
+        case (0, let x):
+            let (deviceInfo, deviceInfoDetail) = connected!.deviceInfo(x)!
             return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
         case (0, let x):
-            let index = x - devices!.deviceCount
             // TODO: iterate over all values, accelerometer now acceptable
-            let (key, stats) = devices!.stats[index]
+            let (key, stats) = connected!.sessionStats(x)
             let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
             cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
@@ -120,8 +112,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 0: return "LiveSessionController.section.deviceAndSession".localized()
-        case 1: return "LiveSessionController.section.exercise".localized()
+        case 0: return "LiveSessionController.devices".localized()
+        case 1: return "LiveSessionController.sensors".localized()
+        case 2: return "LiveSessionController.exercise".localized()
         default: return ""
         }
     }

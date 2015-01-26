@@ -11,10 +11,12 @@ class PebbleDeviceSession : DeviceSession {
     private var startTime: NSDate!
     private var updateHandler: AnyObject?
     private var watch: PBWatch!
+    private var deviceId: NSUUID!
 
-    required init(deviceInfo: DeviceInfo, watch: PBWatch!, sensorDataDelegate: SensorDataDelegate) {
+    required init(deviceId: NSUUID, deviceInfo: DeviceInfo, watch: PBWatch!, sensorDataDelegate: SensorDataDelegate) {
         super.init(deviceInfo: deviceInfo)
         self.watch = watch
+        self.deviceId = deviceId
         self.startTime = NSDate()
         self.sensorDataDelegate = sensorDataDelegate
         self.updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceiveUpdateHandler)
@@ -39,7 +41,7 @@ class PebbleDeviceSession : DeviceSession {
     }
     
     private func accelerometerDataReceived(data: NSData) {
-        let x = stats.update(.Accelerometer, location: deviceInfo.location, update: { prev in
+        let x = stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: deviceId), update: { prev in
             return DeviceSessionStats.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
@@ -52,7 +54,7 @@ class PebbleDevice : NSObject, Device {
     internal let pebbleDeviceType = "pebble"
     
     private func getDeviceInfo(watch: PBWatch) -> DeviceInfo {
-        return DeviceInfo.ConnectedDeviceInfo(id: watch.serialNumber.md5UUID(), location: .Wrist, type: pebbleDeviceType, name: watch.name, serialNumber: watch.serialNumber)
+        return DeviceInfo.ConnectedDeviceInfo(id: watch.serialNumber.md5UUID(), type: pebbleDeviceType, name: watch.name, serialNumber: watch.serialNumber)
     }
     
     // MARK: Device implementation
@@ -69,7 +71,7 @@ class PebbleDevice : NSObject, Device {
     }
     
     func peek(onDone: DeviceInfo -> Void) {
-        findWatch().either({ err in onDone(DeviceInfo.NotAvailableDeviceInfo(type: self.pebbleDeviceType, location: .Wrist, error: err)) },
+        findWatch().either({ err in onDone(DeviceInfo.NotAvailableDeviceInfo(type: self.pebbleDeviceType, error: err)) },
             onR: { watch in onDone(self.getDeviceInfo(watch)) })
     }
     
@@ -123,7 +125,7 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
             deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
             deviceDelegate.deviceAppLaunched(deviceId)
             currentDeviceSession?.stop()
-            currentDeviceSession = PebbleDeviceSession(deviceInfo: deviceInfo, watch: watch, sensorDataDelegate: sensorDataDelegate)
+            currentDeviceSession = PebbleDeviceSession(deviceId: deviceId, deviceInfo: deviceInfo, watch: watch, sensorDataDelegate: sensorDataDelegate)
         }
     }
     

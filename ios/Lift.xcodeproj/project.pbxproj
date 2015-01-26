@@ -45,6 +45,8 @@
 		549ED2B21A6D8884002588B9 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2B11A6D8884002588B9 /* libxml2.dylib */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54AECC451A769CDE008BD812 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB071A1A49E65400DC1E91 /* Device.swift */; };
+		54AECC471A76AB8A008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
+		54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54C1587D1A651237008F6E2A /* MutableMultiPacketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C1587C1A651237008F6E2A /* MutableMultiPacketTests.swift */; };
@@ -200,6 +202,7 @@
 		549ED2AC1A6D8867002588B9 /* libPods-LiftTests-Reachability.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-LiftTests-Reachability.a"; path = "Pods/build/Debug-iphoneos/libPods-LiftTests-Reachability.a"; sourceTree = "<group>"; };
 		549ED2B11A6D8884002588B9 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		54AECC461A76AB8A008BD812 /* Dictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dictionary.swift; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
@@ -394,6 +397,7 @@
 				54C6EFD71A2F5E650044BDAB /* Predef.swift */,
 				54C6EFD81A2F5E650044BDAB /* Result.swift */,
 				54571B151A728594001419B4 /* Array.swift */,
+				54AECC461A76AB8A008BD812 /* Dictionary.swift */,
 			);
 			path = Predef;
 			sourceTree = "<group>";
@@ -865,6 +869,7 @@
 				54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
+				54AECC471A76AB8A008BD812 /* Dictionary.swift in Sources */,
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
@@ -911,6 +916,7 @@
 				54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */,
 				54ED4EBC1A6C548700490DA7 /* Alamofire+SwiftyJSON.swift in Sources */,
 				54AECC451A769CDE008BD812 /* Device.swift in Sources */,
+				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */,
 				54ED4EAF1A6C547B00490DA7 /* LiftServer.swift in Sources */,
 				54ED4EB11A6C547B00490DA7 /* LiftServerURLs.swift in Sources */,
