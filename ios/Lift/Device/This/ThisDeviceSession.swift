@@ -10,7 +10,7 @@ class ThisDeviceSession : DeviceSession {
     private var queue: NSOperationQueue! = NSOperationQueue.currentQueue()
     private var deviceSessionDelegate: DeviceSessionDelegate!
     private var count: Int = 0
-    private var userAccelerationBuffer: NSMutableData = NSMutableData()
+    private var userAccelerationBuffer: NSMutableData!
     private let accelerationFactor: Double = 1000
     
     init(deviceSessionDelegate: DeviceSessionDelegate) {
@@ -20,6 +20,7 @@ class ThisDeviceSession : DeviceSession {
         motionManager = CMMotionManager()
         motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
         motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
+        userAccelerationBuffer = emptyUserAccelerationBuffer()
         deviceSessionDelegate.deviceSession(self, finishedWarmingUp: ThisDevice.Info.id)
     }
     
@@ -29,8 +30,10 @@ class ThisDeviceSession : DeviceSession {
     
     override func zero() -> NSTimeInterval {
         count = 0
-        userAccelerationBuffer = NSMutableData()
+        userAccelerationBuffer = emptyUserAccelerationBuffer()
+        zeroStats()
         
+        NSLog("INFO: ThisDeviceSession zero()")
         return 0    // we took no time to reset
     }
     
@@ -50,31 +53,36 @@ class ThisDeviceSession : DeviceSession {
             data.appendBytes(&buffer, length: 5)
         }
         
-        count += 1
-        
-        append(data.userAcceleration, toData: userAccelerationBuffer)
-        
         if count == DevicePace.samplesPerPacket {
+            // Update our stats
+            NSLog("Buffer with \(userAccelerationBuffer.length)")
+            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.userAccelerationBuffer.length, packets: prev.packets + 1)
+            })
+            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Gyroscope, deviceId: ThisDevice.Info.id), update: { prev in
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 0, packets: prev.packets + 1)
+            })
+            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .GPS, deviceId: ThisDevice.Info.id), update: { prev in
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 0, packets: prev.packets + 1)
+            })
+
             // We have collected enough data to make up a packet.
             // Combine all buffers and send to the delegate
             let data = NSMutableData(data: userAccelerationBuffer)
             deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: ThisDevice.Info.id, data: data)
 
             // Clear buffers
-            zero()
-            
-            // Update our stats
-            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 625, packets: prev.packets + 1)
-            })
-            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Gyroscope, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 625, packets: prev.packets + 1)
-            })
-            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .GPS, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 625, packets: prev.packets + 1)
-            })
+            count = 0
+            userAccelerationBuffer = emptyUserAccelerationBuffer()
         }
         
+        append(data.userAcceleration, toData: userAccelerationBuffer)
+        count += 1
+    }
+    
+    func emptyUserAccelerationBuffer() -> NSMutableData {
+        let header: [UInt8] = [UInt8](count: 5, repeatedValue: 0)
+        return NSMutableData(bytes: header, length: 5)
     }
     
 }

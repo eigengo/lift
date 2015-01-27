@@ -40,7 +40,6 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
     private var activeSessions: [DeviceId : DeviceSession] = [:]
     private var deviceData: [DeviceId : [NSData]] = [:]
     private var devices: [ConnectedDevice] = []
-    private var zeroed: Bool = false
     private var warmedUp: Bool = false
     
     private var deviceSessionDelegate: DeviceSessionDelegate!
@@ -137,18 +136,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
             return
         }
         
-        // when a packet arrives except from this device, we will zero all devices to this time
-        // we say except for this, because it is more important to zero the devices communicating
-        // with this device externally. This device can always be reset immediately; and if it
-        // is the only device we have, then it does not need zeroing anyway.
-        if deviceId != ThisDevice.Info.id {
-            if !zeroed {
-                for (k, v) in activeSessions {
-                    if k != deviceId { v.zero() }
-                }
-                zeroed = true
-            }
-        }
+        NSLog("INFO: Data from device \(deviceId.UUIDString)")
         
         if let ds = deviceData[deviceId] {
             deviceData[deviceId] = ds + [data]
@@ -167,6 +155,11 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
         deviceInfos.updated(deviceId) { $0.withStatus(.Ready) }
         activeSessions[deviceId] = deviceSession
         if activeSessions.count == devices.count {
+            NSLog("INFO: all warmed up")
+            for (_, v) in activeSessions {
+                v.zero()
+            }
+
             // we're ready
             warmedUp = true
             deviceSessionDelegate.deviceSession(self, finishedWarmingUp: self.deviceId)

@@ -88,6 +88,18 @@ final class DeviceSessionStats<K : Hashable> {
         }
     }
     
+    ///
+    /// Resets all counters to 0
+    ///
+    func zero() {
+        for (k, _) in stats {
+            stats[k] = DeviceSessionStatsTypes.Entry(bytes: 0, packets: 0)
+        }
+    }
+    
+    ///
+    /// Updates the value under key ``key`` by applying ``update``, starting out with zero if not found
+    ///
     func update(key: K, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
         var prev: DeviceSessionStatsTypes.Entry
         let zero = DeviceSessionStatsTypes.Entry(bytes: 0, packets: 0)

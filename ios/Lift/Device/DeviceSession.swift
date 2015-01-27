@@ -44,6 +44,13 @@ class DeviceSession {
     func updateStats(key: DeviceSessionStatsTypes.Key, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
         return stats.update(key, update: update)
     }
+    
+    ///
+    /// Zeros out current stats
+    ///
+    func zeroStats() {
+        stats.zero()
+    }
 
     ///
     /// Return the session identity

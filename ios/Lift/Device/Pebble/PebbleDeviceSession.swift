@@ -28,6 +28,8 @@ class PebbleDeviceSession : DeviceSession {
 
     override func zero() -> NSTimeInterval {
         // ???
+        zeroStats()
+        NSLog("INFO: PebbleDeviceSession zero()")
         return 0.0  // Real implementation should tell the watch to reset. We just ignore and thus we took 0 ms.
     }
     
@@ -40,6 +42,7 @@ class PebbleDeviceSession : DeviceSession {
         if signalFinishedWarmingUp {
             deviceSessionDelegate.deviceSession(self, finishedWarmingUp: deviceId)
             signalFinishedWarmingUp = false
+            return true
         }
         
         let adKey = NSNumber(uint32: 0xface0fb0)
