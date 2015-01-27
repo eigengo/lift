@@ -79,8 +79,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: if let x = multi { return x.deviceCount } else { return 0 }
-        case 1: if let x = multi { return x.statsCount } else { return 0 }
+        case 0: if let x = multi { return x.deviceInfoCount } else { return 0 }
+        case 1: if let x = multi { return x.sessionStatsCount } else { return 0 }
         case 2: return exampleExercises.count
         default: return 0
         }
@@ -90,11 +90,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch (indexPath.section, indexPath.row) {
         // section 1: device
         case (0, let x):
-            let (deviceInfo, deviceInfoDetail) = multi!.getDeviceInfos()[x]
-            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
+            let cdi = multi!.getDeviceInfo(x)
+            return tableView.dequeueReusableDeviceTableViewCell(cdi.deviceInfo, deviceInfoDetail: cdi.deviceInfoDetail, delegate: nil)
         case (1, let x):
             // TODO: iterate over all values, accelerometer now acceptable
-            let (key, stats) = multi!.sessionStats(x)
+            let (key, stats) = multi!.getSessionStats(x)
             let cell = tableView.dequeueReusableCellWithIdentifier("sensor") as UITableViewCell
             cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)

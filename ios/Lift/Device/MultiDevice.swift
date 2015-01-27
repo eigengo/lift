@@ -1,16 +1,45 @@
 import Foundation
 
-/**
- * Packs togehter multiple devices
- */
+///
+/// Exposes information about a connected device
+///
+struct ConnectedDeviceInfo {
+    enum Status {
+        case WarmingUp
+        case NotStarted
+        case SendingData(droppedPackets: Int)
+    }
+    
+    var deviceInfo: DeviceInfo
+    var deviceInfoDetail: DeviceInfo.Detail?
+    var status: Status
+    
+    func withDeviceInfo(deviceInfo: DeviceInfo) -> ConnectedDeviceInfo {
+        return ConnectedDeviceInfo(deviceInfo: deviceInfo, deviceInfoDetail: deviceInfoDetail, status: status)
+    }
+    
+    func withDeviceInfoDetail(deviceInfoDetail: DeviceInfo.Detail) -> ConnectedDeviceInfo {
+        return ConnectedDeviceInfo(deviceInfo: deviceInfo, deviceInfoDetail: deviceInfoDetail, status: status)
+    }
+    
+    func withStatus(status: Status) -> ConnectedDeviceInfo {
+        return ConnectedDeviceInfo(deviceInfo: deviceInfo, deviceInfoDetail: deviceInfoDetail, status: status)
+    }
+}
+
+///
+/// Packs togehter multiple devices
+///
 class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
-    private var deviceInfos: [DeviceId : DeviceInfo] = [:]
-    private var deviceInfoDetails: [DeviceId: DeviceInfo.Detail] = [:]
+    // the stats are combined for all devices
+    private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
+    // our special deviceId is all 0s
+    private let deviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
+
+    private var deviceInfos: [DeviceId : ConnectedDeviceInfo] = [:]
     private var deviceSessions: [DeviceId : DeviceSession] = [:]
     private var deviceData: [DeviceId : [NSData]] = [:]
     private var devices: [ConnectedDevice] = []
-    private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
-    private let deviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
     private var zeroed: Bool = false
     
     private var deviceSessionDelegate: DeviceSessionDelegate!
@@ -37,25 +66,21 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     ///
     /// Get all device infos
     ///
-    func getDeviceInfos() -> [(DeviceInfo, DeviceInfo.Detail?)] {
-        var r: [(DeviceInfo, DeviceInfo.Detail?)] = []
-        for (k, v) in deviceInfos {
-            r += [(v, deviceInfoDetails[k])]
-        }
-        return r
+    func getDeviceInfo(index: Int) -> ConnectedDeviceInfo {
+        return deviceInfos.values.array[index]
     }
     
     ///
     /// Get the session stats at the given index
     ///
-    func sessionStats(index: Int) -> (DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry) {
+    func getSessionStats(index: Int) -> (DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry) {
         return combinedStats[index]
     }
     
     ///
     /// The connected device count
     ///
-    var deviceCount: Int {
+    var deviceInfoCount: Int {
         get {
             return deviceInfos.count
         }
@@ -64,7 +89,7 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     ///
     /// The session stats count
     ///
-    var statsCount: Int {
+    var sessionStatsCount: Int {
         get {
             return combinedStats.count
         }
@@ -93,12 +118,14 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     }
     
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        deviceInfos[deviceId] = deviceInfo
+        deviceInfos.updated(deviceId, notFound: ConnectedDeviceInfo(deviceInfo: deviceInfo, deviceInfoDetail: nil, status: .NotStarted)) {
+            $0.withDeviceInfo(deviceInfo)
+        }
         deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        deviceInfoDetails[deviceId] = detail
+        deviceInfos.updated(deviceId) { $0.withDeviceInfoDetail(detail) }
         deviceDelegate.deviceGotDeviceInfoDetail(deviceId, detail: detail)
     }
     
@@ -148,7 +175,7 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     }
     
     func deviceSession(deviceSession: DeviceSession, startedWarmingUp expectedCompletionIn: NSTimeInterval) {
-        // ???
+        deviceInfos.updated(deviceId) { $0.withStatus(.WarmingUp) }
     }
     
 }
