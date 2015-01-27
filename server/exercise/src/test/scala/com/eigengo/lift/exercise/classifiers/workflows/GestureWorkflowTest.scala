@@ -15,7 +15,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
   val name = "testing"
   val config = system.settings.config
 
-  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 4)
 
   implicit val materializer = FlowMaterializer(settings)
 
@@ -84,10 +84,149 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
   }
 
   "ModulateSensorNet" must {
-    "" in {
-      // TODO:
+
+    val modulate = ModulateSensorNet[String, TaggedValue[String], Int]((0 until 3).toSet)
+
+    def component(in: Map[Int, PublisherProbe[String]], transform: PublisherProbe[Transformation[String, TaggedValue[String]]], out: Map[Int, SubscriberProbe[TaggedValue[String]]]) = FlowGraph { implicit builder =>
+      builder.importPartialFlowGraph(modulate.graph)
+
+      for (loc <- 0 until 3) {
+        builder.attachSource(modulate.in(loc), Source(in(loc)))
+      }
+      builder.attachSource(modulate.transform, Source(transform))
+      for (loc <- 0 until 3) {
+        builder.attachSink(modulate.out(loc), Sink(out(loc)))
+      }
     }
-  }
+
+    val transform = Transformation[String, TaggedValue[String]](v => if (v == "gesture") GestureTag("transform", 0.42, v) else ActivityTag(v))
+
+    "request for output on at least one wire (input values present) should be correctly transformed" in {
+      val msgs = List("one", "two", "three")
+      val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
+      val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
+      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+
+      component(inProbe, transformProbe, outProbe).run()
+      val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
+      val outSub = outProbe.map { case (n, sub) => (n, sub.expectSubscription()) }.toMap
+      val transformPub = transformProbe.expectSubscription()
+
+      outSub(1).request(1)
+      for ((msg, n) <- msgs.zipWithIndex) {
+        inPub(n % 3).sendNext(msg)
+      }
+      transformPub.sendNext(transform)
+
+      outProbe(1).expectNext(ActivityTag("two"))
+    }
+
+    "request for outputs on all 3 wires (input values present) should be correctly transformed [no gesture]" in {
+      val msgs = List("one", "two", "three")
+      val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
+      val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
+      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+
+      component(inProbe, transformProbe, outProbe).run()
+      val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
+      val outSub = outProbe.map { case (n, sub) => (n, sub.expectSubscription()) }.toMap
+      val transformPub = transformProbe.expectSubscription()
+
+      for (n <- 0 until 3) {
+        outSub(n).request(1)
+      }
+      for ((msg, n) <- msgs.zipWithIndex) {
+        inPub(n % 3).sendNext(msg)
+      }
+      transformPub.sendNext(transform)
+
+      for (n <- 0 until msgs.length) {
+        outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
+      }
+    }
+
+    "request for outputs on all 3 wires (input values present) should be correctly transformed [gesture present]" in {
+      val msgs = List("one", "two", "gesture")
+      val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
+      val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
+      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+
+      component(inProbe, transformProbe, outProbe).run()
+      val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
+      val outSub = outProbe.map { case (n, sub) => (n, sub.expectSubscription()) }.toMap
+      val transformPub = transformProbe.expectSubscription()
+
+      for (n <- 0 until 3) {
+        outSub(n).request(1)
+      }
+      for ((msg, n) <- msgs.zipWithIndex) {
+        inPub(n % 3).sendNext(msg)
+      }
+      transformPub.sendNext(transform)
+
+      for (n <- 0 until msgs.length) {
+        if (msgs.zipWithIndex.filter(_._1 == "gesture").map(_._2).contains(n)) {
+          outProbe(n % 3).expectNext(GestureTag("transform", 0.42, msgs(n)))
+        } else {
+          outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
+        }
+      }
+    }
+
+    "multiple requests for output on all 3 wires (input values present) should be correctly transformed [no gesture]" in {
+      val msgs = List("one", "two", "three", "four", "five", "six")
+      val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
+      val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
+      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+
+      component(inProbe, transformProbe, outProbe).run()
+      val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
+      val outSub = outProbe.map { case (n, sub) => (n, sub.expectSubscription()) }.toMap
+      val transformPub = transformProbe.expectSubscription()
+
+      for (n <- 0 until 3) {
+        outSub(n).request(2)
+      }
+      for ((msg, n) <- msgs.zipWithIndex) {
+        inPub(n % 3).sendNext(msg)
+      }
+      transformPub.sendNext(transform)
+      transformPub.sendNext(transform)
+
+      for (n <- 0 until msgs.length) {
+        outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
+      }
+    }
+
+    "multiple requests for output on all 3 wires (input values present) should be correctly transformed [gesture present]" in {
+      val msgs = List("gesture", "two", "three", "four", "gesture", "six")
+      val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
+      val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
+      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+
+      component(inProbe, transformProbe, outProbe).run()
+      val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
+      val outSub = outProbe.map { case (n, sub) => (n, sub.expectSubscription()) }.toMap
+      val transformPub = transformProbe.expectSubscription()
+
+      for (n <- 0 until 3) {
+        outSub(n).request(2)
+      }
+      for ((msg, n) <- msgs.zipWithIndex) {
+        inPub(n % 3).sendNext(msg)
+      }
+      transformPub.sendNext(transform)
+      transformPub.sendNext(transform)
+
+      for (n <- 0 until msgs.length) {
+        if (msgs.zipWithIndex.filter(_._1 == "gesture").map(_._2).contains(n)) {
+          outProbe(n % 3).expectNext(GestureTag("transform", 0.42, msgs(n)))
+        } else {
+          outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
+        }
+      }
+    }
+ }
 
   "GestureGrouping" must {
     "" in {
