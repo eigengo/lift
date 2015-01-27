@@ -7,7 +7,7 @@ class ThisDevice : NSObject, Device {
             return DeviceInfo.ConnectedDeviceInfo(id: id, type: "this", name: UIDevice.currentDevice().name, description: UIDevice.currentDevice().localizedModel)
         }()
         static let deviceInfoDetail: DeviceInfo.Detail = {
-            return DeviceInfo.Detail(address: "", hardwareVersion: UIDevice.currentDevice().model, osVersion: UIDevice.currentDevice().systemVersion)
+            return DeviceInfo.Detail(address: "(This device)".localized(), hardwareVersion: UIDevice.currentDevice().model, osVersion: UIDevice.currentDevice().systemVersion)
         }()
     }
     
@@ -41,7 +41,7 @@ class ThisConnectedDevice : ThisDevice, ConnectedDevice {
         deviceDelegate.deviceGotDeviceInfoDetail(Info.id, detail: Info.deviceInfoDetail)
         deviceDelegate.deviceAppLaunched(Info.id)
         currentDeviceSession?.stop()
-        currentDeviceSession = ThisDeviceSession(deviceInfo: Info.deviceInfo, sensorDataDelegate: sensorDataDelegate)
+        currentDeviceSession = ThisDeviceSession(sensorDataDelegate: sensorDataDelegate)
     }
     
     func stop() {

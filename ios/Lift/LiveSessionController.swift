@@ -151,7 +151,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: SensorDataDelegate
     
-    func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
+    func sensorDataReceived(deviceId: NSUUID, deviceSession: DeviceSession, data: NSData) {
         if let x = session {
             // TODO: Implement me
             //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
@@ -165,7 +165,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         }
     }
     
-    func sensorDataEnded(deviceSession: DeviceSession) {
+    func sensorDataEnded(deviceId: NSUUID, deviceSession: DeviceSession) {
         end()
     }
     

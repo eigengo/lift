@@ -213,25 +213,16 @@ final class DeviceSessionStats<K : Hashable> {
  * The exercise session connected to the device
  */
 class DeviceSession {
-    internal var deviceInfo: DeviceInfo!
-    internal var id: NSUUID!
-    internal let stats = DeviceSessionStats<DeviceSessionStatsTypes.Key>()
+    private var id: NSUUID!
+    private let stats = DeviceSessionStats<DeviceSessionStatsTypes.Key>()
     
     ///
     /// Constructs a new session with generated identity
     ///
-    init(deviceInfo: DeviceInfo) {
+    init() {
         self.id = NSUUID()
-        self.deviceInfo = deviceInfo
     }
-    
-    ///
-    /// Gets the device infor for the current session
-    ///
-    func getDeviceInfo() -> DeviceInfo {
-        return deviceInfo
-    }
-    
+        
     /**
      * Implementations must override this to handle stopping of the session
      */
@@ -239,11 +230,22 @@ class DeviceSession {
         fatalError("Implement me")
     }
     
+    func updateStats(key: DeviceSessionStatsTypes.Key, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
+        return stats.update(key, update: update)
+    }
+
     /**
      * Return the session identity
      */
     final func sessionId() -> NSUUID {
-        return self.id
+        return id
+    }
+    
+    ///
+    /// Gets the session stats
+    ///
+    final func getStats() -> DeviceSessionStats<DeviceSessionStatsTypes.Key> {
+        return stats
     }
         
 }

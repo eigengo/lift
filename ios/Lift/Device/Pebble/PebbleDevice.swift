@@ -13,8 +13,8 @@ class PebbleDeviceSession : DeviceSession {
     private var watch: PBWatch!
     private var deviceId: NSUUID!
 
-    required init(deviceId: NSUUID, deviceInfo: DeviceInfo, watch: PBWatch!, sensorDataDelegate: SensorDataDelegate) {
-        super.init(deviceInfo: deviceInfo)
+    required init(deviceId: NSUUID, watch: PBWatch!, sensorDataDelegate: SensorDataDelegate) {
+        super.init()
         self.watch = watch
         self.deviceId = deviceId
         self.startTime = NSDate()
@@ -26,7 +26,7 @@ class PebbleDeviceSession : DeviceSession {
     
     override func stop() {
         if let x: AnyObject = updateHandler { watch.appMessagesRemoveUpdateHandler(x) }
-        sensorDataDelegate.sensorDataEnded(self)
+        sensorDataDelegate.sensorDataEnded(deviceId, deviceSession: self)
     }
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
@@ -41,11 +41,11 @@ class PebbleDeviceSession : DeviceSession {
     }
     
     private func accelerometerDataReceived(data: NSData) {
-        stats.update(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: deviceId), update: { prev in
+        updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: deviceId), update: { prev in
             return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
-        sensorDataDelegate.sensorDataReceived(self, data: data)
+        sensorDataDelegate.sensorDataReceived(deviceId, deviceSession: self, data: data)
     }
 }
 
@@ -125,7 +125,7 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
             deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
             deviceDelegate.deviceAppLaunched(deviceId)
             currentDeviceSession?.stop()
-            currentDeviceSession = PebbleDeviceSession(deviceId: deviceId, deviceInfo: deviceInfo, watch: watch, sensorDataDelegate: sensorDataDelegate)
+            currentDeviceSession = PebbleDeviceSession(deviceId: deviceId, watch: watch, sensorDataDelegate: sensorDataDelegate)
         }
     }
     

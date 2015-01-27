@@ -11,7 +11,7 @@ protocol SensorDataDelegate {
      * @param deviceSession the device session
      * @param data the sensor data, aligned to packets
      */
-    func sensorDataReceived(deviceSession: DeviceSession, data: NSData)
+    func sensorDataReceived(deviceId: NSUUID, deviceSession: DeviceSession, data: NSData)
     
     /**
      * Called when the device ends the session. Typically, a user presses a button on the device 
@@ -19,5 +19,5 @@ protocol SensorDataDelegate {
      * 
      * @param deviceSession the device session
      */
-    func sensorDataEnded(deviceSession: DeviceSession)
+    func sensorDataEnded(deviceId: NSUUID, deviceSession: DeviceSession)
 }

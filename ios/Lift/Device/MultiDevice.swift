@@ -1,32 +1,41 @@
 import Foundation
 
 /**
+ * Packs togehter multiple devices
  */
 class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
     private var deviceInfos: [DeviceId : DeviceInfo] = [:]
     private var deviceInfoDetails: [DeviceId: DeviceInfo.Detail] = [:]
     private var deviceSessions: [DeviceId : DeviceSession] = [:]
+    private var deviceData: [DeviceId : NSMutableData] = [:]
     private var devices: [ConnectedDevice] = []
     private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
+    private let deviceId = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000000")!
     
     private var sensorDataDelegate: SensorDataDelegate!
     private var deviceDelegate: DeviceDelegate!
     
     required init(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate) {
-        let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000000")!
+        // Multi device's ID is all zeros
         self.sensorDataDelegate = sensorDataDelegate
         self.deviceDelegate = deviceDelegate
-        super.init(deviceInfo: DeviceInfo.ConnectedDeviceInfo(id: id, type: "", name: "", description: ""))
+        super.init()
         
         for device in Devices.devices {
             device.connect(self, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
         }
     }
     
+    ///
+    /// Start all connected devices
+    ///
     func start() -> Void {
         for d in devices { d.start() }
     }
     
+    ///
+    /// Get all device infos
+    ///
     func getDeviceInfos() -> [(DeviceInfo, DeviceInfo.Detail?)] {
         var r: [(DeviceInfo, DeviceInfo.Detail?)] = []
         for (k, v) in deviceInfos {
@@ -35,16 +44,25 @@ class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
         return r
     }
     
+    ///
+    /// Get the session stats at the given index
+    ///
     func sessionStats(index: Int) -> (DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry) {
         return combinedStats[index]
     }
     
+    ///
+    /// The connected device count
+    ///
     var deviceCount: Int {
         get {
             return deviceInfos.count
         }
     }
     
+    ///
+    /// The session stats count
+    ///
     var statsCount: Int {
         get {
             return combinedStats.count
@@ -85,15 +103,15 @@ class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
     
     // MARK: SensorDataDelegate implementation
     
-    func sensorDataEnded(deviceSession: DeviceSession) {
-        sensorDataDelegate.sensorDataEnded(self)
+    func sensorDataEnded(deviceId: NSUUID, deviceSession: DeviceSession) {
+        sensorDataDelegate.sensorDataEnded(deviceId, deviceSession: self)
     }
     
-    func sensorDataReceived(deviceSession: DeviceSession, data: NSData) {
-        combinedStats.merge(deviceSession.stats) { k in
+    func sensorDataReceived(deviceId: NSUUID, deviceSession: DeviceSession, data: NSData) {
+        combinedStats.merge(deviceSession.getStats()) { k in
             let location = k.deviceId == ThisDevice.Info.id ? DeviceInfo.Location.Waist : DeviceInfo.Location.Wrist
             return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
         }
-        sensorDataDelegate.sensorDataReceived(self, data: NSData())
+        sensorDataDelegate.sensorDataReceived(deviceId, deviceSession: self, data: NSData())
     }
 }
