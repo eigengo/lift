@@ -1,5 +1,5 @@
 # Spark
-FROM spark-base:latest
+FROM martinz/spark-base:latest
 
 # Expose TCP ports 7077 8080
 EXPOSE 7077 8080
