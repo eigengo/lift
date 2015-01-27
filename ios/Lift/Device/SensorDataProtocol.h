@@ -1,5 +1,5 @@
-#ifndef Lift_ThisDeviceProtocol_h
-#define Lift_ThisDeviceProtocol_h
+#ifndef Lift_SensorDataProtocol_h
+#define Lift_SensorDataProtocol_h
 
 /**
  * 5 B in header
@@ -29,15 +29,13 @@ typedef struct __attribute__((__packed__)) {
  * Encodes the values in x, y, z into ``lift_accelerometer_data`` pointed to in
  * ``data``. The memory in ``data`` must be at least 5 B long.
  */
-void encode_lift_accelerometer_data(int x, int y, int z, void* data);
+void encode_lift_accelerometer_data(int16_t x, int16_t y, int16_t z, void* data);
 
 /**
  * Thanks to human physiology, it's sufficient to keep the hear rate as
  * 8bit unsigned integer. Anything < 30 and > 200 usually means the user 
  * is not worried about exercise.
  */
-typedef struct __attribute__((__packed__)) {
-    uint8_t hr;
-} lift_hr_data;
+typedef uint8_t lift_hr_data;
 
 #endif

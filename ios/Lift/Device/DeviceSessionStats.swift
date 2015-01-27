@@ -42,17 +42,7 @@ struct DeviceSessionStatsTypes {
             }
         }
     }
-    
-    ///
-    /// The device stats keys
-    ///
-    enum SensorKind {
-        case Accelerometer
-        case Gyroscope
-        case GPS
-        case HeartRate
-    }
-    
+        
     
 }
 

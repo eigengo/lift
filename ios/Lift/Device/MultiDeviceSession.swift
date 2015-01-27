@@ -129,7 +129,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
     }
 
     // MARK: DeviceSessionDelegate implementation
-    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, data: NSData) {
+    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, atDeviceTime time: CFAbsoluteTime, data: NSData) {
         if !warmedUp { return }
         if activeSessions[deviceId] == nil {
             NSLog("WARN: Ignoring sensorDataReceived from unknown device \(deviceId)")
@@ -148,7 +148,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
             let location = k.deviceId == ThisDevice.Info.id ? DeviceInfo.Location.Waist : DeviceInfo.Location.Wrist
             return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
         }
-        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: deviceId, data: data)
+        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: deviceId, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
     }
     
     func deviceSession(deviceSession: DeviceSession, finishedWarmingUp deviceId: DeviceId) {

@@ -2,7 +2,7 @@
 //  Use this file to import your target's public headers that you would like to expose to Swift.
 //
 
-#import "Device/This/ThisDeviceProtocol.h"
+#import "Device/SensorDataProtocol.h"
 
 #import <PebbleKit/PebbleKit.h>
 #import <CommonCrypto/CommonDigest.h>

@@ -7,7 +7,7 @@ import CoreMotion
 ///
 class ThisDeviceSession : DeviceSession {
     private var motionManager: CMMotionManager!
-    private var queue: NSOperationQueue! = NSOperationQueue.currentQueue()
+    private var queue: NSOperationQueue! = NSOperationQueue.mainQueue()
     private var deviceSessionDelegate: DeviceSessionDelegate!
     private var count: Int = 0
     private var userAccelerationBuffer: NSMutableData!
@@ -45,9 +45,9 @@ class ThisDeviceSession : DeviceSession {
             // For now, I'll say that 4 G is the maximum force, and so our factor is 1000
 
             var buffer = [UInt8](count: 5, repeatedValue: 0)
-            let x = Int32(acceleration.x * 1000)
-            let y = Int32(acceleration.y * 1000)
-            let z = Int32(acceleration.z * 1000)
+            let x = Int16(acceleration.x * 1000)
+            let y = Int16(acceleration.y * 1000)
+            let z = Int16(acceleration.z * 1000)
             
             encode_lift_accelerometer_data(x, y, z, &buffer)
             data.appendBytes(&buffer, length: 5)
@@ -55,7 +55,7 @@ class ThisDeviceSession : DeviceSession {
         
         if count == DevicePace.samplesPerPacket {
             // Update our stats
-            NSLog("Buffer with \(userAccelerationBuffer.length)")
+            NSLog("Buffer with \(userAccelerationBuffer.length) with count \(count)")
             updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
                 return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.userAccelerationBuffer.length, packets: prev.packets + 1)
             })
@@ -69,7 +69,7 @@ class ThisDeviceSession : DeviceSession {
             // We have collected enough data to make up a packet.
             // Combine all buffers and send to the delegate
             let data = NSMutableData(data: userAccelerationBuffer)
-            deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: ThisDevice.Info.id, data: data)
+            deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: ThisDevice.Info.id, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
 
             // Clear buffers
             count = 0

@@ -60,6 +60,6 @@ class PebbleDeviceSession : DeviceSession {
             return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
-        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: deviceId, data: data)
+        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: deviceId, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
     }
 }

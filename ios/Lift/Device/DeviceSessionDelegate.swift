@@ -19,10 +19,12 @@ protocol DeviceSessionDelegate {
     /// Called when a sensor data (in the Lift format) is received from the device. The data is complete
     /// multiple of packets; it can be sent directly to the server for decoding.
     ///
-    /// @param deviceSession the device session
+    /// @param session the device session
+    /// @param deviceId the device from which the data was received
+    /// @time the device time
     /// @param data the sensor data, aligned to packets
     ///
-    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, data: NSData)
+    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, atDeviceTime time: CFAbsoluteTime, data: NSData)
     
     ///
     /// Called when a sensor data is not received, but was expected. This typically indicates a

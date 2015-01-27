@@ -11,13 +11,14 @@ typealias DeviceType = String
 typealias DeviceId = NSUUID
 
 ///
-/// All devices should send packets that are 126 samples long.
+/// All devices should send packets that are a certain number of samples long; and all devices 
+/// should sample at the same frequency
 ///
 struct DevicePace {
     ///
     /// The number of samples per packet
     ///
-    static let samplesPerPacket = 126
+    static let samplesPerPacket = 124
 }
 
 ///
