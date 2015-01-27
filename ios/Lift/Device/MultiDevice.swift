@@ -163,10 +163,11 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     }
     
     func deviceSession(deviceSession: DeviceSession, finishedWarmingUp: Void) {
-        // ???
+        deviceInfos.updated(deviceId) { $0.withStatus(.SendingData(droppedPackets: 0)) }
     }
     
     func deviceSession(deviceSession: DeviceSession, ended fromDeviceId: DeviceId) {
+        deviceInfos.removeValueForKey(fromDeviceId)
         deviceSessionDelegate.deviceSession(deviceSession, ended: fromDeviceId)
     }
     
