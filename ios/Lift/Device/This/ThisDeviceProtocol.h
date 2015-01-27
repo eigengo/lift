@@ -26,6 +26,12 @@ typedef struct __attribute__((__packed__)) {
 } lift_accelerometer_data;
 
 /**
+ * Encodes the values in x, y, z into ``lift_accelerometer_data`` pointed to in
+ * ``data``. The memory in ``data`` must be at least 5 B long.
+ */
+void encode_lift_accelerometer_data(int x, int y, int z, void* data);
+
+/**
  * Thanks to human physiology, it's sufficient to keep the hear rate as
  * 8bit unsigned integer. Anything < 30 and > 200 usually means the user 
  * is not worried about exercise.

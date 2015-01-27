@@ -17,7 +17,7 @@ struct DevicePace {
     ///
     /// The number of samples per packet
     ///
-    let samplesPerPacket = 126
+    static let samplesPerPacket = 126
 }
 
 ///
@@ -98,7 +98,7 @@ protocol Device {
     /**
      * Connects the device and executes ``onDone`` when successful
      */
-    func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) -> Void
+    func connect(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate, onDone: ConnectedDevice -> Void) -> Void
     
 }
 
@@ -117,66 +117,56 @@ protocol ConnectedDevice {
     ///
     func stop()
     
-    ///
-    /// Tells the device to potentially drop partially recorded data set, and reset the recording to zero. The communication layer
-    /// and the device should do all they can to comply with the request, and return a ``NSTimeInterval`` indicating offset from
-    /// the time the request was received to the time it took to fulfil it.
-    ///
-    /// If the time cannot be reliably measured, it will be sufficient to report average time to fulfilment
-    ///
-    func zero() -> NSTimeInterval
-    
 }
 
 /**
  * The device delegate informs the caller about the connected device
  */
 protocol DeviceDelegate {
-    
-    /**
-     * Information about the device is now available
-     *
-     * @param deviceId the device identity
-     * @param deviceInfo the device information
-     */
+        
+    ///
+    /// Information about the device is now available
+    /// @param deviceId the device identity
+    /// @param deviceInfo the device information
+    ///
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo)
     
-    /**
-     * Detailed information about the device is now available
-     *
-     * @param deviceId the device identity
-     * @param detail the detailed device information
-     */
+    ///
+    /// Detailed information about the device is now available
+    ///
+    /// @param deviceId the device identity
+    /// @param detail the detailed device information
+    ///
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail)
     
-    /**
-     * The device could not be connected. Maybe it's not registered, out of range, or anything
-     * else. The ``error`` contains the details
-     *
-     * @param error the failure detail
-     */
+    ///
+    /// The device could not be connected. Maybe it's not registered, out of range, or anything
+    /// else. The ``error`` contains the details
+    ///
+    /// @param error the failure detail
+    ///
     func deviceDidNotConnect(error: NSError)
     
-    /**
-     * The device is connected, but did not launch the companion app.
-     *
-     * @param deviceId the device identity
-     * @param error the failure detail
-     */
+    ///
+    /// The device is connected, but did not launch the companion app.
+    ///
+    /// @param deviceId the device identity
+    /// @param error the failure detail
+    ///
     func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError)
     
-    /**
-     * The device is connected and successfully launched the companion app.
-     *
-     * @param deviceId the device identity
-     */
+    ///
+    /// The device is connected and successfully launched the companion app.
+    ///
+    /// @param deviceId the device identity
+    ///
     func deviceAppLaunched(deviceId: DeviceId)
     
-    /**
-     * A previously connected device disconnected unexpectedly. Out of range, batteries, ...
-     *
-     * @param deviceId the device identity
-     */
+    ///
+    /// A previously connected device disconnected unexpectedly. Out of range, batteries, ...
+    ///
+    /// @param deviceId the device identity
+    ///
     func deviceDisconnected(deviceId: DeviceId)
     
 }

@@ -26,8 +26,8 @@ class PebbleDevice : NSObject, Device {
             onR: { watch in onDone(self.getDeviceInfo(watch)) })
     }
     
-    func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) {
-        onDone(PebbleConnectedDevice(deviceDelegate: deviceDelegate, sensorDataDelegate: sensorDataDelegate))
+    func connect(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate, onDone: ConnectedDevice -> Void) {
+        onDone(PebbleConnectedDevice(deviceDelegate: deviceDelegate, deviceSessionDelegate: deviceSessionDelegate))
     }
     
 }
@@ -37,12 +37,12 @@ class PebbleDevice : NSObject, Device {
  */
 class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDelegate, ConnectedDevice {
     private var deviceDelegate: DeviceDelegate!
-    private var sensorDataDelegate: SensorDataDelegate!
+    private var deviceSessionDelegate: DeviceSessionDelegate!
     private var currentDeviceSession: PebbleDeviceSession?
     
-    required init(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate) {
+    required init(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate) {
         self.deviceDelegate = deviceDelegate
-        self.sensorDataDelegate = sensorDataDelegate
+        self.deviceSessionDelegate = deviceSessionDelegate
         super.init()
         
         let uuid = NSMutableData(length: 16)!
@@ -76,7 +76,7 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
             deviceDelegate.deviceGotDeviceInfo(deviceId, deviceInfo: deviceInfo)
             deviceDelegate.deviceAppLaunched(deviceId)
             currentDeviceSession?.stop()
-            currentDeviceSession = PebbleDeviceSession(deviceId: deviceId, watch: watch, sensorDataDelegate: sensorDataDelegate)
+            currentDeviceSession = PebbleDeviceSession(deviceId: deviceId, watch: watch, deviceSessionDelegate: deviceSessionDelegate)
         }
     }
     
@@ -93,13 +93,6 @@ class PebbleConnectedDevice : PebbleDevice, PBPebbleCentralDelegate, PBWatchDele
     
     func stop() {
         findWatch().either({ x in self.deviceDelegate.deviceDidNotConnect(x) }, onR: { $0.appMessagesKill(self.appKilled) })
-    }
-    
-    func zero() -> NSTimeInterval {
-        if let x = currentDeviceSession {
-            x.zero()
-        }
-        return 0.1  // on average, we take 100 milliseconds
     }
     
     // MARK: PBPebbleCentralDelegate implementation

@@ -4,7 +4,7 @@ class AndroidWearDevice : Device {
         onDone(DeviceInfo.NotAvailableDeviceInfo(type: "androidwear", error: NSError.notImplemented()))
     }
     
-    func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) {
+    func connect(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate, onDone: ConnectedDevice -> Void) {
         // noop
     }
 }

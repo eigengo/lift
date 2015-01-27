@@ -17,20 +17,20 @@ class ThisDevice : NSObject, Device {
         onDone(Info.deviceInfo)
     }
     
-    func connect(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate, onDone: ConnectedDevice -> Void) {
-        onDone(ThisConnectedDevice(deviceDelegate: deviceDelegate, sensorDataDelegate: sensorDataDelegate))
+    func connect(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate, onDone: ConnectedDevice -> Void) {
+        onDone(ThisConnectedDevice(deviceDelegate: deviceDelegate, deviceSessionDelegate: deviceSessionDelegate))
     }
     
 }
 
 class ThisConnectedDevice : ThisDevice, ConnectedDevice {
     var deviceDelegate: DeviceDelegate!
-    var sensorDataDelegate: SensorDataDelegate!
+    var deviceSessionDelegate: DeviceSessionDelegate!
     var currentDeviceSession: ThisDeviceSession?
     
-    required init(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate) {
+    required init(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate) {
         self.deviceDelegate = deviceDelegate
-        self.sensorDataDelegate = sensorDataDelegate
+        self.deviceSessionDelegate = deviceSessionDelegate
         super.init()
     }
     
@@ -41,18 +41,11 @@ class ThisConnectedDevice : ThisDevice, ConnectedDevice {
         deviceDelegate.deviceGotDeviceInfoDetail(Info.id, detail: Info.deviceInfoDetail)
         deviceDelegate.deviceAppLaunched(Info.id)
         currentDeviceSession?.stop()
-        currentDeviceSession = ThisDeviceSession(sensorDataDelegate: sensorDataDelegate)
+        currentDeviceSession = ThisDeviceSession(deviceSessionDelegate: deviceSessionDelegate)
     }
     
     func stop() {
         currentDeviceSession?.stop()
     }
     
-    func zero() -> NSTimeInterval {
-        if let x = currentDeviceSession {
-            x.zero()
-        }
-        return 0
-    }
-
 }

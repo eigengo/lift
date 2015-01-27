@@ -7,30 +7,31 @@ import Foundation
 /// It also maintains required stats.
 ///
 class PebbleDeviceSession : DeviceSession {
-    private var sensorDataDelegate: SensorDataDelegate!
+    private var deviceSessionDelegate: DeviceSessionDelegate!
     private var startTime: NSDate!
     private var updateHandler: AnyObject?
     private var watch: PBWatch!
     private var deviceId: NSUUID!
     
-    required init(deviceId: NSUUID, watch: PBWatch!, sensorDataDelegate: SensorDataDelegate) {
+    required init(deviceId: NSUUID, watch: PBWatch!, deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
         self.watch = watch
         self.deviceId = deviceId
         self.startTime = NSDate()
-        self.sensorDataDelegate = sensorDataDelegate
+        self.deviceSessionDelegate = deviceSessionDelegate
         self.updateHandler = watch.appMessagesAddReceiveUpdateHandler(appMessagesReceiveUpdateHandler)
     }
     
     // MARK: main
 
-    func zero() -> Void {
+    override func zero() -> NSTimeInterval {
         // ???
+        return 0.0  // Real implementation should tell the watch to reset. We just ignore and thus we took 0 ms.
     }
     
     override func stop() {
         if let x: AnyObject = updateHandler { watch.appMessagesRemoveUpdateHandler(x) }
-        sensorDataDelegate.sensorDataEnded(deviceId, deviceSession: self)
+        deviceSessionDelegate.deviceSession(self, ended: deviceId)
     }
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
@@ -49,6 +50,6 @@ class PebbleDeviceSession : DeviceSession {
             return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + data.length, packets: prev.packets + 1)
         })
         
-        sensorDataDelegate.sensorDataReceived(deviceId, deviceSession: self, data: data)
+        deviceSessionDelegate.deviceSession(self, sensorDataReceived: data, fromDeviceId: deviceId)
     }
 }

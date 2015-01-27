@@ -1,9 +1,9 @@
 import Foundation
 
 struct DeviceSessionStatsTypes {
-    /**
-    * The session statistics
-    */
+    ///
+    /// The session statistics
+    ///
     struct Entry {
         /// total # bytes received
         var bytes: Int
@@ -12,9 +12,9 @@ struct DeviceSessionStatsTypes {
         var packets: Int
     }
     
-    /**
-    * The key in the stats
-    */
+    ///
+    /// The key in the stats
+    ///
     struct Key : Equatable, Hashable {
         /// the type
         var sensorKind: SensorKind
@@ -43,9 +43,9 @@ struct DeviceSessionStatsTypes {
         }
     }
     
-    /**
-    * The device stats keys
-    */
+    ///
+    /// The device stats keys
+    ///
     enum SensorKind {
         case Accelerometer
         case Gyroscope
@@ -67,9 +67,9 @@ func ==(lhs: DeviceSessionStatsTypes.KeyWithLocation, rhs: DeviceSessionStatsTyp
 final class DeviceSessionStats<K : Hashable> {
     private var stats: [K : DeviceSessionStatsTypes.Entry] = [:]
     
-    /**
-    * Update the stats this session holds
-    */
+    ///
+    /// Update the stats this session holds
+    ///
     final func updateStats(key: K, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
         var prev: DeviceSessionStatsTypes.Entry
         let zero = DeviceSessionStatsTypes.Entry(bytes: 0, packets: 0)
@@ -79,9 +79,9 @@ final class DeviceSessionStats<K : Hashable> {
         return curr
     }
     
-    /**
-    * Merge the statistics kept in this session with the statistics kept in ``that`` session
-    */
+    ///
+    /// Merge the statistics kept in this session with the statistics kept in ``that`` session
+    ///
     final func merge<B>(that: DeviceSessionStats<B>, keyMapper: B -> K) {
         for (k, v) in that.stats {
             stats[keyMapper(k)] = v

@@ -27,13 +27,24 @@ class DeviceSession {
     }
     
     ///
+    /// Tells the device to potentially drop partially recorded data set, and reset the recording to zero. The communication layer
+    /// and the device should do all they can to comply with the request, and return a ``NSTimeInterval`` indicating offset from
+    /// the time the request was received to the time it took to fulfil it.
+    ///
+    /// If the time cannot be reliably measured, it will be sufficient to report average time to fulfilment
+    ///
+    func zero() -> NSTimeInterval {
+        fatalError("Implement me")
+    }
+
+    ///
     /// Updates the underlying session stats by looking up existing (or creating a zero) value for given ``key``, and
     /// then applying the ``update`` function to it.
     ///
     func updateStats(key: DeviceSessionStatsTypes.Key, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
         return stats.update(key, update: update)
     }
-    
+
     ///
     /// Return the session identity
     ///

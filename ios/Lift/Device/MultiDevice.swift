@@ -3,7 +3,7 @@ import Foundation
 /**
  * Packs togehter multiple devices
  */
-class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
+class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     private var deviceInfos: [DeviceId : DeviceInfo] = [:]
     private var deviceInfoDetails: [DeviceId: DeviceInfo.Detail] = [:]
     private var deviceSessions: [DeviceId : DeviceSession] = [:]
@@ -13,17 +13,17 @@ class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
     private let deviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
     private var zeroed: Bool = false
     
-    private var sensorDataDelegate: SensorDataDelegate!
+    private var deviceSessionDelegate: DeviceSessionDelegate!
     private var deviceDelegate: DeviceDelegate!
     
-    required init(deviceDelegate: DeviceDelegate, sensorDataDelegate: SensorDataDelegate) {
+    required init(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate) {
         // Multi device's ID is all zeros
-        self.sensorDataDelegate = sensorDataDelegate
+        self.deviceSessionDelegate = deviceSessionDelegate
         self.deviceDelegate = deviceDelegate
         super.init()
         
         for device in Devices.devices {
-            device.connect(self, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
+            device.connect(self, deviceSessionDelegate: self, onDone: { d in self.devices += [d] })
         }
     }
     
@@ -108,18 +108,16 @@ class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
         // never called
     }
     
-    func sensorDataEnded(deviceId: DeviceId, deviceSession: DeviceSession) {
-        sensorDataDelegate.sensorDataEnded(deviceId, deviceSession: self)
-    }
+    // MARK: DeviceSessionDelegate implementation
     
-    func sensorDataReceived(deviceId: DeviceId, deviceSession: DeviceSession, data: NSData) {
+    func deviceSession(session: DeviceSession, sensorDataReceived data: NSData, fromDeviceId id: DeviceId) {
         // when a packet arrives except from this device, we will zero all devices to this time
         // we say except for this, because it is more important to zero the devices communicating
-        // with this device externally. This device can always be reset immediately; and if it 
+        // with this device externally. This device can always be reset immediately; and if it
         // is the only device we have, then it does not need zeroing anyway.
         if deviceId != ThisDevice.Info.id {
             if !zeroed {
-                for d in devices { d.zero() }
+                // for d in devices { d.zero() }
                 zeroed = true
             }
         }
@@ -130,10 +128,27 @@ class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
             deviceData[deviceId] = [data]
         }
         
-        combinedStats.merge(deviceSession.getStats()) { k in
+        combinedStats.merge(session.getStats()) { k in
             let location = k.deviceId == ThisDevice.Info.id ? DeviceInfo.Location.Waist : DeviceInfo.Location.Wrist
             return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
         }
-        sensorDataDelegate.sensorDataReceived(deviceId, deviceSession: self, data: NSData())
+        deviceSessionDelegate.deviceSession(session, sensorDataReceived: NSData(), fromDeviceId: id)
     }
+    
+    func deviceSession(deviceSession: DeviceSession, finishedWarmingUp: Void) {
+        // ???
+    }
+    
+    func deviceSession(deviceSession: DeviceSession, ended fromDeviceId: DeviceId) {
+        deviceSessionDelegate.deviceSession(deviceSession, ended: fromDeviceId)
+    }
+    
+    func deviceSession(deviceSession: DeviceSession, sensorDataNotReceived fromDevice: DeviceId) {
+        // ???
+    }
+    
+    func deviceSession(deviceSession: DeviceSession, startedWarmingUp expectedCompletionIn: NSTimeInterval) {
+        // ???
+    }
+    
 }

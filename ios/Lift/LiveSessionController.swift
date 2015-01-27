@@ -1,13 +1,13 @@
 import UIKit
 
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
-    SensorDataDelegate, DeviceDelegate {
+    DeviceSessionDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
     private var multi: MultiDevice?
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
-    private var session: ExerciseSession?
+    private var exerciseSession: ExerciseSession?
     @IBOutlet var stopSessionButton: UIBarButtonItem!
 
     // MARK: main
@@ -27,9 +27,9 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func end() {
-        if let x = session {
+        if let x = exerciseSession {
             x.end(const(()))
-            self.session = nil
+            self.exerciseSession = nil
         } else {
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
@@ -60,8 +60,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        self.session = session
-        multi = MultiDevice(deviceDelegate: self, sensorDataDelegate: self)
+        self.exerciseSession = session
+        multi = MultiDevice(deviceDelegate: self, deviceSessionDelegate: self)
         multi!.start()
 
         session.getClassificationExamples { $0.getOrUnit { x in
@@ -128,14 +128,14 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                         let indexPath = NSIndexPath(forRow: i, inSection: 1)
                         if (tableView.cellForRowAtIndexPath(indexPath)!.accessoryType == UITableViewCellAccessoryType.Checkmark) {
                             tableView.cellForRowAtIndexPath(indexPath)!.accessoryType = UITableViewCellAccessoryType.None
-                            session?.endExplicitClassification()
+                            exerciseSession?.endExplicitClassification()
                         }
                     }
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
-                    session?.startExplicitClassification(exampleExercises[indexPath.row])
+                    exerciseSession?.startExplicitClassification(exampleExercises[indexPath.row])
                 case UITableViewCellAccessoryType.Checkmark:
                     selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                    session?.endExplicitClassification()
+                    exerciseSession?.endExplicitClassification()
                 default: return
                 }
             }
@@ -149,28 +149,35 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         }
     }
 
-    // MARK: SensorDataDelegate
+    // MARK: DeviceSessionDelegate
+    func deviceSession(session: DeviceSession, finishedWarmingUp: Void) {
+        // ???
+    }
     
-    func sensorDataReceived(deviceId: NSUUID, deviceSession: DeviceSession, data: NSData) {
-        if let x = session {
+    func deviceSession(session: DeviceSession, startedWarmingUp expectedCompletionIn: NSTimeInterval) {
+        // ???
+    }
+
+    func deviceSession(session: DeviceSession, ended fromDeviceId: DeviceId) {
+        end()
+    }
+    
+    func deviceSession(session: DeviceSession, sensorDataNotReceived fromDeviceId: DeviceId) {
+        // ???
+    }
+    
+    func deviceSession(session: DeviceSession, sensorDataReceived data: NSData, fromDeviceId: DeviceId) {
+        if let x = exerciseSession {
             // TODO: Implement me
             //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
             //x.submitData(mp, const(()))
-
+            
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
                 tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
         }
-    }
-    
-    func sensorDataEnded(deviceId: NSUUID, deviceSession: DeviceSession) {
-        end()
-    }
-    
-    func sensorDataNotReceived(deviceId: DeviceId, deviceSession: DeviceSession) {
-        // ???
     }
     
     // MARK: DeviceDelegate

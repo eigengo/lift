@@ -19,7 +19,7 @@
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		5434CCDA1A69839400B0735C /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5434CCD91A69839400B0735C /* SystemConfiguration.framework */; };
-		543B26FD1A49D18800381298 /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* SensorData.swift */; };
+		543B26FD1A49D18800381298 /* DeviceSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		54571B161A728594001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
@@ -47,7 +47,8 @@
 		54AECC451A769CDE008BD812 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB071A1A49E65400DC1E91 /* Device.swift */; };
 		54AECC471A76AB8A008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
 		54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
-		54AECC491A76B022008BD812 /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* SensorData.swift */; };
+		54AECC491A76B022008BD812 /* DeviceSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */; };
+		54AECC4B1A77CCDD008BD812 /* ThisDeviceProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC4A1A77CCDD008BD812 /* ThisDeviceProtocol.c */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54B562231A77937200F6FD5D /* DeviceSessionStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B562221A77937200F6FD5D /* DeviceSessionStats.swift */; };
@@ -181,7 +182,7 @@
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
 		5434CCD91A69839400B0735C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		543B26FC1A49D18800381298 /* SensorData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorData.swift; sourceTree = "<group>"; };
+		543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceSessionDelegate.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		54571B151A728594001419B4 /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
@@ -209,6 +210,7 @@
 		549ED2B11A6D8884002588B9 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54AECC461A76AB8A008BD812 /* Dictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dictionary.swift; sourceTree = "<group>"; };
+		54AECC4A1A77CCDD008BD812 /* ThisDeviceProtocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ThisDeviceProtocol.c; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
@@ -338,10 +340,10 @@
 				548296381A4D792D00EDCAF0 /* AppleWatch */,
 				54E99ED31A767B8400BA1BD3 /* This */,
 				543B26FE1A49D1A800381298 /* Pebble */,
-				543B26FC1A49D18800381298 /* SensorData.swift */,
 				54DB071A1A49E65400DC1E91 /* Device.swift */,
 				54B562251A7793B000F6FD5D /* DeviceSession.swift */,
 				54B562221A77937200F6FD5D /* DeviceSessionStats.swift */,
+				543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */,
 				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
 				54E99EDB1A76882300BA1BD3 /* MultiDevice.swift */,
 			);
@@ -571,6 +573,7 @@
 				54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */,
 				54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */,
 				54B5622A1A7799EB00F6FD5D /* ThisDeviceProtocol.h */,
+				54AECC4A1A77CCDD008BD812 /* ThisDeviceProtocol.c */,
 			);
 			path = This;
 			sourceTree = "<group>";
@@ -866,6 +869,7 @@
 				54DB071B1A49E65400DC1E91 /* Device.swift in Sources */,
 				54F0C0061A60349300D1A9C8 /* RemoteNotificationDelegate.swift in Sources */,
 				54C37B851A4C116C0036C0C8 /* PropertyTableViewCell.swift in Sources */,
+				54AECC4B1A77CCDD008BD812 /* ThisDeviceProtocol.c in Sources */,
 				54571B161A728594001419B4 /* Array.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
@@ -876,7 +880,7 @@
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */,
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
-				543B26FD1A49D18800381298 /* SensorData.swift in Sources */,
+				543B26FD1A49D18800381298 /* DeviceSessionDelegate.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
 				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54B562231A77937200F6FD5D /* DeviceSessionStats.swift in Sources */,
@@ -937,7 +941,7 @@
 				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */,
 				54ED4EAF1A6C547B00490DA7 /* LiftServer.swift in Sources */,
-				54AECC491A76B022008BD812 /* SensorData.swift in Sources */,
+				54AECC491A76B022008BD812 /* DeviceSessionDelegate.swift in Sources */,
 				54ED4EB11A6C547B00490DA7 /* LiftServerURLs.swift in Sources */,
 				54ED4EB61A6C547B00490DA7 /* NotificationModel.swift in Sources */,
 				54ED4EC11A6C54C100490DA7 /* NSError+Convenience.swift in Sources */,
