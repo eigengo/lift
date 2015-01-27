@@ -34,7 +34,8 @@ class ThisDeviceSession : DeviceSession {
         // in unitless numbers. Find conversion factor.
         
         // For now, I'll say that 4 G is the maximum force, and so our factor is 1000
-        let ad: lift_accelerometer_data = {}
+        
+        // I hate you Apple C chain. Y U no support ``struct { int16_t x_val : 13; }``?
         data.userAcceleration
         
         count += 1
