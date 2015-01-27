@@ -47,5 +47,12 @@ class ThisConnectedDevice : ThisDevice, ConnectedDevice {
     func stop() {
         currentDeviceSession?.stop()
     }
+    
+    func zero() -> NSTimeInterval {
+        if let x = currentDeviceSession {
+            x.zero()
+        }
+        return 0
+    }
 
 }

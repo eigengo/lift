@@ -1,10 +1,30 @@
 import Foundation
 
+///
+/// Device type is a simple string: it also maps to the devices in the Images.xcassets
+///
 typealias DeviceType = String
 
+///
+/// Device id is a NSUUID
+///
 typealias DeviceId = NSUUID
 
+///
+/// All devices should send packets that are 126 samples long.
+///
+struct DevicePace {
+    ///
+    /// The number of samples per packet
+    ///
+    let samplesPerPacket = 126
+}
+
+///
+/// Holds information about a device
+///
 enum DeviceInfo {
+    
     /// type of device: pebble, applewatch, androidwear,...
     var type: DeviceType {
         get {
@@ -87,167 +107,25 @@ protocol Device {
  */
 protocol ConnectedDevice {
     
-    /**
-     * Starts the device work; typically also starts the companion app
-     */
+    ///
+    /// Starts the device work; typically also starts the companion app
+    ///
     func start()
     
-    /**
-     * Stops the device work; typically also stops the companion app
-     */
+    ///
+    /// Stops the device work; typically also stops the companion app
+    ///
     func stop()
     
-    
-}
-
-struct DeviceSessionStatsTypes {
-    /**
-    * The session statistics
-    */
-    struct Entry {
-        /// total # bytes received
-        var bytes: Int
-        
-        /// total # packets (i.e. group of accelerometer data) received
-        var packets: Int
-    }
-    
-    /**
-    * The key in the stats
-    */
-    struct Key : Equatable, Hashable {
-        /// the type
-        var sensorKind: SensorKind
-        /// the device identity
-        var deviceId: DeviceId
-        
-        var hashValue: Int {
-            get {
-                return sensorKind.hashValue + 21 * deviceId.hashValue
-            }
-        }
-    }
-    
-    struct KeyWithLocation : Equatable, Hashable {
-        /// the type
-        var sensorKind: SensorKind
-        /// the device identity
-        var deviceId: DeviceId
-        /// the device location
-        var location: DeviceInfo.Location
-        
-        var hashValue: Int {
-            get {
-                return sensorKind.hashValue + 21 * deviceId.hashValue
-            }
-        }
-    }
-    
-    /**
-    * The device stats keys
-    */
-    enum SensorKind {
-        case Accelerometer
-        case Gyroscope
-        case GPS
-        case HeartRate
-    }
-    
-    
-}
-
-func ==(lhs: DeviceSessionStatsTypes.Key, rhs: DeviceSessionStatsTypes.Key) -> Bool {
-    return lhs.deviceId == rhs.deviceId && lhs.sensorKind == rhs.sensorKind
-}
-
-func ==(lhs: DeviceSessionStatsTypes.KeyWithLocation, rhs: DeviceSessionStatsTypes.KeyWithLocation) -> Bool {
-    return lhs.deviceId == rhs.deviceId && lhs.sensorKind == rhs.sensorKind && lhs.location == rhs.location
-}
-
-final class DeviceSessionStats<K : Hashable> {
-    private var stats: [K : DeviceSessionStatsTypes.Entry] = [:]
-
-    /**
-    * Update the stats this session holds
-    */
-    final internal func updateStats(key: K, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
-        var prev: DeviceSessionStatsTypes.Entry
-        let zero = DeviceSessionStatsTypes.Entry(bytes: 0, packets: 0)
-        if let x = stats[key] { prev = x } else { prev = zero }
-        let curr = update(prev)
-        stats[key] = curr
-        return curr
-    }
-    
-    /**
-     * Merge the statistics kept in this session with the statistics kept in ``that`` session
-     */
-    final internal func merge<B>(that: DeviceSessionStats<B>, keyMapper: B -> K) {
-        for (k, v) in that.stats {
-            stats[keyMapper(k)] = v
-        }
-    }
-    
-    internal func update(key: K, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
-        var prev: DeviceSessionStatsTypes.Entry
-        let zero = DeviceSessionStatsTypes.Entry(bytes: 0, packets: 0)
-        if let x = stats[key] { prev = x } else { prev = zero }
-        let curr = update(prev)
-        stats[key] = curr
-        return curr
-    }
-    
-    final subscript(index: Int) -> (K, DeviceSessionStatsTypes.Entry) {
-        return stats.toList()[index]
-    }
-    
-    var count: Int {
-        get {
-            return stats.count
-        }
-    }
-    
-}
-
-/**
- * The exercise session connected to the device
- */
-class DeviceSession {
-    private var id: NSUUID!
-    private let stats = DeviceSessionStats<DeviceSessionStatsTypes.Key>()
-    
     ///
-    /// Constructs a new session with generated identity
+    /// Tells the device to potentially drop partially recorded data set, and reset the recording to zero. The communication layer
+    /// and the device should do all they can to comply with the request, and return a ``NSTimeInterval`` indicating offset from
+    /// the time the request was received to the time it took to fulfil it.
     ///
-    init() {
-        self.id = NSUUID()
-    }
-        
-    /**
-     * Implementations must override this to handle stopping of the session
-     */
-    func stop() -> Void {
-        fatalError("Implement me")
-    }
+    /// If the time cannot be reliably measured, it will be sufficient to report average time to fulfilment
+    ///
+    func zero() -> NSTimeInterval
     
-    func updateStats(key: DeviceSessionStatsTypes.Key, update: DeviceSessionStatsTypes.Entry -> DeviceSessionStatsTypes.Entry) -> DeviceSessionStatsTypes.Entry {
-        return stats.update(key, update: update)
-    }
-
-    /**
-     * Return the session identity
-     */
-    final func sessionId() -> NSUUID {
-        return id
-    }
-    
-    ///
-    /// Gets the session stats
-    ///
-    final func getStats() -> DeviceSessionStats<DeviceSessionStatsTypes.Key> {
-        return stats
-    }
-        
 }
 
 /**

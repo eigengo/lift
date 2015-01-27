@@ -169,6 +169,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         end()
     }
     
+    func sensorDataNotReceived(deviceId: DeviceId, deviceSession: DeviceSession) {
+        // ???
+    }
+    
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
         tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)

@@ -1,11 +1,17 @@
 import Foundation
 import CoreMotion
 
+///
+/// Maintains a session connection to this device; measures acceleration, gyroscope, GPS,
+/// and HR through HealthKit
+///
 class ThisDeviceSession : DeviceSession {
     private var motionManager: CMMotionManager!
     private var queue: NSOperationQueue! = NSOperationQueue.currentQueue()
     private var sensorDataDelegate: SensorDataDelegate!
     private var count: Int = 0
+    private var buffer: NSMutableData = NSMutableData()
+    private let accelerationFactor: Double = 1000
     
     init(sensorDataDelegate: SensorDataDelegate) {
         super.init()
@@ -19,7 +25,18 @@ class ThisDeviceSession : DeviceSession {
         motionManager.stopDeviceMotionUpdates()
     }
     
+    func zero() -> Void {
+        buffer = NSMutableData()
+    }
+    
     func processDeviceMotionData(data: CMDeviceMotion!, error: NSError!) -> Void {
+        // TODO: userAcceleration units are in 10 m/s^2. Unfortunately, Pebble measures acceleration
+        // in unitless numbers. Find conversion factor.
+        
+        // For now, I'll say that 4 G is the maximum force, and so our factor is 1000
+        let ad: lift_accelerometer_data = {}
+        data.userAcceleration
+        
         count += 1
         // TODO: Implement me
         

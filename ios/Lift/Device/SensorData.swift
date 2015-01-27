@@ -4,6 +4,7 @@ import Foundation
  * Implement to receive data and session identities
  */
 protocol SensorDataDelegate {
+    
     /**
      * Called when a sensor data (in the Lift format) is received from the device. The data is complete
      * multiple of packets; it can be sent directly to the server for decoding.
@@ -11,7 +12,13 @@ protocol SensorDataDelegate {
      * @param deviceSession the device session
      * @param data the sensor data, aligned to packets
      */
-    func sensorDataReceived(deviceId: NSUUID, deviceSession: DeviceSession, data: NSData)
+    func sensorDataReceived(deviceId: DeviceId, deviceSession: DeviceSession, data: NSData)
+    
+    /**
+     * Called when a sensor data is not received, but was expected. This typically indicates a
+     * problem with the BLE connection
+     */
+    func sensorDataNotReceived(deviceId: DeviceId, deviceSession: DeviceSession)
     
     /**
      * Called when the device ends the session. Typically, a user presses a button on the device 
@@ -19,5 +26,5 @@ protocol SensorDataDelegate {
      * 
      * @param deviceSession the device session
      */
-    func sensorDataEnded(deviceId: NSUUID, deviceSession: DeviceSession)
+    func sensorDataEnded(deviceId: DeviceId, deviceSession: DeviceSession)
 }
