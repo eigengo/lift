@@ -58,6 +58,15 @@ object Dependencies {
     val nak     = "org.scalanlp" %% "nak"            % "1.3" exclude("org.scalanlp", "breeze_2.11") exclude("org.scalanlp", "breeze-natives_2.11")
   }
 
+  object spark {
+    val version = "1.2.0"
+
+    val core = "org.apache.spark" %% "spark-core" % version
+    val mllib = "org.apache.spark" %% "spark-mllib" % version
+    val streaming = "org.apache.spark" %% "spark-streaming" % version
+    val streamingKafka = "org.apache.spark" % "spark-streaming-kafka_2.10" % version
+  }
+
   val scodec_bits      = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
   val parboiled        = "org.parboiled"    %% "parboiled"    % "2.0.1"
 

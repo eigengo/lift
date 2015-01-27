@@ -29,8 +29,11 @@ lazy val adapter = project.in(file("adapter")).dependsOn(common)
 //The cluster config
 lazy val contrib = project.in(file("contrib"))
 
+//Spark
+lazy val spark = project.in(file("spark")).dependsOn(common)
+
 //The main aggregate
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, kafka)
+lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, kafka, spark)
 
 fork in Test := false
 
