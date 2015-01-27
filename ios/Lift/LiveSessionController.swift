@@ -3,7 +3,7 @@ import UIKit
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     DeviceSessionDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
-    private var multi: MultiDevice?
+    private var multi: MultiDeviceSession?
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
@@ -61,7 +61,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.exerciseSession = session
-        multi = MultiDevice(deviceDelegate: self, deviceSessionDelegate: self)
+        multi = MultiDeviceSession(deviceDelegate: self, deviceSessionDelegate: self)
         multi!.start()
 
         session.getClassificationExamples { $0.getOrUnit { x in
@@ -150,23 +150,23 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
 
     // MARK: DeviceSessionDelegate
-    func deviceSession(session: DeviceSession, finishedWarmingUp: Void) {
+    func deviceSession(session: DeviceSession, finishedWarmingUp deviceId: DeviceId) {
         // ???
     }
     
-    func deviceSession(session: DeviceSession, startedWarmingUp expectedCompletionIn: NSTimeInterval) {
+    func deviceSession(session: DeviceSession, startedWarmingUp deviceId: DeviceId, expectedCompletionIn time: NSTimeInterval) {
         // ???
     }
 
-    func deviceSession(session: DeviceSession, ended fromDeviceId: DeviceId) {
+    func deviceSession(session: DeviceSession, endedFrom deviceId: DeviceId) {
         end()
     }
     
-    func deviceSession(session: DeviceSession, sensorDataNotReceived fromDeviceId: DeviceId) {
+    func deviceSession(session: DeviceSession, sensorDataNotReceivedFrom deviceId: DeviceId) {
         // ???
     }
     
-    func deviceSession(session: DeviceSession, sensorDataReceived data: NSData, fromDeviceId: DeviceId) {
+    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, data: NSData) {
         if let x = exerciseSession {
             // TODO: Implement me
             //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)

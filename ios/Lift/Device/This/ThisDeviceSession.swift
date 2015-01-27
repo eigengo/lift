@@ -16,9 +16,11 @@ class ThisDeviceSession : DeviceSession {
     init(deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
         self.deviceSessionDelegate = deviceSessionDelegate
+        deviceSessionDelegate.deviceSession(self, startedWarmingUp: ThisDevice.Info.id, expectedCompletionIn: 0.2)
         motionManager = CMMotionManager()
         motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
         motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
+        deviceSessionDelegate.deviceSession(self, finishedWarmingUp: ThisDevice.Info.id)
     }
     
     override func stop() {
@@ -56,7 +58,7 @@ class ThisDeviceSession : DeviceSession {
             // We have collected enough data to make up a packet.
             // Combine all buffers and send to the delegate
             let data = NSMutableData(data: userAccelerationBuffer)
-            deviceSessionDelegate.deviceSession(self, sensorDataReceived: data, fromDeviceId: ThisDevice.Info.id)
+            deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: ThisDevice.Info.id, data: data)
 
             // Clear buffers
             zero()

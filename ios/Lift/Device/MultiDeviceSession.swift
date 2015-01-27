@@ -6,8 +6,8 @@ import Foundation
 struct ConnectedDeviceInfo {
     enum Status {
         case WarmingUp
+        case Ready
         case NotStarted
-        case SendingData(droppedPackets: Int)
     }
     
     var deviceInfo: DeviceInfo
@@ -30,17 +30,18 @@ struct ConnectedDeviceInfo {
 ///
 /// Packs togehter multiple devices
 ///
-class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
+class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
     // the stats are combined for all devices
     private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
     // our special deviceId is all 0s
     private let deviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
 
     private var deviceInfos: [DeviceId : ConnectedDeviceInfo] = [:]
-    private var deviceSessions: [DeviceId : DeviceSession] = [:]
+    private var activeSessions: [DeviceId : DeviceSession] = [:]
     private var deviceData: [DeviceId : [NSData]] = [:]
     private var devices: [ConnectedDevice] = []
     private var zeroed: Bool = false
+    private var warmedUp: Bool = false
     
     private var deviceSessionDelegate: DeviceSessionDelegate!
     private var deviceDelegate: DeviceDelegate!
@@ -95,7 +96,6 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
         }
     }
     
-    // MARK: DeviceSession implementation
     override func stop() {
         for d in devices { d.stop() }
     }
@@ -128,23 +128,24 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
         deviceInfos.updated(deviceId) { $0.withDeviceInfoDetail(detail) }
         deviceDelegate.deviceGotDeviceInfoDetail(deviceId, detail: detail)
     }
-    
-    // MARK: SensorDataDelegate implementation
-    
-    func sensorDataNotReceived(deviceId: DeviceId, deviceSession: DeviceSession) {
-        // never called
-    }
-    
+
     // MARK: DeviceSessionDelegate implementation
-    
-    func deviceSession(session: DeviceSession, sensorDataReceived data: NSData, fromDeviceId id: DeviceId) {
+    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, data: NSData) {
+        if !warmedUp { return }
+        if activeSessions[deviceId] == nil {
+            NSLog("WARN: Ignoring sensorDataReceived from unknown device \(deviceId)")
+            return
+        }
+        
         // when a packet arrives except from this device, we will zero all devices to this time
         // we say except for this, because it is more important to zero the devices communicating
         // with this device externally. This device can always be reset immediately; and if it
         // is the only device we have, then it does not need zeroing anyway.
         if deviceId != ThisDevice.Info.id {
             if !zeroed {
-                // for d in devices { d.zero() }
+                for (k, v) in activeSessions {
+                    if k != deviceId { v.zero() }
+                }
                 zeroed = true
             }
         }
@@ -159,24 +160,32 @@ class MultiDevice : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
             let location = k.deviceId == ThisDevice.Info.id ? DeviceInfo.Location.Waist : DeviceInfo.Location.Wrist
             return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
         }
-        deviceSessionDelegate.deviceSession(session, sensorDataReceived: NSData(), fromDeviceId: id)
+        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: deviceId, data: data)
     }
     
-    func deviceSession(deviceSession: DeviceSession, finishedWarmingUp: Void) {
-        deviceInfos.updated(deviceId) { $0.withStatus(.SendingData(droppedPackets: 0)) }
+    func deviceSession(deviceSession: DeviceSession, finishedWarmingUp deviceId: DeviceId) {
+        deviceInfos.updated(deviceId) { $0.withStatus(.Ready) }
+        activeSessions[deviceId] = deviceSession
+        if activeSessions.count == devices.count {
+            // we're ready
+            warmedUp = true
+            deviceSessionDelegate.deviceSession(self, finishedWarmingUp: self.deviceId)
+        }
     }
     
-    func deviceSession(deviceSession: DeviceSession, ended fromDeviceId: DeviceId) {
-        deviceInfos.removeValueForKey(fromDeviceId)
-        deviceSessionDelegate.deviceSession(deviceSession, ended: fromDeviceId)
+    func deviceSession(deviceSession: DeviceSession, endedFrom deviceId: DeviceId) {
+        deviceInfos.removeValueForKey(deviceId)
+        activeSessions.removeValueForKey(deviceId)
+        deviceSessionDelegate.deviceSession(self, endedFrom: deviceId)
     }
     
-    func deviceSession(deviceSession: DeviceSession, sensorDataNotReceived fromDevice: DeviceId) {
+    func deviceSession(deviceSession: DeviceSession, sensorDataNotReceivedFrom deviceId: DeviceId) {
         // ???
     }
     
-    func deviceSession(deviceSession: DeviceSession, startedWarmingUp expectedCompletionIn: NSTimeInterval) {
+    func deviceSession(deviceSession: DeviceSession, startedWarmingUp deviceId: DeviceId, expectedCompletionIn time: NSTimeInterval) {
         deviceInfos.updated(deviceId) { $0.withStatus(.WarmingUp) }
     }
-    
 }
+
+
