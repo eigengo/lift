@@ -1,6 +1,6 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
-import akka.stream.stage.{TerminationDirective, Directive, Context, PushStage}
+import akka.stream.stage.{TerminationDirective, Directive, Context, PushPullStage}
 import scala.collection.mutable
 
 /**
@@ -11,7 +11,7 @@ import scala.collection.mutable
  * @param size     size of the internal buffer and so the sampling window size
  * @param strategy when buffer is full, sample window strategy that determines the elements to be emitted
  */
-class GroupBySample[A] private (size: Int, strategy: List[A] => GroupBySample.GroupValue[A]) extends PushStage[A, GroupBySample.GroupValue[A]] {
+class GroupBySample[A] private (size: Int, strategy: List[A] => GroupBySample.GroupValue[A]) extends PushPullStage[A, GroupBySample.GroupValue[A]] {
   require(size > 0)
 
   import GroupBySample._
@@ -22,7 +22,7 @@ class GroupBySample[A] private (size: Int, strategy: List[A] => GroupBySample.Gr
     strategy(buffer.toList) match {
       case value @ BlobValue(sample) =>
         // Aggregated sample to be emitted
-        buffer.drop(sample.length)
+        (0 until sample.length).foreach(_ => buffer.dequeue())
         ctx.push(value)
 
       case value: SingleValue[A] =>
@@ -33,30 +33,33 @@ class GroupBySample[A] private (size: Int, strategy: List[A] => GroupBySample.Gr
   }
 
   override def onPush(elem: A, ctx: Context[GroupValue[A]]): Directive = {
-    if (!ctx.isFinishing) {
+    if (buffer.length == size) {
+      // Buffer is full, so apply our strategy to determine emit behaviour
+      applyStrategy(ctx)
+    } else {
+      buffer.enqueue(elem)
       if (buffer.length == size) {
         // Buffer is full, so apply our strategy to determine emit behaviour
         applyStrategy(ctx)
       } else {
         // Buffer is not yet full, so keep consuming from our upstream
-        buffer.enqueue(elem)
         ctx.pull()
       }
-    } else {
+    }
+  }
+
+  override def onPull(ctx: Context[GroupValue[A]]): Directive = {
+    if (ctx.isFinishing) {
       // Streaming stage is shutting down, so we ensure that all buffer elements are flushed prior to finishing
       if (buffer.isEmpty) {
         // Buffer is empty, so we simply finish
         ctx.finish()
-      } else if (buffer.length == 1) {
-        // One element in the buffer, so push it and finish
-        ctx.pushAndFinish(SingleValue(buffer.dequeue()))
-      } else if (buffer.length == size) {
-        // Buffer is full, so apply our strategy to determine emit behaviour
-        applyStrategy(ctx)
       } else {
-        // Multiple elements are in the buffer (and it isn't full), so reduce its size and eventually we will finish
-        ctx.push(SingleValue(buffer.dequeue()))
+        // Multiple elements are in the buffer, so push them as a blob and finish
+        ctx.pushAndFinish(BlobValue(buffer.toList))
       }
+    } else {
+      ctx.pull()
     }
   }
 
