@@ -36,12 +36,21 @@ trait GestureWorkflows extends SVMClassifier {
   def name: String
   def config: Config
 
-  val frequency = config.getInt("classification.frequency")
-  assert(frequency > 0)
-  val threshold = config.getDouble(s"classification.gesture.$name.threshold")
-  assert(0 <= threshold && threshold <= 1)
-  val windowSize = config.getInt(s"classification.gesture.$name.size")
-  assert(windowSize > 0)
+  def frequency = {
+    val value = config.getInt("classification.frequency")
+    assert(value > 0)
+    value
+  }
+  def threshold = {
+    val value = config.getDouble(s"classification.gesture.$name.threshold")
+    assert(0 <= value && value <= 1)
+    value
+  }
+  def windowSize = {
+    val value = config.getInt(s"classification.gesture.$name.size")
+    assert(value > 0)
+    value
+  }
 
   // NOTE: here we accept throwing an exception in loading R libSVM models (since this indicates a catastrophic configuration error!)
   private lazy val model = new SVMModelParser(name)(config).model.get
@@ -219,7 +228,7 @@ trait GestureWorkflows extends SVMClassifier {
         Transformation({ value =>
           val results = obs.map(_.action(value))
           if (results.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).nonEmpty) {
-            results.asInstanceOf[Set[GestureTag[AccelerometerValue]]].maxBy(_.matchProbability)
+            results.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).asInstanceOf[Set[GestureTag[AccelerometerValue]]].maxBy(_.matchProbability)
           } else {
             results.head
           }
