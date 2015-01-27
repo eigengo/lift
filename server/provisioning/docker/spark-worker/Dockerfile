@@ -1,5 +1,5 @@
 # Spark
-FROM local/spark-base:1.2.0
+FROM spark-base:latest
 
 # Instead of using a random port, bind the worker to a specific port
 ENV SPARK_WORKER_PORT 8888

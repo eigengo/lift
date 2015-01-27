@@ -1,5 +1,5 @@
 # Spark
-FROM local/spark-base:1.2.0
+FROM spark-base:latest
 
 # Expose TCP ports 7077 8080
 EXPOSE 7077 8080

@@ -62,14 +62,14 @@ kafka:
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 sparkmaster:
-  build: ./provisioning/docker/spark-master
+  build: martinz/spark-master:latest
   ports:
     - "8080"
     - "7077:7077"
   links:
     - zookeeper:zk
 sparkworker:
-  build: ./provisioning/docker/spark-worker
+  build: martinz/spark-worker:latest
   ports:
     - "8081:8081"
   links:
