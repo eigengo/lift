@@ -66,6 +66,8 @@ sparkmaster:
   ports:
     - "8080"
     - "7077:7077"
+  links:
+    - zookeeper:zk
 sparkworker:
   build: ./provisioning/docker/spark-worker
   ports:
