@@ -17,6 +17,7 @@ struct Devices {
         for d in devices { d.peek(onDone) }
     }
     
+    /*
     static func connectedDevices() -> [(Device, DeviceInfo)] {
         return allDevices().filter { $0.1.isConnected }
     }
@@ -40,5 +41,5 @@ struct Devices {
         
         return result
     }
-    
+    */
 }

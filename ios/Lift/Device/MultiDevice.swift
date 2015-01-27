@@ -1,6 +1,8 @@
 import Foundation
 
-class ConnectedDevices : DeviceSession, SensorDataDelegate, DeviceDelegate {
+/**
+ */
+class MultiDevice : DeviceSession, SensorDataDelegate, DeviceDelegate {
     private var deviceInfos: [DeviceId : DeviceInfo] = [:]
     private var deviceInfoDetails: [DeviceId: DeviceInfo.Detail] = [:]
     private var deviceSessions: [DeviceId : DeviceSession] = [:]
@@ -16,8 +18,8 @@ class ConnectedDevices : DeviceSession, SensorDataDelegate, DeviceDelegate {
         self.deviceDelegate = deviceDelegate
         super.init(deviceInfo: DeviceInfo.ConnectedDeviceInfo(id: id, type: "", name: "", description: ""))
         
-        for (device, info) in Devices.connectedDevices() {
-            device.connect(deviceDelegate, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
+        for device in Devices.devices {
+            device.connect(self, sensorDataDelegate: self, onDone: { d in self.devices += [d] })
         }
     }
     

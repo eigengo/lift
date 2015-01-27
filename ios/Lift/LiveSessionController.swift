@@ -3,7 +3,7 @@ import UIKit
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
     SensorDataDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
-    private var connected: ConnectedDevices?
+    private var multi: MultiDevice?
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
@@ -34,7 +34,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
     
-        connected?.stop()
+        multi?.stop()
         UIApplication.sharedApplication().idleTimerDisabled = false
         if let x = navigationController {
             x.popToRootViewControllerAnimated(true)
@@ -61,8 +61,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.session = session
-        connected = ConnectedDevices(deviceDelegate: self, sensorDataDelegate: self)
-        connected!.start()
+        multi = MultiDevice(deviceDelegate: self, sensorDataDelegate: self)
+        multi!.start()
 
         session.getClassificationExamples { $0.getOrUnit { x in
                 self.exampleExercises = x
@@ -79,8 +79,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: if let x = connected { return x.deviceCount } else { return 0 }
-        case 1: if let x = connected { return x.statsCount } else { return 0 }
+        case 0: if let x = multi { return x.deviceCount } else { return 0 }
+        case 1: if let x = multi { return x.statsCount } else { return 0 }
         case 2: return exampleExercises.count
         default: return 0
         }
@@ -90,11 +90,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         switch (indexPath.section, indexPath.row) {
         // section 1: device
         case (0, let x):
-            let (deviceInfo, deviceInfoDetail) = connected!.getDeviceInfos()[x]
+            let (deviceInfo, deviceInfoDetail) = multi!.getDeviceInfos()[x]
             return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
         case (1, let x):
             // TODO: iterate over all values, accelerometer now acceptable
-            let (key, stats) = connected!.sessionStats(x)
+            let (key, stats) = multi!.sessionStats(x)
             let cell = tableView.dequeueReusableCellWithIdentifier("sensor") as UITableViewCell
             cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
@@ -171,11 +171,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
     }
     
     func deviceAppLaunched(deviceId: DeviceId) {
@@ -187,11 +187,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func deviceDidNotConnect(error: NSError) {
-        tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
     }
     
 }
