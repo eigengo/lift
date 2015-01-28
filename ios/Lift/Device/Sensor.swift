@@ -75,7 +75,7 @@ struct SensorDataGroup {
         if var x = sensorDataArrays[key] {
             x.addSensorData(sensorData)
         } else {
-            sensorDataArrays[key] = SensorDataArray(sensorData: sensorData)
+            sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
         }
     }
     
@@ -122,22 +122,54 @@ func ==(lhs: SensorDataArrayHeader, rhs: SensorDataArrayHeader) -> Bool {
 /// Potentially gappy SDA groups a number of ``SensorData`` structures with the same ``header``.
 ///
 struct SensorDataArray {
+    /// the header
+    var header: SensorDataArrayHeader
     /// the data
     var sensorDatas: [SensorData]
     
-    init(sensorData: SensorData) {
+    init(header: SensorDataArrayHeader, sensorData: SensorData) {
+        self.header = header
         sensorDatas = [sensorData]
     }
     
+    ///
+    /// Adds another ``sensorData``
+    ///
     mutating func addSensorData(sensorData: SensorData) {
         sensorDatas += [sensorData]
     }
     
-    func continuousRanges(from: CFAbsoluteTime) -> [TimeRange] {
-        fatalError("Implement me")
+    ///
+    /// Computes the continuous ranges of as an array of ``TimeRange``,
+    /// "compacting" the sensor data that are less than ``maximumGap`` apart.
+    ///
+    func continuousRanges(maximumGap: CFTimeInterval) -> [TimeRange] {
+        if sensorDatas.isEmpty { return [] }
+        
+        var result: [TimeRange] = []
+        var time = sensorDatas.first!.startTime
+        var blockStartTime = time
+        for sensorData in sensorDatas {
+            if abs(sensorData.startTime - time) < maximumGap {
+                // the start time of the next block is within maximumGap
+                // we don't accumulate the gaps
+                time = sensorData.startTime
+                // increase the time to the end of the current block
+                time += sensorData.duration(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
+            } else {
+                // the start time of the next block is outside maximumGap.
+                // we have range from blockStartTime to time
+                result += [TimeRange(start: blockStartTime, end: time)]
+                // reset our running counters
+                blockStartTime = sensorData.startTime
+                time = sensorData.startTime
+            }
+        }
+        
+        return result
     }
     
-    func continuousSampleIn(range: TimeRange) -> SensorData? {
+    func continuousSampleIn(maximumGap: CFTimeInterval, range: TimeRange) -> SensorData? {
         fatalError("Implement me")
     }
 }
@@ -150,4 +182,13 @@ struct SensorData {
     var startTime: CFAbsoluteTime
     /// the samples
     var samples: NSData
+    
+    ///
+    /// Computes the end time of the sensor data block given the
+    /// ``sampleSize`` and ``samplesPerSecond``
+    ///
+    func duration(sampleSize: UInt8, samplesPerSecond: UInt8) -> CFTimeInterval {
+        let sampleCount = samples.length / Int(sampleSize)
+        return CFTimeInterval(sampleCount / Int(samplesPerSecond))
+    }
 }
