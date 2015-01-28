@@ -3,7 +3,9 @@ package com.eigengo.lift.exercise.classifiers.workflows
 import akka.stream.{FlowMaterializer, MaterializerSettings}
 import akka.stream.scaladsl._
 import akka.stream.testkit.{StreamTestKit, AkkaSpec}
+import com.eigengo.lift.exercise.AccelerometerValue
 import com.typesafe.config.ConfigFactory
+import scala.io.{Source => IOSource}
 
 class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.conf")) with GestureWorkflows {
 
@@ -12,17 +14,88 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
   import GroupBySample._
   import StreamTestKit._
 
-  val name = "testing"
+  val name = "tap"
   val config = system.settings.config
 
-  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 4)
+  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1024)
 
   implicit val materializer = FlowMaterializer(settings)
 
+  val accelerometerData = Option(getClass.getResource("/samples/tap.csv")).map { dataFile =>
+    IOSource.fromURL(dataFile, "UTF-8").getLines().map(line => { val List(x, y, z) = line.split(",").toList.map(_.toInt); AccelerometerValue(x, y, z) })
+  }.get.toList
+  val noTapEvents = accelerometerData.slice(600, accelerometerData.length)
+  val tapEvents = accelerometerData.slice(0, 600)
+
   "IdentifyGestureEvents" must {
-    "" in {
-      // TODO:
+
+    def component(in: PublisherProbe[AccelerometerValue], out: SubscriberProbe[AccelerometerValue], tap: SubscriberProbe[TaggedValue[AccelerometerValue]]) = FlowGraph { implicit builder =>
+      val identify = IdentifyGestureEvents()
+
+      builder.importPartialFlowGraph(identify.graph)
+
+      builder.attachSource(identify.in, Source(in))
+      builder.attachSink(identify.out, Sink(out))
+      builder.attachSink(identify.tap, Sink(tap))
     }
+
+    "in messages should pass through unaltered and tap's are not detected [no tap request]" in {
+      val msgs = noTapEvents
+      val inProbe = PublisherProbe[AccelerometerValue]()
+      val outProbe = SubscriberProbe[AccelerometerValue]()
+      val tapProbe = SubscriberProbe[TaggedValue[AccelerometerValue]]()
+
+      component(inProbe, outProbe, tapProbe).run()
+      val inPub = inProbe.expectSubscription()
+      val outSub = outProbe.expectSubscription()
+      val tapSub = tapProbe.expectSubscription()
+
+      outSub.request(msgs.length)
+      tapSub.request(msgs.length)
+      for (msg <- msgs) {
+        inPub.sendNext(msg)
+      }
+      inPub.sendComplete()
+
+      outProbe.expectNext(msgs(0), msgs(1), msgs.drop(2): _*)
+      for ((msg, index) <- msgs.zipWithIndex) {
+        tapProbe.expectNext(ActivityTag(msg))
+      }
+    }
+
+    "in messages should pass through unaltered and tap is detected [tap request]" in {
+      val msgs = tapEvents
+      val gestureWindow = List(256 until 290, 341 until 344, 379 until 408, 546 until 576).flatten.toList
+      val inProbe = PublisherProbe[AccelerometerValue]()
+      val outProbe = SubscriberProbe[AccelerometerValue]()
+      val tapProbe = SubscriberProbe[TaggedValue[AccelerometerValue]]()
+
+      component(inProbe, outProbe, tapProbe).run()
+      val inPub = inProbe.expectSubscription()
+      val outSub = outProbe.expectSubscription()
+      val tapSub = tapProbe.expectSubscription()
+
+      outSub.request(msgs.length)
+      tapSub.request(msgs.length)
+      for (msg <- msgs) {
+        inPub.sendNext(msg)
+      }
+      inPub.sendComplete()
+
+      outProbe.expectNext(msgs(0), msgs(1), msgs.drop(2): _*)
+      for ((msg, index) <- msgs.zipWithIndex) {
+        val event = tapProbe.expectNext()
+        if (gestureWindow.contains(index)) {
+          event shouldBe a[GestureTag[AccelerometerValue]]
+          event.asInstanceOf[GestureTag[AccelerometerValue]].name should be("tap")
+          event.asInstanceOf[GestureTag[AccelerometerValue]].matchProbability should be > 0.75
+          event.asInstanceOf[GestureTag[AccelerometerValue]].value should be(msg)
+        } else {
+          event should be(ActivityTag(msg))
+        }
+      }
+    }
+
   }
 
   "MergeTransformations" must {
@@ -81,6 +154,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
       out.expectNext().action("any") should be(msgs(0).action("any"))
     }
+
   }
 
   "ModulateSensorNet" must {
@@ -226,18 +300,23 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
         }
       }
     }
+
  }
 
   "GestureGrouping" must {
+
     "" in {
       // TODO:
     }
+
   }
 
   "GestureClassification" must {
+
     "" in {
       // TODO:
     }
+
   }
 
 }

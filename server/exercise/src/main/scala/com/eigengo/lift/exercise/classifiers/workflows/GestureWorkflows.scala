@@ -82,20 +82,27 @@ trait GestureWorkflows extends SVMClassifier {
   class IdentifyGestureEvents {
     val in = UndefinedSource[AccelerometerValue]
     val out = UndefinedSink[AccelerometerValue]
-    val tap = UndefinedSink[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]
+    val tap = UndefinedSink[TaggedValue[AccelerometerValue]]
 
     val graph = PartialFlowGraph { implicit builder =>
+      val split = Broadcast[AccelerometerValue]
 
-      in ~> Flow[AccelerometerValue].transform(() => SamplingWindow[AccelerometerValue](windowSize) {
-        case (sample: List[AccelerometerValue]) if sample.length == windowSize =>
+      in ~> split ~> out
+      split ~> Flow[AccelerometerValue].transform(() => SlidingWindow[AccelerometerValue](windowSize)).map { (sample: List[AccelerometerValue]) =>
+        if (sample.length == windowSize) {
+          // Saturated windows may be classified
           val matchProbability = probabilityOfGestureEvent(sample)
 
           if (matchProbability > threshold) {
-            Source.single(Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]](GestureTag[AccelerometerValue](name, matchProbability, _)))
+            GestureTag[AccelerometerValue](name, matchProbability, sample.head)
           } else {
-            Source.single(Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]](ActivityTag[AccelerometerValue]))
-          } ~> tap
-      }) ~> out
+            ActivityTag[AccelerometerValue](sample.head)
+          }
+        } else {
+          // Truncated windows are never classified (these typically occur when stream closes)
+          ActivityTag[AccelerometerValue](sample.head)
+        }
+      } ~> tap
     }
   }
 
