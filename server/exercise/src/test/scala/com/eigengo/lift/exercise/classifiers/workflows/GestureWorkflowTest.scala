@@ -98,21 +98,18 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
   }
 
-  "MergeTransformations" must {
+  "MergeTagging" must {
 
-    val merge = MergeTransformations[String, TaggedValue[String]](3) { (obs: Set[Transformation[String, TaggedValue[String]]]) =>
+    val merge = MergeTagging[TaggedValue[String], TaggedValue[String]](3) { (obs: Set[TaggedValue[String]]) =>
       require(obs.nonEmpty)
 
-      Transformation({ value =>
-        val results = obs.map(_.action(value))
-        if (results.filter(_.isInstanceOf[GestureTag[String]]).nonEmpty) {
-          results.filter(_.isInstanceOf[GestureTag[String]]).asInstanceOf[Set[GestureTag[String]]].maxBy(_.matchProbability)
-        } else {
-          results.head
-        }
-      })
+      if (obs.filter(_.isInstanceOf[GestureTag[String]]).nonEmpty) {
+        obs.filter(_.isInstanceOf[GestureTag[String]]).asInstanceOf[Set[GestureTag[String]]].maxBy(_.matchProbability)
+      } else {
+        obs.head
+      }
     }
-    def component(inProbe: List[PublisherProbe[Transformation[String, TaggedValue[String]]]], out: SubscriberProbe[Transformation[String, TaggedValue[String]]]) = FlowGraph { implicit builder =>
+    def component(inProbe: List[PublisherProbe[TaggedValue[String]]], out: SubscriberProbe[TaggedValue[String]]) = FlowGraph { implicit builder =>
       builder.importPartialFlowGraph(merge.graph)
 
       for (n <- 0 until 3) {
@@ -122,9 +119,9 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
     }
 
     "correctly merge tagged accelerometer data values by selecting gesture with largest matching probability" in {
-      val msgs: List[Transformation[String, TaggedValue[String]]] = List(Transformation(_ => GestureTag("one", 0.75, "1")), Transformation(_ => ActivityTag("2")), Transformation(_ => GestureTag("three", 0.80, "3")))
-      val inProbe = (0 until 3).map(_ => PublisherProbe[Transformation[String, TaggedValue[String]]]()).toList
-      val out = SubscriberProbe[Transformation[String, TaggedValue[String]]]()
+      val msgs: List[TaggedValue[String]] = List(GestureTag("one", 0.75, "1"), ActivityTag("2"), GestureTag("three", 0.80, "3"))
+      val inProbe = (0 until 3).map(_ => PublisherProbe[TaggedValue[String]]()).toList
+      val out = SubscriberProbe[TaggedValue[String]]()
 
       component(inProbe, out).run()
       val inPub = inProbe.map(_.expectSubscription())
@@ -135,13 +132,13 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
         inPub(n % 3).sendNext(msg)
       }
 
-      out.expectNext().action("any") should be(msgs(2).action("any"))
+      out.expectNext(msgs(2))
     }
 
     "correctly merge tagged accelerometer data values when no signals are a gesture match" in {
-      val msgs: List[Transformation[String, TaggedValue[String]]] = List(Transformation(_ => ActivityTag("1")), Transformation(_ => ActivityTag("2")), Transformation(_ => ActivityTag("3")))
-      val inProbe = (0 until 3).map(_ => PublisherProbe[Transformation[String, TaggedValue[String]]]()).toList
-      val out = SubscriberProbe[Transformation[String, TaggedValue[String]]]()
+      val msgs: List[TaggedValue[String]] = List(ActivityTag("1"), ActivityTag("2"), ActivityTag("3"))
+      val inProbe = (0 until 3).map(_ => PublisherProbe[TaggedValue[String]]()).toList
+      val out = SubscriberProbe[TaggedValue[String]]()
 
       component(inProbe, out).run()
       val inPub = inProbe.map(_.expectSubscription())
@@ -152,7 +149,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
         inPub(n % 3).sendNext(msg)
       }
 
-      out.expectNext().action("any") should be(msgs(0).action("any"))
+      out.expectNext(msgs(0))
     }
 
   }
@@ -161,7 +158,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
     val modulate = ModulateSensorNet[String, TaggedValue[String], Int]((0 until 3).toSet)
 
-    def component(in: Map[Int, PublisherProbe[String]], transform: PublisherProbe[Transformation[String, TaggedValue[String]]], out: Map[Int, SubscriberProbe[TaggedValue[String]]]) = FlowGraph { implicit builder =>
+    def component(in: Map[Int, PublisherProbe[String]], transform: PublisherProbe[TaggedValue[String]], out: Map[Int, SubscriberProbe[TaggedValue[String]]]) = FlowGraph { implicit builder =>
       builder.importPartialFlowGraph(modulate.graph)
 
       for (loc <- 0 until 3) {
@@ -173,13 +170,11 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       }
     }
 
-    val transform = Transformation[String, TaggedValue[String]](v => if (v == "gesture") GestureTag("transform", 0.42, v) else ActivityTag(v))
-
     "request for output on at least one wire (input values present) should be correctly transformed" in {
       val msgs = List("one", "two", "three")
       val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
       val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
-      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+      val transformProbe = PublisherProbe[TaggedValue[String]]()
 
       component(inProbe, transformProbe, outProbe).run()
       val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
@@ -190,7 +185,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       for ((msg, n) <- msgs.zipWithIndex) {
         inPub(n % 3).sendNext(msg)
       }
-      transformPub.sendNext(transform)
+      transformPub.sendNext(ActivityTag("default"))
 
       outProbe(1).expectNext(ActivityTag("two"))
     }
@@ -199,7 +194,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       val msgs = List("one", "two", "three")
       val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
       val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
-      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+      val transformProbe = PublisherProbe[TaggedValue[String]]()
 
       component(inProbe, transformProbe, outProbe).run()
       val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
@@ -212,7 +207,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       for ((msg, n) <- msgs.zipWithIndex) {
         inPub(n % 3).sendNext(msg)
       }
-      transformPub.sendNext(transform)
+      transformPub.sendNext(ActivityTag("default"))
 
       for (n <- 0 until msgs.length) {
         outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
@@ -220,10 +215,10 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
     }
 
     "request for outputs on all 3 wires (input values present) should be correctly transformed [gesture present]" in {
-      val msgs = List("one", "two", "gesture")
+      val msgs = List("one", "two", "three")
       val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
       val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
-      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+      val transformProbe = PublisherProbe[TaggedValue[String]]()
 
       component(inProbe, transformProbe, outProbe).run()
       val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
@@ -236,14 +231,10 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       for ((msg, n) <- msgs.zipWithIndex) {
         inPub(n % 3).sendNext(msg)
       }
-      transformPub.sendNext(transform)
+      transformPub.sendNext(GestureTag("transform", 0.42, "default"))
 
       for (n <- 0 until msgs.length) {
-        if (msgs.zipWithIndex.filter(_._1 == "gesture").map(_._2).contains(n)) {
-          outProbe(n % 3).expectNext(GestureTag("transform", 0.42, msgs(n)))
-        } else {
-          outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
-        }
+        outProbe(n % 3).expectNext(GestureTag("transform", 0.42, msgs(n)))
       }
     }
 
@@ -251,7 +242,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       val msgs = List("one", "two", "three", "four", "five", "six")
       val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
       val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
-      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+      val transformProbe = PublisherProbe[TaggedValue[String]]()
 
       component(inProbe, transformProbe, outProbe).run()
       val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
@@ -264,8 +255,8 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       for ((msg, n) <- msgs.zipWithIndex) {
         inPub(n % 3).sendNext(msg)
       }
-      transformPub.sendNext(transform)
-      transformPub.sendNext(transform)
+      transformPub.sendNext(ActivityTag("default-1"))
+      transformPub.sendNext(ActivityTag("default-2"))
 
       for (n <- 0 until msgs.length) {
         outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
@@ -273,10 +264,10 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
     }
 
     "multiple requests for output on all 3 wires (input values present) should be correctly transformed [gesture present]" in {
-      val msgs = List("gesture", "two", "three", "four", "gesture", "six")
+      val msgs = List("one", "two", "three", "four", "five", "six")
       val inProbe = (0 until 3).map(n => (n, PublisherProbe[String]())).toMap
       val outProbe = (0 until 3).map(n => (n, SubscriberProbe[TaggedValue[String]]())).toMap
-      val transformProbe = PublisherProbe[Transformation[String, TaggedValue[String]]]()
+      val transformProbe = PublisherProbe[TaggedValue[String]]()
 
       component(inProbe, transformProbe, outProbe).run()
       val inPub = inProbe.map { case (n, pub) => (n, pub.expectSubscription()) }.toMap
@@ -289,11 +280,11 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       for ((msg, n) <- msgs.zipWithIndex) {
         inPub(n % 3).sendNext(msg)
       }
-      transformPub.sendNext(transform)
-      transformPub.sendNext(transform)
+      transformPub.sendNext(GestureTag("transform", 0.42, "default-1"))
+      transformPub.sendNext(ActivityTag("default-2"))
 
       for (n <- 0 until msgs.length) {
-        if (msgs.zipWithIndex.filter(_._1 == "gesture").map(_._2).contains(n)) {
+        if (n / 3 == 0) {
           outProbe(n % 3).expectNext(GestureTag("transform", 0.42, msgs(n)))
         } else {
           outProbe(n % 3).expectNext(ActivityTag(msgs(n)))
@@ -305,8 +296,64 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
   "GestureGrouping" must {
 
-    "" in {
-      // TODO:
+    def component(in: PublisherProbe[TaggedValue[String]], out: SubscriberProbe[GroupValue[TaggedValue[String]]]) = FlowGraph { implicit builder =>
+      val group = GestureGrouping[String]()
+
+      builder.importPartialFlowGraph(group.graph)
+
+      builder.attachSource(group.in, Source(in))
+      builder.attachSink(group.out, Sink(out))
+    }
+
+    "group single gesture tagged value with highest windowed match" in {
+      val msgs = ((0 until 10).map(n => ActivityTag[String](s"activity-$n")) ++ (2 to 10).map(n => GestureTag[String](name, 0.90 - (1.0 / n), s"gesture-$n")) ++ (10 until 20).map(n => ActivityTag[String](s"activity-$n"))).toList
+      val inProbe = PublisherProbe[TaggedValue[String]]()
+      val outProbe = SubscriberProbe[GroupValue[TaggedValue[String]]]()
+
+      component(inProbe, outProbe).run()
+      val inPub = inProbe.expectSubscription()
+      val outSub = outProbe.expectSubscription()
+
+      outSub.request(msgs.length)
+      for (msg <- msgs) {
+        inPub.sendNext(msg)
+      }
+      inPub.sendComplete()
+
+      for (msg <- msgs.slice(0, 10).map(SingleValue[TaggedValue[String]](_))) {
+        outProbe.expectNext(msg)
+      }
+      for (msg <- msgs.slice(10, 10+8).map(SingleValue[TaggedValue[String]](_))) {
+        outProbe.expectNext(msg)
+      }
+      outProbe.expectNext(BlobValue(List(msgs(10+9))))
+      for (msg <- msgs.slice(10+9, 10+9+10).map(SingleValue[TaggedValue[String]](_))) {
+        outProbe.expectNext(msg)
+      }
+    }
+
+    "group contiguous gesture tagged values with highest windowed match being recorded" in {
+      val msgs = ((0 until 10).map(n => ActivityTag[String](s"activity-$n")) ++ (2 to 10).map(n => GestureTag[String](name, 0.30 + (1.0 / n), s"gesture-$n")) ++ (10 until 20).map(n => ActivityTag[String](s"activity-$n"))).toList
+      val inProbe = PublisherProbe[TaggedValue[String]]()
+      val outProbe = SubscriberProbe[GroupValue[TaggedValue[String]]]()
+
+      component(inProbe, outProbe).run()
+      val inPub = inProbe.expectSubscription()
+      val outSub = outProbe.expectSubscription()
+
+      outSub.request(msgs.length)
+      for (msg <- msgs) {
+        inPub.sendNext(msg)
+      }
+      inPub.sendComplete()
+
+      for (msg <- msgs.slice(0, 10).map(SingleValue[TaggedValue[String]](_))) {
+        outProbe.expectNext(msg)
+      }
+      outProbe.expectNext(BlobValue(msgs.slice(10, 10+9)))
+      for (msg <- msgs.slice(10+9, 10+9+10).map(SingleValue[TaggedValue[String]](_))) {
+        outProbe.expectNext(msg)
+      }
     }
 
   }

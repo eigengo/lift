@@ -1,5 +1,6 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
+import akka.stream.FlattenStrategy
 import akka.stream.scaladsl._
 import breeze.linalg.DenseMatrix
 import com.eigengo.lift.exercise.AccelerometerValue
@@ -56,13 +57,6 @@ trait GestureWorkflows extends SVMClassifier {
   private lazy val model = new SVMModelParser(name)(config).model.get
 
   /**
-   * Trigger action used to modulate sensor signals.
-   *
-   * @param action modulation action that is to be used to transform a sensor message
-   */
-  case class Transformation[A, B](action: A => B)
-
-  /**
    * Measures probability that sampled window is recognised as a gesture event.
    *
    * @param sample sampled data to be tested
@@ -115,25 +109,25 @@ trait GestureWorkflows extends SVMClassifier {
    *
    * @param size number of input sources that we are to bundle and merge
    */
-  class MergeTransformations[A, B](size: Int, merge: Set[Transformation[A, B]] => Transformation[A, B]) {
+  class MergeTagging[A, B](size: Int, merge: Set[A] => B) {
     require(size > 0)
 
-    val in = (0 until size).map(_ => UndefinedSource[Transformation[A, B]])
-    val out = UndefinedSink[Transformation[A, B]]
+    val in = (0 until size).map(_ => UndefinedSource[A])
+    val out = UndefinedSink[B]
 
     val graph = PartialFlowGraph { implicit builder =>
-      val zip = ZipSet[Transformation[A, B]](in.size)
+      val zip = ZipSet[A](in.size)
 
       for ((probe, index) <- in.zipWithIndex) {
         probe ~> zip.in(index)
       }
-      zip.out ~> Flow[Set[Transformation[A, B]]].map(merge) ~> out
+      zip.out ~> Flow[Set[A]].map(merge) ~> out
     }
   }
 
-  object MergeTransformations {
-    def apply[A, B](size: Int)(merge: Set[Transformation[A, B]] => Transformation[A, B]) = {
-      new MergeTransformations[A, B](size, merge)
+  object MergeTagging {
+    def apply[A, B](size: Int)(merge: Set[A] => B) = {
+      new MergeTagging[A, B](size, merge)
     }
   }
 
@@ -145,15 +139,21 @@ trait GestureWorkflows extends SVMClassifier {
    */
   class ModulateSensorNet[A, B, L](locations: Set[L]) {
     val in = locations.map(loc => (loc, UndefinedSource[A])).toMap
-    val transform = UndefinedSource[Transformation[A, B]]
-    val out = locations.map(loc => (loc, UndefinedSink[B])).toMap
+    val transform = UndefinedSource[TaggedValue[B]]
+    val out = locations.map(loc => (loc, UndefinedSink[TaggedValue[A]])).toMap
 
     val graph = PartialFlowGraph { implicit builder =>
-      val broadcast = Broadcast[Transformation[A, B]]
+      val broadcast = Broadcast[TaggedValue[B]]
 
       transform ~> broadcast
       for ((location, sensor) <- in) {
-        val zip = ZipWith[A, Transformation[A, B], B]((msg: A, transform: Transformation[A, B]) => transform.action(msg))
+        val zip = ZipWith[A, TaggedValue[B], TaggedValue[A]]((msg: A, tag: TaggedValue[B]) => tag match {
+          case GestureTag(name, matchProb, _) =>
+            GestureTag(name, matchProb, msg)
+
+          case ActivityTag(_) =>
+            ActivityTag(msg)
+        })
 
         sensor    ~> zip.left
         broadcast ~> zip.right
@@ -172,7 +172,29 @@ trait GestureWorkflows extends SVMClassifier {
   class GestureGrouping[A] {
     val in = UndefinedSource[TaggedValue[A]]
     val out = UndefinedSink[GroupValue[TaggedValue[A]]]
-
+/*
+    val graph = PartialFlowGraph { implicit builder =>
+      in ~>
+        Flow[TaggedValue[A]]
+          .splitWhen(_.isInstanceOf[ActivityTag[A]])
+          .map { (events: Source[TaggedValue[A]]) =>
+            events.scan((Seq.empty[GroupValue[TaggedValue[A]]], List.empty[GestureTag[A]])) {
+              case ((aggr: Seq[GroupValue[TaggedValue[A]]], last: List[GestureTag[A]]), evnt: TaggedValue[A]) =>
+                if (last.isEmpty && evnt.isInstanceOf[ActivityTag[A]]) {
+                  (aggr :+ SingleValue(evnt), List.empty)
+                } else if (last.isEmpty && evnt.isInstanceOf[GestureTag[A]]) {
+                  (aggr, List(evnt.asInstanceOf[GestureTag[A]]))
+                } else if (evnt.isInstanceOf[ActivityTag[A]]) {
+                  (aggr :+ BlobValue[TaggedValue[A]](last) :+ SingleValue(evnt), List.empty)
+                } else if (last.head.name != evnt.asInstanceOf[GestureTag[A]].name) {
+                  (aggr :+ BlobValue[TaggedValue[A]](last), List(evnt.asInstanceOf[GestureTag[A]]))
+                } else {
+                  (aggr, last :+ evnt.asInstanceOf[GestureTag[A]])
+                }
+            }
+          } ~> out
+    }
+*/
     val graph = PartialFlowGraph { implicit builder =>
       in ~> Flow[TaggedValue[A]].transform(() => GroupBySample[TaggedValue[A]](2 * windowSize) { (sample: List[TaggedValue[A]]) =>
         require(sample.length == 2 * windowSize)
@@ -229,28 +251,25 @@ trait GestureWorkflows extends SVMClassifier {
 
     val graph = PartialFlowGraph { implicit builder =>
       val modulate = ModulateSensorNet[AccelerometerValue, TaggedValue[AccelerometerValue], L](outputLocations)
-      val merge = MergeTransformations[AccelerometerValue, TaggedValue[AccelerometerValue]](inputLocations.size) { (obs: Set[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]]) =>
+      val merge = MergeTagging[TaggedValue[AccelerometerValue], TaggedValue[AccelerometerValue]](inputLocations.size) { (obs: Set[TaggedValue[AccelerometerValue]]) =>
         require(obs.nonEmpty)
 
-        Transformation({ value =>
-          val results = obs.map(_.action(value))
-          if (results.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).nonEmpty) {
-            results.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).asInstanceOf[Set[GestureTag[AccelerometerValue]]].maxBy(_.matchProbability)
-          } else {
-            results.head
-          }
-        })
+        if (obs.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).nonEmpty) {
+          obs.filter(_.isInstanceOf[GestureTag[AccelerometerValue]]).asInstanceOf[Set[GestureTag[AccelerometerValue]]].maxBy(_.matchProbability)
+        } else {
+          obs.head
+        }
       }
 
       // Wire in tapped sensors
       for ((loc, index) <- inputLocations.zipWithIndex) {
         builder.importPartialFlowGraph(identify(loc).graph)
-        builder.connect(identify(loc).tap, Flow[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]], merge.in(index))
+        builder.connect(identify(loc).tap, Flow[TaggedValue[AccelerometerValue]], merge.in(index))
       }
 
       // Wire in modulation
       builder.importPartialFlowGraph(modulate.graph)
-      builder.connect(merge.out, Flow[Transformation[AccelerometerValue, TaggedValue[AccelerometerValue]]], modulate.transform)
+      builder.connect(merge.out, Flow[TaggedValue[AccelerometerValue]], modulate.transform)
 
       // Wire in grouping
       for (loc <- outputLocations) {
