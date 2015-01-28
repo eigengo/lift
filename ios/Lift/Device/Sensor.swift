@@ -3,7 +3,7 @@ import Foundation
 ///
 /// The device stats keys
 ///
-enum SensorKind {
+enum SensorKind : Hashable {
     /// Accelerometer 0xad
     case Accelerometer
     /// Gyroscope     0xbd
@@ -14,6 +14,30 @@ enum SensorKind {
     case HeartRate
     /// Some other type
     case Other(type: UInt8)
+    
+    var hashValue: Int {
+        get {
+            switch self {
+            case .Accelerometer: return 1
+            case .Gyroscope: return 2
+            case .GPS: return 3
+            case .HeartRate: return 4
+            case .Other(let x): return 21 * Int(x)
+            }
+        }
+    }
+}
+
+func ==(lhs: SensorKind, rhs: SensorKind) -> Bool {
+    switch (lhs, rhs) {
+    case (.Accelerometer, .Accelerometer): return true
+    case (.Gyroscope, .Gyroscope): return true
+    case (.GPS, .GPS): return true
+    case (.HeartRate, .HeartRate): return true
+    case (.Other(let l), .Other(let r)): return l == r
+        
+    default: return false
+    }
 }
 
 ///
@@ -36,51 +60,84 @@ struct TimeRange {
 /// Groups multiple ``SensorDataArray``s, typically received from multiple devices
 ///
 struct SensorDataGroup {
-    var sensorDataArrays: [SensorDataArray] = []
+    var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
     
-    mutating func addSensorDataArray(sda: SensorDataArray) {
-        sensorDataArrays += [sda]
+    ///
+    /// Adds raw ``data`` received from device ``id`` at some ``time``
+    ///
+    mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime) -> Void {
+        var header: lift_header?
+        data.getBytes(&header, length: sizeof(lift_header))
+        
+        let key = SensorDataArrayHeader(deviceId: id, header: header!)
+        let samples = data.subdataWithRange(NSMakeRange(sizeof(lift_header), data.length - sizeof(lift_header)))
+        let sensorData = SensorData(startTime: time, samples: samples)
+        if var x = sensorDataArrays[key] {
+            x.addSensorData(sensorData)
+        } else {
+            sensorDataArrays[key] = SensorDataArray(sensorData: sensorData)
+        }
     }
     
-    func sensorDataArraysWith(maximumGap: CFTimeInterval) -> [ContinuousSensorDataArray] {
-        fatalError("Implement me")
-    }
 }
 
 ///
 /// The header for sensor data. It roughly matches the ``lift_header`` C struct.
 ///
-struct SensorDataArrayHeader {
+struct SensorDataArrayHeader : Hashable {
+    /// the source deviceId
+    var sourceDeviceId: DeviceId
     /// the type of data
     var type: UInt8
     /// the sample size
     var sampleSize: UInt8
     /// the number of samples per second
     var samplesPerSecond: UInt8
+    
+    init(deviceId: DeviceId, header: lift_header) {
+        sourceDeviceId = deviceId
+        type = header.type
+        sampleSize = header.sample_size
+        samplesPerSecond = header.samples_per_second
+    }
+    
+    var hashValue: Int {
+        get {
+            return sourceDeviceId.hashValue +
+                31 * Int(type) +
+                31 * Int(sampleSize) +
+                31 * Int(samplesPerSecond)
+        }
+    }
 }
 
-///
-/// Continuous SDA has one single block of ``sensorData`` with the ``header``
-///
-struct ContinuousSensorDataArray {
-    var header: SensorDataArrayHeader
-    var sensorData: SensorData
+func ==(lhs: SensorDataArrayHeader, rhs: SensorDataArrayHeader) -> Bool {
+    return lhs.sourceDeviceId == rhs.sourceDeviceId &&
+           lhs.type == rhs.type &&
+           lhs.sampleSize == rhs.sampleSize &&
+           lhs.samplesPerSecond == rhs.samplesPerSecond
 }
 
 ///
 /// Potentially gappy SDA groups a number of ``SensorData`` structures with the same ``header``.
 ///
 struct SensorDataArray {
-    /// the header
-    var header: SensorDataArrayHeader
     /// the data
-    var sensorData: [SensorData]
+    var sensorDatas: [SensorData]
+    
+    init(sensorData: SensorData) {
+        sensorDatas = [sensorData]
+    }
+    
+    mutating func addSensorData(sensorData: SensorData) {
+        sensorDatas += [sensorData]
+    }
     
     func continuousRanges(from: CFAbsoluteTime) -> [TimeRange] {
         fatalError("Implement me")
     }
     
-    func continuousSampleIn(range: TimeRange) -> ContinuousSensorDataArray? {
+    func continuousSampleIn(range: TimeRange) -> SensorData? {
         fatalError("Implement me")
     }
 }

@@ -8,6 +8,7 @@ extension SensorKind {
         case .Gyroscope: return "DeviceSessionStatsKey.Gyroscope".localized();
         case .GPS: return "DeviceSessionStatsKey.GPS".localized();
         case .HeartRate: return "DeviceSessionStatsKey.HeartRate".localized();
+        case .Other(_): return "DeviceSessionStatsKey.Other".localized();
         }
     }
 

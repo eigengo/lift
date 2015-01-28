@@ -37,6 +37,7 @@
 "DeviceSessionStatsKey.Gyroscope"="Gyroscope";
 "DeviceSessionStatsKey.GPS"="GPS";
 "DeviceSessionStatsKey.HeartRate"="Heart rate";
+"DeviceSessionStatsKey.Other"="Other";
 
 "Profile.firstName"="First name";
 "Profile.lastName"="Last name";

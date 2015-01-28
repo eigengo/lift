@@ -1,5 +1,4 @@
-#ifndef Lift_SensorDataProtocol_h
-#define Lift_SensorDataProtocol_h
+#include <stdint.h>
 
 /**
  * 5 B in header
@@ -31,12 +30,3 @@ typedef struct __attribute__((__packed__)) {
  * ``data``. The memory in ``data`` must be at least 5 B long.
  */
 void encode_lift_accelerometer_data(int16_t x, int16_t y, int16_t z, void* data);
-
-/**
- * Thanks to human physiology, it's sufficient to keep the hear rate as
- * 8bit unsigned integer. Anything < 30 and > 200 usually means the user 
- * is not worried about exercise.
- */
-typedef uint8_t lift_hr_data;
-
-#endif
