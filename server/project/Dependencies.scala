@@ -38,7 +38,10 @@ object Dependencies {
 
   object kafka {
     val version = "0.8.2-beta"
-    val kafka   = "org.apache.kafka" %% "kafka"  % version exclude("org.slf4j", "slf4j-simple") exclude("org.slf4j","slf4j-log4j12")
+    val kafka   = ("org.apache.kafka" %% "kafka" % version)
+      .exclude("org.slf4j", "slf4j-simple")
+      .exclude("org.slf4j","slf4j-log4j12")
+      .exclude("org.slf4j", "slf4j-api")
   }
 
   object scalaz {
@@ -59,12 +62,22 @@ object Dependencies {
   }
 
   object spark {
-    val version = "1.2.0"
+    val version = "1.1.0"
 
-    val core = "org.apache.spark" %% "spark-core" % version
+    val core = ("org.apache.spark" %% "spark-core" % version)
+      .exclude("org.slf4j", "slf4j-log4j12")
+      .exclude("org.eclipse.jetty.orbit", "javax.transaction")
+      .exclude("org.eclipse.jetty.orbit", "javax.mail")
+      .exclude("org.eclipse.jetty.orbit", "javax.mail.glassfish")
+      .exclude("org.eclipse.jetty.orbit", "javax.activation")
+      .exclude("commons-beanutils", "commons-beanutils-core")
+      .exclude("commons-collections", "commons-collections")
+      .exclude("commons-logging", "commons-logging")
+      .exclude("com.esotericsoftware.minlog", "minlog")
+      .exclude("org.slf4j", "slf4j-api")
     val mllib = "org.apache.spark" %% "spark-mllib" % version
     val streaming = "org.apache.spark" %% "spark-streaming" % version
-    val streamingKafka = "org.apache.spark" % "spark-streaming-kafka_2.10" % version
+    val streamingKafka = "org.apache.spark" %% "spark-streaming-kafka" % version
   }
 
   val scodec_bits      = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
@@ -83,5 +96,4 @@ object Dependencies {
   // Testing
   val scalatest        = "org.scalatest"    %% "scalatest"    % "2.2.1"
   val scalacheck       = "org.scalacheck"   %% "scalacheck"   % "1.12.1"
-
 }

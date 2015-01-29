@@ -1,5 +1,5 @@
 #!/bin/bash
-/opt/spark-1.2.0/sbin/start-master.sh
+/opt/spark-1.1.0/sbin/start-master.sh
 
 while [ 1 ];
 do

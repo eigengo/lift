@@ -33,6 +33,7 @@ main:
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
     - etcd:etcd.lift.eigengo.com
+    - zookeeper:zk
 adapter:
   image: janm399/lift:adapter
   environment:
@@ -62,14 +63,12 @@ kafka:
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 sparkmaster:
-  build: martinz/spark-master:latest
+  image: martinz/spark-master:latest
   ports:
     - "8080"
     - "7077:7077"
-  links:
-    - zookeeper:zk
 sparkworker:
-  build: martinz/spark-worker:latest
+  image: martinz/spark-worker:latest
   ports:
     - "8081:8081"
   links:

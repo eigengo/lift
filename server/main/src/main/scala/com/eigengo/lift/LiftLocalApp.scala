@@ -45,7 +45,6 @@ object LiftLocalApp extends App {
       startupSharedJournal(system, startStore = port == firstSeedNodePort, path = ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
       // boot the microservices
-
       val kafka = KafkaBoot.boot(config)
       val profile = ProfileBoot.boot
       val notification = NotificationBoot.boot
