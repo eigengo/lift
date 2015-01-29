@@ -183,6 +183,11 @@ struct SensorData {
     /// the samples
     var samples: NSData
     
+    private func appendGap(length: Int, gapValue: UInt8, toData data: NSMutableData) -> Void {
+        let buf: [UInt8] = [UInt8](count: length, repeatedValue: gapValue)
+        data.appendBytes(buf, length: length)
+    }
+    
     ///
     /// Computes the end time of the sensor data block given the
     /// ``sampleSize`` and ``samplesPerSecond``
@@ -209,9 +214,35 @@ struct SensorData {
     ///  | startTime - maximumGap
     ///
     ///
-    func slice(range: TimeRange, maximumGap: CFTimeInterval,
-               sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData? {
+    func slice(range: TimeRange, maximumGap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
+        let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
+        let startGap = startTime - range.start
+        let endGap = range.end - endTime
+        
+        if startGap > maximumGap || endGap > maximumGap { return nil }
+        
+        // 100 sps, 1 B ps for 2 seconds -> 200 B
+        let start  = Int( -startGap * Double(samplesPerSecond) * Double(sampleSize) )
+        let length = Int( (endTime + startGap + endGap) * Double(samplesPerSecond) * Double(sampleSize) )
 
-        fatalError("Implement me")
+        if start == 0 && length == samples.length {
+            // Exact match. Notice that we do the comparison here on Ints rather than the CFAbsoluteTimes above.
+            return self
+        }
+        
+        if start > 0 && (start + length) < samples.length {
+            // Range is completely within our data: no gaps
+            return SensorData(startTime: startTime + startGap, samples: samples.subdataWithRange(NSMakeRange(start, length)))
+        }
+        
+        // Allowable gaps
+        let r = NSMutableData()
+        if start < 0 { appendGap(-start, gapValue: gapValue, toData: r) }
+        let l = min(length + start, samples.length) - max(start, 0)
+        r.appendData(samples.subdataWithRange(NSMakeRange(max(start, 0), l)))
+        if r.length < length {
+            appendGap(length - r.length, gapValue: gapValue, toData: r)
+        }
+        return SensorData(startTime: startTime + startGap, samples: r)
     }
 }
