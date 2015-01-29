@@ -183,11 +183,6 @@ struct SensorData {
     /// the samples
     var samples: NSData
     
-    private func appendGap(length: Int, gapValue: UInt8, toData data: NSMutableData) -> Void {
-        let buf: [UInt8] = [UInt8](count: length, repeatedValue: gapValue)
-        data.appendBytes(buf, length: length)
-    }
-    
     ///
     /// Computes the end time of the sensor data block given the
     /// ``sampleSize`` and ``samplesPerSecond``
@@ -215,13 +210,20 @@ struct SensorData {
     ///
     ///
     func slice(range: TimeRange, maximumGap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
+        
+        /// Append gap of given ``length`` filled with ``gapValue`` to the ``data``
+        func appendGap(length: Int, gapValue value: UInt8, toData data: NSMutableData) -> Void {
+            let buf: [UInt8] = [UInt8](count: length, repeatedValue: value)
+            data.appendBytes(buf, length: length)
+        }
+
         let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
         let startGap = startTime - range.start
         let endGap = range.end - endTime
         
         if startGap > maximumGap || endGap > maximumGap { return nil }
-        
-        // 100 sps, 1 B ps for 2 seconds -> 200 B
+
+        // start and length are in bytes: pointers to our ``sample``
         let start  = Int( -startGap * Double(samplesPerSecond) * Double(sampleSize) )
         let length = Int( (endTime + startGap + endGap) * Double(samplesPerSecond) * Double(sampleSize) )
 
@@ -232,7 +234,7 @@ struct SensorData {
         
         if start > 0 && (start + length) < samples.length {
             // Range is completely within our data: no gaps
-            return SensorData(startTime: startTime + startGap, samples: samples.subdataWithRange(NSMakeRange(start, length)))
+            return SensorData(startTime: startTime - startGap, samples: samples.subdataWithRange(NSMakeRange(start, length)))
         }
         
         // Allowable gaps
@@ -243,6 +245,6 @@ struct SensorData {
         if r.length < length {
             appendGap(length - r.length, gapValue: gapValue, toData: r)
         }
-        return SensorData(startTime: startTime + startGap, samples: r)
+        return SensorData(startTime: startTime - startGap, samples: r)
     }
 }
