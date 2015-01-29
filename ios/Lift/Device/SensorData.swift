@@ -1,5 +1,11 @@
 import Foundation
 
+infix operator =~= { associativity left precedence 140 }
+func =~=(lhs: Double, rhs: Double) -> Bool {
+    let epsilon = 0.0001
+    return abs(lhs - rhs) < epsilon
+}
+
 ///
 /// The device stats keys
 ///
@@ -43,7 +49,7 @@ func ==(lhs: SensorKind, rhs: SensorKind) -> Bool {
 ///
 /// The time range
 ///
-struct TimeRange {
+struct TimeRange : Equatable {
     var start: CFAbsoluteTime
     var end: CFAbsoluteTime
     
@@ -54,6 +60,17 @@ struct TimeRange {
     func intersect(that: TimeRange) -> TimeRange {
         fatalError("Implement me")
     }
+    
+    ///
+    /// Indicates that this ``TimeRange`` is within ``that``, allowing for some ``gap``
+    ///
+    func within(that: TimeRange, maximumGap gap: CFTimeInterval) -> Bool {
+        return abs(start - that.start) <= gap && abs(end - that.end) <= gap
+    }
+}
+
+func ==(lhs: TimeRange, rhs: TimeRange) -> Bool {
+    return lhs.start =~= rhs.start && lhs.end =~= rhs.end
 }
 
 ///
@@ -77,9 +94,19 @@ struct SensorDataGroup {
                 sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
             }
             
-            if data.length > samples.length {
-                decode(data.subdataWithRange(NSMakeRange(samples.length, data.length - samples.length)), fromDeviceId: id, at: time)
+            if data.length > samples.length + sizeof(lift_header) {
+                let zero = sizeof(lift_header) + samples.length
+                decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time)
             }
+        }
+    }
+    
+    ///
+    /// The number of raw SDAs
+    ///
+    var rawCount: Int {
+        get {
+            return sensorDataArrays.count
         }
     }
 
@@ -108,7 +135,31 @@ struct SensorDataGroup {
     ///
     /// Computes the continuous ``SensorDataArray``s
     ///
-    func continuousSensorDataArrays(maximumGap: CFTimeInterval, gapValue: UInt8, maximumDuration: CFTimeInterval) -> [SensorDataArray] {
+    func continuousSensorDataArrays(maximumGap gap: CFTimeInterval, gapValue: UInt8, maximumDuration: CFTimeInterval) -> [SensorDataArray] {
+        
+        /// returns ``TimeRange`` if the elements in ``tras`` all contain exactly 1 ``TimeRange``, and this ``TimeRange`` is the same
+        func singleTimeRange(tras: [[TimeRange]]) -> TimeRange? {
+            if tras.isEmpty { return nil }
+            if tras[0].isEmpty || tras[0].count > 1 { return nil }
+            
+            var firstTr: TimeRange = tras[0][0]
+            
+            for trs in tras {
+                for tr in trs {
+                    if tr != firstTr { return nil }
+                }
+            }
+            
+            return firstTr
+        }
+        
+        if sensorDataArrays.isEmpty { return [] }
+        
+        let sdas = sensorDataArrays.values.array
+        
+        if let x = singleTimeRange(sdas.map { $0.continuousRanges(maximumGap: gap) }) {
+            return []
+        }
         return []
     }
     
@@ -180,11 +231,15 @@ struct SensorDataArray {
         }
     }
     
+    func slice(range: TimeRange, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> [SensorData] {
+        return []
+    }
+    
     ///
     /// Computes the continuous ranges of as an array of ``TimeRange``,
     /// "compacting" the sensor data that are less than ``maximumGap`` apart.
     ///
-    func continuousRanges(maximumGap: CFTimeInterval) -> [TimeRange] {
+    func continuousRanges(maximumGap gap: CFTimeInterval) -> [TimeRange] {
         if sensorDatas.isEmpty { return [] }
         
         var result: [TimeRange] = []
@@ -197,7 +252,7 @@ struct SensorDataArray {
                 let nextSensorData: SensorData = sensorDatas[i + 1]
                 // [ SD ]  [ NSD ]
                 //      ^  ^
-                if nextSensorData.startTime - endTime > maximumGap {
+                if nextSensorData.startTime - endTime > gap {
                     // no: we have another TimeRange
                     result += [TimeRange(start: time, end: endTime)]
                     time = nextSensorData.startTime
@@ -239,6 +294,17 @@ struct SensorData {
     }
     
     ///
+    /// Computes whether this slice is within the given range
+    ///
+    func within(range: TimeRange, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8) -> Bool {
+        let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
+        let startGap = startTime - range.start
+        let endGap = range.end - endTime
+        
+        return startGap <= gap && endGap <= gap
+    }
+    
+    ///
     /// Computes slice of samples that fall within the given time range, 
     /// allowing for up to ``maximumGap`` before and after this data.
     /// Returns the ``SensorData`` with appropriately set ``startTime`` if
@@ -254,7 +320,7 @@ struct SensorData {
     ///  |
     ///  | startTime - maximumGap
     ///
-    func slice(range: TimeRange, maximumGap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
+    func slice(range: TimeRange, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
         
         /// Append gap of given ``length`` filled with ``gapValue`` to the ``data``
         func appendGap(length: Int, gapValue value: UInt8, toData data: NSMutableData) -> Void {
@@ -266,7 +332,7 @@ struct SensorData {
         let startGap = startTime - range.start
         let endGap = range.end - endTime
         
-        if startGap > maximumGap || endGap > maximumGap { return nil }
+        if startGap > gap || endGap > gap { return nil }
 
         // start and length are in bytes: pointers to our ``sample``
         let start  = Int( -startGap * Double(samplesPerSecond) * Double(sampleSize) )

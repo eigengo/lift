@@ -20,3 +20,33 @@ extension SensorData {
     }
     
 }
+
+///
+/// Equatable implementation for SensorDataArray
+///
+extension SensorDataArray : Equatable {
+    
+}
+
+func ==(lhs: SensorDataArray, rhs: SensorDataArray) -> Bool {
+    if lhs.header == rhs.header {
+        if lhs.sensorDatas.count != rhs.sensorDatas.count { return false }
+        for (i, lsd) in enumerate(lhs.sensorDatas) {
+            let rsd = rhs.sensorDatas[i]
+            if lsd != rsd { return false }
+        }
+        return true
+    }
+    return false
+}
+
+///
+/// Equatable implementation for SensorData
+///
+extension SensorData : Equatable {
+    
+}
+
+func ==(lhs: SensorData, rhs: SensorData) -> Bool {
+    return lhs.startTime =~= rhs.startTime && lhs.samples.isEqualToData(rhs.samples)
+}
