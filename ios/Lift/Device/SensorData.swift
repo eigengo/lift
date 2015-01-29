@@ -62,21 +62,32 @@ struct TimeRange {
 struct SensorDataGroup {
     var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
     
+    private mutating func decode(input: NSData?, fromDeviceId id: DeviceId, at time: CFAbsoluteTime) -> Void {
+        if let data = input {
+            var header: lift_header?
+            data.getBytes(&header, length: sizeof(lift_header))
+            
+            let key = SensorDataArrayHeader(sourceDeviceId: id, type: header!.type, sampleSize: header!.sample_size, samplesPerSecond: header!.samples_per_second)
+            let length = Int(header!.count * header!.sample_size)
+            let samples = data.subdataWithRange(NSMakeRange(sizeof(lift_header), length))
+            let sensorData = SensorData(startTime: time, samples: samples)
+            if var x = sensorDataArrays[key] {
+                x.addSensorData(sensorData)
+            } else {
+                sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
+            }
+            
+            if data.length > samples.length {
+                decode(data.subdataWithRange(NSMakeRange(samples.length, data.length - samples.length)), fromDeviceId: id, at: time)
+            }
+        }
+    }
+
     ///
     /// Adds raw ``data`` received from device ``id`` at some ``time``
     ///
     mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime) -> Void {
-        var header: lift_header?
-        data.getBytes(&header, length: sizeof(lift_header))
-        
-        let key = SensorDataArrayHeader(deviceId: id, header: header!)
-        let samples = data.subdataWithRange(NSMakeRange(sizeof(lift_header), data.length - sizeof(lift_header)))
-        let sensorData = SensorData(startTime: time, samples: samples)
-        if var x = sensorDataArrays[key] {
-            x.addSensorData(sensorData)
-        } else {
-            sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
-        }
+        decode(data, fromDeviceId: id, at: time)
     }
     
 }
@@ -93,13 +104,6 @@ struct SensorDataArrayHeader : Hashable {
     var sampleSize: UInt8
     /// the number of samples per second
     var samplesPerSecond: UInt8
-    
-    init(deviceId: DeviceId, header: lift_header) {
-        sourceDeviceId = deviceId
-        type = header.type
-        sampleSize = header.sample_size
-        samplesPerSecond = header.samples_per_second
-    }
     
     var hashValue: Int {
         get {
@@ -127,6 +131,11 @@ struct SensorDataArray {
     /// the data
     var sensorDatas: [SensorData]
     
+    init(header: SensorDataArrayHeader) {
+        self.header = header
+        sensorDatas = []
+    }
+    
     init(header: SensorDataArrayHeader, sensorData: SensorData) {
         self.header = header
         sensorDatas = [sensorData]
@@ -148,21 +157,21 @@ struct SensorDataArray {
         
         var result: [TimeRange] = []
         var time = sensorDatas.first!.startTime
-        var blockStartTime = time
-        for sensorData in sensorDatas {
-            if abs(sensorData.startTime - time) < maximumGap {
-                // the start time of the next block is within maximumGap
-                // we don't accumulate the gaps
-                time = sensorData.startTime
-                // increase the time to the end of the current block
-                time += sensorData.duration(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
+
+        for (i, sensorData) in enumerate(sensorDatas) {
+            let endTime = sensorData.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
+            if (i + 1) < sensorDatas.count {
+                // there is an element after this one: does it start within the maximumGap?
+                let nextSensorData: SensorData = sensorDatas[i + 1]
+                // [ SD ]  [ NSD ]
+                //      ^  ^
+                if nextSensorData.startTime - endTime > maximumGap {
+                    // no: we have another TimeRange
+                    result += [TimeRange(start: time, end: endTime)]
+                    time = nextSensorData.startTime
+                }
             } else {
-                // the start time of the next block is outside maximumGap.
-                // we have range from blockStartTime to time
-                result += [TimeRange(start: blockStartTime, end: time)]
-                // reset our running counters
-                blockStartTime = sensorData.startTime
-                time = sensorData.startTime
+                result += [TimeRange(start: time, end: endTime)]
             }
         }
         
@@ -191,6 +200,23 @@ struct SensorData {
         let sampleCount = samples.length / Int(sampleSize)
         return CFTimeInterval(sampleCount / Int(samplesPerSecond))
     }
+
+    ///
+    /// Computes the time range of the sensor data block given the
+    /// ``sampleSize`` and ``samplesPerSecond``
+    ///
+    func timeRange(sampleSize: UInt8, samplesPerSecond: UInt8) -> TimeRange {
+        return TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
+    }
+
+    
+    ///
+    /// Computes the end time of the sensor data block given the
+    /// ``sampleSize`` and ``samplesPerSecond``
+    ///
+    func endTime(sampleSize: UInt8, samplesPerSecond: UInt8) -> CFAbsoluteTime {
+        return startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
+    }
     
     ///
     /// Computes slice of samples that fall within the given time range, 
@@ -207,7 +233,6 @@ struct SensorData {
     ///  | | startTime
     ///  |
     ///  | startTime - maximumGap
-    ///
     ///
     func slice(range: TimeRange, maximumGap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
         

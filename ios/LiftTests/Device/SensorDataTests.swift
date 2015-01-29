@@ -22,8 +22,16 @@ class SensorDataTests : XCTestCase {
     
     func testSliceExact() {
         // [0123456789]
-        //  ^        ^ Exact match
+        //  ^        ^ Exact match (0..10, 1 B per sample, 1 s/s)
         XCTAssertEqual(data.slice(TimeRange(start: 0, end: 10), maximumGap: 0, sampleSize: 1, samplesPerSecond: 1, gapValue: dash)!.asString(), data.asString())
+
+        // [01234|56789]
+        //  ^        ^ Exact match (0..2,  5 B per sample, 1 s/s)
+        XCTAssertEqual(data.slice(TimeRange(start: 0, end: 2), maximumGap: 0, sampleSize: 5, samplesPerSecond: 1, gapValue: dash)!.asString(), data.asString())
+
+        // [01234|56789]
+        //  ^        ^ Exact match (0..1,  5 B per sample, 2 s/s)
+        XCTAssertEqual(data.slice(TimeRange(start: 0, end: 1), maximumGap: 0, sampleSize: 5, samplesPerSecond: 2, gapValue: dash)!.asString(), data.asString())
     }
     
     func testSliceWithoutGaps() {
@@ -76,4 +84,12 @@ class SensorDataTests : XCTestCase {
         XCTAssertEqual(tsge.duration(1, samplesPerSecond: 1), 8)
     }
 
+    func testSliceWithinMaximumGapsSampleSize5() {
+        // [-----|01234|56789]
+        //  ^               ^ Gap at start
+        let gas = data.slice(TimeRange(start: -1, end: 2), maximumGap: 1, sampleSize: 5, samplesPerSecond: 1, gapValue: dash)!
+        XCTAssertEqual(gas.asString(), "-----0123456789")
+        XCTAssertEqual(gas.startTime, -1)
+        XCTAssertEqual(gas.duration(5, samplesPerSecond: 1), 3)
+    }
 }
