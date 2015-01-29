@@ -85,17 +85,15 @@ class UserExercisesClassifier extends Actor {
 
   override def receive: Receive = {
     case ClassifyExerciseEvt(sessionProps, sdwls) =>
-      sdwls.foreach { sdwl ⇒ sdwl.data}
-        sdwls.foreach { sdwl ⇒
-
-          sdwl.data.foreach {
-            case AccelerometerData(sr, values) ⇒
-              val xs = values.map(_.x)
-              val ys = values.map(_.y)
-              val zs = values.map(_.z)
-              println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
-          }
+      sdwls.foreach { sdwl ⇒
+        sdwl.data.foreach {
+          case AccelerometerData(sr, values) ⇒
+            val xs = values.map(_.x)
+            val ys = values.map(_.y)
+            val zs = values.map(_.z)
+            println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
         }
+      }
       sender() ! randomExercise(sessionProps)
     case ClassificationExamples(sessionProps) ⇒
       sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
