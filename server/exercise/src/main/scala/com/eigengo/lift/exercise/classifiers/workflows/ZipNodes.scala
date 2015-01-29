@@ -9,7 +9,7 @@ import akka.stream.scaladsl.FlexiMerge
 * @param size number of inputs that may be joined to this merge node
 */
 abstract class ZipBundle[A] private[workflows] (size: Int) extends FlexiMerge[Set[A]] {
-  require(size > 0)
+  require(size > 1, s"ZipBundle must have at least 2 connected inputs ($size were given)")
 
   import FlexiMerge._
 

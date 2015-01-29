@@ -13,7 +13,7 @@ object ClassificationAssertions {
    * Quantifier-free assertions that may hold of sensor data
    */
   sealed trait Assertion
-  case class Predicate(predicate: Fact) extends Assertion
+  case class Predicate(fact: Fact) extends Assertion
   case class Conjunction(assert1: Assertion, assert2: Assertion, assertRemaining: Assertion*) extends Assertion
   case class Disjunction(assert1: Assertion, assert2: Assertion, assertRemaining: Assertion*) extends Assertion
 

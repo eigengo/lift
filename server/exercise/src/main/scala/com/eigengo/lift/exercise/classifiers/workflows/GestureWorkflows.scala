@@ -95,25 +95,30 @@ trait GestureWorkflows extends SVMClassifier {
    *
    * @param size number of input sources that we are to bundle and merge
    */
-  class MergeTagging[A, B](size: Int, merge: Set[A] => B) {
+  class MergeSignals[A, B](size: Int, merge: Set[A] => B) {
     require(size > 0)
 
     val in = (0 until size).map(_ => UndefinedSource[A])
     val out = UndefinedSink[B]
 
     val graph = PartialFlowGraph { implicit builder =>
-      val zip = ZipN[A](in.size)
+      // We separate out size 1 case since `ZipN` nodes need at least 2 upstream nodes
+      if (size == 1) {
+        in.head ~> Flow[A].map(v => merge(Set(v))) ~> out
+      } else {
+        val zip = ZipN[A](in.size)
 
-      for ((probe, index) <- in.zipWithIndex) {
-        probe ~> zip.in(index)
+        for ((probe, index) <- in.zipWithIndex) {
+          probe ~> zip.in(index)
+        }
+        zip.out ~> Flow[Set[A]].map(merge) ~> out
       }
-      zip.out ~> Flow[Set[A]].map(merge) ~> out
     }
   }
 
-  object MergeTagging {
+  object MergeSignals {
     def apply[A, B](size: Int)(merge: Set[A] => B) = {
-      new MergeTagging[A, B](size, merge)
+      new MergeSignals[A, B](size, merge)
     }
   }
 
@@ -124,15 +129,15 @@ trait GestureWorkflows extends SVMClassifier {
    * @param locations set of locations that make up the sensor network
    */
   class ModulateSensorNet[A, B, L](locations: Set[L]) {
+    require(locations.nonEmpty)
+
     val in = locations.map(loc => (loc, UndefinedSource[A])).toMap
     val transform = UndefinedSource[Fact]
     val out = locations.map(loc => (loc, UndefinedSink[Bind[A]])).toMap
 
     val graph = PartialFlowGraph { implicit builder =>
-      val broadcast = Broadcast[Fact]
-
-      transform ~> broadcast
-      for ((location, sensor) <- in) {
+      // We separate out 1-element case since `Broadcast` nodes need at least 2 downstream nodes
+      if (locations.size == 1) {
         val zip = ZipWith[A, Fact, Bind[A]]((msg: A, tag: Fact) => tag match {
           case Gesture(name, matchProb) =>
             Bind(Predicate(Gesture(name, matchProb)), msg)
@@ -141,9 +146,26 @@ trait GestureWorkflows extends SVMClassifier {
             Bind(Predicate(Unknown), msg)
         })
 
-        sensor    ~> zip.left
-        broadcast ~> zip.right
-        zip.out   ~> out(location)
+        in(locations.head) ~> zip.left
+        transform ~> zip.right
+        zip.out ~> out(locations.head)
+      } else {
+        val broadcast = Broadcast[Fact]
+
+        transform ~> broadcast
+        for ((location, sensor) <- in) {
+          val zip = ZipWith[A, Fact, Bind[A]]((msg: A, tag: Fact) => tag match {
+            case Gesture(name, matchProb) =>
+              Bind(Predicate(Gesture(name, matchProb)), msg)
+
+            case Unknown =>
+              Bind(Predicate(Unknown), msg)
+          })
+
+          sensor ~> zip.left
+          broadcast ~> zip.right
+          zip.out ~> out(location)
+        }
       }
     }
   }
@@ -164,22 +186,27 @@ trait GestureWorkflows extends SVMClassifier {
     require(outputLocations.nonEmpty)
 
     private val identify = inputLocations.map(loc => (loc, IdentifyGestureEvents())).toMap
+    private val modulate = ModulateSensorNet[AccelerometerValue, Bind[AccelerometerValue], L](outputLocations)
+    private val merge = MergeSignals[Fact, Fact](inputLocations.size) { (obs: Set[Fact]) =>
+      require(obs.nonEmpty)
+
+      if (obs.filter(_.isInstanceOf[Gesture]).asInstanceOf[Set[Gesture]].filter(_.name == name).nonEmpty) {
+        obs.filter(_.isInstanceOf[Gesture]).asInstanceOf[Set[Gesture]].filter(_.name == name).maxBy(_.matchProbability)
+      } else {
+        obs.head
+      }
+    }
 
     // Tapped sensors - monitored for recognisable gestures
     val inputTap = inputLocations.map(loc => (loc, identify(loc).in)).toMap
     val outputTap = inputLocations.map(loc => (loc, identify(loc).out)).toMap
 
-    val graph = PartialFlowGraph { implicit builder =>
-      val modulate = ModulateSensorNet[AccelerometerValue, Bind[AccelerometerValue], L](outputLocations)
-      val merge = MergeTagging[Fact, Fact](inputLocations.size) { (obs: Set[Fact]) =>
-        require(obs.nonEmpty)
+    // Modulation sensors - binds sensor data with gesture facts
+    val inputModulate = outputLocations.map(loc => (loc, modulate.in(loc))).toMap
+    val outputModulate = outputLocations.map(loc => (loc, modulate.out(loc))).toMap
 
-        if (obs.filter(_.isInstanceOf[Gesture]).nonEmpty) {
-          obs.filter(_.isInstanceOf[Gesture]).asInstanceOf[Set[Gesture]].maxBy(_.matchProbability)
-        } else {
-          obs.head
-        }
-      }
+    val graph = PartialFlowGraph { implicit builder =>
+      builder.importPartialFlowGraph(merge.graph)
 
       // Wire in tapped sensors
       for ((loc, index) <- inputLocations.zipWithIndex) {
