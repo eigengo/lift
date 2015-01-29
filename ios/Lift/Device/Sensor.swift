@@ -191,4 +191,27 @@ struct SensorData {
         let sampleCount = samples.length / Int(sampleSize)
         return CFTimeInterval(sampleCount / Int(samplesPerSecond))
     }
+    
+    ///
+    /// Computes slice of samples that fall within the given time range, 
+    /// allowing for up to ``maximumGap`` before and after this data.
+    /// Returns the ``SensorData`` with appropriately set ``startTime`` if
+    /// the ``range`` is valid, or ``nil``.
+    ///
+    ///                         startTime + duration + maximumGap |
+    ///                                                           |
+    ///                                    startTime + duration | |
+    ///                                                         v v
+    /// [__######################################################__]
+    ///  ^ ^
+    ///  | | startTime
+    ///  |
+    ///  | startTime - maximumGap
+    ///
+    ///
+    func slice(range: TimeRange, maximumGap: CFTimeInterval,
+               sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData? {
+
+        fatalError("Implement me")
+    }
 }
