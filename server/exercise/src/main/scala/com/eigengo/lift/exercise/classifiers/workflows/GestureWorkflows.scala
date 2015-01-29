@@ -116,7 +116,7 @@ trait GestureWorkflows extends SVMClassifier {
     val out = UndefinedSink[B]
 
     val graph = PartialFlowGraph { implicit builder =>
-      val zip = ZipSet[A](in.size)
+      val zip = ZipN[A](in.size)
 
       for ((probe, index) <- in.zipWithIndex) {
         probe ~> zip.in(index)

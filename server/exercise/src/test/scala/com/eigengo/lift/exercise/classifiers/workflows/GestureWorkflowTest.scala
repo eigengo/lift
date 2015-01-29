@@ -86,7 +86,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       for ((msg, index) <- msgs.zipWithIndex) {
         val event = tapProbe.expectNext()
         if (gestureWindow.contains(index)) {
-          event shouldBe a[GestureTag[AccelerometerValue]]
+          event shouldBe a[GestureTag[_]]
           event.asInstanceOf[GestureTag[AccelerometerValue]].name should be("tap")
           event.asInstanceOf[GestureTag[AccelerometerValue]].matchProbability should be > 0.75
           event.asInstanceOf[GestureTag[AccelerometerValue]].value should be(msg)
