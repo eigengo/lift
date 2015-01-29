@@ -32,8 +32,12 @@ class SensorDataGroupTests : XCTestCase {
         // 3 things, all starting at 1, 2 samples, 1 sps.
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 1)
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 2)
-        XCTAssertEqual(sdg.rawCount, 6)
+        // trivial merges should have happened
+        XCTAssertEqual(sdg.rawCount, 3)
         
+        // we're way above our minimum gap ~> we have a gap
+        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 4)
+        XCTAssertEqual(sdg.rawCount, 6)
     }
     
 }

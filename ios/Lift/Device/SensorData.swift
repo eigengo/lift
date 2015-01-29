@@ -79,7 +79,7 @@ func ==(lhs: TimeRange, rhs: TimeRange) -> Bool {
 struct SensorDataGroup {
     var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
     
-    private mutating func decode(input: NSData?, fromDeviceId id: DeviceId, at time: CFAbsoluteTime) -> Void {
+    private mutating func decode(input: NSData?, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
         if let data = input {
             var header: lift_header?
             data.getBytes(&header, length: sizeof(lift_header))
@@ -89,14 +89,14 @@ struct SensorDataGroup {
             let samples = data.subdataWithRange(NSMakeRange(sizeof(lift_header), length))
             let sensorData = SensorData(startTime: time, samples: samples)
             if var x = sensorDataArrays[key] {
-                x.addSensorData(sensorData)
+                x.append(sensorData: sensorData, maximumGap: gap, gapValue: gapValue)
             } else {
                 sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
             }
             
             if data.length > samples.length + sizeof(lift_header) {
                 let zero = sizeof(lift_header) + samples.length
-                decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time)
+                decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
             }
         }
     }
@@ -119,8 +119,13 @@ struct SensorDataGroup {
     /// usage low, but more importantly, it makes it easier for the device to maintain time synchronization
     /// in the values it sends.
     ///
-    mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime) -> Void {
-        decode(data, fromDeviceId: id, at: time)
+    /// It will also perform trivial merging if the last received data block arrives within ``gap`` of the last
+    /// received data block.
+    ///
+    mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime,
+        maximumGap gap: CFTimeInterval = 0.1, gapValue: UInt8 = 0x00) -> Void {
+        
+        decode(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
     }
     
     ///
@@ -215,10 +220,19 @@ struct SensorDataArray {
     }
     
     ///
-    /// Adds another ``sensorData``
+    /// Adds another ``sensorData``. It will also perform trivial merging: that is, if the ``sensorData`` 
+    /// being added follows immediately (for some very small epsilon) the last ``sensorData``, then it
+    /// will just be appended to the last ``sensorData``.
     ///
-    mutating func addSensorData(sensorData: SensorData) {
-        sensorDatas += [sensorData]
+    mutating func append(sensorData data: SensorData, maximumGap gap: CFTimeInterval, gapValue: UInt8) {
+        if var last = sensorDatas.last {
+            if data.startTime - last.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond) < gap {
+                last.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: data.startTime)
+                last.append(samples: data.samples)
+                return
+            }
+        }
+        sensorDatas += [data]
     }
     
     ///
@@ -276,6 +290,35 @@ struct SensorData {
     /// the samples
     var samples: NSData
     
+    /// Append gap of given ``length`` filled with ``gapValue`` to the ``data``
+    private func appendGap(length: Int, gapValue value: UInt8, toData data: NSMutableData) -> Void {
+        let buf: [UInt8] = [UInt8](count: length, repeatedValue: value)
+        data.appendBytes(buf, length: length)
+    }
+
+    ///
+    /// Append another ``data`` to the ``samples``
+    ///
+    mutating func append(samples data: NSData) {
+        let x = NSMutableData(data: samples)
+        x.appendData(data)
+        samples = x
+    }
+    
+    ///
+    /// Pads end of this ``SensorData`` with ``gapValue`` until its end time matches ``until``.
+    ///
+    mutating func padEnd(sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8, until: CFTimeInterval) {
+        let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
+        let endGap = until - endTime
+        if endGap > 0 {
+            let length = Int( endGap * Double(samplesPerSecond) * Double(sampleSize) )
+            let x = NSMutableData(data: samples)
+            appendGap(length, gapValue: gapValue, toData: x)
+            samples = x
+        }
+    }
+    
     ///
     /// Computes the end time of the sensor data block given the
     /// ``sampleSize`` and ``samplesPerSecond``
@@ -321,13 +364,6 @@ struct SensorData {
     ///  | startTime - maximumGap
     ///
     func slice(range: TimeRange, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
-        
-        /// Append gap of given ``length`` filled with ``gapValue`` to the ``data``
-        func appendGap(length: Int, gapValue value: UInt8, toData data: NSMutableData) -> Void {
-            let buf: [UInt8] = [UInt8](count: length, repeatedValue: value)
-            data.appendBytes(buf, length: length)
-        }
-
         let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
         let startGap = startTime - range.start
         let endGap = range.end - endTime

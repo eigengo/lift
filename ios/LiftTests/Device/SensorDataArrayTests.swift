@@ -5,9 +5,9 @@ class SensorDataArrayTests : XCTestCase {
     
     func testContinuousRanges() {
         var sda = SensorDataArray(header: SensorDataArrayHeader(sourceDeviceId: DeviceId(), type: 0, sampleSize: 1, samplesPerSecond: 1))
-        sda.addSensorData(SensorData.fromString("abcdefghij", startingAt: 0))       // 0 - 10
-        sda.addSensorData(SensorData.fromString("0123456789", startingAt: 11))      // 11 - 21
-        sda.addSensorData(SensorData.fromString("ABCDEFGHIJ", startingAt: 22))      // 22 - 32
+        sda.append(sensorData: SensorData.fromString("abcdefghij", startingAt: 0), maximumGap: 0, gapValue: 0)       // 0 - 10
+        sda.append(sensorData: SensorData.fromString("0123456789", startingAt: 11), maximumGap: 0, gapValue: 0)      // 11 - 21
+        sda.append(sensorData: SensorData.fromString("ABCDEFGHIJ", startingAt: 22), maximumGap: 0, gapValue: 0)      // 22 - 32
         
         let cr = sda.continuousRanges(maximumGap: 1)
         XCTAssertEqual(cr.count, 1)
