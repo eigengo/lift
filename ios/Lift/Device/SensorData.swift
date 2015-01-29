@@ -84,10 +84,32 @@ struct SensorDataGroup {
     }
 
     ///
-    /// Adds raw ``data`` received from device ``id`` at some ``time``
+    /// Adds raw ``data`` received from device ``id`` at some ``time``. The ``data`` may result in multiple
+    /// ``SensorDataArray``s being added: in one packet, a device may send—for example—the accelerometer
+    /// data *and* the heart rate data. 
+    ///
+    /// It is sensible for the device to do so: it saves power by allowing the device to keep its radio
+    /// usage low, but more importantly, it makes it easier for the device to maintain time synchronization
+    /// in the values it sends.
     ///
     mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime) -> Void {
         decode(data, fromDeviceId: id, at: time)
+    }
+    
+    ///
+    /// Removes ``SensorDataArray``s whose endDate falls before the given ``time``.
+    ///
+    mutating func removeSensorDataArraysEndingBefore(time: CFAbsoluteTime) -> Void {
+        for (_, var v) in sensorDataArrays {
+            v.removeSensorDataEndingBefore(time)
+        }
+    }
+
+    ///
+    /// Computes the continuous ``SensorDataArray``s
+    ///
+    func continuousSensorDataArrays(maximumGap: CFTimeInterval, gapValue: UInt8, maximumDuration: CFTimeInterval) -> [SensorDataArray] {
+        return []
     }
     
 }
@@ -149,6 +171,16 @@ struct SensorDataArray {
     }
     
     ///
+    /// Removes ``SensorData`` elements whose end time is before ``time``
+    ///
+    mutating func removeSensorDataEndingBefore(time: CFAbsoluteTime) -> Void {
+        sensorDatas = sensorDatas.filter { sd in
+            let endTime = sd.endTime(self.header.sampleSize, samplesPerSecond: self.header.samplesPerSecond)
+            return endTime < time
+        }
+    }
+    
+    ///
     /// Computes the continuous ranges of as an array of ``TimeRange``,
     /// "compacting" the sensor data that are less than ``maximumGap`` apart.
     ///
@@ -178,9 +210,6 @@ struct SensorDataArray {
         return result
     }
     
-    func continuousSampleIn(maximumGap: CFTimeInterval, range: TimeRange) -> SensorData? {
-        fatalError("Implement me")
-    }
 }
 
 ///
@@ -200,15 +229,6 @@ struct SensorData {
         let sampleCount = samples.length / Int(sampleSize)
         return CFTimeInterval(sampleCount / Int(samplesPerSecond))
     }
-
-    ///
-    /// Computes the time range of the sensor data block given the
-    /// ``sampleSize`` and ``samplesPerSecond``
-    ///
-    func timeRange(sampleSize: UInt8, samplesPerSecond: UInt8) -> TimeRange {
-        return TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
-    }
-
     
     ///
     /// Computes the end time of the sensor data block given the
