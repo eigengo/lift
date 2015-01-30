@@ -15,7 +15,7 @@ class UserExercisesTracingTest extends FlatSpec with TestKitBase with Matchers w
 
   "The session events" should "be saved" in {
     val id = SessionId.randomId()
-    val props = SessionProps(new Date(), Seq(), 1.0)
+    val props = SessionProperties(new Date(), Seq(), 1.0)
     val ad = AccelerometerData(100, List(AccelerometerValue(1, 3, 4)))
     val sdwl = SensorDataWithLocation(SensorDataSourceLocationAny, List(ad))
 

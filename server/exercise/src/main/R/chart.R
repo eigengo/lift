@@ -1,4 +1,4 @@
-data <- scale(read.csv("/Users/janmachacek/x.csv", col.names=c('x', 'y', 'z')))
+data <- scale(read.csv(paste(path.expand("~"), "/x.csv", sep=""), col.names=c('x', 'y', 'z')))
 data.ts <- ts(data)
 
 plot(data.ts)

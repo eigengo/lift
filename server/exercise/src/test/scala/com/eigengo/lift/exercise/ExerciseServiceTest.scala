@@ -27,7 +27,7 @@ object ExerciseServiceTest {
     val intensity = Some(1.0)
     val startDate = dateFormat.parse("1970-01-01")
     val endDate = dateFormat.parse("1970-01-01")
-    val sessionProps = SessionProps(startDate, Seq("Legs"), 1.0)
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
     val muscleGroups = List(MuscleGroup("legs", "Legs", List("squat")))
     val sessionSummary = List(SessionSummary(sessionId, sessionProps, Array(1.0)))
     val session = Some(ExerciseSession(sessionId, sessionProps, List(ExerciseSet(List(squat)))))
