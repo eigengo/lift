@@ -2,7 +2,8 @@ package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
 import com.eigengo.lift.exercise.UserExercisesClassifier._
-import scala.util.Random
+import com.eigengo.lift.exercise.classifiers.model.RandomExerciseModel
+import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import UserExercises._
 
 /**
@@ -34,7 +35,7 @@ object UserExercisesClassifier {
    * Provides List[Exercise] as examples of exercises for the given ``sessionProps``
    * @param sessionProps the session props
    */
-  case class ClassificationExamples(sessionProps: SessionProps)
+  case class ClassificationExamples(sessionProps: SessionProperties)
   
   /**
    * ADT holding the classification result
@@ -68,35 +69,17 @@ object UserExercisesClassifier {
 }
 
 /**
- * Match the received exercise data using the given model
+ * Match the received exercise data using the given model. By default, a random exercise model is used.
  */
-class UserExercisesClassifier extends Actor {
-  val exercises =
-    Map(
-      "arms" → List("Biceps curl", "Triceps press"),
-      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
-    )
-  val metadata = ModelMetadata(2)
+class UserExercisesClassifier(model: ExerciseModel = RandomExerciseModel) extends Actor {
 
-  private def randomExercise(sessionProps: SessionProps): ClassifiedExercise = {
-    val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None, None)))
-  }
+  import ExerciseModel._
 
   override def receive: Receive = {
-    case ClassifyExerciseEvt(sessionProps, sdwls) =>
-      sdwls.foreach { sdwl ⇒ sdwl.data}
-        sdwls.foreach { sdwl ⇒
+    case event @ ClassifyExerciseEvt(sessionProps, _) =>
+      model.update(event)
+      model.query(True(sessionProps), sender())
 
-          sdwl.data.foreach {
-            case AccelerometerData(sr, values) ⇒
-              val xs = values.map(_.x)
-              val ys = values.map(_.y)
-              val zs = values.map(_.z)
-              println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
-          }
-        }
-      sender() ! randomExercise(sessionProps)
     case ClassificationExamples(sessionProps) ⇒
       sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }

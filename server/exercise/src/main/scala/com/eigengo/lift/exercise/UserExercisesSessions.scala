@@ -55,7 +55,7 @@ object UserExercisesSessions {
    * @param sessionProps the session props
    * @param sets the exercise sets done
    */
-  case class ExerciseSession(id: SessionId, sessionProps: SessionProps, sets: List[ExerciseSet]) {
+  case class ExerciseSession(id: SessionId, sessionProps: SessionProperties, sets: List[ExerciseSet]) {
     def withNewExerciseSet(set: ExerciseSet): ExerciseSession = {
       if (set.isEmpty) this else copy(sets = sets :+ set)
     }
@@ -69,7 +69,7 @@ object UserExercisesSessions {
    * @param sessionProps the session props
    * @param setIntensities the averaged set intensities
    */
-  case class SessionSummary(id: SessionId, sessionProps: SessionProps, setIntensities: Array[Double])
+  case class SessionSummary(id: SessionId, sessionProps: SessionProperties, setIntensities: Array[Double])
 
   /**
    * Session itensity summary. Compares actual and planned intensitites.
