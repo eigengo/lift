@@ -20,6 +20,9 @@ scalaVersion := "2.10.4"
 version := "1.0"
 
 libraryDependencies ++= Seq(
+  "com.msiops.footing" %% "footing-tuple" % "0.2",
+  "ch.qos.logback" % "logback-classic" % "1.0.13",
+  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
   spark.core,
   spark.mllib,
   spark.streaming,

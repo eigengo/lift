@@ -73,3 +73,7 @@ sparkworker:
     - "8081:8081"
   links:
     - sparkmaster
+sparkdriver:
+  image: janm399/lift:spark
+  links:
+    - zookeeper:zk

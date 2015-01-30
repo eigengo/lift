@@ -1,4 +1,3 @@
-/*
 package com.eigengo.lift.spark
 
 import akka.actor.{ Props, ActorLogging, Actor }
@@ -33,4 +32,3 @@ class SparkService(config: Config)
     }
   }
 }
-*/

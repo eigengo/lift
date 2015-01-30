@@ -29,14 +29,11 @@ object KafkaStreamPrinter extends App {
       kafkaConsumerConfig(config).getString("groupId"),
       Map(kafkaConsumerConfig(config).getString("topic") -> 1),
       StorageLevel.NONE)
-      .map { x =>
-        println("Kafking: " + x)
-        Analytics(x._1 + x._2)
-      }
+        //.foreachRDD(x => println(x))
+        .print()
     //}   .
 
     ssc.start()
     //ssc.stop()
-    List()
   }
 }

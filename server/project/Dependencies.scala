@@ -74,7 +74,6 @@ object Dependencies {
       .exclude("commons-collections", "commons-collections")
       .exclude("commons-logging", "commons-logging")
       .exclude("com.esotericsoftware.minlog", "minlog")
-      .exclude("org.slf4j", "slf4j-api")
     val mllib = "org.apache.spark" %% "spark-mllib" % version
     val streaming = "org.apache.spark" %% "spark-streaming" % version
     val streamingKafka = "org.apache.spark" %% "spark-streaming-kafka" % version
