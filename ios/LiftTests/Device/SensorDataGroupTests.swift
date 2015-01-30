@@ -23,7 +23,6 @@ class SensorDataGroupTests : XCTestCase {
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 1)
         
         XCTAssertEqual(sdg.rawCount, 3)
-        let csdas = sdg.continuousSensorDataArrays(maximumGap: 1.4, gapValue: 0, maximumDuration: 100)
     }
     
     func testTwoContinuous() {
@@ -34,6 +33,10 @@ class SensorDataGroupTests : XCTestCase {
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 2)
         // trivial merges should have happened
         XCTAssertEqual(sdg.rawCount, 3)
+        let csdas = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 2), maximumGap: 0, gapValue: 0)
+        XCTAssertEqual(csdas[0].sensorData.asString(), "ABAB")
+        XCTAssertEqual(csdas[1].sensorData.asString(), "1212")
+        XCTAssertEqual(csdas[2].sensorData.asString(), "abacabac")
         
         // we're way above our minimum gap ~> we have a gap
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 4)

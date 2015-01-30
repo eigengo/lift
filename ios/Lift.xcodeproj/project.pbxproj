@@ -28,6 +28,8 @@
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
 		54571B161A728594001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
 		54571B171A728690001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
+		545C7AFE1A7BC71100FC3281 /* MultiPacketProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */; };
+		545C7AFF1A7BC71100FC3281 /* MultiPacketProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */; };
 		545E06041A304CB500AB633B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06031A304CB500AB633B /* UserModel.swift */; };
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
@@ -199,6 +201,8 @@
 		54543A2D1A7A2F3400D599AB /* SensorData+Test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorData+Test.swift"; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		54571B151A728594001419B4 /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
+		545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MultiPacketProtocol.c; sourceTree = "<group>"; };
+		545C7AFD1A7BC71100FC3281 /* MultiPacketProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiPacketProtocol.h; sourceTree = "<group>"; };
 		545E06031A304CB500AB633B /* UserModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
@@ -360,6 +364,8 @@
 				543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */,
 				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
 				54E99EDB1A76882300BA1BD3 /* MultiDeviceSession.swift */,
+				545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */,
+				545C7AFD1A7BC71100FC3281 /* MultiPacketProtocol.h */,
 				540A1AB71A78034100F5D84B /* SensorDataProtocol.h */,
 				541C41D31A797FD300F49124 /* SensorDataProtocol.c */,
 				540A1AC01A78073200F5D84B /* SensorData.swift */,
@@ -900,6 +906,7 @@
 				54571B161A728594001419B4 /* Array.swift in Sources */,
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
+				545C7AFE1A7BC71100FC3281 /* MultiPacketProtocol.c in Sources */,
 				54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */,
 				545E06041A304CB500AB633B /* UserModel.swift in Sources */,
 				54E99EDC1A76882300BA1BD3 /* MultiDeviceSession.swift in Sources */,
@@ -971,6 +978,7 @@
 				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				546D72CB1A79825F009C9629 /* SensorData.swift in Sources */,
 				54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */,
+				545C7AFF1A7BC71100FC3281 /* MultiPacketProtocol.c in Sources */,
 				54ED4EAF1A6C547B00490DA7 /* LiftServer.swift in Sources */,
 				546D72CA1A79825A009C9629 /* SensorDataProtocol.c in Sources */,
 				54877F3C1A7A757D00C5130F /* SensorDataGroupTests.swift in Sources */,

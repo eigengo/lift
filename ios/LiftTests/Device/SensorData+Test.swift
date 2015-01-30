@@ -8,7 +8,7 @@ extension SensorData {
     ///
     /// Construct SensorData from the given string ``s`` at the starting ``time``
     ///
-    static func fromString(s: String, startingAt time: CFAbsoluteTime) -> SensorData {
+    class func fromString(s: String, startingAt time: CFAbsoluteTime) -> SensorData {
         return SensorData(startTime: time, samples: s.dataUsingEncoding(NSASCIIStringEncoding, allowLossyConversion: false)!)
     }
     

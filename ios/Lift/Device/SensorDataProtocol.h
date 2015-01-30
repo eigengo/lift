@@ -1,3 +1,6 @@
+#ifndef __Lift__SensorDataProtocol__
+#define __Lift__SensorDataProtocol__
+
 #include <stdint.h>
 
 /**
@@ -30,3 +33,5 @@ typedef struct __attribute__((__packed__)) {
  * ``data``. The memory in ``data`` must be at least 5 B long.
  */
 void encode_lift_accelerometer_data(int16_t x, int16_t y, int16_t z, void* data);
+
+#endif
