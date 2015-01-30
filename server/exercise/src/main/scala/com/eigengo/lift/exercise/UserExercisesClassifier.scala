@@ -10,7 +10,8 @@ import UserExercises._
  * Companion object for the classifier
  */
 object UserExercisesClassifier {
-  val props: Props = Props[UserExercisesClassifier]
+  // By default, we configure exercise classification iwth a random model
+  val props: Props = Props(new UserExercisesClassifier(RandomExerciseModel))
 
   /**
    * Muscle group information
@@ -69,9 +70,9 @@ object UserExercisesClassifier {
 }
 
 /**
- * Match the received exercise data using the given model. By default, a random exercise model is used.
+ * Match the received exercise data using the given model.
  */
-class UserExercisesClassifier(model: ExerciseModel = RandomExerciseModel) extends Actor {
+class UserExercisesClassifier(model: ExerciseModel) extends Actor {
 
   import ExerciseModel._
 
