@@ -51,7 +51,7 @@ class SensorDataGroupTests : XCTestCase {
         XCTAssertEqual(csdas.find { $0.header.type == 1 }!.sensorData.asString(), "12-")
         XCTAssertEqual(csdas.find { $0.header.type == 2 }!.sensorData.asString(), "abac--")
         
-        let csdas135 = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: 0)
+        let csdas135 = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: dash)
         XCTAssertEqual(csdas135.find { $0.header.type == 0 }!.sensorData.asString(), "AB-AB")
         XCTAssertEqual(csdas135.find { $0.header.type == 1 }!.sensorData.asString(), "12-12")
         XCTAssertEqual(csdas135.find { $0.header.type == 2 }!.sensorData.asString(), "abac--abac")
