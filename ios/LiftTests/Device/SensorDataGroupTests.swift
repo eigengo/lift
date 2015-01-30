@@ -3,7 +3,7 @@ import XCTest
 
 class SensorDataGroupTests : XCTestCase {
     let deviceId = DeviceId()
-
+    let dash: UInt8 = 0x2d  // '-'
     let simpleTestData: NSData = {
         let buffer: [UInt8] = [
             0x00, 0x02, 0x02, 0x01, 0x00,  // type: 0, count: 2, samplesPerSecond: 2, sampleSize: 1, _: 0
@@ -44,12 +44,17 @@ class SensorDataGroupTests : XCTestCase {
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 2.5)   // we're over our gap of 0.1 ~> no inline merges
 
         // no continuous ranges with gap == 0
-        XCTAssertTrue(sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0, gapValue: 0).isEmpty)
+        //XCTAssertTrue(sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0, gapValue: 0).isEmpty)
         
-        let csdas = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: 0)
-        XCTAssertEqual(csdas.find { $0.header.type == 0 }!.sensorData.asString(), "ABAB")
-        XCTAssertEqual(csdas.find { $0.header.type == 1 }!.sensorData.asString(), "1212")
-        XCTAssertEqual(csdas.find { $0.header.type == 2 }!.sensorData.asString(), "abacabac")
+        let csdas = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 2.5), maximumGap: 0.5, gapValue: dash)
+        XCTAssertEqual(csdas.find { $0.header.type == 0 }!.sensorData.asString(), "AB-")
+        XCTAssertEqual(csdas.find { $0.header.type == 1 }!.sensorData.asString(), "12-")
+        XCTAssertEqual(csdas.find { $0.header.type == 2 }!.sensorData.asString(), "abac--")
+        
+        let csdas135 = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: 0)
+        XCTAssertEqual(csdas135.find { $0.header.type == 0 }!.sensorData.asString(), "AB-AB")
+        XCTAssertEqual(csdas135.find { $0.header.type == 1 }!.sensorData.asString(), "12-12")
+        XCTAssertEqual(csdas135.find { $0.header.type == 2 }!.sensorData.asString(), "abac--abac")
     }
     
 }

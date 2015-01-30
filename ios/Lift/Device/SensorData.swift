@@ -257,7 +257,7 @@ class SensorDataArray {
         if firstSensorData == nil { return nil }
         
         var (j, result) = firstSensorData!
-        for i in j..<sensorDatas.count {
+        for i in (j + 1)..<sensorDatas.count {
             let resultEndTime = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
             if resultEndTime > range.end {
                 return ContinuousSensorDataArray(header: header, sensorData: result.trimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
@@ -272,6 +272,11 @@ class SensorDataArray {
             if startGap > gap { return nil }                               // We're over our allowable gap
             
             result.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: sensorData.startTime)
+            let resultEndTime2 = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
+            if resultEndTime2 =~= range.end {
+                return ContinuousSensorDataArray(header: header, sensorData: result)
+            }
+            
             result.append(samples: sensorData.samplesTrimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
         }
         
@@ -279,6 +284,10 @@ class SensorDataArray {
         if resultEndTime =~= range.end {
             return ContinuousSensorDataArray(header: header, sensorData: result)
         }
+        if resultEndTime > range.end {
+            return ContinuousSensorDataArray(header: header, sensorData: result.trimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
+        }
+
         let lastGap = range.end - resultEndTime
         if lastGap > 0 && lastGap < gap {
             result.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: range.end)
@@ -376,7 +385,7 @@ class SensorData {
     ///
     func duration(sampleSize: UInt8, samplesPerSecond: UInt8) -> CFTimeInterval {
         let sampleCount = samples.length / Int(sampleSize)
-        return CFTimeInterval(sampleCount / Int(samplesPerSecond))
+        return CFTimeInterval(Double(sampleCount) / Double(samplesPerSecond))
     }
     
     ///
