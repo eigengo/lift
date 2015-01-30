@@ -12,6 +12,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
  *   2. `ClassifyExerciseEvt` are received in the correct temporal order
  *   3. for each member of `Sensor.sourceLocations`, there is a unique and corresponding member in the sensor data for
  *      the `ClassifyExerciseEvt` instance
+ *   4. all members of `Sensor.sourceLocations`, have the same length `AccelerometerValue` (flattened) lists
  *
  * Essentially, we view our model traces as being streams here. As a result, all queries are evaluated (on the actual
  * stream) from the time point they are received by the model.
