@@ -29,14 +29,14 @@ object UserExercises {
    * @param sessionProps the session
    * @param sensorData the sensor data
    */
-  case class ClassifyExerciseEvt[D <: SensorData](sessionProps: SessionProps, sensorData: List[SensorDataWithLocation[D]])
+  case class ClassifyExerciseEvt[D <: SensorData](sessionProps: SessionProperties, sensorData: List[SensorDataWithLocation[D]])
 
   /**
    * The session has started
    * @param sessionId the session identity
    * @param sessionProps the session props
    */
-  case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProps)
+  case class SessionStartedEvt(sessionId: SessionId, sessionProps: SessionProperties)
 
   /**
    * The session has been abandoned. Typically, the mobile application has detected a loss of

@@ -40,7 +40,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     } ~
     path("exercise" / UserIdValue / "start") { userId ⇒
       post {
-        handleWith { sessionProps: SessionProps ⇒
+        handleWith { sessionProps: SessionProperties ⇒
           (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[UUID]
         }
       }
@@ -79,7 +79,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "replay") { (userId, sessionId) ⇒
       post {
-        handleWith { sessionProps: SessionProps ⇒
+        handleWith { sessionProps: SessionProperties ⇒
           (userExercises ? UserExerciseSessionReplayStart(userId, sessionId, sessionProps)).mapRight[UUID]
         }
       } ~

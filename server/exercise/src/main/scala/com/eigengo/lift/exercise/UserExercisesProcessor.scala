@@ -48,7 +48,7 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    * @param sessionProps the session props
    */
-  case class UserExerciseSessionReplayStart(userId: UserId, sessionId: SessionId, sessionProps: SessionProps)
+  case class UserExerciseSessionReplayStart(userId: UserId, sessionId: SessionId, sessionProps: SessionProperties)
 
   /**
    * User classified exercise start.
@@ -147,7 +147,7 @@ object UserExercisesProcessor {
    * @param sessionId the session identity
    * @param sessionProps the session props
    */
-  private case class ExerciseSessionReplayStart(sessionId: SessionId, sessionProps: SessionProps)
+  private case class ExerciseSessionReplayStart(sessionId: SessionId, sessionProps: SessionProperties)
 
   /**
    * Sets the metric for the unmarked exercises in the currently open set
@@ -173,7 +173,7 @@ object UserExercisesProcessor {
    * @param userId the user identity
    * @param sessionProps the sessionProps details
    */
-  case class UserExerciseSessionStart(userId: UserId, sessionProps: SessionProps)
+  case class UserExerciseSessionStart(userId: UserId, sessionProps: SessionProperties)
 
   /**
    * Ends the user exercise sessionProps
@@ -186,7 +186,7 @@ object UserExercisesProcessor {
    * The sessionProps has started
    * @param sessionProps the sessionProps identity
    */
-  private case class ExerciseSessionStart(sessionProps: SessionProps)
+  private case class ExerciseSessionStart(sessionProps: SessionProperties)
 
   /**
    * The sessionProps has ended
@@ -293,7 +293,7 @@ import scala.concurrent.duration._
       context.become(exercising(sessionId, sessionProps))
   }
 
-  private def replaying(oldSessionId: SessionId, newSessionId: SessionId, sessionProps: SessionProps): Receive = withPassivation {
+  private def replaying(oldSessionId: SessionId, newSessionId: SessionId, sessionProps: SessionProperties): Receive = withPassivation {
     case ExerciseSessionReplayStart(_, _) ⇒
       sender() ! \/.left("Another session replay in progress")
 
@@ -313,7 +313,7 @@ import scala.concurrent.duration._
       }
   }
 
-  private def exercising(id: SessionId, sessionProps: SessionProps): Receive = withPassivation {
+  private def exercising(id: SessionId, sessionProps: SessionProperties): Receive = withPassivation {
     // start and end
     case ExerciseSessionStart(newSessionProps) ⇒
       val newId = SessionId.randomId()
