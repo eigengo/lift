@@ -18,6 +18,17 @@ extension Array {
     }
     
     ///
+    /// Finds the first element that satisfies ``predicate``
+    ///
+    func find(predicate: Element -> Bool) -> Element? {
+        for e in self {
+            if predicate(e) { return e }
+        }
+        
+        return nil
+    }
+    
+    ///
     /// Returns ``true`` if ``predicate`` evaluates to ``true`` for all elements.
     ///
     func forall(predicate: Element -> Bool) -> Bool {
@@ -33,11 +44,7 @@ extension Array {
     /// one element in this array
     ///
     func exists(predicate: Element -> Bool) -> Bool {
-        for e in self {
-            if predicate(e) { return true }
-        }
-        
-        return false
+        return find(predicate) != nil
     }
     
 }
