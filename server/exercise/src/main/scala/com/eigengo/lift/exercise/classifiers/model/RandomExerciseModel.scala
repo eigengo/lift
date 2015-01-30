@@ -1,11 +1,11 @@
 package com.eigengo.lift.exercise.classifiers.model
 
-import akka.actor.ActorRef
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.UserExercises.{ClassifyExerciseEvt, ModelMetadata}
 import com.eigengo.lift.exercise.UserExercisesClassifier.{FullyClassifiedExercise, UnclassifiedExercise, ClassifiedExercise}
 import scala.util.Random
+import scalaz.\/-
 
 /**
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
@@ -16,6 +16,8 @@ object RandomExerciseModel extends ExerciseModel {
   import ExerciseModel._
 
   val name = "random"
+
+  type Result = ClassifiedExercise
 
   private val exercises =
     Map(
@@ -42,9 +44,9 @@ object RandomExerciseModel extends ExerciseModel {
     }
   }
 
-  // We only expect `true` queries here
-  def query(query: Query, listener: ActorRef) = {
-    listener ! randomExercise(query.session)
+  // All queries evaluate to a random value
+  def evaluate(query: Query) = {
+    \/-(randomExercise(query.session))
   }
 
 }

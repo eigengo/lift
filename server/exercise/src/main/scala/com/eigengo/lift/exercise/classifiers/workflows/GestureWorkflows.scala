@@ -9,12 +9,10 @@ import com.typesafe.config.Config
 /**
  * Trait that implements reactive stream components that can:
  *
- *   * [identifyGestureEvents] tap into sensor streams and trigger transformation events whenever a sample window is classified as a gesture
- *   * [mergeTransformations]  merge collections of transformation events into a single transformation event
- *   * [modulateSensorNet]     modulate the signals (e.g. by tagging them) in a network of sensors using a transformation signal
- *   * [gestureCollector]      split tagged sensor streams using highest probability gesture matches
+ *   * [IdentifyGestureEvents] tap into sensor streams and generate fact events whenever a sample window is classified as a gesture
+ *   * [MergeSignals]          merge collections of fact signals into a single fact event
+ *   * [ModulateSensorNet]     modulate the signals (e.g. by binding them with facts) in a network of sensors
  */
-// TODO: calling code needs to "normalise" sensor stream against the time dimension - i.e. here we assume that events occur with a known frequency (use `TickSource` as a driver for this?)
 trait GestureWorkflows extends SVMClassifier {
 
   import ClassificationAssertions._

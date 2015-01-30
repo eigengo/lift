@@ -30,6 +30,19 @@ case object SensorDataSourceLocationChest extends SensorDataSourceLocation
 case object SensorDataSourceLocationAny extends SensorDataSourceLocation
 
 /**
+ * Used to model full collection of sensor locations that may transmit data to us
+ */
+object Sensor {
+  val sourceLocations: Set[SensorDataSourceLocation] = Set(
+    SensorDataSourceLocationWrist,
+    SensorDataSourceLocationWaist,
+    SensorDataSourceLocationFoot,
+    SensorDataSourceLocationChest,
+    SensorDataSourceLocationAny
+  )
+}
+
+/**
  * Container for sensor data at a given location. This grouping means that it is possible
  * to receive multiple sensor data from a single location. A watch (on the wrist) may be capable
  * of sending accelerometer data, HR data and oxygenation data; a mobile (near the waist) may send
