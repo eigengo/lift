@@ -17,22 +17,12 @@ class SensorDataGroupTests : XCTestCase {
         return NSData(bytes: buffer, length: buffer.count)
     }()
 
-    func testTrivial() {
-        var sdg = SensorDataGroup()
-        
-        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 1)
-        
-        XCTAssertEqual(sdg.rawCount, 3)
-    }
-    
-    func testTwoContinuous() {
+    func testSimpleContinuous() {
         var sdg = SensorDataGroup()
         
         // 3 things, all starting at 1, 2 samples, 1 sps.
         sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 1)
-        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 2)
-        // trivial merges should have happened
-        XCTAssertEqual(sdg.rawCount, 3)
+        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 2)     // we're within our gap of 0.1 ~> inline merges
 
         let csdas12 = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 2), maximumGap: 0, gapValue: 0)
         XCTAssertEqual(csdas12.find { $0.header.type == 0 }!.sensorData.asString(), "AB")
@@ -44,10 +34,22 @@ class SensorDataGroupTests : XCTestCase {
         XCTAssertEqual(csdas13.find { $0.header.type == 0 }!.sensorData.asString(), "ABAB")
         XCTAssertEqual(csdas13.find { $0.header.type == 1 }!.sensorData.asString(), "1212")
         XCTAssertEqual(csdas13.find { $0.header.type == 2 }!.sensorData.asString(), "abacabac")
+    }
+    
+    func testSimpleWithinGaps() {
+        var sdg = SensorDataGroup()
         
-        // we're way above our minimum gap ~> we have a gap
-//        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 4)
-//        XCTAssertEqual(sdg.rawCount, 6)
+        // 3 things, all starting at 1, 2 samples, 1 sps.
+        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 1)
+        sdg.decodeAndAdd(simpleTestData, fromDeviceId: deviceId, at: 2.5)   // we're over our gap of 0.1 ~> no inline merges
+
+        // no continuous ranges with gap == 0
+        XCTAssertTrue(sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0, gapValue: 0).isEmpty)
+        
+        let csdas = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: 0)
+        XCTAssertEqual(csdas.find { $0.header.type == 0 }!.sensorData.asString(), "ABAB")
+        XCTAssertEqual(csdas.find { $0.header.type == 1 }!.sensorData.asString(), "1212")
+        XCTAssertEqual(csdas.find { $0.header.type == 2 }!.sensorData.asString(), "abacabac")
     }
     
 }

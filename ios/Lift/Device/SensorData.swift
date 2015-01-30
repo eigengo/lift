@@ -142,10 +142,14 @@ struct SensorDataGroup {
     ///
     func continuousSensorDataArrays(within range: TimeRange, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> [ContinuousSensorDataArray] {
         if sensorDataArrays.isEmpty { return [] }
-        
-        let sdas = sensorDataArrays.values.array
-        let sdasWithinRange = sdas.filter { $0.within(range, maximumGap: gap) }
-        return sdasWithinRange.map { $0.slice(range, maximumGap: gap, gapValue: gapValue)! }
+
+        var result: [ContinuousSensorDataArray] = []
+        for sda in sensorDataArrays.values {
+            if let x = sda.slice(range, maximumGap: gap, gapValue: gapValue) {
+                result += [x]
+            }
+        }
+        return result
     }
     
 }
@@ -270,7 +274,14 @@ class SensorDataArray {
             result.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: sensorData.startTime)
             result.append(samples: sensorData.samplesTrimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
         }
-        if result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond) =~= range.end {
+        
+        let resultEndTime = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
+        if resultEndTime =~= range.end {
+            return ContinuousSensorDataArray(header: header, sensorData: result)
+        }
+        let lastGap = range.end - resultEndTime
+        if lastGap > 0 && lastGap < gap {
+            result.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: range.end)
             return ContinuousSensorDataArray(header: header, sensorData: result)
         }
         
@@ -382,7 +393,9 @@ class SensorData {
     func samplesTrimmedTo(end time: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> NSData {
         let et = endTime(sampleSize, samplesPerSecond: samplesPerSecond)
         if et < time { return samples }
-        return slice(TimeRange(start: startTime, end: time), maximumGap: 0, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond, gapValue: 0)!.samples
+        
+        let length = Int( (time - startTime) * Double(samplesPerSecond) * Double(sampleSize) )
+        return samples.subdataWithRange(NSMakeRange(0, length))
     }
     
     ///
@@ -403,6 +416,7 @@ class SensorData {
         return startGap <= gap && endGap <= gap
     }
     
+    /*
     ///
     /// Computes slice of samples that fall within the given time range, 
     /// allowing for up to ``maximumGap`` before and after this data.
@@ -450,4 +464,5 @@ class SensorData {
         }
         return SensorData(startTime: startTime - startGap, samples: r)
     }
+    */
 }

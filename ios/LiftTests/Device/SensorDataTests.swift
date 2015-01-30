@@ -11,6 +11,9 @@ class SensorDataTests : XCTestCase {
         XCTAssertEqual(data.duration(10, samplesPerSecond: 1), 1)
     }
     
+    /*
+     Slicing turns out to be not that useful...
+    
     func testSliceOverMaximumGap() {
         // [-0123456789]
         // ^           ^ Over gap at start
@@ -92,4 +95,5 @@ class SensorDataTests : XCTestCase {
         XCTAssertEqual(gas.startTime, -1)
         XCTAssertEqual(gas.duration(5, samplesPerSecond: 1), 3)
     }
+    */
 }
