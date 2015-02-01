@@ -34,6 +34,8 @@
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */; };
+		54614BB81A7EA9D000B34C75 /* SensorData+Printable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */; };
+		54614BB91A7EA9D500B34C75 /* SensorData+Printable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
 		54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54680BA21A332DE0004FC897 /* LiftServerCache.swift */; };
 		546D72CA1A79825A009C9629 /* SensorDataProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 541C41D31A797FD300F49124 /* SensorDataProtocol.c */; };
@@ -207,6 +209,7 @@
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
 		545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseIntensityKey+Color.swift"; sourceTree = "<group>"; };
+		54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorData+Printable.swift"; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
 		5475FA2F1A31E9D200877655 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -369,6 +372,7 @@
 				540A1AB71A78034100F5D84B /* SensorDataProtocol.h */,
 				541C41D31A797FD300F49124 /* SensorDataProtocol.c */,
 				540A1AC01A78073200F5D84B /* SensorData.swift */,
+				54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -913,6 +917,7 @@
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
 				54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */,
+				54614BB81A7EA9D000B34C75 /* SensorData+Printable.swift in Sources */,
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
 				543B26FD1A49D18800381298 /* DeviceSessionDelegate.swift in Sources */,
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionController.swift in Sources */,
@@ -989,6 +994,7 @@
 				54ED4EB61A6C547B00490DA7 /* NotificationModel.swift in Sources */,
 				54ED4EC11A6C54C100490DA7 /* NSError+Convenience.swift in Sources */,
 				54ED4EB71A6C548100490DA7 /* Box.swift in Sources */,
+				54614BB91A7EA9D500B34C75 /* SensorData+Printable.swift in Sources */,
 				54ED4EB41A6C547B00490DA7 /* ExerciseModel.swift in Sources */,
 				54ED4EBE1A6C548700490DA7 /* Alamofire.swift in Sources */,
 				541D26611A6D3B1900FB5661 /* MutableMultiPacket+Test.swift in Sources */,
