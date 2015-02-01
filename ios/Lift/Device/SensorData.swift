@@ -250,7 +250,7 @@ class SensorDataArray {
         for (i, sensorData) in enumerate(sensorDatas) {
             let endTime = sensorData.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
             if endTime > range.start {
-                firstSensorData = (i, sensorData)
+                firstSensorData = (i, SensorData(that: sensorData))
                 break
             }
         }
@@ -338,6 +338,11 @@ class SensorData {
     /// the samples
     var samples: NSMutableData
     
+    init(that: SensorData) {
+        self.startTime = that.startTime
+        self.samples = NSMutableData(data: that.samples)
+    }
+    
     init(startTime: CFAbsoluteTime, samples: NSData) {
         self.startTime = startTime
         self.samples = NSMutableData(data: samples)
@@ -359,9 +364,7 @@ class SensorData {
     ///
     /* mutating */
     func append(samples data: NSData) {
-        let x = NSMutableData(data: samples)
-        x.appendData(data)
-        samples = x
+        samples.appendData(data)
     }
     
     ///
@@ -373,9 +376,7 @@ class SensorData {
         let endGap = until - endTime
         if endGap > 0 {
             let length = Int( endGap * Double(samplesPerSecond) * Double(sampleSize) )
-            let x = NSMutableData(data: samples)
-            appendGap(length, gapValue: gapValue, toData: x)
-            samples = x
+            appendGap(length, gapValue: gapValue, toData: samples)
         }
     }
     

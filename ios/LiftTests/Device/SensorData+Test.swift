@@ -16,6 +16,7 @@ extension SensorData {
     /// Interpret the ``samples`` as ``String``
     ///
     func asString() -> String {
+        println(self)
         return NSString(data: samples, encoding: NSASCIIStringEncoding)!
     }
     

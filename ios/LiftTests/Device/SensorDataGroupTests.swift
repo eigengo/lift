@@ -4,6 +4,7 @@ import XCTest
 class SensorDataGroupTests : XCTestCase {
     let deviceId = DeviceId()
     let dash: UInt8 = 0x2d  // '-'
+    let dot: UInt8  = 0x2e  // '.'
     let simpleTestData: NSData = {
         let buffer: [UInt8] = [
             0x00, 0x02, 0x02, 0x01, 0x00,  // type: 0, count: 2, samplesPerSecond: 2, sampleSize: 1, _: 0
@@ -51,10 +52,10 @@ class SensorDataGroupTests : XCTestCase {
         XCTAssertEqual(csdas.find { $0.header.type == 1 }!.sensorData.asString(), "12-")
         XCTAssertEqual(csdas.find { $0.header.type == 2 }!.sensorData.asString(), "abac--")
         
-        let csdas135 = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: dash)
-        XCTAssertEqual(csdas135.find { $0.header.type == 0 }!.sensorData.asString(), "AB-AB")
-        XCTAssertEqual(csdas135.find { $0.header.type == 1 }!.sensorData.asString(), "12-12")
-        XCTAssertEqual(csdas135.find { $0.header.type == 2 }!.sensorData.asString(), "abac--abac")
+        let csdas135 = sdg.continuousSensorDataArrays(within: TimeRange(start: 1, end: 3.5), maximumGap: 0.5, gapValue: dot)
+        XCTAssertEqual(csdas135.find { $0.header.type == 0 }!.sensorData.asString(), "AB.AB")
+        XCTAssertEqual(csdas135.find { $0.header.type == 1 }!.sensorData.asString(), "12.12")
+        XCTAssertEqual(csdas135.find { $0.header.type == 2 }!.sensorData.asString(), "abac..abac")
     }
     
 }
