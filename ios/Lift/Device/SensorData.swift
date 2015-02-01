@@ -263,12 +263,11 @@ class SensorDataArray {
             
             let sensorData = sensorDatas[i]
             
-            let startGap = min(0, sensorData.startTime - resultEndTime)    // Note that we're allowing overlap into the past
-            if startGap > gap { return nil }                               // We're over our allowable gap
-            
-            result.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: sensorData.startTime)
-            let resultEndTime2 = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
-            result.append(samples: sensorData.samplesTrimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
+            if let slice = sensorData.slice(start: resultEndTime, end: nil, maximumGap: gap, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue) {
+                result.append(samples: slice.samples)
+            } else {
+                return nil
+            }
         }
         
         let resultEndTime = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
@@ -405,8 +404,14 @@ class SensorData {
     func trimmedTo(end time: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData {
         return SensorData(startTime: startTime, samples: samplesTrimmedTo(end: time, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond))
     }
+
+    ///
+    /// Slice from start to end
+    ///
+    func slice(#end: CFAbsoluteTime, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
+        return slice(start: startTime, end: end, maximumGap: gap, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond, gapValue: gapValue)
+    }
     
-    /*
     ///
     /// Computes slice of samples that fall within the given time range, 
     /// allowing for up to ``maximumGap`` before and after this data.
@@ -423,10 +428,10 @@ class SensorData {
     ///  |
     ///  | startTime - maximumGap
     ///
-    func slice(range: TimeRange, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
+    func slice(#start: CFAbsoluteTime, end: CFAbsoluteTime?, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8, gapValue: UInt8) -> SensorData? {
         let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
-        let startGap = startTime - range.start
-        let endGap = range.end - endTime
+        let startGap = startTime - start
+        let endGap = (end != nil ? end! - endTime : 0)
         
         if startGap > gap || endGap > gap { return nil }
 
@@ -454,5 +459,5 @@ class SensorData {
         }
         return SensorData(startTime: startTime - startGap, samples: r)
     }
-    */
+
 }
