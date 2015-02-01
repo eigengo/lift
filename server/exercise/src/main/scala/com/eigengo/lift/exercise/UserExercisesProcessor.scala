@@ -1,12 +1,12 @@
 package com.eigengo.lift.exercise
 
-import java.io.FileOutputStream
-
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
 import akka.persistence.SnapshotOffer
 import com.eigengo.lift.common.{AutoPassivation, UserId}
-
+import java.io.FileOutputStream
+import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
+import com.eigengo.lift.exercise.classifiers.ExerciseModelChecking
 import scala.language.postfixOps
 import scalaz.\/
 
@@ -263,14 +263,14 @@ object UserExercisesProcessor {
  */
 class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
   extends KafkaProducerPersistentActor
+  with ExerciseModelChecking
   with ActorLogging
   with AutoPassivation {
 
   import com.eigengo.lift.exercise.UserExercises._
   import com.eigengo.lift.exercise.UserExercisesClassifier._
   import com.eigengo.lift.exercise.UserExercisesProcessor._
-
-import scala.concurrent.duration._
+  import scala.concurrent.duration._
 
   // user reference and notifier
   private val userId = UserId(self.path.name)
@@ -280,7 +280,6 @@ import scala.concurrent.duration._
 
   // tracing output
   /*private val tracing = */context.actorOf(UserExercisesTracing.props(userId))
-  private val classifier = context.actorOf(UserExercisesClassifier.props)
 
   // how long until we stop processing
   context.setReceiveTimeout(360.seconds)
@@ -290,6 +289,7 @@ import scala.concurrent.duration._
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, SessionStartedEvt(sessionId, sessionProps)) ⇒
+      registerModelChecking(sessionProps)
       context.become(exercising(sessionId, sessionProps))
   }
 
@@ -308,6 +308,7 @@ import scala.concurrent.duration._
         fos.close()
 
         persist(SessionEndedEvt(newSessionId)) { _ ⇒
+          unregisterModelChecking()
           context.become(notExercising)
         }
       }
@@ -322,6 +323,7 @@ import scala.concurrent.duration._
 
         saveSnapshot(newSession)
         sender() ! \/.right(newId)
+        registerModelChecking(newSessionProps)
         context.become(exercising(newId, newSessionProps))
       }
 
@@ -329,6 +331,7 @@ import scala.concurrent.duration._
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
+        unregisterModelChecking()
         context.become(notExercising)
         sender() ! \/.right(())
       }
@@ -337,6 +340,7 @@ import scala.concurrent.duration._
       log.debug("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionAbandonedEvt(id)) { evt ⇒
         saveSnapshot(evt)
+        unregisterModelChecking()
         context.become(notExercising)
         sender() ! \/.right(())
       }
@@ -345,14 +349,18 @@ import scala.concurrent.duration._
     case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
       log.debug("ExerciseDataProcess: exercising -> exercising.")
 
-      val (h::t) = packet.packets.map { pwl ⇒
-        rootSensorDataDecoder
-          .decodeAll(pwl.payload)
-          .map(sd ⇒ SensorDataWithLocation(pwl.sourceLocation, sd))
+      if (classifier.isEmpty) {
+        sender() ! \/.left("Attempted to classify multi-packet exercising data when no classifier was defined!")
+      } else {
+        val (h::t) = packet.packets.map { pwl ⇒
+          rootSensorDataDecoder
+            .decodeAll(pwl.payload)
+            .map(sd ⇒ SensorDataWithLocation(pwl.sourceLocation, sd))
+        }
+        val result = t.foldLeft(h.map(x ⇒ List(x)))((r, b) ⇒ r.flatMap(sdwls ⇒ b.map(x ⇒ x :: sdwls)))
+        result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
+                    { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier.foreach(ref => { ref ! evt; sender() ! \/.right(()) }) } })
       }
-      val result = t.foldLeft(h.map(x ⇒ List(x)))((r, b) ⇒ r.flatMap(sdwls ⇒ b.map(x ⇒ x :: sdwls)))
-      result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
-                  { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) } })
 
     // explicit classification
     case ExerciseExplicitClassificationStart(`id`, exercise) =>
@@ -362,7 +370,7 @@ import scala.concurrent.duration._
       self ! NoExercise(ModelMetadata.user)
 
     case ExerciseExplicitClassificationExamples(`id`) ⇒
-      classifier.tell(ClassificationExamples(sessionProps), sender())
+      classifier.foreach(_.tell(ClassificationExamples(sessionProps), sender()))
 
     // explicit metrics
     case ExerciseSetExerciseMetric(`id`, metric) ⇒
@@ -387,12 +395,14 @@ import scala.concurrent.duration._
       persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
         saveSnapshot(evt)
         sender() ! \/.right(evt.sessionId)
+        registerModelChecking(sessionProps)
         context.become(exercising(evt.sessionId, sessionProps))
       }
 
     case ExerciseSessionReplayStart(oldSessionId, sessionProps) ⇒
       val newSessionId = SessionId.randomId()
       sender() ! \/.right(newSessionId)
+      unregisterModelChecking()
       context.become(replaying(oldSessionId, newSessionId, sessionProps))
 
     case ExerciseSessionEnd(_) ⇒

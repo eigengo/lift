@@ -2,16 +2,20 @@ package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
 import com.eigengo.lift.exercise.UserExercisesClassifier._
+import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
 import com.eigengo.lift.exercise.classifiers.model.RandomExerciseModel
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import UserExercises._
 
 /**
  * Companion object for the classifier
  */
 object UserExercisesClassifier {
-  // By default, we configure exercise classification iwth a random model
-  val props: Props = Props(new UserExercisesClassifier(RandomExerciseModel))
+  def props(sessionProps: SessionProperties): Props = Props(new UserExercisesClassifier(sessionProps))
+
+  // By default, we configure exercise model classification with a random model
+  def modelProps(sessionProps: SessionProperties, watch: Set[Query]): Props = Props(RandomExerciseModel(sessionProps, watch))
 
   /**
    * Muscle group information
@@ -72,16 +76,21 @@ object UserExercisesClassifier {
 /**
  * Match the received exercise data using the given model.
  */
-class UserExercisesClassifier(model: ExerciseModel) extends Actor {
+class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
 
+  import ClassificationAssertions._
   import ExerciseModel._
 
-  override def receive: Receive = {
-    case event @ ClassifyExerciseEvt(sessionProps, _) =>
-      model.update(event)
-      model.query(True()(sessionProps), sender())
+  val tapGesture = Atomic(Gesture("tap", 0.80))
 
-    case ClassificationExamples(sessionProps) ⇒
+  // Issue "callback" (via sender actor reference) whenever we detect a tap gesture with a matching probability >= 0.80
+  val model = context.actorOf(modelProps(sessionProps, Set(tapGesture)))
+
+  override def receive: Receive = {
+    case event: ClassifyExerciseEvt[_] =>
+      model.tell(Update(event), sender())
+
+    case ClassificationExamples(_) =>
       sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }
 
