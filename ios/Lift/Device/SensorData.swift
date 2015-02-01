@@ -259,12 +259,7 @@ class SensorDataArray {
         var (j, result) = firstSensorData!
         for i in (j + 1)..<sensorDatas.count {
             let resultEndTime = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
-            if resultEndTime > range.end {
-                return ContinuousSensorDataArray(header: header, sensorData: result.trimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
-            }
-            if resultEndTime =~= range.end {
-                return ContinuousSensorDataArray(header: header, sensorData: result)
-            }
+            if resultEndTime > range.end { break }
             
             let sensorData = sensorDatas[i]
             
@@ -273,10 +268,6 @@ class SensorDataArray {
             
             result.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: sensorData.startTime)
             let resultEndTime2 = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
-            if resultEndTime2 =~= range.end {
-                return ContinuousSensorDataArray(header: header, sensorData: result)
-            }
-            
             result.append(samples: sensorData.samplesTrimmedTo(end: range.end, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond))
         }
         
@@ -413,17 +404,6 @@ class SensorData {
     ///
     func trimmedTo(end time: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData {
         return SensorData(startTime: startTime, samples: samplesTrimmedTo(end: time, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond))
-    }
-    
-    ///
-    /// Computes whether this slice is within the given range
-    ///
-    func within(range: TimeRange, maximumGap gap: CFTimeInterval, sampleSize: UInt8, samplesPerSecond: UInt8) -> Bool {
-        let endTime = startTime + duration(sampleSize, samplesPerSecond: samplesPerSecond)
-        let startGap = startTime - range.start
-        let endGap = range.end - endTime
-        
-        return startGap <= gap && endGap <= gap
     }
     
     /*
