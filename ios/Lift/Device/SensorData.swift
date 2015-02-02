@@ -250,8 +250,10 @@ class SensorDataArray {
         for (i, sensorData) in enumerate(sensorDatas) {
             let endTime = sensorData.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
             if endTime > range.start {
-                firstSensorData = (i, SensorData(that: sensorData))
-                break
+                if let x = sensorData.slice(start: range.start, trimmedTo: range.end, maximumGap: gap, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue) {
+                    firstSensorData = (i, x)
+                    break
+                }
             }
         }
         if firstSensorData == nil { return nil }
@@ -259,7 +261,7 @@ class SensorDataArray {
         var (j, result) = firstSensorData!
         for i in (j + 1)..<sensorDatas.count {
             let resultEndTime = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
-            if resultEndTime > range.end { break }
+            if resultEndTime >= range.end { break }
             
             let sensorData = sensorDatas[i]
             
@@ -414,7 +416,7 @@ class SensorData {
         if start == 0 && length == x {
             // Exact match. 
             // Notice that we do the comparison here on Ints rather than the CFAbsoluteTimes above.
-            return self
+            return SensorData(that: self)
         } else if start >= 0 && (start + length) < samples.length {
             // Range is completely within our data
             return SensorData(startTime: startTime - startGap, samples: samples.subdataWithRange(NSMakeRange(start, length)))
