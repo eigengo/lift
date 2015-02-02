@@ -75,5 +75,8 @@ sparkworker:
     - sparkmaster
 sparkdriver:
   image: janm399/lift:spark
+  ports:
+    - "4040:4040"
   links:
     - zookeeper:zk
+    - sparkmaster

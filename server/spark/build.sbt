@@ -15,14 +15,12 @@ Build.Settings.project
 
 name := "spark"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.3"
 
 version := "1.0"
 
 libraryDependencies ++= Seq(
-  "com.msiops.footing" %% "footing-tuple" % "0.2",
-  "ch.qos.logback" % "logback-classic" % "1.0.13",
-  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+  slf4j_simple,
   spark.core,
   spark.mllib,
   spark.streaming,
@@ -35,6 +33,7 @@ mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
   case PathList("javax", "mail", xs @ _*)     => MergeStrategy.first
   case PathList("javax", "activation", xs @ _*)     => MergeStrategy.first
   case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+  case "log4j.properties" => MergeStrategy.concat
   case "application.conf" => MergeStrategy.concat
   case "unwanted.txt"     => MergeStrategy.discard
   case x => old(x)
@@ -46,7 +45,7 @@ import sbtdocker.mutable.Dockerfile
 
 dockerSettings
 
-mainClass in assembly := Some("com.eigengo.lift.SparkApp")
+mainClass in assembly := Some("com.eigengo.lift.spark.KafkaStreamPrinter")
 
 docker <<= (docker dependsOn assembly)
 
