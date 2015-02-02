@@ -39,12 +39,12 @@ TEST_F(gfs_test, Version1) {
     for (int i = 0; i < 16; i++) mock_data.push_back(a);
 
     gfs_start(gfs_test::gfs_callback, GFS_SAMPLING_100HZ);
-    for (int i = 0; i < 10; i++) Pebble::accelService << mock_data;
+    for (int i = 0; i < 126; i++) Pebble::accelService << mock_data;
 
     ASSERT_TRUE(gfs_test::buffer != nullptr);
     gfs_header *h = reinterpret_cast<gfs_header*>(gfs_test::buffer);
     EXPECT_EQ(h->type, GFS_HEADER_TYPE);
-    EXPECT_EQ(h->count, 56);
+    EXPECT_EQ(h->count, 124);
     EXPECT_EQ(h->samples_per_second, GFS_SAMPLING_100HZ);
 
     gfs_packed_accel_data *data = reinterpret_cast<gfs_packed_accel_data*>(gfs_test::buffer + sizeof(gfs_header));
