@@ -109,6 +109,17 @@ struct SensorDataGroup {
             return sensorDataArrays.count
         }
     }
+    
+    ///
+    /// The length of all samples in B
+    ///
+    var length: Int {
+        get {
+            var r: Int = 0
+            for x in sensorDataArrays.values { r += x.length }
+            return r
+        }
+    }
 
     ///
     /// Adds raw ``data`` received from device ``id`` at some ``time``. The ``data`` may result in multiple
@@ -136,7 +147,7 @@ struct SensorDataGroup {
             v.removeSensorDataEndingBefore(time)
         }
     }
-
+    
     ///
     /// Computes the continuous ``SensorDataArray``s
     ///
@@ -209,6 +220,19 @@ class SensorDataArray {
     }
     
     ///
+    /// The size in B of all SensorData
+    ///
+    var length: Int {
+        get {
+            var result: Int = 0
+            for sd in sensorDatas {
+                result += sd.samples.length
+            }
+            return result
+        }
+    }
+    
+    ///
     /// Adds another ``sensorData``. It will also perform trivial merging: that is, if the ``sensorData`` 
     /// being added follows immediately (for some very small epsilon) the last ``sensorData``, then it
     /// will just be appended to the last ``sensorData``.
@@ -228,10 +252,18 @@ class SensorDataArray {
     /// Removes ``SensorData`` elements whose end time is before ``time``
     ///
     func removeSensorDataEndingBefore(time: CFAbsoluteTime) -> Void {
-        sensorDatas = sensorDatas.filter { sd in
+        let filtered = sensorDatas.filter { sd in
             let endTime = sd.endTime(self.header.sampleSize, samplesPerSecond: self.header.samplesPerSecond)
-            return endTime < time
+            return endTime >= time
         }
+        var r: [SensorData] = []
+        for sd in filtered {
+            if let slice = sd.slice(start: time, trimmedTo: CFAbsoluteTime.infinity, maximumGap: 0, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: 0) {
+                r += [slice]
+            }
+        }
+        
+        sensorDatas = r
     }
     
     ///

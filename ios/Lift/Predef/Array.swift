@@ -29,6 +29,13 @@ extension Array {
     }
     
     ///
+    /// Apply the function ``f`` to every element
+    ///
+    func foreach(f: Element -> Void) -> Void {
+        for e in self { f(e) }
+    }
+    
+    ///
     /// Returns ``true`` if ``predicate`` evaluates to ``true`` for all elements.
     ///
     func forall(predicate: Element -> Bool) -> Bool {

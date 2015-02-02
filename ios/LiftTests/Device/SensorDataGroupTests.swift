@@ -92,7 +92,7 @@ class SensorDataGroupTests : XCTestCase {
         */
         
         sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 1.0)       // phone stats at 1
-        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 2.0)       // .1 is our jitter ~> OK
+        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 2.0)       // continuous
         sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 3.0)       // continuous
         sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 4.0)       // continuous
         sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 5.0)       // continuous
@@ -129,6 +129,20 @@ class SensorDataGroupTests : XCTestCase {
         XCTAssertEqual(four.find { $0.header.type == 1 && $0.header.sourceDeviceId == self.phone }!.sensorData.asString(),  "21")
         XCTAssertEqual(four.find { $0.header.type == 2 && $0.header.sourceDeviceId == self.phone }!.sensorData.asString(),  "acab")
         XCTAssertEqual(four.find { $0.header.type == 0 && $0.header.sourceDeviceId == self.pebble }!.sensorData.asString(), "-#")         // padded #
+    }
+    
+    func testRemoval() {
+        var sdg = SensorDataGroup()
+        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 1.0)       // phone stats at 1
+        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 2.0)       // continuous
+        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 3.0)       // continuous
+        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 4.0)       // continuous
+        sdg.decodeAndAdd(phoneData, fromDeviceId: phone, at: 5.0)       // continuous
+        
+        XCTAssertEqual(sdg.length, 8 * 5)
+        sdg.removeSensorDataArraysEndingBefore(2)
+        
+        XCTAssertEqual(sdg.length, 8 * 4)
     }
     
 }
