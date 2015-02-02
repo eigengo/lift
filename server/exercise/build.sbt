@@ -33,5 +33,6 @@ libraryDependencies ++= Seq(
   scalatest % "test",
   scalacheck % "test",
   akka.testkit % "test",
-  spray.testkit % "test"
+  spray.testkit % "test",
+  akka.streams.testkit % "test"
 )

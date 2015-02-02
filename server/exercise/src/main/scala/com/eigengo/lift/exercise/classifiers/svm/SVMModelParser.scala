@@ -36,7 +36,7 @@ private[svm] trait ParserUtils extends StringBuilding {
   def FractionalPart = rule {
     optional('.' ~ oneOrMore(Digit)) ~ optional(ignoreCase('e') ~ optional(anyOf("+-")) ~ oneOrMore(Digit))
   }
-  
+
   def Number: Rule1[String] = rule {
     capture(optional(anyOf("+-")) ~ oneOrMore(Digit) ~ optional(FractionalPart)) ~> ((n: String) => push((Try(n.toInt) orElse Try(n.toDouble)).get.toString))
   }

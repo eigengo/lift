@@ -21,7 +21,7 @@ object SessionId {
  * @param muscleGroupKeys the planned muscle groups
  * @param intendedIntensity the planned intensity
  */
-case class SessionProps(startDate: Date,
+case class SessionProperties(startDate: Date,
                    muscleGroupKeys: Seq[MuscleGroupKey],
                    intendedIntensity: ExerciseIntensity) {
   require(intendedIntensity >  0.0, "intendedIntensity must be between <0, 1)")

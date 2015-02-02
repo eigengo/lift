@@ -185,7 +185,7 @@ trait RepetitionExtractor {
   private def saveCsv[A](name: String, values: Iterable[A])(f: A ⇒ String): Unit = {
     import scala.language.reflectiveCalls
 
-    val os = new FileOutputStream(s"/Users/janmachacek/$name.csv")
+    val os = new FileOutputStream(s"${System.getProperty("user.home")}/$name.csv")
     values.iterator.foreach { case x ⇒
       val l = s"${f(x)}\n"
       os.write(l.getBytes("UTF-8"))

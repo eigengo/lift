@@ -15,9 +15,12 @@ object Dependencies {
     object streams {
       val version = "1.0-M2"
 
-      val core      = "com.typesafe.akka" %% "akka-stream-experimental"    % version
-      val http      = "com.typesafe.akka" %% "akka-http-experimental"      % version
-      val http_core = "com.typesafe.akka" %% "akka-http-core-experimental" % version
+      val core      = "com.typesafe.akka" %% "akka-stream-experimental"         % version
+      val http      = "com.typesafe.akka" %% "akka-http-experimental"           % version
+      val http_core = "com.typesafe.akka" %% "akka-http-core-experimental"      % version
+
+      // FIXME: currently this is an empty dependency - as soon as this situation changes, we need to ensure manually added files under `akka.stream.testkit.*` are deleted!
+      val testkit   = "com.typesafe.akka" %% "akka-stream-testkit-experimental" % version
     }
 
     val leveldb               = "org.iq80.leveldb"        % "leveldb"                       % "0.7"

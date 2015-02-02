@@ -1,10 +1,5 @@
 package com.eigengo.lift.exercise
 
-import scodec.bits.{BitVector, ByteOrdering}
-
-import scala.annotation.tailrec
-import scalaz.\/
-
 /**
  * Accelerometer data groups ``values`` at the given ``samplingRate``
  * @param samplingRate the sampling rate in Hz
