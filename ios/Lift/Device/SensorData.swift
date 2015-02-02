@@ -195,8 +195,14 @@ func ==(lhs: SensorDataArrayHeader, rhs: SensorDataArrayHeader) -> Bool {
            lhs.samplesPerSecond == rhs.samplesPerSecond
 }
 
+///
+/// A SensorDataArray that only holds continuous ``sensorData``. Note that the ``sensorData`` here
+/// could be padded
+///
 struct ContinuousSensorDataArray {
+    /// the header
     var header: SensorDataArrayHeader
+    /// the continuous (possibly padded) SensorData
     var sensorData: SensorData
 }
 
@@ -237,6 +243,7 @@ class SensorDataArray {
     /// being added follows immediately (for some very small epsilon) the last ``sensorData``, then it
     /// will just be appended to the last ``sensorData``.
     ///
+    /* mutating */
     func append(sensorData data: SensorData, maximumGap gap: CFTimeInterval, gapValue: UInt8) {
         if var last = sensorDatas.last {
             if data.startTime - last.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond) < gap {
@@ -264,14 +271,6 @@ class SensorDataArray {
         }
         
         sensorDatas = r
-    }
-    
-    ///
-    /// Returns ``true`` if the samples contained here fall within the given ``range``, allowing for
-    /// gaps up to ``gap``
-    ///
-    func within(range: TimeRange, maximumGap gap: CFTimeInterval) -> Bool {
-        return continuousRanges(maximumGap: gap).exists { x in range.within(x, maximumGap: gap) }
     }
     
     ///
