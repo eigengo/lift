@@ -6,6 +6,7 @@ export SPARK_DRIVER_MEMORY=1500m
 export SPARK_WORKER_MEMORY=1500m
 export SPARK_MASTER_MEM=1500m
 export SPARK_MASTER_IP=__MASTER__
+export SPARK_LOCAL_IP=__SPARK_LOCAL_IP__
 export HADOOP_HOME="/etc/hadoop"
 export MASTER="spark://__MASTER__:7077"
 export SPARK_LOCAL_DIR=/tmp/spark

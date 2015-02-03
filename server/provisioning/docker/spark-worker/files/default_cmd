@@ -6,7 +6,7 @@ IP=$(ip -o -4 addr list eth0 | perl -n -e 'if (m{inet\s([\d\.]+)\/\d+\s}xms) { p
 echo "WORKER_IP=$IP"
 
 echo "preparing Spark"
-prepare_spark $1
+prepare_spark $1 $IP
 
 echo "starting Hadoop Datanode"
 service hadoop-datanode start

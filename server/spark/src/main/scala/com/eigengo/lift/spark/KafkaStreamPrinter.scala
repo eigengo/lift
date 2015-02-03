@@ -22,11 +22,16 @@ object KafkaStreamPrinter extends App with Logging {
 
     val config = ConfigFactory.load()
 
+    Logger.getLogger("KafkaStreamPrinter").info(s"STARTING")
+
     val context = new SparkContext(new SparkConf()
       .setAppName("Basic job")
+      .set("spark.driver.port", "9001")
       .setMaster(config.getString("spark.master")))
 
     context.parallelize(1 to 1000).map(_ + 1).foreach(println)
+    Logger.getLogger("KafkaStreamPrinter").info(s"STOPPING")
+    context.stop()
 
     /*val config = ConfigFactory.load()
 
@@ -63,5 +68,7 @@ object KafkaStreamPrinter extends App with Logging {
     ssc.start()
     ssc.awaitTermination()
     */
+
+
   }
 }
