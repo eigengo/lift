@@ -2,8 +2,8 @@
 "Device.Pebble.noWatches"="No connected watches";
 
 "DeviceTableViewCell.noDevice"="No device";
-"DeviceTableViewCell.deviceInfoWithDetail"="Serial %@\nAddress: %@";
-"DeviceTableViewCell.deviceInfo"="Serial %@";
+"DeviceTableViewCell.deviceInfoWithDetail"="Model %@\nAddress: %@";
+"DeviceTableViewCell.deviceInfo"="Model %@";
 "DeviceTableViewCell.disconnectedType.pebble"="Pebble";
 "DeviceTableViewCell.disconnectedType.androidwear"="Android Wear";
 "DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch";
@@ -15,8 +15,9 @@
 
 "LiveSessionController.sessionStatsTitle"="Session %@";
 "LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
-"LiveSessionController.section.deviceAndSession"="Device and session";
-"LiveSessionController.section.exercise"="Exercise";
+"LiveSessionController.devices"="Devices";
+"LiveSessionController.sensors"="Sensors";
+"LiveSessionController.exercise"="Exercise";
 "LiveSessionController.elapsed"="Elapsed %d:%02d";
 
 "PublicProfileController.pictures"="Pictures";
@@ -33,6 +34,10 @@
 "HomeController.OfflineSessions"="Offline sessions";
 
 "DeviceSessionStatsKey.Accelerometer"="Accelerometer";
+"DeviceSessionStatsKey.Gyroscope"="Gyroscope";
+"DeviceSessionStatsKey.GPS"="GPS";
+"DeviceSessionStatsKey.HeartRate"="Heart rate";
+"DeviceSessionStatsKey.Other"="Other";
 
 "Profile.firstName"="First name";
 "Profile.lastName"="Last name";
@@ -45,6 +50,7 @@
 
 "NSError.notImplemented"="Not implemented";
 
+"(This device)"="(This device)";
 "Cancel"="Cancel";
 "Logout"="Logout";
 "Stop"="Stop";

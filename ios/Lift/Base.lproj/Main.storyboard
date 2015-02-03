@@ -13,7 +13,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="0.93725490196078431" green="0.93725490196078431" blue="0.95686274509803926" alpha="1" colorSpace="calibratedRGB"/>
                         <prototypes>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="session" textLabel="DKb-Kv-YXI" detailTextLabel="506-UL-azP" rowHeight="40" style="IBUITableViewCellStyleValue2" id="aBn-xd-uD0">
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="sensor" textLabel="DKb-Kv-YXI" detailTextLabel="506-UL-azP" rowHeight="40" style="IBUITableViewCellStyleValue2" id="aBn-xd-uD0">
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="aBn-xd-uD0" id="CMq-GI-Rv0">
                                     <autoresizingMask key="autoresizingMask"/>
