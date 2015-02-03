@@ -10,7 +10,7 @@ protocol SensorDataGroupBufferDelegate {
 
 struct SensorDataGroupBuffer {
     var sensorDataGroup: SensorDataGroup = SensorDataGroup()
-    var lastDecodeTime: CFAbsoluteTime? = nil
+    static var lastDecodeTime: CFAbsoluteTime? = nil
     let windowSize: CFTimeInterval!
     let windowDelay: CFTimeInterval!
     let queue: dispatch_queue_t!
@@ -19,7 +19,7 @@ struct SensorDataGroupBuffer {
     
     init(delegate: SensorDataGroupBufferDelegate) {
         self.delegate = delegate
-        
+        SensorDataGroupBuffer.lastDecodeTime = nil
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
         windowDelay = windowSize / 2.0
         queue = dispatch_get_main_queue()
@@ -40,7 +40,9 @@ struct SensorDataGroupBuffer {
     mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
         let time = CFAbsoluteTimeGetCurrent()
         sensorDataGroup.decodeAndAdd(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
-        lastDecodeTime = time
+        NSLog("INFO: sensorDataGroup.rawCount = \(sensorDataGroup.rawCount)")
+        
+        SensorDataGroupBuffer.lastDecodeTime = time
     }
     
     func stop() {
@@ -48,14 +50,20 @@ struct SensorDataGroupBuffer {
     }
     
     mutating func encodeWindow() {
-        if let x = lastDecodeTime {
+        if let x = SensorDataGroupBuffer.lastDecodeTime {
             let start = x - windowDelay - windowSize
             let end   = x - windowDelay
+            
+            NSLog("INFO: sensorDataGroup.rawCount = \(sensorDataGroup.rawCount)")
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
             if !csdas.isEmpty {
                 let result = NSMutableData()
+                // TODO: Multi-packet header
                 csdas.foreach { $0.encode(mutating: result) }
                 delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
+                NSLog("INFO: Data \(result.length)")
+            } else {
+                NSLog("WARN: Empty range \(start) - \(end)")
             }
             sensorDataGroup.removeSensorDataArraysEndingBefore(start)
         }

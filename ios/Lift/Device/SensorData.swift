@@ -81,25 +81,29 @@ struct SensorDataGroup {
     var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
     
     private mutating func decode(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
-        let headerSize = 5 //(sizeof(lift_header))
-        if data.length < headerSize { return }
-        
-        var header: lift_header!
-        data.getBytes(&header, length: headerSize)
-        
-        let key = SensorDataArrayHeader(sourceDeviceId: id, type: header!.type, sampleSize: header!.sample_size, samplesPerSecond: header!.samples_per_second)
-        let length = Int(header!.count * header!.sample_size)
-        let samples = data.subdataWithRange(NSMakeRange(headerSize, length))
-        let sensorData = SensorData(startTime: time, samples: samples)
-        if var x = sensorDataArrays[key] {
-            x.append(sensorData: sensorData, maximumGap: gap, gapValue: gapValue)
-        } else {
-            sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
-        }
-        
-        if data.length > samples.length + headerSize {
-            let zero = headerSize + samples.length
-            decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
+        let headerSize = 5
+        var header: [UInt8] = [ 0, 0, 0, 0, 0 ]
+        if data.length > headerSize {
+            data.getBytes(&header, length: headerSize)
+            let type = header[0]
+            let count = header[1]
+            let samplesPerSecond = header[2]
+            let sampleSize = header[3]
+            
+            let length = Int(count) * Int(sampleSize)
+            let key = SensorDataArrayHeader(sourceDeviceId: id, type: type, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond)
+            let samples = data.subdataWithRange(NSMakeRange(headerSize, length))
+            let sensorData = SensorData(startTime: time, samples: samples)
+            if var x = sensorDataArrays[key] {
+                x.append(sensorData: sensorData, maximumGap: gap, gapValue: gapValue)
+            } else {
+                sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
+            }
+            
+            if data.length > samples.length + headerSize {
+                let zero = headerSize + samples.length
+                decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
+            }
         }
     }
     

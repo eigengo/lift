@@ -79,7 +79,7 @@ class ThisDeviceSession : DeviceSession {
     }
     
     func emptyUserAccelerationBuffer() -> NSMutableData {
-        let header: [UInt8] = [UInt8](count: 5, repeatedValue: 0)
+        let header: [UInt8] = [ 0xad, 124, 100, 5, 0 ]
         return NSMutableData(bytes: header, length: 5)
     }
     

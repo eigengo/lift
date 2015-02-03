@@ -4,22 +4,6 @@
 #include <stdint.h>
 
 /**
- * 5 B in header
- */
-typedef struct __attribute__((__packed__)) {
-    uint8_t type;                   // 1
-    uint8_t count;                  // 2
-    uint8_t samples_per_second;     // 3
-    uint8_t sample_size;            // 4
-    uint8_t padding;                // 5
-} lift_header;
-
-#define LIFT_ACCELEROMETER_TYPE (uint8_t)0xad
-#define LIFT_GYROSCOPE_TYPE (uint8_t)0xbd
-#define LIFT_GPS_TYPE (uint8_t)0xcd
-#define LIFT_HR_TYPE (uint8_t)0xdd
-
-/**
  * Packed 5 B of the accelerometer values
  */
 typedef struct __attribute__((__packed__)) {
