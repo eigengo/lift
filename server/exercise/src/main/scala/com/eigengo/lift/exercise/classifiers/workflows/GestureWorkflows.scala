@@ -60,7 +60,7 @@ trait GestureWorkflows extends SVMClassifier {
   class IdentifyGestureEvents {
     val in = UndefinedSource[AccelerometerValue]
     val out = UndefinedSink[AccelerometerValue]
-    val tap = UndefinedSink[Fact]
+    val tap = UndefinedSink[Option[Fact]]
 
     val graph = PartialFlowGraph { implicit builder =>
       val split = Broadcast[AccelerometerValue]
@@ -71,14 +71,14 @@ trait GestureWorkflows extends SVMClassifier {
           // Saturated windows may be classified
           val matchProbability = probabilityOfGestureEvent(sample)
 
-          if (matchProbability > threshold) {
-            Gesture(name, matchProbability)
+          if (matchProbability >= threshold) {
+            Some(Gesture(name, threshold))
           } else {
-            Unknown
+            Some(NegGesture(name, threshold))
           }
         } else {
           // Truncated windows are never classified (these typically occur when the stream closes)
-          Unknown
+          None
         }
       } ~> tap
     }
@@ -130,34 +130,40 @@ trait GestureWorkflows extends SVMClassifier {
     require(locations.nonEmpty)
 
     val in = locations.map(loc => (loc, UndefinedSource[A])).toMap
-    val transform = UndefinedSource[Fact]
+    val transform = UndefinedSource[Option[Fact]]
     val out = locations.map(loc => (loc, UndefinedSink[Bind[A]])).toMap
 
     val graph = PartialFlowGraph { implicit builder =>
       // We separate out 1-element case since `Broadcast` nodes need at least 2 downstream nodes
       if (locations.size == 1) {
-        val zip = ZipWith[A, Fact, Bind[A]]((msg: A, tag: Fact) => tag match {
-          case Gesture(name, matchProb) =>
-            Bind(Predicate(Gesture(name, matchProb)), msg)
+        val zip = ZipWith[A, Option[Fact], Bind[A]]((msg: A, tag: Option[Fact]) => tag match {
+          case Some(Gesture(name, matchProb)) =>
+            Bind(Some(Predicate(Gesture(name, matchProb))), msg)
 
-          case Unknown =>
-            Bind(Predicate(Unknown), msg)
+          case Some(NegGesture(name, matchProb)) =>
+            Bind(Some(Predicate(NegGesture(name, matchProb))), msg)
+
+          case None =>
+            Bind(None, msg)
         })
 
         in(locations.head) ~> zip.left
         transform ~> zip.right
         zip.out ~> out(locations.head)
       } else {
-        val broadcast = Broadcast[Fact]
+        val broadcast = Broadcast[Option[Fact]]
 
         transform ~> broadcast
         for ((location, sensor) <- in) {
-          val zip = ZipWith[A, Fact, Bind[A]]((msg: A, tag: Fact) => tag match {
-            case Gesture(name, matchProb) =>
-              Bind(Predicate(Gesture(name, matchProb)), msg)
+          val zip = ZipWith[A, Option[Fact], Bind[A]]((msg: A, tag: Option[Fact]) => tag match {
+            case Some(Gesture(name, matchProb)) =>
+              Bind(Some(Predicate(Gesture(name, matchProb))), msg)
 
-            case Unknown =>
-              Bind(Predicate(Unknown), msg)
+            case Some(NegGesture(name, matchProb)) =>
+              Bind(Some(Predicate(NegGesture(name, matchProb))), msg)
+
+            case None =>
+              Bind(None, msg)
           })
 
           sensor ~> zip.left
@@ -185,13 +191,27 @@ trait GestureWorkflows extends SVMClassifier {
 
     private val identify = inputLocations.map(loc => (loc, IdentifyGestureEvents())).toMap
     private val modulate = ModulateSensorNet[AccelerometerValue, Bind[AccelerometerValue], L](outputLocations)
-    private val merge = MergeSignals[Fact, Fact](inputLocations.size) { (obs: Set[Fact]) =>
-      require(obs.nonEmpty)
+    private val merge = MergeSignals[Option[Fact], Option[Fact]](inputLocations.size) { (obs: Set[Option[Fact]]) =>
+      obs
+        .filter {
+          case Some(Gesture(nm, _)) if nm == name =>
+            true
 
-      if (obs.filter(_.isInstanceOf[Gesture]).asInstanceOf[Set[Gesture]].filter(_.name == name).nonEmpty) {
-        obs.filter(_.isInstanceOf[Gesture]).asInstanceOf[Set[Gesture]].filter(_.name == name).maxBy(_.matchProbability)
-      } else {
-        obs.head
+          case _ =>
+            false
+        }
+        .fold(None) {
+          case (result @ Some(_), None) =>
+            result
+
+          case (None, result @ Some(_)) =>
+            result
+
+          case (Some(Gesture(_, matchProb1)), Some(Gesture(_, matchProb2))) =>
+            Some(Gesture(name, matchProb1.max(matchProb2)))
+
+          case _ =>
+            None
       }
     }
 

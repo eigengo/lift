@@ -81,7 +81,7 @@ class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
   import ClassificationAssertions._
   import ExerciseModel._
 
-  val tapGesture = Atomic(Gesture("tap", 0.80))
+  val tapGesture = Formula(Predicate(Gesture("tap", 0.80)))
 
   // Issue "callback" (via sender actor reference) whenever we detect a tap gesture with a matching probability >= 0.80
   val model = context.actorOf(modelProps(sessionProps, Set(tapGesture)))

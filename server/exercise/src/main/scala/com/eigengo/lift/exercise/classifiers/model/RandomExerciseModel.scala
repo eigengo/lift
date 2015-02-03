@@ -7,14 +7,14 @@ import com.eigengo.lift.exercise.UserExercises.ModelMetadata
 import com.eigengo.lift.exercise.UserExercisesClassifier.{FullyClassifiedExercise, UnclassifiedExercise, ClassifiedExercise}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
 import scala.util.Random
-import scalaz.{\/, -\/, \/-}
+import scalaz.{\/, -\/}
 
 /**
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
  * the listening actor).
  */
-class RandomExerciseModel(val sessionProps: SessionProperties, val watch: Set[Query])
-  extends ExerciseModel[ClassifiedExercise]
+class RandomExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
+  extends ExerciseModel
   with Actor
   with ActorLogging {
 
@@ -46,24 +46,11 @@ class RandomExerciseModel(val sessionProps: SessionProperties, val watch: Set[Qu
             println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
         }
       }
-      watch.foreach { query =>
-        evaluate(query) match {
-          case \/-(result) =>
-            sender() ! result
-
-          case -\/(None) =>
-            // we ignore this case as query evaluated to be false without any error
-
-          case -\/(Some(err)) =>
-            log.error(err)
-        }
-      }
+      // FIXME: should we be returning a QueryResult instance here????
+      sender() ! randomExercise()
   }
 
-  // All queries evaluate to a random value
-  def evaluate(query: Query): Option[String] \/ ClassifiedExercise = {
-    \/-(randomExercise())
-  }
+  def evaluate(query: Query): String \/ QueryValue = -\/("not used - so not implemented!")
 
 }
 
