@@ -19,18 +19,18 @@ struct ConnectedDeviceInfo {
 ///
 /// Packs togehter multiple devices
 ///
-class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate {
+class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate, SensorDataGroupBufferDelegate {
     // the stats are combined for all devices
     private let combinedStats = DeviceSessionStats<DeviceSessionStatsTypes.KeyWithLocation>()
     // our special deviceId is all 0s
     private let multiDeviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
 
     private var deviceInfos: [DeviceId : ConnectedDeviceInfo] = [:]
-    private var sensorDataGroup: SensorDataGroup = SensorDataGroup()
     private var devices: [ConnectedDevice] = []
     
-    private var deviceSessionDelegate: DeviceSessionDelegate!
-    private var deviceDelegate: DeviceDelegate!
+    private var sensorDataGroupBuffer: SensorDataGroupBuffer!
+    private let deviceSessionDelegate: DeviceSessionDelegate!
+    private let deviceDelegate: DeviceDelegate!
     
     required init(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate) {
         // Multi device's ID is all zeros
@@ -38,6 +38,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
         self.deviceDelegate = deviceDelegate
         super.init()
         
+        self.sensorDataGroupBuffer = SensorDataGroupBuffer(delegate: self)
         for device in Devices.devices {
             device.connect(self, deviceSessionDelegate: self, onDone: { d in self.devices += [d] })
         }
@@ -84,6 +85,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
     
     override func stop() {
         for d in devices { d.stop() }
+        sensorDataGroupBuffer.stop()
     }
     
     // MARK: DeviceDelegate implementation
@@ -117,15 +119,12 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
 
     // MARK: DeviceSessionDelegate implementation
     func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, atDeviceTime time: CFAbsoluteTime, data: NSData) {
-        sensorDataGroup.decodeAndAdd(data, fromDeviceId: deviceId, at: CFAbsoluteTimeGetCurrent(), maximumGap: 0.3, gapValue: 0)
+        sensorDataGroupBuffer.decodeAndAdd(data, fromDeviceId: deviceId, maximumGap: 0.3, gapValue: 0)
         
         combinedStats.merge(session.getStats()) { k in
             let location = k.deviceId == ThisDevice.Info.id ? DeviceInfo.Location.Waist : DeviceInfo.Location.Wrist
             return DeviceSessionStatsTypes.KeyWithLocation(sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
         }
-        
-        // TODO: replace with timer
-        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: multiDeviceId, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
     }
     
     func deviceSession(deviceSession: DeviceSession, endedFrom deviceId: DeviceId) {
@@ -135,6 +134,12 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate 
     
     func deviceSession(deviceSession: DeviceSession, sensorDataNotReceivedFrom deviceId: DeviceId) {
         // ???
+    }
+    
+    // MARK: SensorDataGroupBufferDelegate implementation
+    
+    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedAt time: CFAbsoluteTime, data: NSData) {
+        deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: multiDeviceId, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
     }
     
 }
