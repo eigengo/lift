@@ -77,7 +77,7 @@ func ==(lhs: TimeRange, rhs: TimeRange) -> Bool {
 /// Groups multiple ``SensorDataArray``s, typically received from multiple devices
 ///
 class SensorDataGroup {
-    var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
+    var sensorDataArrays: [SensorDataArray] = []
     
     private func decode(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
         let headerSize = 5
@@ -93,10 +93,10 @@ class SensorDataGroup {
             let key = SensorDataArrayHeader(sourceDeviceId: id, type: type, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond)
             let samples = data.subdataWithRange(NSMakeRange(headerSize, length))
             let sensorData = SensorData(startTime: time, samples: samples)
-            if var x = sensorDataArrays[key] {
+            if let x = (sensorDataArrays.find { $0.header == key }) {
                 x.append(sensorData: sensorData, maximumGap: gap, gapValue: gapValue)
             } else {
-                sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
+                sensorDataArrays += [SensorDataArray(header: key, sensorData: sensorData)]
             }
             
             if data.length > samples.length + headerSize {
@@ -121,7 +121,7 @@ class SensorDataGroup {
     var length: Int {
         get {
             var r: Int = 0
-            for x in sensorDataArrays.values { r += x.length }
+            for x in sensorDataArrays { r += x.length }
             return r
         }
     }
@@ -151,7 +151,7 @@ class SensorDataGroup {
     ///
     /* mutating */
     func removeSensorDataArraysEndingBefore(time: CFAbsoluteTime) -> Void {
-        for (_, var v) in sensorDataArrays {
+        for v in sensorDataArrays {
             v.removeSensorDataEndingBefore(time)
         }
     }
@@ -163,7 +163,7 @@ class SensorDataGroup {
         if sensorDataArrays.isEmpty { return [] }
 
         var result: [ContinuousSensorDataArray] = []
-        for sda in sensorDataArrays.values {
+        for sda in sensorDataArrays {
             if let x = sda.slice(range, maximumGap: gap, gapValue: gapValue) {
                 result += [x]
             }
