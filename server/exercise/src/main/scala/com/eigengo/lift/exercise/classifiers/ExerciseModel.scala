@@ -4,7 +4,7 @@ import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.Assertion
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{Assertion, True}
 import com.eigengo.lift.exercise.{SensorData, SessionProperties}
 import scalaz.{-\/, \/-, \/}
 
@@ -93,6 +93,37 @@ object ExerciseModel {
     case All(path, query1) =>
       Exists(path, not(query1))
   }
+
+  /**
+   * Indicates that the exercise session has completed (remaining trace is empty)
+   */
+  val End: Query = All(Test(Assert(True)), FF)
+
+  /**
+   * Denotes the last step of the exercise session
+   */
+  val Last: Query = Exists(Assert(True), End)
+
+  /**
+   * At the next point of the exercise session, the query will hold
+   */
+  def Next(query: Query): Query = Exists(Assert(True), query)
+
+  /**
+   * At some point in the exercise session, the query will hold
+   */
+  def Diamond(query: Query): Query = Exists(Repeat(Assert(True)), query)
+
+  /**
+   * For all points in the exercise session, the query holds
+   */
+  def Box(query: Query): Query = All(Repeat(Assert(True)), query)
+
+  /**
+   * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
+   * session.
+   */
+  def Until(query1: Assertion, query2: Query): Query = Exists(Repeat(Seq(Test(Assert(query1)), Assert(True))), query2)
 
   /**
    * Message sent to exercise model actor. Indicates that model is to be updated and the model's `watch` queries are to
