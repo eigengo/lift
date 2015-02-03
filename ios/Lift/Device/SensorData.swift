@@ -76,11 +76,10 @@ func ==(lhs: TimeRange, rhs: TimeRange) -> Bool {
 ///
 /// Groups multiple ``SensorDataArray``s, typically received from multiple devices
 ///
-struct SensorDataGroup {
-    private static let lock = "lock"
+class SensorDataGroup {
     var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
     
-    private mutating func decode(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
+    private func decode(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
         let headerSize = 5
         var header: [UInt8] = [ 0, 0, 0, 0, 0 ]
         if data.length > headerSize {
@@ -139,17 +138,19 @@ struct SensorDataGroup {
     /// It will also perform trivial merging if the last received data block arrives within ``gap`` of the last
     /// received data block.
     ///
-    mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime,
+    /* mutating */
+    func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime,
         maximumGap gap: CFTimeInterval = 0.1, gapValue: UInt8 = 0x00) -> Void {
-        objc_sync_enter(SensorDataGroup.lock)
+        //objc_sync_enter(SensorDataGroup.lock)
         decode(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
-        objc_sync_exit(SensorDataGroup.lock)
+        //objc_sync_exit(SensorDataGroup.lock)
     }
     
     ///
     /// Removes ``SensorDataArray``s whose endDate falls before the given ``time``.
     ///
-    mutating func removeSensorDataArraysEndingBefore(time: CFAbsoluteTime) -> Void {
+    /* mutating */
+    func removeSensorDataArraysEndingBefore(time: CFAbsoluteTime) -> Void {
         for (_, var v) in sensorDataArrays {
             v.removeSensorDataEndingBefore(time)
         }
