@@ -22,7 +22,7 @@ struct SensorDataGroupBuffer {
         
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
         windowDelay = windowSize / 2.0
-        queue = dispatch_queue_create("SensorDataBufferGroup", nil)
+        queue = dispatch_get_main_queue()
         timer = createDispatchTimer(windowSize, queue: queue, block: { self.encodeWindow() })
     }
     

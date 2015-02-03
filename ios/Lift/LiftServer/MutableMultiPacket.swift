@@ -49,8 +49,9 @@ class MutableMultiPacket : MultiPacket {
         for (sdsl, entry) in buffer {
             switch entry {
             case .Data(data: let data):
-                let sizel = UInt8(data.length & 0xff00 >> 8)
-                let sizeh = UInt8(data.length >> 8)
+                let length = UInt16(data.length)
+                let sizel = UInt8(length & 0xff00 >> 8)
+                let sizeh = UInt8(length >> 8)
                 let dHeader: [UInt8] = [sizeh, sizel, sdsl.rawValue]
                 result.appendBytes(dHeader, length: 3)
                 result.appendData(data)

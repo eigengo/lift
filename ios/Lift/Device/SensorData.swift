@@ -77,27 +77,29 @@ func ==(lhs: TimeRange, rhs: TimeRange) -> Bool {
 /// Groups multiple ``SensorDataArray``s, typically received from multiple devices
 ///
 struct SensorDataGroup {
+    private static let lock = "lock"
     var sensorDataArrays: [SensorDataArrayHeader : SensorDataArray] = [:]
     
-    private mutating func decode(input: NSData?, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
-        if let data = input {
-            var header: lift_header?
-            data.getBytes(&header, length: sizeof(lift_header))
-            
-            let key = SensorDataArrayHeader(sourceDeviceId: id, type: header!.type, sampleSize: header!.sample_size, samplesPerSecond: header!.samples_per_second)
-            let length = Int(header!.count * header!.sample_size)
-            let samples = data.subdataWithRange(NSMakeRange(sizeof(lift_header), length))
-            let sensorData = SensorData(startTime: time, samples: samples)
-            if var x = sensorDataArrays[key] {
-                x.append(sensorData: sensorData, maximumGap: gap, gapValue: gapValue)
-            } else {
-                sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
-            }
-            
-            if data.length > samples.length + sizeof(lift_header) {
-                let zero = sizeof(lift_header) + samples.length
-                decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
-            }
+    private mutating func decode(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> Void {
+        let headerSize = 5 //(sizeof(lift_header))
+        if data.length < headerSize { return }
+        
+        var header: lift_header!
+        data.getBytes(&header, length: headerSize)
+        
+        let key = SensorDataArrayHeader(sourceDeviceId: id, type: header!.type, sampleSize: header!.sample_size, samplesPerSecond: header!.samples_per_second)
+        let length = Int(header!.count * header!.sample_size)
+        let samples = data.subdataWithRange(NSMakeRange(headerSize, length))
+        let sensorData = SensorData(startTime: time, samples: samples)
+        if var x = sensorDataArrays[key] {
+            x.append(sensorData: sensorData, maximumGap: gap, gapValue: gapValue)
+        } else {
+            sensorDataArrays[key] = SensorDataArray(header: key, sensorData: sensorData)
+        }
+        
+        if data.length > samples.length + headerSize {
+            let zero = headerSize + samples.length
+            decode(data.subdataWithRange(NSMakeRange(zero, data.length - zero)), fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
         }
     }
     
@@ -135,8 +137,9 @@ struct SensorDataGroup {
     ///
     mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, at time: CFAbsoluteTime,
         maximumGap gap: CFTimeInterval = 0.1, gapValue: UInt8 = 0x00) -> Void {
-        
+        objc_sync_enter(SensorDataGroup.lock)
         decode(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
+        objc_sync_exit(SensorDataGroup.lock)
     }
     
     ///
