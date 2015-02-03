@@ -61,6 +61,7 @@
 		54AECC471A76AB8A008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
 		54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AECC461A76AB8A008BD812 /* Dictionary.swift */; };
 		54AECC491A76B022008BD812 /* DeviceSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */; };
+		54B0A3BC1A80D6A400346AD6 /* SensorDataGroupBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */; };
 		54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */; };
 		54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54B562231A77937200F6FD5D /* DeviceSessionStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B562221A77937200F6FD5D /* DeviceSessionStats.swift */; };
@@ -233,6 +234,7 @@
 		549ED2B11A6D8884002588B9 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		54A53EC31A2EF5EC00EDD092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		54AECC461A76AB8A008BD812 /* Dictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dictionary.swift; sourceTree = "<group>"; };
+		54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataGroupBuffer.swift; sourceTree = "<group>"; };
 		54B29B1B1A2C801B00098D2A /* Alamofire+SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Alamofire+SwiftyJSON.h"; sourceTree = "<group>"; };
 		54B29B1C1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire+SwiftyJSON.swift"; sourceTree = "<group>"; };
 		54B29B1D1A2C801B00098D2A /* SwiftyJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftyJSON.h; sourceTree = "<group>"; };
@@ -372,6 +374,7 @@
 				540A1AB71A78034100F5D84B /* SensorDataProtocol.h */,
 				541C41D31A797FD300F49124 /* SensorDataProtocol.c */,
 				540A1AC01A78073200F5D84B /* SensorData.swift */,
+				54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */,
 				54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */,
 			);
 			path = Device;
@@ -960,6 +963,7 @@
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
 				54B562261A7793B000F6FD5D /* DeviceSession.swift in Sources */,
 				54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */,
+				54B0A3BC1A80D6A400346AD6 /* SensorDataGroupBuffer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

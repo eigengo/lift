@@ -4,16 +4,6 @@ import Foundation
 /// Implement to receive data and session identities
 ///
 protocol DeviceSessionDelegate {
-
-    ///
-    /// The device session has started warming up, and the warmup is expected to complete in the given ``expectedCompletionIn``
-    ///
-    func deviceSession(session: DeviceSession, startedWarmingUp deviceId: DeviceId, expectedCompletionIn time: NSTimeInterval)
-    
-    ///
-    /// The device session has finished warming up
-    ///
-    func deviceSession(session: DeviceSession, finishedWarmingUp deviceId: DeviceId)
     
     ///
     /// Called when a sensor data (in the Lift format) is received from the device. The data is complete

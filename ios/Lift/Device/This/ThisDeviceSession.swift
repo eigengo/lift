@@ -16,12 +16,10 @@ class ThisDeviceSession : DeviceSession {
     init(deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
         self.deviceSessionDelegate = deviceSessionDelegate
-        deviceSessionDelegate.deviceSession(self, startedWarmingUp: ThisDevice.Info.id, expectedCompletionIn: 0.2)
         motionManager = CMMotionManager()
         motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
         motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
         userAccelerationBuffer = emptyUserAccelerationBuffer()
-        deviceSessionDelegate.deviceSession(self, finishedWarmingUp: ThisDevice.Info.id)
     }
     
     override func stop() {

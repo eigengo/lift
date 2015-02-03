@@ -204,6 +204,10 @@ struct ContinuousSensorDataArray {
     var header: SensorDataArrayHeader
     /// the continuous (possibly padded) SensorData
     var sensorData: SensorData
+    
+    func encode(mutating data: NSMutableData) {
+        
+    }
 }
 
 ///

@@ -12,11 +12,9 @@ class PebbleDeviceSession : DeviceSession {
     private var updateHandler: AnyObject?
     private var watch: PBWatch!
     private var deviceId: NSUUID!
-    private var signalFinishedWarmingUp: Bool = true
     
     required init(deviceId: NSUUID, watch: PBWatch!, deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
-        deviceSessionDelegate.deviceSession(self, startedWarmingUp: deviceId, expectedCompletionIn: 1.0)
         self.watch = watch
         self.deviceId = deviceId
         self.startTime = NSDate()
@@ -39,12 +37,6 @@ class PebbleDeviceSession : DeviceSession {
     }
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
-        if signalFinishedWarmingUp {
-            deviceSessionDelegate.deviceSession(self, finishedWarmingUp: deviceId)
-            signalFinishedWarmingUp = false
-            return true
-        }
-        
         let adKey = NSNumber(uint32: 0xface0fb0)
         let deadKey = NSNumber(uint32: 0x0000dead)
         if let x = data[adKey] as? NSData {
