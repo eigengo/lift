@@ -1,10 +1,31 @@
 import Foundation
 
+///
+/// Device type is a simple string: it also maps to the devices in the Images.xcassets
+///
 typealias DeviceType = String
 
+///
+/// Device id is a NSUUID
+///
 typealias DeviceId = NSUUID
 
+///
+/// All devices should send packets that are a certain number of samples long; and all devices 
+/// should sample at the same frequency
+///
+struct DevicePace {
+    ///
+    /// The number of samples per packet
+    ///
+    static let samplesPerPacket = 124
+}
+
+///
+/// Holds information about a device
+///
 enum DeviceInfo {
+    
     /// type of device: pebble, applewatch, androidwear,...
     var type: DeviceType {
         get {
@@ -16,7 +37,19 @@ enum DeviceInfo {
         }
     }
     
-    case ConnectedDeviceInfo(id: DeviceId, type: DeviceType, name: String, serialNumber: String)
+    ///
+    /// Indicates whether the device is connected
+    ///
+    var isConnected: Bool {
+        get {
+            switch self {
+            case .ConnectedDeviceInfo(id: _, type: _, name: _, description: _): return true
+            default: return false
+            }
+        }
+    }
+    
+    case ConnectedDeviceInfo(id: DeviceId, type: DeviceType, name: String, description: String)
     
     case DisconnectedDeviceInfo(id: DeviceId, type: DeviceType, error: NSError?)
     
@@ -36,20 +69,18 @@ enum DeviceInfo {
         /// OS version string
         var osVersion: String
     }
-}
-
-/**
- * Holds the delegates that react to the data received from the device. At the very least,
- * the ``AccelerometerDelegate`` must be set.
- *
- * In the future, other delegates may include heart rate, glucose, ...
- */
-class DeviceDataDelegates {
-    var accelerometerDelegate: AccelerometerDelegate
     
-    required init(accelerometerDelegate: AccelerometerDelegate) {
-        self.accelerometerDelegate = accelerometerDelegate
+    /**
+    * Sensor data location matching the Scala codebase
+    */
+    enum Location : UInt8 {
+        case Wrist = 0x01
+        case Waist = 0x02
+        case Chest = 0x03
+        case Foot  = 0x04
+        case Any   = 0x7f
     }
+
 }
 
 /**
@@ -63,7 +94,12 @@ protocol Device {
     *
     * @param onDone the function that will be called when the device information is available
     */
-    func peek(onDone: DeviceInfo -> Void)
+    func peek(onDone: DeviceInfo -> Void) -> Void
+    
+    /**
+     * Connects the device and executes ``onDone`` when successful
+     */
+    func connect(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate, onDone: ConnectedDevice -> Void) -> Void
     
 }
 
@@ -72,51 +108,15 @@ protocol Device {
  */
 protocol ConnectedDevice {
     
-    /**
-     * Starts the device work; typically also starts the companion app
-     */
+    ///
+    /// Starts the device work; typically also starts the companion app
+    ///
     func start()
     
-    /**
-     * Stops the device work; typically also stops the companion app
-     */
+    ///
+    /// Stops the device work; typically also stops the companion app
+    ///
     func stop()
-    
-    
-}
-
-/**
- * The session statistics
- */
-struct DeviceSessionStats {
-    /// total # bytes received
-    var bytes: Int
-    
-    /// total # packets (i.e. group of accelerometer data) received
-    var packets: Int
-}
-
-/**
- * The device stats keys
- */
-enum DeviceSessionStatsKey {
-    case Accelerometer
-}
-
-/**
- * The exercise session connected to the device
- */
-protocol DeviceSession {
-
-    /**
-     * Return the session identity
-     */
-    func sessionId() -> NSUUID
-    
-    /**
-     * Return the session stats as a list of tuples, ordered by the key
-     */
-    func sessionStats() -> [(DeviceSessionStatsKey, DeviceSessionStats)]
     
 }
 
@@ -124,51 +124,50 @@ protocol DeviceSession {
  * The device delegate informs the caller about the connected device
  */
 protocol DeviceDelegate {
-    
-    /**
-     * Information about the device is now available
-     *
-     * @param deviceId the device identity
-     * @param deviceInfo the device information
-     */
+        
+    ///
+    /// Information about the device is now available
+    /// @param deviceId the device identity
+    /// @param deviceInfo the device information
+    ///
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo)
     
-    /**
-     * Detailed information about the device is now available
-     *
-     * @param deviceId the device identity
-     * @param detail the detailed device information
-     */
+    ///
+    /// Detailed information about the device is now available
+    ///
+    /// @param deviceId the device identity
+    /// @param detail the detailed device information
+    ///
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail)
     
-    /**
-     * The device could not be connected. Maybe it's not registered, out of range, or anything
-     * else. The ``error`` contains the details
-     *
-     * @param error the failure detail
-     */
+    ///
+    /// The device could not be connected. Maybe it's not registered, out of range, or anything
+    /// else. The ``error`` contains the details
+    ///
+    /// @param error the failure detail
+    ///
     func deviceDidNotConnect(error: NSError)
     
-    /**
-     * The device is connected, but did not launch the companion app.
-     *
-     * @param deviceId the device identity
-     * @param error the failure detail
-     */
+    ///
+    /// The device is connected, but did not launch the companion app.
+    ///
+    /// @param deviceId the device identity
+    /// @param error the failure detail
+    ///
     func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError)
     
-    /**
-     * The device is connected and successfully launched the companion app.
-     *
-     * @param deviceId the device identity
-     */
+    ///
+    /// The device is connected and successfully launched the companion app.
+    ///
+    /// @param deviceId the device identity
+    ///
     func deviceAppLaunched(deviceId: DeviceId)
     
-    /**
-     * A previously connected device disconnected unexpectedly. Out of range, batteries, ...
-     *
-     * @param deviceId the device identity
-     */
+    ///
+    /// A previously connected device disconnected unexpectedly. Out of range, batteries, ...
+    ///
+    /// @param deviceId the device identity
+    ///
     func deviceDisconnected(deviceId: DeviceId)
     
 }
