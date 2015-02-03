@@ -1,3 +1,4 @@
+/*
 package com.eigengo.lift.spark
 
 import com.typesafe.config.{ConfigFactory, Config}
@@ -71,4 +72,4 @@ object KafkaStreamPrinter extends App with Logging {
 
 
   }
-}
+}*/

@@ -20,6 +20,7 @@ scalaVersion := "2.10.3"
 version := "1.0"
 
 libraryDependencies ++= Seq(
+  scalaz.core,
   slf4j_simple,
   spark.core,
   spark.mllib,
@@ -45,7 +46,7 @@ import sbtdocker.mutable.Dockerfile
 
 dockerSettings
 
-mainClass in assembly := Some("com.eigengo.lift.spark.KafkaStreamPrinter")
+mainClass in assembly := Some("com.eigengo.lift.spark.Main")
 
 docker <<= (docker dependsOn assembly)
 

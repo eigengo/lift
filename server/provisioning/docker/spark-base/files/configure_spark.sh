@@ -25,6 +25,7 @@ function configure_spark() {
 }
 
 function prepare_spark() {
+    echo "preparing spark master $1, self $2"
     create_spark_directories
     deploy_spark_files
     configure_spark $1 $2
