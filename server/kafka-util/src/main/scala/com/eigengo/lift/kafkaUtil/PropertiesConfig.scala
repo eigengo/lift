@@ -1,4 +1,4 @@
-package com.eigengo.lift.kafka
+package com.eigengo.lift.kafkaUtil
 
 import com.typesafe.config.Config
 import scala.collection.JavaConverters.asScalaSetConverter

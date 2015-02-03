@@ -82,6 +82,8 @@ object Dependencies {
     val streamingKafka = "org.apache.spark" %% "spark-streaming-kafka" % version
   }
 
+  val typesafeConfig   = "com.typesafe" % "config" % "1.2.1"
+
   val scodec_bits      = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
   val parboiled        = "org.parboiled"    %% "parboiled"    % "2.0.1"
 

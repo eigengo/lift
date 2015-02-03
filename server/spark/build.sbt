@@ -17,8 +17,6 @@ name := "spark"
 
 scalaVersion := "2.10.3"
 
-version := "1.0"
-
 libraryDependencies ++= Seq(
   scalaz.core,
   slf4j_simple,

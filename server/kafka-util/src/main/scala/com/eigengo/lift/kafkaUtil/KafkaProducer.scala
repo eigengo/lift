@@ -1,13 +1,12 @@
-package com.eigengo.lift.kafka
+package com.eigengo.lift.kafkaUtil
 
-import com.eigengo.lift.common.{MessageEncoder, MessagePayload}
-import MessagePayload.Payload
-import com.eigengo.lift.kafka.PropertiesConfig._
+import com.eigengo.lift.kafkaUtil.PropertiesConfig._
+import com.eigengo.lift.kafkaUtil.MessagePayload.Payload
 import com.typesafe.config.Config
 import kafka.javaapi.producer.Producer
 import kafka.producer.{KeyedMessage, ProducerConfig}
 
-import scalaz.{DisjunctionFunctions, \/}
+import scalaz.{\/, DisjunctionFunctions}
 
 /**
  * Producer of messages to Kafka

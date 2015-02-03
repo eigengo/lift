@@ -7,10 +7,11 @@ name := "domain"
 lazy val common = project.in(file("common")).dependsOn(contrib)
 
 //Kafka integration
-lazy val kafka = project.in(file("kafka")).dependsOn(common)
+lazy val kafkaUtil = project.in(file("kafka-util"))
+lazy val kafka = project.in(file("kafka")).dependsOn(common, kafkaUtil)
 
 //Spark
-lazy val spark = project.in(file("spark"))
+lazy val spark = project.in(file("spark")).dependsOn(kafkaUtil)
 
 //Exercise
 lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common, kafka)
@@ -33,7 +34,7 @@ lazy val adapter = project.in(file("adapter")).dependsOn(common)
 lazy val contrib = project.in(file("contrib"))
 
 //The main aggregate
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, kafka, spark)
+lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, kafka, spark, kafkaUtil)
 
 fork in Test := false
 

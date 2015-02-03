@@ -1,12 +1,12 @@
 package com.eigengo.lift.kafka
 
 import akka.actor.{ActorLogging, Actor, Props}
-import com.eigengo.lift.common.JavaSerializationCodecs
+import com.eigengo.lift.kafkaUtil.{KafkaProducer, JavaSerializationCodecs}
 import com.typesafe.config.Config
 import scala.collection.JavaConverters.asScalaSetConverter
 
 import scalaz.\/
-import com.eigengo.lift.kafka.PropertiesConfig._
+import com.eigengo.lift.kafkaUtil.PropertiesConfig._
 import scala.language.implicitConversions
 
 /**
