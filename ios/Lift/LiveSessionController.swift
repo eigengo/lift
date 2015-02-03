@@ -92,8 +92,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         case (0, let x):
             let cdi = multi!.getDeviceInfo(x)
             return tableView.dequeueReusableDeviceTableViewCell(cdi.deviceInfo, deviceInfoDetail: cdi.deviceInfoDetail, delegate: nil)
+        // section 2: sensors
         case (1, let x):
-            // TODO: iterate over all values, accelerometer now acceptable
             let (key, stats) = multi!.getSessionStats(x)
             let cell = tableView.dequeueReusableCellWithIdentifier("sensor") as UITableViewCell
             cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
@@ -118,7 +118,8 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         default: return ""
         }
     }
-    
+
+    /*
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if indexPath.section == 1 {
             if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
@@ -141,6 +142,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             }
         }
     }
+    */
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
@@ -173,7 +175,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             //x.submitData(mp, const(()))
             
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
+                tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.Automatic)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
@@ -182,11 +184,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     func deviceAppLaunched(deviceId: DeviceId) {
@@ -198,11 +200,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func deviceDidNotConnect(error: NSError) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
 }

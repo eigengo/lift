@@ -270,6 +270,7 @@ class SensorDataArray {
     ///
     /// Removes ``SensorData`` elements whose end time is before ``time``
     ///
+    /* mutating */
     func removeSensorDataEndingBefore(time: CFAbsoluteTime) -> Void {
         let filtered = sensorDatas.filter { sd in
             let endTime = sd.endTime(self.header.sampleSize, samplesPerSecond: self.header.samplesPerSecond)

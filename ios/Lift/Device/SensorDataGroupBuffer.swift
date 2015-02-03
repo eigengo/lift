@@ -8,9 +8,9 @@ protocol SensorDataGroupBufferDelegate {
     
 }
 
-struct SensorDataGroupBuffer {
+class SensorDataGroupBuffer {
     var sensorDataGroup: SensorDataGroup = SensorDataGroup()
-    static var lastDecodeTime: CFAbsoluteTime? = nil
+    var lastDecodeTime: CFAbsoluteTime? = nil
     let windowSize: CFTimeInterval!
     let windowDelay: CFTimeInterval!
     let queue: dispatch_queue_t!
@@ -19,7 +19,6 @@ struct SensorDataGroupBuffer {
     
     init(delegate: SensorDataGroupBufferDelegate) {
         self.delegate = delegate
-        SensorDataGroupBuffer.lastDecodeTime = nil
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
         windowDelay = windowSize / 2.0
         queue = dispatch_get_main_queue()
@@ -37,24 +36,26 @@ struct SensorDataGroupBuffer {
         return timer
     }
 
-    mutating func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
+    /* mutating */
+    func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
         let time = CFAbsoluteTimeGetCurrent()
         sensorDataGroup.decodeAndAdd(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
-        NSLog("INFO: sensorDataGroup.rawCount = \(sensorDataGroup.rawCount)")
+        NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
         
-        SensorDataGroupBuffer.lastDecodeTime = time
+        lastDecodeTime = time
     }
     
     func stop() {
         dispatch_source_cancel(timer)
     }
     
-    mutating func encodeWindow() {
-        if let x = SensorDataGroupBuffer.lastDecodeTime {
+    /* mutating */
+    func encodeWindow() {
+        if let x = lastDecodeTime {
             let start = x - windowDelay - windowSize
             let end   = x - windowDelay
             
-            NSLog("INFO: sensorDataGroup.rawCount = \(sensorDataGroup.rawCount)")
+            NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
             if !csdas.isEmpty {
                 let result = NSMutableData()
