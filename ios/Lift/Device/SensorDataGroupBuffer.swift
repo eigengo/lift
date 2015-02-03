@@ -63,10 +63,10 @@ class SensorDataGroupBuffer {
                 csdas.foreach { $0.encode(mutating: result) }
                 delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
                 NSLog("INFO: Data \(result.length)")
+                sensorDataGroup.removeSensorDataArraysEndingBefore(start - windowSize)
             } else {
                 NSLog("WARN: Empty range \(start) - \(end)")
             }
-            sensorDataGroup.removeSensorDataArraysEndingBefore(start)
         }
         
     }
