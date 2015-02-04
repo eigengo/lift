@@ -51,6 +51,15 @@ class SensorDataGroupBuffer {
         dispatch_source_cancel(timer)
     }
     
+    class func createEncodedData(arrays: Slice<ContinuousSensorDataArray>, timeStamp: CFAbsoluteTime) -> NSMutableData {
+        let result = NSMutableData()
+        result.appendUInt16(0xcab1)
+        result.appendUInt8(UInt8(arrays.count))
+        result.appendUInt32(UInt32(timeStamp))
+        arrays.map { $0.encode(mutating: result, typeByte: 0x7f) } // TODO: Query location from DeviceId.
+        return result
+    }
+    
     /* mutating */
     func encodeWindow() {
         if let x = lastDecodeTime {
@@ -60,13 +69,12 @@ class SensorDataGroupBuffer {
             NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
             if !csdas.isEmpty {
-                let result = NSMutableData()
-                NSMutableDataExtensions.appendUInt16(result, value: 0xcab1)
-                NSMutableDataExtensions.appendUInt8(result, value: UInt8(csdas.count))
-                NSMutableDataExtensions.appendUInt32(result, value: UInt32(start))
-                csdas.foreach { $0.encode(mutating: result, typeByte: 0x7f) }
-                delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
-                NSLog("INFO: Data \(result.length)")
+                
+                for arrays in csdas.pages(255) {
+                    let encodedData = SensorDataGroupBuffer.createEncodedData(arrays, timeStamp: start)
+                    delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: encodedData)
+                    NSLog("INFO: Data \(encodedData.length)")
+                }
                 sensorDataGroup.removeSensorDataArraysEndingBefore(start - windowSize)
             } else {
                 NSLog("WARN: Empty range \(start) - \(end)")

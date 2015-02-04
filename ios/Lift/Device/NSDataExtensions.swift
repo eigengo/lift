@@ -16,24 +16,30 @@ func asBigEndian(value: UInt32) -> [UInt8] {
     ]
 }
 
-class NSMutableDataExtensions {
+extension NSMutableData {
     
-    class func appendBytes(this: NSMutableData, value: [UInt8]) -> Void {
+    func appendBytes(value: [UInt8]) -> Void {
 
         var bytes = value
-        this.appendBytes(&bytes, length: value.count)
+        self.appendBytes(&bytes, length: value.count)
     }
     
-    class func appendUInt8(this: NSMutableData, value: UInt8) -> Void {
-        NSMutableDataExtensions.appendBytes(this, value: [value])
+    func appendUInt8(value: UInt8) -> Void {
+        self.appendBytes([value])
     }
     
-    class func appendUInt16(this: NSMutableData, value: UInt16) -> Void {
-        NSMutableDataExtensions.appendBytes(this, value: asBigEndian(value))
+    func appendUInt16(value: UInt16) -> Void {
+        self.appendBytes(asBigEndian(value))
     }
     
-    class func appendUInt32(this: NSMutableData, value: UInt32) -> Void {
-        NSMutableDataExtensions.appendBytes(this, value: asBigEndian(value))
+    func appendUInt32(value: UInt32) -> Void {
+        self.appendBytes(asBigEndian(value))
+    }
+    
+    func extractBytes() -> [UInt8] {
+        var array = [UInt8](count: self.length, repeatedValue: 0x00)
+        self.getBytes(&array, length: self.length)
+        return array
     }
     
 }

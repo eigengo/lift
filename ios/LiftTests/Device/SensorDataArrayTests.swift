@@ -28,25 +28,27 @@ class SensorDataArrayTests : XCTestCase {
 
 class ContinuousSensorDataArrayTests : XCTestCase {
     
-    let dummyHeader = SensorDataArrayHeader(sourceDeviceId: DeviceId(), type: 0x7f, sampleSize: 1, samplesPerSecond: 1)
+    class func dummyHeader() -> SensorDataArrayHeader {
+        return SensorDataArrayHeader(sourceDeviceId: DeviceId(), type: 0x7f, sampleSize: 1, samplesPerSecond: 1)
+    }
     
-    private func createSensorData(bytes: [UInt8]) -> SensorData {
+    class func createSensorData(bytes: [UInt8]) -> SensorData {
         let samples = NSMutableData(bytes: bytes, length: bytes.count)
         return SensorData(startTime: CFAbsoluteTimeGetCurrent(), samples: samples)
     }
     
-    private func createContinuousArray(data: SensorData) -> ContinuousSensorDataArray {
-        return ContinuousSensorDataArray(header: dummyHeader, sensorData: data)
+    class func createContinuousArray(data: SensorData) -> ContinuousSensorDataArray {
+        return ContinuousSensorDataArray(header: ContinuousSensorDataArrayTests.dummyHeader(), sensorData: data)
     }
     
-    private func encode(typeByte: UInt8, bytes: [UInt8]) -> [UInt8] {
+    func encode(typeByte: UInt8, bytes: [UInt8]) -> [UInt8] {
         var mutableData = NSMutableData()
-        let continuousArray: ContinuousSensorDataArray = createContinuousArray( createSensorData( bytes ) )
+        let continuousArray: ContinuousSensorDataArray =
+            ContinuousSensorDataArrayTests.createContinuousArray(
+                ContinuousSensorDataArrayTests.createSensorData( bytes ) )
         continuousArray.encode(mutating: mutableData, typeByte: typeByte)
         
-        var array = [UInt8](count: mutableData.length, repeatedValue: 0x00)
-        mutableData.getBytes(&array, length: mutableData.length)
-        return array
+        return mutableData.extractBytes()
     }
     
     func testEncoding() {
