@@ -22,7 +22,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
  * TODO: rewrite model so that these assumptions may be weakened further!
  *//*
 class GestureClassificationModel(val sessionProps: SessionProperties, val watch: Set[Query])
-  extends ExerciseModel[Any]
+  extends ExerciseModel
   with GestureWorkflows
   with ActorPublisher
   with ActorLogging {
@@ -98,13 +98,97 @@ class GestureClassificationModel(val sessionProps: SessionProperties, val watch:
     }
   }
 
-  def evaluate(q: Query) = q match {
-    case Assert(assertion) =>
+  // TODO: introduce memoisation
+  def evaluate[A <: SensorData](q: Query)(state: Bind[A], lastState: Boolean): QueryValue = q match {
+    case Formula(assertion) =>
+      StableValue(result = ???) // TODO: propositional case - only need to use current here
 
-    case X(query) =>
+    case TT =>
+      StableValue(result = true)
 
-    case Until(hold, until) =>
+    case FF =>
+      StableValue(result = false)
 
+    case And(query1, query2, remaining @ _*) =>
+      val results = (query1 +: query2 +: remaining).map(q => evaluate(q)(state, lastState))
+      results.fold(StableValue(result = true))(meet)
+
+    case Or(query1, query2, remaining @ _*) =>
+      val results = (query1 +: query2 +: remaining).map(q => evaluate(q)(state, lastState))
+      results.fold(UnstableValue(result = false))(join)
+
+    case Exists(Assert(assertion), query1) =>
+      (!lastState, evaluate(Formula(assertion))(state, lastState)) match {
+        case (true, StableValue(true)) =>
+          // Future evaluation of query1 will determine validity or otherwise of q
+          UnstableValue(result = true) // TODO: schedule query1 for checking in next state
+
+        case (false, _) =>
+          StableValue(result = false)
+
+        case (_, StableValue(false)) =>
+          StableValue(result = false)
+
+        case (true, value @ UnstableValue(_)) =>
+          val errMsg = s"$assertion (which is propositional) did not evaluate to a stable value - evaluated to $value"
+          log.error(errMsg)
+          sys.error(errMsg)
+      }
+
+    case Exists(Test(query1), query2) =>
+      meet(evaluate(query1)(state, lastState), evaluate(query2)(state, lastState))
+
+    case Exists(Choice(path1, path2, remainingPaths @ _*), query1) =>
+      evaluate(Or(Exists(path1, query1), Exists(path2, query1), remainingPaths.map(p => Exists(p, query1)): _*))(state, lastState)
+
+    case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
+      evaluate(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))(state, lastState)
+
+    case Exists(Repeat(path), query1) =>
+      join(
+        evaluate(query1)(state, lastState),
+        meet(
+          StableValue(!lastState && !testOnly(path)),
+          evaluate(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
+        )
+      )
+
+      // TODO: not correct!
+    case All(Assert(assertion), query1) =>
+      (!lastState, evaluate(Formula(assertion))(state, lastState)) match {
+        case (true, StableValue(true)) =>
+          // Future evaluation of query1 will determine validity or otherwise of q
+          UnstableValue(result = true) // TODO: schedule query1 for checking in next state
+
+        case (false, _) =>
+          StableValue(result = false)
+
+        case (_, StableValue(false)) =>
+          StableValue(result = false)
+
+        case (true, value @ UnstableValue(_)) =>
+          val errMsg = s"$assertion (which is propositional) did not evaluate to a stable value - evaluated to $value"
+          log.error(errMsg)
+          sys.error(errMsg)
+      }
+
+    case All(Test(query1), query2) =>
+      join(evaluate(query1)(state, lastState), evaluate(query2)(state, lastState))
+
+    case All(Choice(path1, path2, remainingPaths @ _*), query1) =>
+      evaluate(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))(state, lastState)
+
+    case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
+      evaluate(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))(state, lastState)
+
+    case All(Repeat(path), query1) =>
+      meet(
+        evaluate(query1)(state, lastState),
+        join(
+          StableValue(lastState || testOnly(path)),
+          evaluate(All(path, All(Repeat(path), query1)))(state, lastState)
+        )
+      )
   }
 
 }

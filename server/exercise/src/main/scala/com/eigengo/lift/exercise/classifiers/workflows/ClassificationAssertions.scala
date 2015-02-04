@@ -1,5 +1,7 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
+import com.eigengo.lift.exercise.SensorData
+
 object ClassificationAssertions {
 
   /**

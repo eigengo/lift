@@ -6,8 +6,8 @@ import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.UserExercises.ModelMetadata
 import com.eigengo.lift.exercise.UserExercisesClassifier.{FullyClassifiedExercise, UnclassifiedExercise, ClassifiedExercise}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.Bind
 import scala.util.Random
-import scalaz.{\/, -\/}
 
 /**
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
@@ -46,11 +46,11 @@ class RandomExerciseModel(val sessionProps: SessionProperties, val negativeWatch
             println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
         }
       }
-      // FIXME: should we be returning a QueryResult instance here????
+      // FIXME: we should be returning a QueryResult instance here!!
       sender() ! randomExercise()
   }
 
-  def evaluate(query: Query): String \/ QueryValue = -\/("not used - so not implemented!")
+  def evaluate[A](query: Query)(current: Bind[A], next: Option[Bind[A]]): QueryValue = ??? // FIXME:
 
 }
 

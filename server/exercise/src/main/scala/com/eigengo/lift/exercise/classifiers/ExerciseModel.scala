@@ -4,7 +4,7 @@ import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{Assertion, True}
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{Assertion, Bind, True}
 import com.eigengo.lift.exercise.{SensorData, SessionProperties}
 import scalaz.{-\/, \/-, \/}
 
@@ -32,13 +32,35 @@ object ExerciseModel {
 
   case class Assert(assertion: Assertion) extends Path
 
-  case class Test(path: Path) extends Path
+  case class Test(query: Query) extends Path
 
   case class Choice(path1: Path, path2: Path, remaining: Path*) extends Path
 
   case class Seq(path1: Path, path2: Path, remaining: Path*) extends Path
 
   case class Repeat(path: Path) extends Path
+
+  /**
+   * Auxillary function that determines if a path only involves combinations of `Test` expressions
+   *
+   * @param path path to be tested
+   */
+  def testOnly(path: Path): Boolean = path match {
+    case Assert(_) =>
+      false
+
+    case Test(_) =>
+      true
+
+    case Choice(path1, path2, remainingPaths @ _*) =>
+      (path1 +: path2 +: remainingPaths).map(testOnly).fold(true) { case (x, y) => x && y }
+
+    case Seq(path1, path2, remainingPaths @ _*) =>
+      (path1 +: path2 +: remainingPaths).map(testOnly).fold(true) { case (x, y) => x && y }
+
+    case Repeat(path1) =>
+      testOnly(path1)
+  }
 
   /**
    * Query language - we encode linear-time dynamic logic here
@@ -97,12 +119,17 @@ object ExerciseModel {
   /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
-  val End: Query = All(Test(Assert(True)), FF)
+  val End: Query = All(Test(Formula(True)), FF)
 
   /**
    * Denotes the last step of the exercise session
    */
   val Last: Query = Exists(Assert(True), End)
+
+  /**
+   * Following definitions allow linear-time logic to be encoded within the current logic. Translation here is linear in
+   * the size of the formula.
+   */
 
   /**
    * At the next point of the exercise session, the query will hold
@@ -123,7 +150,7 @@ object ExerciseModel {
    * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
    * session.
    */
-  def Until(query1: Assertion, query2: Query): Query = Exists(Repeat(Seq(Test(Assert(query1)), Assert(True))), query2)
+  def Until(query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), Assert(True))), query2)
 
   /**
    * Message sent to exercise model actor. Indicates that model is to be updated and the model's `watch` queries are to
@@ -145,6 +172,54 @@ object ExerciseModel {
   }
   case class StableValue(result: Boolean) extends QueryValue
   case class UnstableValue(result: Boolean) extends QueryValue
+
+  def meet(value1: QueryValue, value2: QueryValue): QueryValue = (value1, value2) match {
+    case (StableValue(result1), StableValue(result2)) =>
+      StableValue(result1 && result2)
+
+    case (UnstableValue(result1), UnstableValue(result2)) =>
+      UnstableValue(result1 && result2)
+
+    case (StableValue(true), result2 @ UnstableValue(_)) =>
+      result2
+
+    case (result1 @ StableValue(false), UnstableValue(_)) =>
+      result1
+
+    case (result1 @ UnstableValue(_), StableValue(true)) =>
+      result1
+
+    case (UnstableValue(_), result2 @ StableValue(false)) =>
+      result2
+  }
+
+  def join(value1: QueryValue, value2: QueryValue): QueryValue = (value1, value2) match {
+    case (StableValue(result1), StableValue(result2)) =>
+      StableValue(result1 || result2)
+
+    case (UnstableValue(result1), UnstableValue(result2)) =>
+      UnstableValue(result1 || result2)
+
+    case (result1 @ StableValue(true), UnstableValue(_)) =>
+      result1
+
+    case (StableValue(false), result2 @ UnstableValue(_)) =>
+      result2
+
+    case (UnstableValue(_), result2 @ StableValue(true)) =>
+      result2
+
+    case (result1 @ UnstableValue(_), StableValue(false)) =>
+      result1
+  }
+
+  def complement(value: QueryValue): QueryValue = value match {
+    case StableValue(result) =>
+      StableValue(!result)
+
+    case UnstableValue(result) =>
+      UnstableValue(!result)
+  }
 
   /**
    * Result message - returned to sender as model evaluates `watch` queries.
@@ -185,28 +260,26 @@ trait ExerciseModel {
    * Evaluates a query to either an error/false (truth) value or a positive/true (truth) value
    *
    * @param formula formula defining the query to be evaluated
-   * @return        result of evaluating the query formula: \/-(_) is true; -\/(None) is false; -\/(Some(_)) is an error
+   * @param current current state (at which formula is to be evaluated) - if end of exercise session, then `None`
+   * @param next    next or following state - if no state follows, then `None`
+   * @return        result of evaluating the query formula
    */
-  def evaluate(formula: Query): String \/ QueryValue
+  def evaluate[A](formula: Query)(current: Bind[A], next: Option[Bind[A]]): QueryValue
 
   def receive = LoggingReceive {
     // Trait implementations determine how the model is updated with the new event
     case Update(event) =>
       (positiveWatch ++ negativeWatch).foreach { query =>
-        evaluate(query) match {
-          case \/-(value) =>
-            if (value.result) {
-              if (positiveWatch.contains(query)) {
-                sender() ! QueryResult(query, value)
-              }
-            } else {
-              if (negativeWatch.contains(query)) {
-                sender() ! QueryResult(query, value)
-              }
-            }
+        val value = evaluate(query)(???, ???) // FIXME: need to extract state information from SlidingWindow(2)!
 
-          case -\/(err) =>
-            log.error(err)
+        if (value.result) {
+          if (positiveWatch.contains(query)) {
+            sender() ! QueryResult(query, value)
+          }
+        } else {
+          if (negativeWatch.contains(query)) {
+            sender() ! QueryResult(query, value)
+          }
         }
       }
   }
