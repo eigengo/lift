@@ -8,6 +8,9 @@ protocol SensorDataGroupBufferDelegate {
     
 }
 
+///
+///
+///
 class SensorDataGroupBuffer {
     var sensorDataGroup: SensorDataGroup = SensorDataGroup()
     var lastDecodeTime: CFAbsoluteTime? = nil
@@ -16,6 +19,8 @@ class SensorDataGroupBuffer {
     let queue: dispatch_queue_t!
     let timer: dispatch_source_t!
     let delegate: SensorDataGroupBufferDelegate!
+    let deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
+    var counter: UInt32 = 0
     
     init(delegate: SensorDataGroupBufferDelegate) {
         self.delegate = delegate
@@ -57,10 +62,20 @@ class SensorDataGroupBuffer {
             
             NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
+            counter += 1
             if !csdas.isEmpty {
+                if csdas.count > 255 { fatalError("Too many sensors") }
                 let result = NSMutableData()
-                // TODO: Multi-packet header
-                csdas.foreach { $0.encode(mutating: result) }
+                result.appendUInt16(0xcab1)
+                result.appendUInt8(UInt8(csdas.count))
+                result.appendUInt32(counter)
+                csdas.foreach { csda in
+                    result.appendUInt16(UInt16(csda.length))
+                    let location = self.deviceLocations[csda.header.sourceDeviceId] ?? DeviceInfo.Location.Any
+                    result.appendUInt8(location.rawValue)
+                    csda.encode(mutating: result)
+                }
+                
                 delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
                 NSLog("INFO: Data \(result.length)")
                 sensorDataGroup.removeSensorDataArraysEndingBefore(start - windowSize)

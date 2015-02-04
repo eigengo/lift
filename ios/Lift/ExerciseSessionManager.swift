@@ -170,10 +170,10 @@ class ExerciseSessionManager {
             NSFileManager.defaultManager().removeItemAtPath(rootPath, error: nil)
         }
         
-        func appendMultiPacket(mp: MultiPacket) {
+        func appendMultiPacket(mp: NSData) {
             let handle = NSFileHandle(forWritingAtPath: allMultiPacketsFileName)!
             handle.seekToEndOfFile()
-            handle.writeData(mp.data())
+            handle.writeData(mp)
             handle.closeFile()
             
             NSLog("Written to %@", allMultiPacketsFileName)
@@ -188,7 +188,7 @@ class ExerciseSessionManager {
  */
 protocol ManagedExerciseSessionIO {
     
-    func appendMultiPacket(mp: MultiPacket)
+    func appendMultiPacket(mp: NSData)
 
     func remove()
     
@@ -237,7 +237,7 @@ class ManagedExerciseSession : ExerciseSession {
         self.abandon()
     }
     
-    override func submitData(mp: MultiPacket, f: Result<Void> -> Void) -> Void {
+    override func submitData(mp: NSData, f: Result<Void> -> Void) -> Void {
         io.appendMultiPacket(mp)
         
         if !isOffline {

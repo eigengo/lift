@@ -17,7 +17,8 @@ import scalaz.\/
  *     uint8_t type;                   // 1 (0xad)
  *     uint8_t count;                  // 2
  *     uint8_t samples_per_second;     // 3
- *     uint16_t last;                  // 4, 5
+ *     uint8_t sample_size;            // 4
+ *     uint8_t padding;                // 5
  * };
  *
  * /**
