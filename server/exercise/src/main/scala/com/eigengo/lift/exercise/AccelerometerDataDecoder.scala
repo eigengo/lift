@@ -18,7 +18,7 @@ import scalaz.\/
  *     uint8_t count;                  // 2
  *     uint8_t samples_per_second;     // 3
  *     uint8_t sample_size;            // 4
- *     uint8_t padding;                // 5
+ *     uint8_t __padding;              // 5
  * };
  *
  * /**
@@ -63,10 +63,10 @@ object AccelerometerDataDecoder extends SensorDataDecoder[AccelerometerData] {
       override def decode(buffer: BitVector): \/[String, (BitVector, (Int, Int))] = {
         // S, C, Const
         for {
-          (b0, last)  ← unsigned16.decode(buffer)
-          (b1, sps)   ← unsigned8.decode(b0)
-          (b2, count) ← unsigned8.decode(b1)
-          (b3, _)     ← header.decode(b2)
+          (b0, _)     ← unsigned16.decode(buffer) // sample size + padding
+          (b1, sps)   ← unsigned8.decode(b0)      // samplesPerSecond
+          (b2, count) ← unsigned8.decode(b1)      // count
+          (b3, _)     ← header.decode(b2)         // type
         } yield (b3, (sps, count))
       }
     }

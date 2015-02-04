@@ -1,32 +1,25 @@
 import Foundation
+import XCTest
 
 class ContinuousSensorDataArrayTests : XCTestCase {
-    
-    class func dummyHeader() -> SensorDataArrayHeader {
-        return SensorDataArrayHeader(sourceDeviceId: DeviceId(), type: 0x7f, sampleSize: 1, samplesPerSecond: 1)
+        
+    func testEncode() {
+        let header = SensorDataArrayHeader(sourceDeviceId: TestSensorData.phone, type: 0xff, sampleSize: 0x01, samplesPerSecond: 0xff)
+        let data = "ABC".dataUsingEncoding(NSASCIIStringEncoding, allowLossyConversion: false)!
+        let cda = ContinuousSensorDataArray(header: header, sensorData: SensorData(startTime: 0, samples: data))
+        
+        let result = NSMutableData()
+        cda.encode(mutating: result)
+        let bytes = result.asBytes()
+
+        XCTAssertEqual(bytes[0], header.type)
+        XCTAssertEqual(bytes[1], UInt8(3))
+        XCTAssertEqual(bytes[2], header.samplesPerSecond)
+        XCTAssertEqual(bytes[3], header.sampleSize)
+        // 4 is padding
+        XCTAssertEqual(bytes[5], UInt8(0x41))   // A
+        XCTAssertEqual(bytes[6], UInt8(0x42))   // B
+        XCTAssertEqual(bytes[7], UInt8(0x43))   // C
     }
-    
-    class func createSensorData(bytes: [UInt8]) -> SensorData {
-        let samples = NSMutableData(bytes: bytes, length: bytes.count)
-        return SensorData(startTime: CFAbsoluteTimeGetCurrent(), samples: samples)
-    }
-    
-    class func createContinuousArray(data: SensorData) -> ContinuousSensorDataArray {
-        return ContinuousSensorDataArray(header: ContinuousSensorDataArrayTests.dummyHeader(), sensorData: data)
-    }
-    
-    //    func encode(typeByte: UInt8, bytes: [UInt8]) -> [UInt8] {
-    //        var mutableData = NSMutableData()
-    //        let continuousArray: ContinuousSensorDataArray =
-    //            ContinuousSensorDataArrayTests.createContinuousArray(
-    //                ContinuousSensorDataArrayTests.createSensorData( bytes ) )
-    //        continuousArray.encode(mutating: mutableData)
-    //
-    //        return mutableData.extractBytes()
-    //    }
-    //
-    //    func testEncoding() {
-    //        XCTAssertEqual(encode(0x7f, bytes: [0x01, 0x02]), [0x02, 0x00, 0x7f, 0x01, 0x02])
-    //    }
     
 }

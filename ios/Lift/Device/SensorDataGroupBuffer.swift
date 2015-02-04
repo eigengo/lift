@@ -22,11 +22,10 @@ class SensorDataGroupBuffer {
     let deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
     var counter: UInt32 = 0
     
-    init(delegate: SensorDataGroupBufferDelegate) {
+    init(delegate: SensorDataGroupBufferDelegate, queue: dispatch_queue_t) {
         self.delegate = delegate
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
         windowDelay = windowSize / 2.0
-        queue = dispatch_get_main_queue()
         timer = createDispatchTimer(windowSize, queue: queue, block: { self.encodeWindow() })
     }
     
@@ -45,7 +44,7 @@ class SensorDataGroupBuffer {
     func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
         let time = CFAbsoluteTimeGetCurrent()
         sensorDataGroup.decodeAndAdd(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
-        NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
+        NSLog("INFO: decodeAndAdd(...): sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
         
         lastDecodeTime = time
     }
@@ -56,11 +55,12 @@ class SensorDataGroupBuffer {
     
     /* mutating */
     func encodeWindow() {
+        NSLog(".")
         if let x = lastDecodeTime {
             let start = x - windowDelay - windowSize
             let end   = x - windowDelay
             
-            NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
+            NSLog("INFO: encodeWindow(): sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
             counter += 1
             if !csdas.isEmpty {
