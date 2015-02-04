@@ -37,7 +37,10 @@ dockerSettings
 
 // Define a Dockerfile
 
-mainClass in assembly := Some("com.eigengo.lift.LiftServiceApp")
+mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
+
+// Main class for running in Phase 2
+// mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
 
 docker <<= (docker dependsOn assembly)
 

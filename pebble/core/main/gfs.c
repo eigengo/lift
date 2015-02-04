@@ -25,6 +25,7 @@ void gfs_write_header() {
     struct gfs_header *h = (struct gfs_header *) gfs_context.buffer;
     h->type = GFS_HEADER_TYPE;
     h->count = 0;
+    h->sample_size = 5;
     h->samples_per_second = gfs_context.samples_per_second;
     gfs_context.buffer_position = sizeof(struct gfs_header);
 }

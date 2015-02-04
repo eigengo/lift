@@ -1,16 +1,13 @@
 import UIKit
 
 class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
-    AccelerometerDelegate, DeviceDelegate {
+    DeviceSessionDelegate, DeviceDelegate {
     private let showSessionDetails = LiftUserDefaults.showSessionDetails
-    private var deviceInfo: DeviceInfo?
-    private var deviceInfoDetail: DeviceInfo.Detail?
-    private var deviceSession: DeviceSession?
+    private var multi: MultiDeviceSession?
     private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
-    private var session: ExerciseSession?
-    private var device: ConnectedDevice?
+    private var exerciseSession: ExerciseSession?
     @IBOutlet var stopSessionButton: UIBarButtonItem!
 
     // MARK: main
@@ -30,19 +27,15 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func end() {
-        if let x = session {
+        if let x = exerciseSession {
             x.end(const(()))
-            self.session = nil
+            self.exerciseSession = nil
         } else {
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
     
+        multi?.stop()
         UIApplication.sharedApplication().idleTimerDisabled = false
-        device?.stop()
-        device = nil
-        deviceSession = nil
-        deviceInfo = nil
-        deviceInfoDetail = nil
         if let x = navigationController {
             x.popToRootViewControllerAnimated(true)
         }
@@ -67,9 +60,10 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
 
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
-        self.session = session
-        device = PebbleConnectedDevice(deviceDelegate: self, deviceDataDelegates: DeviceDataDelegates(accelerometerDelegate: self))
-        device!.start()
+        self.exerciseSession = session
+        multi = MultiDeviceSession(deviceDelegate: self, deviceSessionDelegate: self)
+        multi!.start()
+
         session.getClassificationExamples { $0.getOrUnit { x in
                 self.exampleExercises = x
                 self.tableView.reloadData()
@@ -80,22 +74,14 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     // MARK: UITableViewDataSource
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 2 // section 1: device & session, section 2: exercise log
+        return 3 // section 1: device & session, section 2: exercise log
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        // section 1: device & session
-        case 0:
-            if deviceSession != nil {
-                // device connected
-                return showSessionDetails ? 1 + deviceSession!.sessionStats().count : 1
-            } else {
-                // no device
-                return 1
-            }
-        // section 2: exercise log
-        case 1: return exampleExercises.count
+        case 0: if let x = multi { return x.deviceInfoCount } else { return 0 }
+        case 1: if let x = multi { return x.sessionStatsCount } else { return 0 }
+        case 2: return exampleExercises.count
         default: return 0
         }
     }
@@ -103,18 +89,18 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
         switch (indexPath.section, indexPath.row) {
         // section 1: device
-        case (0, 0):
-            return tableView.dequeueReusableDeviceTableViewCell(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: nil)
         case (0, let x):
-            let index = x - 1
-            // TODO: iterate over all values, accelerometer now acceptable
-            let (key, stats) = deviceSession!.sessionStats()[index]
-            let cell = tableView.dequeueReusableCellWithIdentifier("session") as UITableViewCell
-            cell.textLabel!.text = key.localized()
+            let cdi = multi!.getDeviceInfo(x)
+            return tableView.dequeueReusableDeviceTableViewCell(cdi.deviceInfo, deviceInfoDetail: cdi.deviceInfoDetail, delegate: nil)
+        // section 2: sensors
+        case (1, let x):
+            let (key, stats) = multi!.getSessionStats(x)
+            let cell = tableView.dequeueReusableCellWithIdentifier("sensor") as UITableViewCell
+            cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
             cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
             return cell
         // section 2: exercise log
-        case (1, let x):
+        case (2, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
             cell.textLabel!.text = exampleExercises[x].name
             cell.selectionStyle = UITableViewCellSelectionStyle.None
@@ -126,12 +112,14 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 0: return "LiveSessionController.section.deviceAndSession".localized()
-        case 1: return "LiveSessionController.section.exercise".localized()
+        case 0: return "LiveSessionController.devices".localized()
+        case 1: return "LiveSessionController.sensors".localized()
+        case 2: return "LiveSessionController.exercise".localized()
         default: return ""
         }
     }
-    
+
+    /*
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if indexPath.section == 1 {
             if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
@@ -141,75 +129,82 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
                         let indexPath = NSIndexPath(forRow: i, inSection: 1)
                         if (tableView.cellForRowAtIndexPath(indexPath)!.accessoryType == UITableViewCellAccessoryType.Checkmark) {
                             tableView.cellForRowAtIndexPath(indexPath)!.accessoryType = UITableViewCellAccessoryType.None
-                            session?.endExplicitClassification()
+                            exerciseSession?.endExplicitClassification()
                         }
                     }
                     selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
-                    session?.startExplicitClassification(exampleExercises[indexPath.row])
+                    exerciseSession?.startExplicitClassification(exampleExercises[indexPath.row])
                 case UITableViewCellAccessoryType.Checkmark:
                     selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                    session?.endExplicitClassification()
+                    exerciseSession?.endExplicitClassification()
                 default: return
                 }
             }
         }
     }
+    */
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        switch (indexPath.section, indexPath.row) {
-        case (0, 0): return 60
+        switch indexPath.section {
+        case 0: return 60
         default: return 40
         }
     }
 
-    // MARK: AccelerometerReceiverDelegate
+    // MARK: DeviceSessionDelegate
+    func deviceSession(session: DeviceSession, finishedWarmingUp deviceId: DeviceId) {
+        // ???
+    }
     
-    func accelerometerDataReceived(deviceSession: DeviceSession, data: NSData) {
-        if let x = session {
-            self.deviceSession = deviceSession
-            let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-            x.submitData(mp, const(()))
+    func deviceSession(session: DeviceSession, startedWarmingUp deviceId: DeviceId, expectedCompletionIn time: NSTimeInterval) {
+        // ???
+    }
 
+    func deviceSession(session: DeviceSession, endedFrom deviceId: DeviceId) {
+        end()
+    }
+    
+    func deviceSession(session: DeviceSession, sensorDataNotReceivedFrom deviceId: DeviceId) {
+        // ???
+    }
+    
+    func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, atDeviceTime: CFAbsoluteTime, data: NSData) {
+        if let x = exerciseSession {
+            // TODO: Implement me
+            //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
+            //x.submitData(mp, const(()))
+            
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.None)
+                tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
         }
     }
     
-    func accelerometerDataEnded(deviceSession: DeviceSession) {
-        end()
-    }
-    
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        self.deviceInfo = deviceInfo
-        tableView.reloadData()
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        deviceInfoDetail = detail
-        tableView.reloadData()
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     func deviceAppLaunched(deviceId: DeviceId) {
-        tableView.reloadData()
+        //
     }
     
     func deviceAppLaunchFailed(deviceId: DeviceId, error: NSError) {
-        NSLog("deviceAppLaunchFailed %@ -> %@", deviceId, error)
-        tableView.reloadData()
+        //
     }
     
     func deviceDidNotConnect(error: NSError) {
-        NSLog("deviceDidNotConnect %@", error)
-        tableView.reloadData()
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        NSLog("deviceDisconnected %@", deviceId)
-        tableView.reloadData()
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
 }
