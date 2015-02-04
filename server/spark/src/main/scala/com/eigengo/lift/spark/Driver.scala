@@ -5,7 +5,6 @@ import com.typesafe.config.Config
 import org.apache.log4j.Logger
 
 import scala.reflect.ClassTag
-import scalaz.\/
 
 trait Driver {
 
@@ -15,7 +14,7 @@ trait Driver {
 
   private val logger = Logger.getLogger(classOf[Driver])
 
-  def submit[P, R](job: Batch[P, R], jobParam: P): \/[String, R] = {
+  def submit[P, R](job: Batch[P, R], jobParam: P): Either[String, R] = {
 
     logger.info(s"Executing job ${job.name} on master $master")
     val result = job.execute(master, config, jobParam)
@@ -24,5 +23,5 @@ trait Driver {
     result
   }
 
-  def submit[T](job: Stream[T]): \/[String, T] = ???
+  def submit[T](job: Stream[T]): Either[String, T] = ???
 }

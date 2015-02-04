@@ -71,8 +71,10 @@ sparkworker:
   image: martinz/spark-worker:latest
   ports:
     - "8081:8081"
+    - "8888:8888"
   links:
     - sparkmaster
+    - sparkdriver
 sparkdriver:
   image: janm399/lift:spark
   ports:

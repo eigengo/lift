@@ -2,8 +2,6 @@ package com.eigengo.lift.spark.jobs
 
 import com.typesafe.config.Config
 
-import scalaz.\/
-
 trait Batch[P, R] extends App {
 
   /**
@@ -13,5 +11,5 @@ trait Batch[P, R] extends App {
 
   def name: String
 
-  def execute(master: String, config: Config, params: P): \/[String, R]
+  def execute(master: String, config: Config, params: P): Either[String, R]
 }

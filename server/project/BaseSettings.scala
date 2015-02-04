@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import sbtassembly.PathList
 
 /**
  * Defines settings for the projects:
@@ -37,7 +38,19 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
       sbtPlugin := false,
       resolvers := ResolverSettings.resolvers,
       assemblyMergeStrategy in assembly := {
-        case "application.conf" => MergeStrategy.concat
+        case "application.conf"                                      => MergeStrategy.concat
+        case "package-info.class"                                    => MergeStrategy.concat
+        case x if x.startsWith("META-INF/ECLIPSEF.RSA")              => MergeStrategy.last
+        case x if x.startsWith("META-INF/mailcap")                   => MergeStrategy.last
+        case x if x.startsWith("META-INF/mimetypes.default")         => MergeStrategy.last
+        case x if x.startsWith("plugin.properties")                  => MergeStrategy.last
+        case PathList("javax", "servlet", xs @ _*)                   => MergeStrategy.first
+        case PathList("javax", "transaction", xs @ _*)               => MergeStrategy.first
+        case PathList("javax", "mail", xs @ _*)                      => MergeStrategy.first
+        case PathList("javax", "activation", xs @ _*)                => MergeStrategy.first
+        case PathList(ps @ _*) if ps.last endsWith ".html"           => MergeStrategy.first
+        case "log4j.properties"                                      => MergeStrategy.concat
+        case "unwanted.txt"                                          => MergeStrategy.discard
         case x =>
           val oldStrategy = (assemblyMergeStrategy in assembly).value
           oldStrategy(x)

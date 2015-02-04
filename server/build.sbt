@@ -11,7 +11,7 @@ lazy val kafkaUtil = project.in(file("kafka-util"))
 lazy val kafka = project.in(file("kafka")).dependsOn(common, kafkaUtil)
 
 //Spark
-lazy val spark = project.in(file("spark")).dependsOn(kafkaUtil)
+lazy val spark = project.in(file("spark"))
 
 //Exercise
 lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common, kafka)

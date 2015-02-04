@@ -15,28 +15,16 @@ Build.Settings.project
 
 name := "spark"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 libraryDependencies ++= Seq(
-  scalaz.core,
   slf4j_simple,
+  akkaAnalytics.cassandra,
   spark.core,
-  spark.mllib,
-  spark.streaming,
-  spark.streamingKafka
+  spark.mllib
+  //spark.streaming,
+  //spark.streamingKafka
 )
-
-mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
-  case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
-  case PathList("javax", "transaction", xs @ _*)     => MergeStrategy.first
-  case PathList("javax", "mail", xs @ _*)     => MergeStrategy.first
-  case PathList("javax", "activation", xs @ _*)     => MergeStrategy.first
-  case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
-  case "log4j.properties" => MergeStrategy.concat
-  case "application.conf" => MergeStrategy.concat
-  case "unwanted.txt"     => MergeStrategy.discard
-  case x => old(x)
-}}
 
 import DockerKeys._
 import sbtdocker.ImageName
@@ -44,7 +32,7 @@ import sbtdocker.mutable.Dockerfile
 
 dockerSettings
 
-mainClass in assembly := Some("com.eigengo.lift.spark.Main")
+mainClass in assembly := Some("com.eigengo.lift.spark.Spark")
 
 docker <<= (docker dependsOn assembly)
 

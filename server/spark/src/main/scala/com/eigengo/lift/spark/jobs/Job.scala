@@ -4,6 +4,6 @@ import scala.reflect.ClassTag
 
 object Job {
   def apply[J <: Batch[_, _]: ClassTag]() = {
-    implicitly[ClassTag[J]].runtimeClass.asInstanceOf[J]
+    implicitly[ClassTag[J]].runtimeClass.newInstance().asInstanceOf[J]
   }
 }

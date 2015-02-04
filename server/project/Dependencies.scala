@@ -79,7 +79,23 @@ object Dependencies {
       .exclude("com.esotericsoftware.minlog", "minlog")
     val mllib = "org.apache.spark" %% "spark-mllib" % version
     val streaming = "org.apache.spark" %% "spark-streaming" % version
-    val streamingKafka = "org.apache.spark" %% "spark-streaming-kafka" % version
+    val streamingKafka = ("org.apache.spark" %% "spark-streaming-kafka" % version)
+      .exclude("commons-beanutils", "commons-beanutils")
+      .exclude("commons-collections", "commons-collections")
+      .exclude("com.esotericsoftware.minlog", "minlog")
+  }
+
+  object akkaAnalytics {
+    val version = "0.2"
+
+    val cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % version)
+      .exclude("com.typesafe.akka", "akka-actor_2.10")
+      .exclude("com.esotericsoftware.minlog", "minlog")
+      .exclude("commons-beanutils", "commons-beanutils-core")
+      .exclude("commons-collections", "commons-collections")
+      .exclude("org.slf4j", "jcl-over-slf4j")
+      .exclude("org.apache.spark", "spark-core_2.10")
+      .exclude("commons-logging", "commons-logging")
   }
 
   val typesafeConfig   = "com.typesafe" % "config" % "1.2.1"
