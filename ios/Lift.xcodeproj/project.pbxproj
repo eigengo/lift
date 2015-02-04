@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		23929FB2F2C8236CF369D326 /* libPods-LiftTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4426590D0160CE631890E9AC /* libPods-LiftTests.a */; };
+		281A7ADD1A8266BF00421B9E /* NSDataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281A7ADA1A82436F00421B9E /* NSDataExtensions.swift */; };
+		281A7ADE1A8266C000421B9E /* NSDataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281A7ADA1A82436F00421B9E /* NSDataExtensions.swift */; };
 		390DD5F7C530950EB2D40268 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
 		540454961A650C1C00273425 /* MutableMultiPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540454951A650C1C00273425 /* MutableMultiPacket.swift */; };
@@ -963,7 +965,7 @@
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
-				281A7ADB1A82436F00421B9E /* NSDataExtensions.swift in Sources */,
+				281A7ADD1A8266BF00421B9E /* NSDataExtensions.swift in Sources */,
 				54B562261A7793B000F6FD5D /* DeviceSession.swift in Sources */,
 				54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */,
 				54B0A3BC1A80D6A400346AD6 /* SensorDataGroupBuffer.swift in Sources */,
@@ -986,7 +988,7 @@
 				54ED4EB31A6C547B00490DA7 /* UserModel+Marshalling.swift in Sources */,
 				54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */,
 				54ED4EBC1A6C548700490DA7 /* Alamofire+SwiftyJSON.swift in Sources */,
-				281A7ADC1A825AF100421B9E /* NSDataExtensions.swift in Sources */,
+				281A7ADE1A8266C000421B9E /* NSDataExtensions.swift in Sources */,
 				54AECC451A769CDE008BD812 /* Device.swift in Sources */,
 				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				546D72CB1A79825F009C9629 /* SensorData.swift in Sources */,
