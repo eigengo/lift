@@ -1,25 +1,24 @@
 import Foundation
 
-func asBigEndian(value: UInt16) -> [UInt8] {
-    return [
-        (UInt8)(value & 0x00ff),
-        (UInt8)((value & 0xff00) >> 8),
-    ]
-}
-
-func asBigEndian(value: UInt32) -> [UInt8] {
-    return [
-        (UInt8) (value & 0x000000ff),
-        (UInt8)((value & 0x0000ff00) >> 8),
-        (UInt8)((value & 0x00ff0000) >> 16),
-        (UInt8)((value & 0xff000000) >> 24),
-    ]
-}
-
 extension NSMutableData {
+
+    private func asBigEndian(value: UInt16) -> [UInt8] {
+        return [
+            (UInt8)(value & 0x00ff),
+            (UInt8)((value & 0xff00) >> 8),
+        ]
+    }
+    
+    private func asBigEndian(value: UInt32) -> [UInt8] {
+        return [
+            (UInt8) (value & 0x000000ff),
+            (UInt8)((value & 0x0000ff00) >> 8),
+            (UInt8)((value & 0x00ff0000) >> 16),
+            (UInt8)((value & 0xff000000) >> 24),
+        ]
+    }
     
     func appendBytes(value: [UInt8]) -> Void {
-
         var bytes = value
         self.appendBytes(&bytes, length: value.count)
     }

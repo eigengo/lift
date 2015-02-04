@@ -8,9 +8,10 @@ protocol SensorDataGroupBufferDelegate {
     
 }
 
+///
+///
+///
 class SensorDataGroupBuffer {
-    // TODO: inject a map: deviceId -> location
-    
     var sensorDataGroup: SensorDataGroup = SensorDataGroup()
     var lastDecodeTime: CFAbsoluteTime? = nil
     let windowSize: CFTimeInterval!
@@ -18,6 +19,8 @@ class SensorDataGroupBuffer {
     let queue: dispatch_queue_t!
     let timer: dispatch_source_t!
     let delegate: SensorDataGroupBufferDelegate!
+    let deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
+    var counter: UInt32 = 0
     
     init(delegate: SensorDataGroupBufferDelegate) {
         self.delegate = delegate
@@ -51,15 +54,6 @@ class SensorDataGroupBuffer {
         dispatch_source_cancel(timer)
     }
     
-    class func createEncodedData(arrays: Slice<ContinuousSensorDataArray>, timeStamp: CFAbsoluteTime) -> NSMutableData {
-        let result = NSMutableData()
-        result.appendUInt16(0xcab1)
-        result.appendUInt8(UInt8(arrays.count))
-        result.appendUInt32(UInt32(timeStamp))
-        arrays.map { $0.encode(mutating: result, typeByte: 0x7f) } // TODO: Query location from DeviceId.
-        return result
-    }
-    
     /* mutating */
     func encodeWindow() {
         if let x = lastDecodeTime {
@@ -68,13 +62,22 @@ class SensorDataGroupBuffer {
             
             NSLog("INFO: sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
+            counter += 1
             if !csdas.isEmpty {
-                
-                for arrays in csdas.pages(255) {
-                    let encodedData = SensorDataGroupBuffer.createEncodedData(arrays, timeStamp: start)
-                    delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: encodedData)
-                    NSLog("INFO: Data \(encodedData.length)")
+                if csdas.count > 255 { fatalError("Too many sensors") }
+                let result = NSMutableData()
+                result.appendUInt16(0xcab1)
+                result.appendUInt8(UInt8(csdas.count))
+                result.appendUInt32(counter)
+                csdas.foreach { csda in
+                    result.appendUInt16(UInt16(csda.length))
+                    let location = self.deviceLocations[csda.header.sourceDeviceId] ?? DeviceInfo.Location.Any
+                    result.appendUInt8(location.rawValue)
+                    csda.encode(mutating: result)
                 }
+                
+                delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
+                NSLog("INFO: Data \(result.length)")
                 sensorDataGroup.removeSensorDataArraysEndingBefore(start - windowSize)
             } else {
                 NSLog("WARN: Empty range \(start) - \(end)")

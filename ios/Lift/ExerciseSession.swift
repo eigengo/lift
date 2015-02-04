@@ -1,33 +1,5 @@
 import Foundation
-/*
-class ExerciseSession : NSObject {
- 
-    /**
-     * Submits multi-packet for the current session
-     */
-    func submitData(mp: MultiPacket) -> Void { fatalError("Not implemented") }
-    
-    /**
-     * Ends the current session. After ending, this instance is not re-usable
-     */
-    func end() -> Void { fatalError("Not implemented") }
-    
-    /**
-     * Obtain classification examples for the given session
-     */
-    func getClassificationExamples(f: Result<[Exercise.Exercise]> -> Void) -> Void { fatalError("Not implemented") }
-    
-    /**
-     * Start explicit classification of the given exercise
-     */
-    func startExplicitClassification(exercise: Exercise.Exercise) -> Void { fatalError("Not implemented") }
-    
-    /**
-     * End explicit classification
-     */
-    func endExplicitClassification() -> Void { fatalError("Not implemented") }
-}
-*/
+
 /**
  * Models an exercise session. 
  */
@@ -48,7 +20,7 @@ class ExerciseSession : NSObject {
     /**
      * Submits multi-packet for the current session
      */
-    func submitData(mp: MultiPacket, f: Result<Void> -> Void) -> Void {
+    func submitData(mp: NSData, f: Result<Void> -> Void) -> Void {
         LiftServer.sharedInstance.exerciseSessionSubmitData(CurrentLiftUser.userId!, sessionId: id, data: mp, f: f)
     }
     

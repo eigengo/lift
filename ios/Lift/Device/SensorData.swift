@@ -213,13 +213,33 @@ struct ContinuousSensorDataArray {
     /// the continuous (possibly padded) SensorData
     var sensorData: SensorData
     
-    func encode(mutating data: NSMutableData, typeByte: UInt8) -> Void {
-        
-        let size = UInt16(sensorData.samples.length)
-        data.appendUInt16(size)
-        data.appendUInt8(typeByte)
+    func encode(mutating data: NSMutableData) -> Void {
+        header.type
+        let count = sensorData.samples.length / Int(header.sampleSize)
+        header.samplesPerSecond
+        header.sampleSize
+        0
+        // append header:
+        /*
+*     uint8_t type;                   // 1 (0xad)
+*     uint8_t count;                  // 2
+*     uint8_t samples_per_second;     // 3
+*     uint8_t sample_size;            // 4
+*     uint8_t padding;                // 5
+        */
         data.appendData(sensorData.samples)
         
+    }
+    
+    ///
+    /// Computes the entire length of this CSDA. This is the number of 
+    /// bytes that will be appended when calling the ``encode(mutating:)`` method
+    ///
+    var length: Int {
+        get {
+            // We *know* that the header is 5B long
+            return 5 + sensorData.samples.length
+        }
     }
 }
 
