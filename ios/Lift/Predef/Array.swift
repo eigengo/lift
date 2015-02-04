@@ -17,14 +17,41 @@ extension Array {
         }
     }
     
-    func exists<A>(predicate: A -> Bool) -> Bool {
-        for t in self {
-            if let a = t as? A {
-                if predicate(a) { return true }
-            }
+    ///
+    /// Finds the first element that satisfies ``predicate``
+    ///
+    func find(predicate: Element -> Bool) -> Element? {
+        for e in self {
+            if predicate(e) { return e }
         }
         
-        return false
+        return nil
+    }
+    
+    ///
+    /// Apply the function ``f`` to every element
+    ///
+    func foreach(f: Element -> Void) -> Void {
+        for e in self { f(e) }
+    }
+    
+    ///
+    /// Returns ``true`` if ``predicate`` evaluates to ``true`` for all elements.
+    ///
+    func forall(predicate: Element -> Bool) -> Bool {
+        for e in self {
+            if !predicate(e) { return false }
+        }
+        
+        return true
+    }
+    
+    ///
+    /// Returns ``true`` if the ``predicate`` evalues to ``true`` for at least
+    /// one element in this array
+    ///
+    func exists(predicate: Element -> Bool) -> Bool {
+        return find(predicate) != nil
     }
     
 }
