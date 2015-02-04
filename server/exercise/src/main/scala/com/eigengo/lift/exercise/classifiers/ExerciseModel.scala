@@ -41,7 +41,8 @@ object ExerciseModel {
   case class Repeat(path: Path) extends Path
 
   /**
-   * Auxillary function that determines if a path only involves combinations of `Test` expressions
+   * Auxillary function that determines if a path only involves combinations of `Test` expressions (used by standard
+   * model).
    *
    * @param path path to be tested
    */
@@ -172,6 +173,10 @@ object ExerciseModel {
   }
   case class StableValue(result: Boolean) extends QueryValue
   case class UnstableValue(result: Boolean) extends QueryValue
+
+  /**
+   * Auxillary functions that support QueryValue lattice structure
+   */
 
   def meet(value1: QueryValue, value2: QueryValue): QueryValue = (value1, value2) match {
     case (StableValue(result1), StableValue(result2)) =>

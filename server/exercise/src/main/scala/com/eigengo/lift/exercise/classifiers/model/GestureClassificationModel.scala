@@ -9,6 +9,8 @@ import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 
 /**
+ * "Standard" model.
+ *
  * Assumptions:
  *   1. `AccelerometerData` sample rate is fixed to a known constant value for all sensors
  *   2. `ClassifyExerciseEvt` are received in the correct temporal order
