@@ -32,6 +32,9 @@ struct LiftUserDefaults {
         }
     }
     
+    ///
+    /// Returns ``true`` if the application is being launched to run tests
+    ///
     static var isRunningTests: Bool {
         get {
             let environment = NSProcessInfo.processInfo().environment
@@ -42,6 +45,10 @@ struct LiftUserDefaults {
         }
     }
     
+    ///
+    /// Returns the configured Lift server URL, or a default value. The value is set in the
+    /// settings bundle for the application. See ``Settings.bundle``.
+    ///
     static var liftServerUrl: String {
         get {
             if let url = NSUserDefaults.standardUserDefaults().stringForKey("lift_server_url") {
@@ -52,6 +59,10 @@ struct LiftUserDefaults {
         }
     }
     
+    ///
+    /// Returns ``true`` if the user has selected to show session details. The value is set in the
+    /// settings bundle for the application. See ``Settings.bundle``.
+    ///
     static var showSessionDetails: Bool {
         get {
             return NSUserDefaults.standardUserDefaults().boolForKey("showSessionDetails")
