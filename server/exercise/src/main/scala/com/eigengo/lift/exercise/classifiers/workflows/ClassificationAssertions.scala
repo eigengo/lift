@@ -1,7 +1,5 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
-import com.eigengo.lift.exercise.SensorData
-
 object ClassificationAssertions {
 
   /**
@@ -10,11 +8,11 @@ object ClassificationAssertions {
    */
   sealed trait Fact
   /**
-   * Named gesture matches with probablity >= `matchProbability`
+   * Named gesture matches with probability >= `matchProbability`
    */
   case class Gesture(name: String, matchProbability: Double) extends Fact
   /**
-   * Named gesture matches with probablity < `matchProbability`
+   * Named gesture matches with probability < `matchProbability`
    */
   case class NegGesture(name: String, matchProbability: Double) extends Fact
 

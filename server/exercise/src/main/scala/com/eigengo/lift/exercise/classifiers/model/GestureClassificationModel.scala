@@ -146,13 +146,13 @@ class GestureClassificationModel(val sessionProps: SessionProperties, val watch:
     case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
       evaluate(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))(state, lastState)
 
-    case Exists(Repeat(path), query1) =>
+    case Exists(Repeat(path), query1) if lastState || testOnly(path) =>
+      evaluate(query1)(state, lastState)
+
+    case Exists(Repeat(path), query1) if !lastState =>
       join(
         evaluate(query1)(state, lastState),
-        meet(
-          StableValue(!lastState && !testOnly(path)),
-          evaluate(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
-        )
+        evaluate(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
       )
 
       // TODO: not correct!
@@ -175,7 +175,7 @@ class GestureClassificationModel(val sessionProps: SessionProperties, val watch:
       }
 
     case All(Test(query1), query2) =>
-      join(evaluate(query1)(state, lastState), evaluate(query2)(state, lastState))
+      join(evaluate(not(query1))(state, lastState), evaluate(query2)(state, lastState))
 
     case All(Choice(path1, path2, remainingPaths @ _*), query1) =>
       evaluate(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))(state, lastState)
@@ -183,13 +183,14 @@ class GestureClassificationModel(val sessionProps: SessionProperties, val watch:
     case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
       evaluate(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))(state, lastState)
 
-    case All(Repeat(path), query1) =>
+
+    case All(Repeat(path), query1) if lastState || testOnly(path) =>
+      evaluate(query1)(state, lastState)
+
+    case All(Repeat(path), query1) if !lastState =>
       meet(
         evaluate(query1)(state, lastState),
-        join(
-          StableValue(lastState || testOnly(path)),
-          evaluate(All(path, All(Repeat(path), query1)))(state, lastState)
-        )
+        evaluate(All(path, Exists(Repeat(path), query1)))(state, lastState)
       )
   }
 
