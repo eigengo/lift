@@ -9,6 +9,8 @@ protocol SensorDataGroupBufferDelegate {
 }
 
 class SensorDataGroupBuffer {
+    // TODO: inject a map: deviceId -> location
+    
     var sensorDataGroup: SensorDataGroup = SensorDataGroup()
     var lastDecodeTime: CFAbsoluteTime? = nil
     let windowSize: CFTimeInterval!
@@ -59,8 +61,10 @@ class SensorDataGroupBuffer {
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
             if !csdas.isEmpty {
                 let result = NSMutableData()
-                // TODO: Multi-packet header
-                csdas.foreach { $0.encode(mutating: result) }
+                NSMutableDataExtensions.appendUInt16(result, value: 0xcab1)
+                NSMutableDataExtensions.appendUInt8(result, value: UInt8(csdas.count))
+                NSMutableDataExtensions.appendUInt32(result, value: UInt32(start))
+                csdas.foreach { $0.encode(mutating: result, typeByte: 0x7f) }
                 delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
                 NSLog("INFO: Data \(result.length)")
                 sensorDataGroup.removeSensorDataArraysEndingBefore(start - windowSize)

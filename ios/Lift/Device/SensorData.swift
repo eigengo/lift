@@ -213,7 +213,12 @@ struct ContinuousSensorDataArray {
     /// the continuous (possibly padded) SensorData
     var sensorData: SensorData
     
-    func encode(mutating data: NSMutableData) {
+    func encode(mutating data: NSMutableData, typeByte: UInt8) -> Void {
+        
+        let size = UInt16(sensorData.samples.length)
+        NSMutableDataExtensions.appendUInt16(data, value: size)
+        NSMutableDataExtensions.appendUInt8(data, value: typeByte)
+        data.appendData(sensorData.samples)
         
     }
 }

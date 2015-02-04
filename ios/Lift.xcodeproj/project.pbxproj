@@ -183,6 +183,7 @@
 
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		281A7ADA1A82436F00421B9E /* NSDataExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDataExtensions.swift; sourceTree = "<group>"; };
 		4426590D0160CE631890E9AC /* libPods-LiftTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LiftTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54008B581A49EC730049A8EA /* String+MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+MD5.swift"; sourceTree = "<group>"; };
 		540454951A650C1C00273425 /* MutableMultiPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutableMultiPacket.swift; sourceTree = "<group>"; };
@@ -368,6 +369,7 @@
 				54B562221A77937200F6FD5D /* DeviceSessionStats.swift */,
 				543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */,
 				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
+				281A7ADA1A82436F00421B9E /* NSDataExtensions.swift */,
 				54E99EDB1A76882300BA1BD3 /* MultiDeviceSession.swift */,
 				545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */,
 				545C7AFD1A7BC71100FC3281 /* MultiPacketProtocol.h */,
@@ -961,6 +963,7 @@
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,
+				281A7ADB1A82436F00421B9E /* NSDataExtensions.swift in Sources */,
 				54B562261A7793B000F6FD5D /* DeviceSession.swift in Sources */,
 				54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */,
 				54B0A3BC1A80D6A400346AD6 /* SensorDataGroupBuffer.swift in Sources */,
@@ -983,6 +986,7 @@
 				54ED4EB31A6C547B00490DA7 /* UserModel+Marshalling.swift in Sources */,
 				54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */,
 				54ED4EBC1A6C548700490DA7 /* Alamofire+SwiftyJSON.swift in Sources */,
+				281A7ADC1A825AF100421B9E /* NSDataExtensions.swift in Sources */,
 				54AECC451A769CDE008BD812 /* Device.swift in Sources */,
 				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				546D72CB1A79825F009C9629 /* SensorData.swift in Sources */,
