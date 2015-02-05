@@ -41,7 +41,7 @@ adapter:
   ports:
     - "2552"
   ports:
-    - "8082:8082"
+    - "8080:8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   links:
@@ -67,18 +67,22 @@ sparkmaster:
   ports:
     - "8080"
     - "7077:7077"
-  net: "host"
 sparkworker:
   image: martinz/spark-worker:latest
   ports:
     - "8081:8081"
     - "8888:8888"
-  net: "host"
+  links:
+    - sparkmaster
 sparkdriver:
   image: janm399/lift:spark
   ports:
     - "4040:4040"
     - "9001:9001"
-  dns: "host"
+  links:
+    - sparkmaster
+    - zookeeper:zk
+    - cassandra:journal.lift.eigengo.com
+    - cassandra:snapshot.lift.eigengo.com
 nameserver:
   image: amplab/dnsmasq-precise
