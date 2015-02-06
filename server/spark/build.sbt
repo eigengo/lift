@@ -15,10 +15,9 @@ Build.Settings.project
 
 name := "spark"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.4"
 
 libraryDependencies ++= Seq(
-  slf4j_simple,
   akkaAnalytics.cassandra,
   spark.core,
   spark.mllib

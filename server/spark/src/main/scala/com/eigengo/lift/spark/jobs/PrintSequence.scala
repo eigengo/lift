@@ -14,7 +14,7 @@ case class PrintSequence() extends Batch[Int, Unit] {
     println("SPARK DRIVER HOST:")
     println(InetAddress.getLocalHost.getHostAddress)
 
-    val sc = new SparkContext(new SparkConf()
+   /* val sc = new SparkContext(new SparkConf()
       .setAppName(name)
       .set("spark.driver.host", InetAddress.getLocalHost.getHostAddress)
       .set("spark.driver.port", "9001")
@@ -22,7 +22,7 @@ case class PrintSequence() extends Batch[Int, Unit] {
 
     sc.parallelize(1 to params).map(_ + 1).foreach(println)
 
-    sc.stop()
+    sc.stop()*/
 
     Right()
   }

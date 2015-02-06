@@ -65,7 +65,7 @@ object Dependencies {
   }
 
   object spark {
-    val version = "1.1.0"
+    val version = "1.2.0"
 
     val core = ("org.apache.spark" %% "spark-core" % version)
       .exclude("org.slf4j", "slf4j-log4j12")
@@ -77,7 +77,10 @@ object Dependencies {
       .exclude("commons-collections", "commons-collections")
       .exclude("commons-logging", "commons-logging")
       .exclude("com.esotericsoftware.minlog", "minlog")
-    val mllib = "org.apache.spark" %% "spark-mllib" % version
+      .exclude("org.slf4j", "slf4j-api")
+      .exclude("org.apache.hadoop", "hadoop-yarn-api")
+    val mllib = ("org.apache.spark" %% "spark-mllib" % version)
+      .exclude("org.slf4j", "slf4j-api")
     val streaming = "org.apache.spark" %% "spark-streaming" % version
     val streamingKafka = ("org.apache.spark" %% "spark-streaming-kafka" % version)
       .exclude("commons-beanutils", "commons-beanutils")
@@ -88,14 +91,16 @@ object Dependencies {
   object akkaAnalytics {
     val version = "0.2"
 
-    val cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % version)
+    val cassandra = ("com.github.krasserm" % "akka-analytics-cassandra_2.10" % version)
       .exclude("com.typesafe.akka", "akka-actor_2.10")
       .exclude("com.esotericsoftware.minlog", "minlog")
       .exclude("commons-beanutils", "commons-beanutils-core")
       .exclude("commons-collections", "commons-collections")
       .exclude("org.slf4j", "jcl-over-slf4j")
+      .exclude("org.slf4j", "slf4j-api")
       .exclude("org.apache.spark", "spark-core_2.10")
       .exclude("commons-logging", "commons-logging")
+      .exclude("org.apache.hadoop", "hadoop-yarn-api")
   }
 
   val typesafeConfig   = "com.typesafe" % "config" % "1.2.1"
