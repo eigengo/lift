@@ -87,8 +87,8 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         case (1, 3): return tableView.dequeueReusablePropertyTableViewCell("weight", delegate: self)
         case (2, 0):
             let cell = tableView.dequeueReusableCellWithIdentifier("following") as UITableViewCell
-            cell.textLabel!.text = "PublicProfileController.followingText".localized()
-            cell.detailTextLabel!.text = "PublicProfileController.followingDetail".localized(followingCount)
+            cell.textLabel!.text = "PublicProfileController.buddiesText".localized()
+            cell.detailTextLabel!.text = "PublicProfileController.buddiesDetail".localized(followingCount)
             return cell
         case (2, 1):
             let cell = tableView.dequeueReusableCellWithIdentifier("following") as UITableViewCell

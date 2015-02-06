@@ -28,6 +28,8 @@
 "PublicProfileController.followingDetail"="%d users";
 "PublicProfileController.followersText"="Followers";
 "PublicProfileController.followersDetail"="%d users";
+"PublicProfileController.buddiesText"="Gym buddies";
+"PublicProfileController.buddiesDetail"="%d gym buddies";
 
 "HomeController.SessionSuggestions"="Suggestions";
 "HomeController.SessionSummaries"="Sessions";
