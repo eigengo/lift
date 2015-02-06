@@ -3,10 +3,12 @@ package com.eigengo.lift.exercise
 import java.nio.ByteBuffer
 
 import org.scalatest.{FlatSpec, Matchers}
+import scodec.bits.ByteVector
 
 import scalaz.{-\/, \/-}
 
 class MultiPacketDecoderTest extends FlatSpec with Matchers {
+  import RichArray._
 
   /// writes payload of the given size at sloc and content.
   /// note that we pass size and content explicitly to allow us to construct
@@ -59,6 +61,23 @@ class MultiPacketDecoderTest extends FlatSpec with Matchers {
   "Malformed content" should "fail decoding" in {
     val in = generate(12345678, List(0x01, 0x02, 0x03, 0x04, 0x7f), constSize(65535), badContent)
     val -\/("Incomplete or truncated input. (65535 bytes payload of packet 0.)") = MultiPacketDecoder.decode(ByteBuffer.wrap(in))
+  }
+
+  "Real MultiPacket from iOS" should "decode well" in {
+    val arr = formNSDataString("cab10400 00000200 07020002 02010041 42000702 01020201 00313200 09020202 02020061 62616300 07010002 02010023 24")
+    val \/-(decoded) = MultiPacketDecoder.decode(ByteBuffer.wrap(arr))
+    decoded.timestamp should be (2)
+    val phoneData  = decoded.packets.filter(_.sourceLocation == SensorDataSourceLocationWaist)
+    val pebbleData = decoded.packets.filter(_.sourceLocation == SensorDataSourceLocationWrist)
+    phoneData.size should be (3)
+    pebbleData.size should be (1)
+
+    pebbleData(0).payload should be (ByteVector(0x00, 0x02, 0x02, 0x01, 0x00, 0x23, 0x24).toBitVector)
+
+    phoneData(0).payload should be (ByteVector(0x00, 0x02, 0x02, 0x01, 0x00, 0x41, 0x42).toBitVector)
+    phoneData(1).payload should be (ByteVector(0x01, 0x02, 0x02, 0x01, 0x00, 0x31, 0x32).toBitVector)
+    phoneData(2).payload should be (ByteVector(0x02, 0x02, 0x02, 0x02, 0x00, 0x61, 0x62, 0x61, 0x63).toBitVector)
+    println(decoded)
   }
 
 }

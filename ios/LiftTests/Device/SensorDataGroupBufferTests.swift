@@ -14,12 +14,15 @@ class SensorDataGroupBufferTests : XCTestCase {
     
     func testContinuous() {
         let delegate = TestSenorDataGroupBufferDelegate()
-        let buf = SensorDataGroupBuffer(delegate: delegate, queue: sensorDataGroupBufferQueue)
-        buf.decodeAndAdd(TestSensorData.phoneData, fromDeviceId: TestSensorData.phone, maximumGap: 0.3, gapValue: 0)
+        let buf = SensorDataGroupBuffer(delegate: delegate, queue: sensorDataGroupBufferQueue, deviceLocations: TestSensorData.deviceLocations)
+        buf.decodeAndAdd(TestSensorData.phoneData,  fromDeviceId: TestSensorData.phone,  maximumGap: 0.3, gapValue: 0)
+        buf.decodeAndAdd(TestSensorData.pebbleData, fromDeviceId: TestSensorData.pebble, maximumGap: 0.3, gapValue: 0)
         sleep(1)
-        buf.decodeAndAdd(TestSensorData.phoneData, fromDeviceId: TestSensorData.phone, maximumGap: 0.3, gapValue: 0)
+        buf.decodeAndAdd(TestSensorData.phoneData,  fromDeviceId: TestSensorData.phone,  maximumGap: 0.3, gapValue: 0)
+        buf.decodeAndAdd(TestSensorData.pebbleData, fromDeviceId: TestSensorData.pebble, maximumGap: 0.3, gapValue: 0)
         sleep(1)
-        buf.decodeAndAdd(TestSensorData.phoneData, fromDeviceId: TestSensorData.phone, maximumGap: 0.3, gapValue: 0)
+        buf.decodeAndAdd(TestSensorData.phoneData,  fromDeviceId: TestSensorData.phone,  maximumGap: 0.3, gapValue: 0)
+        buf.decodeAndAdd(TestSensorData.pebbleData, fromDeviceId: TestSensorData.pebble, maximumGap: 0.3, gapValue: 0)
         sleep(1)
         // TODO: assert data
         //

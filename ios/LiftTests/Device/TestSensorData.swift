@@ -4,6 +4,11 @@ import Foundation
 /// Sample test data
 ///
 struct TestSensorData {
+    static let deviceLocations: [DeviceId : DeviceInfo.Location] = [
+        phone : DeviceInfo.Location.Waist,
+        pebble : DeviceInfo.Location.Wrist
+    ]
+    
     /// Phone device id
     static let phone = DeviceId()
     /// Sample data from the phone

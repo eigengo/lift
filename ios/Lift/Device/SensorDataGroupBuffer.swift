@@ -19,11 +19,12 @@ class SensorDataGroupBuffer {
     let queue: dispatch_queue_t!
     let timer: dispatch_source_t!
     let delegate: SensorDataGroupBufferDelegate!
-    let deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
+    let deviceLocations: [DeviceId : DeviceInfo.Location]!
     var counter: UInt32 = 0
     
-    init(delegate: SensorDataGroupBufferDelegate, queue: dispatch_queue_t) {
+    init(delegate: SensorDataGroupBufferDelegate, queue: dispatch_queue_t, deviceLocations: [DeviceId : DeviceInfo.Location]) {
         self.delegate = delegate
+        self.deviceLocations = deviceLocations
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
         windowDelay = windowSize / 2.0
         timer = createDispatchTimer(windowSize, queue: queue, block: { self.encodeWindow() })
