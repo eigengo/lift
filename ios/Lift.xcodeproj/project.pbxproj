@@ -10,6 +10,7 @@
 		23929FB2F2C8236CF369D326 /* libPods-LiftTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4426590D0160CE631890E9AC /* libPods-LiftTests.a */; };
 		281A7ADD1A8266BF00421B9E /* NSMutableData+Encoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281A7ADA1A82436F00421B9E /* NSMutableData+Encoding.swift */; };
 		281A7ADE1A8266C000421B9E /* NSMutableData+Encoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281A7ADA1A82436F00421B9E /* NSMutableData+Encoding.swift */; };
+		281AEA771A8517DE00827D59 /* ByteVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281AEA761A8517DE00827D59 /* ByteVector.swift */; };
 		2835C5E71A8284860012DEFB /* SensorDataGroupBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2835C5E61A8284860012DEFB /* SensorDataGroupBufferTests.swift */; };
 		2835C5E81A8285D30012DEFB /* SensorDataGroupBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */; };
 		28766A181A829995001D8808 /* ContinuousSensorDataArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28766A171A829995001D8808 /* ContinuousSensorDataArrayTests.swift */; };
@@ -186,6 +187,7 @@
 /* Begin PBXFileReference section */
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		281A7ADA1A82436F00421B9E /* NSMutableData+Encoding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSMutableData+Encoding.swift"; sourceTree = "<group>"; };
+		281AEA761A8517DE00827D59 /* ByteVector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ByteVector.swift; sourceTree = "<group>"; };
 		2835C5E61A8284860012DEFB /* SensorDataGroupBufferTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataGroupBufferTests.swift; sourceTree = "<group>"; };
 		28766A171A829995001D8808 /* ContinuousSensorDataArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContinuousSensorDataArrayTests.swift; sourceTree = "<group>"; };
 		4426590D0160CE631890E9AC /* libPods-LiftTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LiftTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -397,6 +399,7 @@
 		54543A2A1A7A2C6100D599AB /* Device */ = {
 			isa = PBXGroup;
 			children = (
+				281AEA761A8517DE00827D59 /* ByteVector.swift */,
 				54543A2D1A7A2F3400D599AB /* SensorData+Test.swift */,
 				54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */,
 				54877F391A7A46FB00C5130F /* SensorDataArrayTests.swift */,
@@ -986,6 +989,7 @@
 				54ED4EB91A6C548100490DA7 /* Operators.swift in Sources */,
 				54ED4EB31A6C547B00490DA7 /* UserModel+Marshalling.swift in Sources */,
 				54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */,
+				281AEA771A8517DE00827D59 /* ByteVector.swift in Sources */,
 				54ED4EBC1A6C548700490DA7 /* Alamofire+SwiftyJSON.swift in Sources */,
 				281A7ADE1A8266C000421B9E /* NSMutableData+Encoding.swift in Sources */,
 				2835C5E81A8285D30012DEFB /* SensorDataGroupBuffer.swift in Sources */,
