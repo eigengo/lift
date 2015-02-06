@@ -170,9 +170,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, atDeviceTime: CFAbsoluteTime, data: NSData) {
         if let x = exerciseSession {
-            // TODO: Implement me
-            //let mp = MutableMultiPacket().append(SensorDataSourceLocation.Wrist, data: data)
-            //x.submitData(mp, const(()))
+            x.submitData(data, f: const(()))
             
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
                 tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
