@@ -6,7 +6,7 @@ import Foundation
 struct LiftUserDefaults {
     static var deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
     
-    private static func getLocation(deviceId id: DeviceId) -> DeviceInfo.Location {
+    static func getLocation(deviceId id: DeviceId) -> DeviceInfo.Location {
         if let x = deviceLocations[id] { return x }
         let value = UInt8(NSUserDefaults.standardUserDefaults().integerForKey("\(id.UUIDString)-location"))
         return DeviceInfo.Location(rawValue: value) ?? DeviceInfo.Location.Any
@@ -38,7 +38,7 @@ struct LiftUserDefaults {
         default: return
         }
     }
-    
+        
     /**
      * Writes the current value of the logged-in user
      */

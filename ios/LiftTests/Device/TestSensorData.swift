@@ -4,10 +4,13 @@ import Foundation
 /// Sample test data
 ///
 struct TestSensorData {
-    static let deviceLocations: [DeviceId : DeviceInfo.Location] = [
-        phone : DeviceInfo.Location.Waist,
-        pebble : DeviceInfo.Location.Wrist
-    ]
+    static func deviceLocations(id: DeviceId) -> DeviceInfo.Location {
+        switch id {
+        case phone: return DeviceInfo.Location.Waist
+        case pebble: return DeviceInfo.Location.Wrist
+        default: fatalError("Match error")
+        }
+    }
     
     /// Phone device id
     static let phone = DeviceId()

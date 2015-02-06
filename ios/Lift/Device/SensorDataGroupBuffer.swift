@@ -19,10 +19,10 @@ class SensorDataGroupBuffer {
     let queue: dispatch_queue_t!
     let timer: dispatch_source_t!
     let delegate: SensorDataGroupBufferDelegate!
-    let deviceLocations: [DeviceId : DeviceInfo.Location]!
+    let deviceLocations: DeviceId -> DeviceInfo.Location!
     var counter: UInt32 = 0
     
-    init(delegate: SensorDataGroupBufferDelegate, queue: dispatch_queue_t, deviceLocations: [DeviceId : DeviceInfo.Location]) {
+    init(delegate: SensorDataGroupBufferDelegate, queue: dispatch_queue_t, deviceLocations: DeviceId -> DeviceInfo.Location) {
         self.delegate = delegate
         self.deviceLocations = deviceLocations
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
@@ -72,7 +72,7 @@ class SensorDataGroupBuffer {
                 result.appendUInt32(counter)
                 csdas.foreach { csda in
                     result.appendUInt16(UInt16(csda.length))
-                    let location = self.deviceLocations[csda.header.sourceDeviceId] ?? DeviceInfo.Location.Any
+                    let location = self.deviceLocations(csda.header.sourceDeviceId)
                     result.appendUInt8(location.rawValue)
                     csda.encode(mutating: result)
                 }

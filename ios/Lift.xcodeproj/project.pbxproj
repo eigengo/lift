@@ -54,6 +54,7 @@
 		54877F3A1A7A46FB00C5130F /* SensorDataArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54877F391A7A46FB00C5130F /* SensorDataArrayTests.swift */; };
 		54877F3C1A7A757D00C5130F /* SensorDataGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54877F3B1A7A757D00C5130F /* SensorDataGroupTests.swift */; };
 		54877F3E1A7A97F600C5130F /* XCTestCase+Matchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54877F3D1A7A97F600C5130F /* XCTestCase+Matchers.swift */; };
+		54988A911A8556E300446DC2 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */; };
 		549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
 		549ED2AD1A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */; };
@@ -133,7 +134,6 @@
 		54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B29B1E1A2C801B00098D2A /* SwiftyJSON.swift */; };
 		54ED4EBE1A6C548700490DA7 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D320801A276747002527C8 /* Alamofire.swift */; };
 		54ED4EBF1A6C54A600490DA7 /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
-		54ED4EC01A6C54C100490DA7 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		54ED4EC11A6C54C100490DA7 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		54ED4EC21A6C54C100490DA7 /* String+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB7DC61A4A01290075A420 /* String+Localisation.swift */; };
 		54F0C0041A602B9A00D1A9C8 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */; };
@@ -1003,6 +1003,7 @@
 				54ED4EAF1A6C547B00490DA7 /* LiftServer.swift in Sources */,
 				546D72CA1A79825A009C9629 /* SensorDataProtocol.c in Sources */,
 				54877F3C1A7A757D00C5130F /* SensorDataGroupTests.swift in Sources */,
+				54988A911A8556E300446DC2 /* LiftUserDefaults.swift in Sources */,
 				54877F3A1A7A46FB00C5130F /* SensorDataArrayTests.swift in Sources */,
 				54AECC491A76B022008BD812 /* DeviceSessionDelegate.swift in Sources */,
 				54ED4EB11A6C547B00490DA7 /* LiftServerURLs.swift in Sources */,
@@ -1021,7 +1022,6 @@
 				54543A2E1A7A2F3400D599AB /* SensorData+Test.swift in Sources */,
 				54ED4EBA1A6C548100490DA7 /* Predef.swift in Sources */,
 				54ED4EBB1A6C548100490DA7 /* Result.swift in Sources */,
-				54ED4EC01A6C54C100490DA7 /* LiftUserDefaults.swift in Sources */,
 				2835C5E71A8284860012DEFB /* SensorDataGroupBufferTests.swift in Sources */,
 				54ED4EB81A6C548100490DA7 /* Either.swift in Sources */,
 				54571B171A728690001419B4 /* Array.swift in Sources */,
