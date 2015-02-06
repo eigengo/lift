@@ -4,11 +4,11 @@ import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{Assertion, Bind, True}
 import com.eigengo.lift.exercise.{SensorData, SessionProperties}
-import scalaz.{-\/, \/-, \/}
 
 object ExerciseModel {
+
+  import ClassificationAssertions._
 
   /**
    * We query exercise models using a DSL based upon a linear-time dynamic logic. Exercise sessions define the finite
@@ -172,7 +172,7 @@ object ExerciseModel {
     def result: Boolean
   }
   case class StableValue(result: Boolean) extends QueryValue
-  case class UnstableValue(result: Boolean) extends QueryValue
+  case class UnstableValue(result: Boolean, quotedAtom: Assertion) extends QueryValue
 
   /**
    * Auxillary functions that support QueryValue lattice structure
@@ -182,19 +182,19 @@ object ExerciseModel {
     case (StableValue(result1), StableValue(result2)) =>
       StableValue(result1 && result2)
 
-    case (UnstableValue(result1), UnstableValue(result2)) =>
-      UnstableValue(result1 && result2)
+    case (UnstableValue(result1, atom1), UnstableValue(result2, atom2)) =>
+      UnstableValue(result1 && result2, Conjunction(atom1, atom2))
 
-    case (StableValue(true), result2 @ UnstableValue(_)) =>
+    case (StableValue(true), result2 @ UnstableValue(_, _)) =>
       result2
 
-    case (result1 @ StableValue(false), UnstableValue(_)) =>
+    case (result1 @ StableValue(false), UnstableValue(_, _)) =>
       result1
 
-    case (result1 @ UnstableValue(_), StableValue(true)) =>
+    case (result1 @ UnstableValue(_, _), StableValue(true)) =>
       result1
 
-    case (UnstableValue(_), result2 @ StableValue(false)) =>
+    case (UnstableValue(_, _), result2 @ StableValue(false)) =>
       result2
   }
 
@@ -202,19 +202,19 @@ object ExerciseModel {
     case (StableValue(result1), StableValue(result2)) =>
       StableValue(result1 || result2)
 
-    case (UnstableValue(result1), UnstableValue(result2)) =>
-      UnstableValue(result1 || result2)
+    case (UnstableValue(result1, atom1), UnstableValue(result2, atom2)) =>
+      UnstableValue(result1 || result2, Disjunction(atom1, atom2))
 
-    case (result1 @ StableValue(true), UnstableValue(_)) =>
+    case (result1 @ StableValue(true), UnstableValue(_, _)) =>
       result1
 
-    case (StableValue(false), result2 @ UnstableValue(_)) =>
+    case (StableValue(false), result2 @ UnstableValue(_, _)) =>
       result2
 
-    case (UnstableValue(_), result2 @ StableValue(true)) =>
+    case (UnstableValue(_, _), result2 @ StableValue(true)) =>
       result2
 
-    case (result1 @ UnstableValue(_), StableValue(false)) =>
+    case (result1 @ UnstableValue(_, _), StableValue(false)) =>
       result1
   }
 
@@ -222,8 +222,8 @@ object ExerciseModel {
     case StableValue(result) =>
       StableValue(!result)
 
-    case UnstableValue(result) =>
-      UnstableValue(!result)
+    case UnstableValue(result, atom) =>
+      UnstableValue(!result, ClassificationAssertions.not(atom))
   }
 
   /**
@@ -243,6 +243,7 @@ object ExerciseModel {
 trait ExerciseModel {
   this: Actor with ActorLogging =>
 
+  import ClassificationAssertions.Bind
   import ExerciseModel._
 
   /**

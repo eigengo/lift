@@ -16,6 +16,8 @@ trait StandardEvaluation {
 
   // TODO: introduce memoisation into `evaluate` functions
 
+  // TODO: introduce use of SMT library (e.g. ScalaZ3 or Scala SMT-LIB)
+
   def evaluate(fact: Fact, assertion: Option[Assertion]): Boolean = (fact, assertion) match {
     case (_, None) =>
       false
@@ -73,11 +75,10 @@ trait StandardEvaluation {
 
     case Or(query1, query2, remaining @ _*) =>
       val results = (query1 +: query2 +: remaining).map(q => evaluate(q)(state, lastState))
-      results.fold(UnstableValue(result = false))(join)
+      results.fold(StableValue(result = false))(join)
 
     case Exists(Assert(assertion), query1) if !lastState && evaluate(assertion)(state) =>
-      // TODO: `query1` is our next state
-      ???
+      UnstableValue(result = true, Atom(query1))
 
     case Exists(Assert(assertion), query1) if lastState && evaluate(assertion)(state) =>
       evaluate(query1)(state, lastState)
@@ -104,8 +105,7 @@ trait StandardEvaluation {
       )
 
     case All(Assert(assertion), query1) if !lastState && evaluate(assertion)(state) =>
-      // TODO: `query1` is our next state
-      ???
+      UnstableValue(result = true, Atom(query1))
 
     case All(Assert(assertion), query1) if lastState && evaluate(assertion)(state) =>
       evaluate(query1)(state, lastState)

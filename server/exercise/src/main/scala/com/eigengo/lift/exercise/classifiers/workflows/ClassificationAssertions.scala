@@ -38,6 +38,8 @@ object ClassificationAssertions {
   case class Conjunction(assert1: Assertion, assert2: Assertion, remainingAsserts: Assertion*) extends Assertion
   case class Disjunction(assert1: Assertion, assert2: Assertion, remainingAsserts: Assertion*) extends Assertion
 
+  case class Atom[Q](query: Q) extends Assertion
+
   /**
    * Convenience function that provides negation on assertions, whilst keeping them in NNF. Translation is linear in the
    * size of the assertion.
