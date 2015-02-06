@@ -172,7 +172,7 @@ object ExerciseModel {
     def result: Boolean
   }
   case class StableValue(result: Boolean) extends QueryValue
-  case class UnstableValue(result: Boolean, quotedAtom: Assertion) extends QueryValue
+  case class UnstableValue(result: Boolean, state: Query) extends QueryValue
 
   /**
    * Auxillary functions that support QueryValue lattice structure
@@ -183,7 +183,7 @@ object ExerciseModel {
       StableValue(result1 && result2)
 
     case (UnstableValue(result1, atom1), UnstableValue(result2, atom2)) =>
-      UnstableValue(result1 && result2, Conjunction(atom1, atom2))
+      UnstableValue(result1 && result2, And(atom1, atom2))
 
     case (StableValue(true), result2 @ UnstableValue(_, _)) =>
       result2
@@ -203,7 +203,7 @@ object ExerciseModel {
       StableValue(result1 || result2)
 
     case (UnstableValue(result1, atom1), UnstableValue(result2, atom2)) =>
-      UnstableValue(result1 || result2, Disjunction(atom1, atom2))
+      UnstableValue(result1 || result2, Or(atom1, atom2))
 
     case (result1 @ StableValue(true), UnstableValue(_, _)) =>
       result1
@@ -223,7 +223,7 @@ object ExerciseModel {
       StableValue(!result)
 
     case UnstableValue(result, atom) =>
-      UnstableValue(!result, ClassificationAssertions.not(atom))
+      UnstableValue(!result, not(atom))
   }
 
   /**

@@ -1,6 +1,6 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
-import akka.stream.{FlowMaterializer, MaterializerSettings}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.stream.testkit.{StreamTestKit, AkkaSpec}
 import com.eigengo.lift.exercise.AccelerometerValue
@@ -15,9 +15,9 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
   val name = "tap"
   val config = system.settings.config
 
-  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1024)
+  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1024)
 
-  implicit val materializer = FlowMaterializer(settings)
+  implicit val materializer = ActorFlowMaterializer(settings)
 
   val accelerometerData = Option(getClass.getResource("/samples/tap.csv")).map { dataFile =>
     IOSource.fromURL(dataFile, "UTF-8").getLines().map(line => { val List(x, y, z) = line.split(",").toList.map(_.toInt); AccelerometerValue(x, y, z) })

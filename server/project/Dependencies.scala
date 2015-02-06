@@ -13,7 +13,7 @@ object Dependencies {
     val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4" intransitive()
 
     object streams {
-      val version = "1.0-M2"
+      val version = "1.0-M3"
 
       val core      = "com.typesafe.akka" %% "akka-stream-experimental"         % version
       val http      = "com.typesafe.akka" %% "akka-http-experimental"           % version

@@ -1,7 +1,7 @@
 package com.eigengo.lift.exercise.classifiers.model
 
 import akka.actor.ActorLogging
-import akka.stream.{FlowMaterializer, MaterializerSettings}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
@@ -78,7 +78,7 @@ trait StandardEvaluation {
       results.fold(StableValue(result = false))(join)
 
     case Exists(Assert(assertion), query1) if !lastState && evaluate(assertion)(state) =>
-      UnstableValue(result = true, Atom(query1))
+      UnstableValue(result = true, query1)
 
     case Exists(Assert(assertion), query1) if lastState && evaluate(assertion)(state) =>
       evaluate(query1)(state, lastState)
@@ -105,7 +105,7 @@ trait StandardEvaluation {
       )
 
     case All(Assert(assertion), query1) if !lastState && evaluate(assertion)(state) =>
-      UnstableValue(result = true, Atom(query1))
+      UnstableValue(result = true, query1)
 
     case All(Assert(assertion), query1) if lastState && evaluate(assertion)(state) =>
       evaluate(query1)(state, lastState)
@@ -161,8 +161,8 @@ abstract class StandardExerciseModel(val sessionProps: SessionProperties, val ne
 
   val name = "gesture"
   val config = context.system.settings.config
-  val settings = MaterializerSettings(context.system)
-  implicit val materializer = FlowMaterializer(settings)
+  val settings = ActorFlowMaterializerSettings(context.system)
+  implicit val materializer = ActorFlowMaterializer(settings)
 
   // Here we only monitor wrist locations for recognisable gestures
   private val classifier = GestureClassification(Set[SensorDataSourceLocation](SensorDataSourceLocationWrist), Sensor.sourceLocations)

@@ -1,6 +1,6 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
-import akka.stream.{FlowMaterializer, MaterializerSettings}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.stream.testkit.{ AkkaSpec, StreamTestKit }
 
@@ -9,9 +9,9 @@ class SlidingWindowTest extends AkkaSpec {
   import FlowGraphImplicits._
   import StreamTestKit._
 
-  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
-  implicit val materializer = FlowMaterializer(settings)
+  implicit val materializer = ActorFlowMaterializer(settings)
 
   def sample(in: Source[String], out: Sink[List[String]]) = FlowGraph { implicit builder =>
     in ~> Flow[String].transform(() => SlidingWindow[String](5)) ~> out

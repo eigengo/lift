@@ -48,7 +48,7 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
 
   val QueryValueGen: Gen[QueryValue] = frequency(
     1 -> arbitrary[Boolean].map(StableValue),
-    1 -> (for { result <- arbitrary[Boolean]; query <- QueryGen() } yield UnstableValue(result, Atom(query)))
+    1 -> (for { result <- arbitrary[Boolean]; query <- QueryGen() } yield UnstableValue(result, query))
   )
 
   property("meet(complement(x), complement(y)) == complement(join(x, y))") {
