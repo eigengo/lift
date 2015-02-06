@@ -37,6 +37,11 @@ class DeviceSettingsController : UITableViewController {
         case (1, let x):
             let dl = deviceLocations[x]
             let cell = tableView.dequeueReusableCellWithIdentifier("location") as UITableViewCell
+            if dl == LiftUserDefaults.getLocation(deviceInfo: deviceInfo!) {
+                cell.accessoryType = UITableViewCellAccessoryType.Checkmark
+            } else {
+                cell.accessoryType = UITableViewCellAccessoryType.None
+            }
             cell.textLabel!.text = dl.localized()
             cell.detailTextLabel!.text = "Blah blah about location"
             return cell
@@ -50,6 +55,8 @@ class DeviceSettingsController : UITableViewController {
         if indexPath.section == 1 {
             let dl = deviceLocations[indexPath.row]
             tableView.deselectRowAtIndexPath(indexPath, animated: false)
+            LiftUserDefaults.setLocation(deviceInfo: deviceInfo!, location: dl)
+            tableView.reloadData()
         }
     }
     

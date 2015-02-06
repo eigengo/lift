@@ -10,10 +10,6 @@ struct Devices {
         AppleWatchDevice(),
         AndroidWearDevice(),
     ]
-    ///
-    /// Known device locations
-    ///
-    static var deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
     
     ///
     /// Peeks the devices, applyig ``onDone`` for each device that 
