@@ -45,6 +45,7 @@
 		547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */; };
 		547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */; };
 		547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547F64791A2E4FB400F887EE /* PublicProfileController.swift */; };
+		54803C411A8500DA00098F7A /* SensorDataProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54803C401A8500DA00098F7A /* SensorDataProtocolTests.swift */; };
 		5482963C1A4D792D00EDCAF0 /* AndroidWearDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */; };
 		5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */; };
 		548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5482963F1A4D7F3A00EDCAF0 /* Devices.swift */; };
@@ -218,6 +219,7 @@
 		547D51531A3061800055EB35 /* ExerciseModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseModel+Marshalling.swift"; sourceTree = "<group>"; };
 		547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentLiftUser.swift; sourceTree = "<group>"; };
 		547F64791A2E4FB400F887EE /* PublicProfileController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicProfileController.swift; sourceTree = "<group>"; };
+		54803C401A8500DA00098F7A /* SensorDataProtocolTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataProtocolTests.swift; sourceTree = "<group>"; };
 		548296371A4D792D00EDCAF0 /* AndroidWearDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AndroidWearDevice.swift; sourceTree = "<group>"; };
 		548296391A4D792D00EDCAF0 /* AppleWatchDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppleWatchDevice.swift; sourceTree = "<group>"; };
 		5482963F1A4D7F3A00EDCAF0 /* Devices.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Devices.swift; sourceTree = "<group>"; };
@@ -400,6 +402,7 @@
 				54877F391A7A46FB00C5130F /* SensorDataArrayTests.swift */,
 				54877F3B1A7A757D00C5130F /* SensorDataGroupTests.swift */,
 				2835C5E61A8284860012DEFB /* SensorDataGroupBufferTests.swift */,
+				54803C401A8500DA00098F7A /* SensorDataProtocolTests.swift */,
 				28766A171A829995001D8808 /* ContinuousSensorDataArrayTests.swift */,
 				54F9444A1A82BE5200FC7328 /* TestSensorData.swift */,
 				54F9444C1A82BFC600FC7328 /* NSData+Tests.swift */,
@@ -1005,6 +1008,7 @@
 				54ED4EB71A6C548100490DA7 /* Box.swift in Sources */,
 				54614BB91A7EA9D500B34C75 /* SensorData+Printable.swift in Sources */,
 				54ED4EB41A6C547B00490DA7 /* ExerciseModel.swift in Sources */,
+				54803C411A8500DA00098F7A /* SensorDataProtocolTests.swift in Sources */,
 				54ED4EBE1A6C548700490DA7 /* Alamofire.swift in Sources */,
 				54B562241A77939400F6FD5D /* DeviceSessionStats.swift in Sources */,
 				54ED4EC21A6C54C100490DA7 /* String+Localisation.swift in Sources */,
