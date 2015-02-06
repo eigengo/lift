@@ -22,6 +22,7 @@
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
 		54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */; };
 		5434CCDA1A69839400B0735C /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5434CCD91A69839400B0735C /* SystemConfiguration.framework */; };
+		543911961A852745001EC62A /* DeviceSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543911951A852745001EC62A /* DeviceSettingsController.swift */; };
 		543B26FD1A49D18800381298 /* DeviceSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
 		54543A2C1A7A2C6100D599AB /* SensorDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */; };
@@ -200,6 +201,7 @@
 		5427CDEE19C60530005C9B4E /* Lift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Lift.entitlements; sourceTree = "<group>"; };
 		54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewSessionController.swift; sourceTree = "<group>"; };
 		5434CCD91A69839400B0735C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		543911951A852745001EC62A /* DeviceSettingsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceSettingsController.swift; sourceTree = "<group>"; };
 		543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceSessionDelegate.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
 		54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataTests.swift; sourceTree = "<group>"; };
@@ -516,6 +518,7 @@
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
 				54CC699E19C4AD8E00B29EC8 /* LiveSessionController.swift */,
 				547F64791A2E4FB400F887EE /* PublicProfileController.swift */,
+				543911951A852745001EC62A /* DeviceSettingsController.swift */,
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
@@ -944,6 +947,7 @@
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,
+				543911961A852745001EC62A /* DeviceSettingsController.swift in Sources */,
 				54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */,
 				545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */,
 				54C6EFDA1A2F5E650044BDAB /* Either.swift in Sources */,

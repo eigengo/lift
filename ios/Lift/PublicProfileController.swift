@@ -1,9 +1,9 @@
 import Foundation
 import MobileCoreServices
 
-/**
- * Profile cell shows the user's picture
- */
+///
+/// Profile cell shows the user's picture
+///
 class ProfileImageTableViewCell : UITableViewCell {
     @IBOutlet
     var profileImageView: UIImageView!
@@ -20,10 +20,10 @@ class ProfileImageTableViewCell : UITableViewCell {
     }
 }
 
-/*
- * Handles public profile, which includes public picture, name & other details and devices
- */
-class PublicProfileController : UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PropertyTableViewCellDelegate, DeviceTableViewCellDelegate {
+///
+/// Handles public profile, which includes public picture, name & other details and devices
+///
+class PublicProfileController : UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PropertyTableViewCellDelegate {
     @IBOutlet
     var tableView: UITableView!
     @IBOutlet
@@ -67,9 +67,9 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         switch indexPath.section {
         case 0: return 100   // profile picture
-        case 1: return 40   // four user properties
-        case 2: return 40   // followers
-        case 3: return 60   // devices
+        case 1: return 40    // four user properties
+        case 2: return 40    // followers
+        case 3: return 60    // devices
             
         default: fatalError("Match error")
         }
@@ -95,7 +95,11 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
             cell.textLabel!.text = "PublicProfileController.followersText".localized()
             cell.detailTextLabel!.text = "PublicProfileController.followersDetail".localized(followersCount)
             return cell
-        case (3, let x): return tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil, delegate: self)
+        case (3, let x):
+            let cell = tableView.dequeueReusableDeviceTableViewCell(deviceInfos[x], deviceInfoDetail: nil)
+            cell.accessoryType = UITableViewCellAccessoryType.DisclosureIndicator
+            cell.selectionStyle = UITableViewCellSelectionStyle.Blue
+            return cell
         // cannot happen
         default: fatalError("Match error")
         }
@@ -128,10 +132,15 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         case (0, 0):
             tableView.deselectRowAtIndexPath(indexPath, animated: true)
             setProfilePicture()
+        case (3, let x):
+            let di = deviceInfos[x]
+            if di.isConnected {
+                performSegueWithIdentifier("device", sender: x)
+            }
         default: return // noop
         }
     }
-    
+
     // MARK: UIImagePickerControllerDelegate implementation
     
     func imagePickerController(picker: UIImagePickerController!, didFinishPickingImage image: UIImage!, editingInfo: [NSObject : AnyObject]!) {
@@ -157,20 +166,6 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     
     func imagePickerControllerDidCancel(picker: UIImagePickerController) {
         picker.dismissViewControllerAnimated(true, completion: nil)
-    }
-    
-    // MARK: DeviceTableViewCellDelegate implementaion
-    
-    func deviceTableViewCellAccessorySwitchValue(deviceId: DeviceId) -> Bool {
-        return true
-    }
-    
-    func deviceTableViewCellAccessorySwitchValueChanged(deviceId: DeviceId, value: Bool) -> Bool {
-        return value
-    }
-    
-    func deviceTableViewCellShowAccessorySwitch(deviceId: DeviceId) -> Bool {
-        return true
     }
     
     // MARK: PropertyTableViewCellDelegate implementation
@@ -204,6 +199,16 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
     }
     
     // MARK: main
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "device" {
+            if let x = sender as? Int {
+                if let c = segue.destinationViewController as? DeviceSettingsController {
+                    c.setDeviceInfo(deviceInfos[x])
+                }
+            }
+        }
+    }
     
     @IBAction
     func save() {

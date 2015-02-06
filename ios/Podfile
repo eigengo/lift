@@ -10,5 +10,5 @@ pod 'JTCalendar'
 pod 'Reachability'
 
 target :LiftTests do
-    pod 'CocoaHTTPServer'
+    ##
 end

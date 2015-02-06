@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6724" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6750" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6711"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6735"/>
     </dependencies>
     <scenes>
         <!--Live Session-->
@@ -310,12 +310,12 @@
                     </view>
                     <tabBarItem key="tabBarItem" systemItem="contacts" id="74y-O3-uDh"/>
                     <navigationItem key="navigationItem" title="Profile" id="ZvI-5j-TNx">
-                        <barButtonItem key="leftBarButtonItem" title="Cancel" id="GZ0-JN-zGB">
+                        <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="GZ0-JN-zGB">
                             <connections>
                                 <action selector="cancel" destination="ucP-LO-yqW" id="EpN-Ly-4Y6"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" enabled="NO" title="Save" id="5MP-d9-y4X">
+                        <barButtonItem key="rightBarButtonItem" enabled="NO" systemItem="save" id="5MP-d9-y4X">
                             <connections>
                                 <action selector="save" destination="ucP-LO-yqW" id="0hm-yJ-IoR"/>
                             </connections>
@@ -330,6 +330,66 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="le9-4a-gVo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1224" y="1219"/>
+        </scene>
+        <!--Device Settings-->
+        <scene sceneID="9zp-XM-mbz">
+            <objects>
+                <viewController title="Device Settings" hidesBottomBarWhenPushed="YES" id="5iG-aG-lCJ" customClass="DeviceSettingsController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Itl-cA-xXz">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="44" sectionHeaderHeight="10" sectionFooterHeight="10" id="c12-P5-mcJ">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" accessoryType="checkmark" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="location" textLabel="s1P-Fc-ZjU" detailTextLabel="Tbq-hB-wh6" style="IBUITableViewCellStyleValue2" id="Hak-zE-hvJ">
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Hak-zE-hvJ" id="7wd-L8-Hxp">
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="s1P-Fc-ZjU">
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                                    <color key="textColor" red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Tbq-hB-wh6">
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" title="Device Settings" id="Oyl-tt-Mvy">
+                        <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="5an-zA-qMv">
+                            <connections>
+                                <action selector="cancel" destination="5iG-aG-lCJ" id="a18-Yd-mMZ"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" systemItem="save" id="Ege-v4-FVz">
+                            <connections>
+                                <action selector="save" destination="5iG-aG-lCJ" id="th5-QW-aqZ"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
+                    <connections>
+                        <outlet property="tableView" destination="c12-P5-mcJ" id="b3P-sC-Q2k"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hbf-9z-1Jc" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1711" y="1219"/>
         </scene>
         <!--Home-->
         <scene sceneID="yPh-eV-hHt">
@@ -454,6 +514,7 @@
                         <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>
                         <segue destination="yku-b7-2Yv" kind="modal" identifier="logout" id="chT-fI-k57"/>
                         <segue destination="rWr-64-kYJ" kind="push" identifier="startSession" id="AWT-28-pzF"/>
+                        <segue destination="5iG-aG-lCJ" kind="push" identifier="device" id="MfU-ZE-LU7"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kh0-A3-T6m" userLabel="First Responder" sceneMemberID="firstResponder"/>
