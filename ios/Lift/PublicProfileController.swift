@@ -217,11 +217,6 @@ class PublicProfileController : UIViewController, UITableViewDataSource, UITable
         navigationController?.popViewControllerAnimated(true)
     }
     
-    @IBAction
-    func cancel() {
-        navigationController?.popViewControllerAnimated(true)
-    }
-
     private func showProfile(profile: User.PublicProfile?) {
         if let x = profile { self.profile = x }
         saveButton.enabled = false

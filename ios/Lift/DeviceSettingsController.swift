@@ -43,7 +43,7 @@ class DeviceSettingsController : UITableViewController {
                 cell.accessoryType = UITableViewCellAccessoryType.None
             }
             cell.textLabel!.text = dl.localized()
-            cell.detailTextLabel!.text = "Blah blah about location"
+            cell.detailTextLabel!.text = dl.localisedDescription()
             return cell
         default: fatalError("Match error")
         }

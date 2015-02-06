@@ -59,3 +59,13 @@
 "Retry?"="Retry?";
 "Home"="Home";
 
+"Wrist"="Wrist";
+"Waist"="Waist";
+"Chest"="Chest";
+"Foot"="Foot";
+"Any"="Any";
+"WristDescription"="Left or right wrist";
+"WaistDescription"="Pocket or belt";
+"ChestDescription"="Across the chest";
+"FootDescription"="Left or right ankle";
+"AnyDescription"="Any location";

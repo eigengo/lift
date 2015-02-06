@@ -310,11 +310,6 @@
                     </view>
                     <tabBarItem key="tabBarItem" systemItem="contacts" id="74y-O3-uDh"/>
                     <navigationItem key="navigationItem" title="Profile" id="ZvI-5j-TNx">
-                        <barButtonItem key="leftBarButtonItem" title="Back" id="GZ0-JN-zGB">
-                            <connections>
-                                <action selector="cancel" destination="ucP-LO-yqW" id="EpN-Ly-4Y6"/>
-                            </connections>
-                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" enabled="NO" systemItem="save" id="5MP-d9-y4X">
                             <connections>
                                 <action selector="save" destination="ucP-LO-yqW" id="0hm-yJ-IoR"/>

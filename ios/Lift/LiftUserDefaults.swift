@@ -1,17 +1,23 @@
 import Foundation
 
-/**
- * Settings and defaults for the lift app
- */
+///
+/// Settings and defaults for the lift app
+///
 struct LiftUserDefaults {
     static var deviceLocations: [DeviceId : DeviceInfo.Location] = [:]
     
+    ///
+    /// Retrieves the location of the device with the given ``id``
+    ///
     static func getLocation(deviceId id: DeviceId) -> DeviceInfo.Location {
         if let x = deviceLocations[id] { return x }
         let value = UInt8(NSUserDefaults.standardUserDefaults().integerForKey("\(id.UUIDString)-location"))
         return DeviceInfo.Location(rawValue: value) ?? DeviceInfo.Location.Any
     }
-    
+
+    ///
+    /// Sets the ``location`` of the device identified by ``id``
+    ///
     private static func setLocation(deviceId id: DeviceId, location: DeviceInfo.Location) {
         let value = Int(location.rawValue)
         NSUserDefaults.standardUserDefaults().setInteger(value, forKey: "\(id.UUIDString)-location")
@@ -39,9 +45,9 @@ struct LiftUserDefaults {
         }
     }
         
-    /**
-     * Writes the current value of the logged-in user
-     */
+    ///
+    /// Writes the current value of the logged-in user
+    ///
     static func setCurrentUserId(userId: NSUUID?) {
         if !isRunningTests {
             if userId == nil {
@@ -52,9 +58,9 @@ struct LiftUserDefaults {
         }
     }
     
-    /**
-     * Retrieves the last known logged-in user
-     */
+    ///
+    /// Retrieves the last known logged-in user
+    ///
     static func getCurrentUserId() -> NSUUID? {
         if isRunningTests {
             return NSUUID(UUIDString: "00000000-0000-0000-0000-000000000000")!

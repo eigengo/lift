@@ -109,11 +109,11 @@
 		54DC83B51A40AF82006DD311 /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DC83B31A40AF82006DD311 /* NotificationModel.swift */; };
 		54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
-		54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */; };
+		54E5B1551A4B0A4600BC71C0 /* SensorKind+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1541A4B0A4600BC71C0 /* SensorKind+Localisation.swift */; };
 		54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */; };
 		54E99EDA1A76823F00BA1BD3 /* ThisDeviceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */; };
 		54E99EDC1A76882300BA1BD3 /* MultiDeviceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99EDB1A76882300BA1BD3 /* MultiDeviceSession.swift */; };
-		54E99EDE1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99EDD1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift */; };
+		54E99EDE1A76997A00BA1BD3 /* DeviceInfo+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E99EDD1A76997A00BA1BD3 /* DeviceInfo+Localization.swift */; };
 		54ED4EAC1A6C544200490DA7 /* ExerciseSessionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */; };
 		54ED4EAD1A6C547500490DA7 /* ExerciseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */; };
 		54ED4EAE1A6C547500490DA7 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
@@ -290,11 +290,11 @@
 		54DC83A71A40ACEA006DD311 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		54DC83B31A40AF82006DD311 /* NotificationModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftUserDefaults.swift; sourceTree = "<group>"; };
-		54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceSessionStatsKey+Localisation.swift"; sourceTree = "<group>"; };
+		54E5B1541A4B0A4600BC71C0 /* SensorKind+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorKind+Localisation.swift"; sourceTree = "<group>"; };
 		54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThisDevice.swift; sourceTree = "<group>"; };
 		54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThisDeviceSession.swift; sourceTree = "<group>"; };
 		54E99EDB1A76882300BA1BD3 /* MultiDeviceSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiDeviceSession.swift; sourceTree = "<group>"; };
-		54E99EDD1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorDataSourceLocation+Localization.swift"; sourceTree = "<group>"; };
+		54E99EDD1A76997A00BA1BD3 /* DeviceInfo+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DeviceInfo+Localization.swift"; sourceTree = "<group>"; };
 		54ED4EAB1A6C544200490DA7 /* ExerciseSessionManagerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManagerTests.swift; sourceTree = "<group>"; };
 		54ED4EC31A6C54F300490DA7 /* LiftTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LiftTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		54F0C0031A602B9A00D1A9C8 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
@@ -530,8 +530,8 @@
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
-				54E5B1541A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift */,
-				54E99EDD1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift */,
+				54E5B1541A4B0A4600BC71C0 /* SensorKind+Localisation.swift */,
+				54E99EDD1A76997A00BA1BD3 /* DeviceInfo+Localization.swift */,
 				54849C6C1A531DA8007CDCC2 /* UIImage+Effects.swift */,
 				549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */,
 				54CB508C1A5835A600CB40F9 /* UIView+Rounded.swift */,
@@ -923,7 +923,7 @@
 				545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */,
 				546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */,
 				545C7AFE1A7BC71100FC3281 /* MultiPacketProtocol.c in Sources */,
-				54E5B1551A4B0A4600BC71C0 /* DeviceSessionStatsKey+Localisation.swift in Sources */,
+				54E5B1551A4B0A4600BC71C0 /* SensorKind+Localisation.swift in Sources */,
 				545E06041A304CB500AB633B /* UserModel.swift in Sources */,
 				54E99EDC1A76882300BA1BD3 /* MultiDeviceSession.swift in Sources */,
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,
@@ -943,7 +943,7 @@
 				54B29B1F1A2C801B00098D2A /* Alamofire+SwiftyJSON.swift in Sources */,
 				547F64781A2E4EDB00F887EE /* CurrentLiftUser.swift in Sources */,
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
-				54E99EDE1A76997A00BA1BD3 /* SensorDataSourceLocation+Localization.swift in Sources */,
+				54E99EDE1A76997A00BA1BD3 /* DeviceInfo+Localization.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,
