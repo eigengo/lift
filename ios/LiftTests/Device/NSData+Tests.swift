@@ -11,4 +11,8 @@ extension NSData {
         return buf
     }
     
+    func asByteVector() -> ByteVector {
+        return ByteVector(self.asBytes())
+    }
+    
 }
