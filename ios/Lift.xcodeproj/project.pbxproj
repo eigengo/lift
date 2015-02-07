@@ -55,6 +55,7 @@
 		54877F3C1A7A757D00C5130F /* SensorDataGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54877F3B1A7A757D00C5130F /* SensorDataGroupTests.swift */; };
 		54877F3E1A7A97F600C5130F /* XCTestCase+Matchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54877F3D1A7A97F600C5130F /* XCTestCase+Matchers.swift */; };
 		54988A911A8556E300446DC2 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
+		54988A9A1A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */; };
 		549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */; };
 		549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
 		549ED2AD1A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */; };
@@ -230,6 +231,7 @@
 		54877F3B1A7A757D00C5130F /* SensorDataGroupTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataGroupTests.swift; sourceTree = "<group>"; };
 		54877F3D1A7A97F600C5130F /* XCTestCase+Matchers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XCTestCase+Matchers.swift"; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
+		54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ThisDeviceSession+HealthKit.swift"; sourceTree = "<group>"; };
 		549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Result+GetOrUnit.swift"; sourceTree = "<group>"; };
 		549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManager.swift; sourceTree = "<group>"; };
 		549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-LiftTests-CocoaAsyncSocket.a"; path = "Pods/build/Debug-iphoneos/libPods-LiftTests-CocoaAsyncSocket.a"; sourceTree = "<group>"; };
@@ -626,6 +628,7 @@
 			children = (
 				54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */,
 				54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */,
+				54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */,
 			);
 			path = This;
 			sourceTree = "<group>";
@@ -966,6 +969,7 @@
 				54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */,
 				54306B701A2A2AD6005D6BC9 /* NewSessionController.swift in Sources */,
 				54E5B1531A4B03E600BC71C0 /* LiftUserDefaults.swift in Sources */,
+				54988A9A1A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift in Sources */,
 				543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */,
 				5482963D1A4D792D00EDCAF0 /* AppleWatchDevice.swift in Sources */,
 				54680BA31A332DE0004FC897 /* LiftServerCache.swift in Sources */,

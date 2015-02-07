@@ -1,5 +1,6 @@
 import Foundation
 import CoreMotion
+import HealthKit
 
 ///
 /// Maintains a session connection to this device; measures acceleration, gyroscope, GPS,
@@ -11,15 +12,22 @@ class ThisDeviceSession : DeviceSession {
     private var deviceSessionDelegate: DeviceSessionDelegate!
     private var count: Int = 0
     private var userAccelerationBuffer: NSMutableData!
+    private var rotationBuffer: NSMutableData!
     private let accelerationFactor: Double = 1000
     
     init(deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
         self.deviceSessionDelegate = deviceSessionDelegate
+        
+        // CoreMotion initialization
         motionManager = CMMotionManager()
         motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
         motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
-        userAccelerationBuffer = emptyUserAccelerationBuffer()
+        userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
+        rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
+        
+        // HealthKit initialization
+        
     }
     
     override func stop() {
@@ -28,19 +36,32 @@ class ThisDeviceSession : DeviceSession {
     
     override func zero() -> NSTimeInterval {
         count = 0
-        userAccelerationBuffer = emptyUserAccelerationBuffer()
+        userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
+        rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
         zeroStats()
         
-        NSLog("INFO: ThisDeviceSession zero()")
         return 0    // we took no time to reset
     }
     
     func processDeviceMotionData(data: CMDeviceMotion!, error: NSError!) -> Void {
         
-        func append(acceleration: CMAcceleration, toData data: NSMutableData) {
-            // TODO: userAcceleration units are in 10 m/s^2. Unfortunately, Pebble measures acceleration
-            // in unitless numbers. Find conversion factor.
-            // For now, I'll say that 4 G is the maximum force, and so our factor is 1000
+        func appendRotation(rotation: CMRotationRate, toData data: NSMutableData) {
+            // CMRotationRate units are in rad/s. We assume that the largest acceleration a user
+            // will give to the device in the order of 10 rad/s; the units we send to the server
+            // are therefore in mrad/s
+            
+            var buffer = [UInt8](count: 5, repeatedValue: 0)
+            let x = Int16(rotation.x * 100)  // mrad/sec
+            let y = Int16(rotation.y * 100)
+            let z = Int16(rotation.z * 100)
+            
+            encode_lift_accelerometer_data(x, y, z, &buffer)
+            data.appendBytes(&buffer, length: 5)
+        }
+        
+        func appendAcceleration(acceleration: CMAcceleration, toData data: NSMutableData) {
+            // CMAcceleration units are in 10 m/s^2. Pebble measures acceleration
+            // in 10 mm/s^2, therefore, we multiply by 1000 to get the same unit.
 
             var buffer = [UInt8](count: 5, repeatedValue: 0)
             let x = Int16(acceleration.x * 1000)
@@ -58,10 +79,7 @@ class ThisDeviceSession : DeviceSession {
                 return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.userAccelerationBuffer.length, packets: prev.packets + 1)
             })
             updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Gyroscope, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 0, packets: prev.packets + 1)
-            })
-            updateStats(DeviceSessionStatsTypes.Key(sensorKind: .GPS, deviceId: ThisDevice.Info.id), update: { prev in
-                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + 0, packets: prev.packets + 1)
+                return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.rotationBuffer.length, packets: prev.packets + 1)
             })
 
             // We have collected enough data to make up a packet.
@@ -71,15 +89,17 @@ class ThisDeviceSession : DeviceSession {
 
             // Clear buffers
             count = 0
-            userAccelerationBuffer = emptyUserAccelerationBuffer()
+            userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
+            rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
         }
         
-        append(data.userAcceleration, toData: userAccelerationBuffer)
+        appendAcceleration(data.userAcceleration, toData: userAccelerationBuffer)
+        appendRotation(data.rotationRate, toData: rotationBuffer)
         count += 1
     }
     
-    func emptyUserAccelerationBuffer() -> NSMutableData {
-        let header: [UInt8] = [ 0xad, 124, 100, 5, 0 ]
+    func emptyAccelerationLikeBuffer(type: UInt8) -> NSMutableData {
+        let header: [UInt8] = [ type, 124, 100, 5, 0 ]
         return NSMutableData(bytes: header, length: 5)
     }
     
