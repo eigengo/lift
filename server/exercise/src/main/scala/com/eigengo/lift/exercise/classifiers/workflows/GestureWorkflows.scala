@@ -138,13 +138,13 @@ trait GestureWorkflows extends SVMClassifier {
       if (locations.size == 1) {
         val zip = ZipWith[A, Option[Fact], Bind[A]]((msg: A, tag: Option[Fact]) => tag match {
           case Some(Gesture(name, matchProb)) =>
-            Bind(Some(Predicate(Gesture(name, matchProb))), msg)
+            Bind(Set(Gesture(name, matchProb)), msg)
 
           case Some(NegGesture(name, matchProb)) =>
-            Bind(Some(Predicate(NegGesture(name, matchProb))), msg)
+            Bind(Set(NegGesture(name, matchProb)), msg)
 
           case None =>
-            Bind(None, msg)
+            Bind(Set.empty, msg)
         })
 
         in(locations.head) ~> zip.left
@@ -157,13 +157,13 @@ trait GestureWorkflows extends SVMClassifier {
         for ((location, sensor) <- in) {
           val zip = ZipWith[A, Option[Fact], Bind[A]]((msg: A, tag: Option[Fact]) => tag match {
             case Some(Gesture(name, matchProb)) =>
-              Bind(Some(Predicate(Gesture(name, matchProb))), msg)
+              Bind(Set(Gesture(name, matchProb)), msg)
 
             case Some(NegGesture(name, matchProb)) =>
-              Bind(Some(Predicate(NegGesture(name, matchProb))), msg)
+              Bind(Set(NegGesture(name, matchProb)), msg)
 
             case None =>
-              Bind(None, msg)
+              Bind(Set.empty, msg)
           })
 
           sensor ~> zip.left

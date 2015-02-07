@@ -16,20 +16,13 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
   val defaultDepth = 3
 
   val FactGen: Gen[Fact] = frequency(
+    1 -> Gen.oneOf(True, False),
     1 -> (for { name <- arbitrary[String]; matchProbability <- arbitrary[Double] } yield Gesture(name, matchProbability)),
     1 -> (for { name <- arbitrary[String]; matchProbability <- arbitrary[Double] } yield NegGesture(name, matchProbability))
   )
 
-  def AssertionGen(depth: Int = defaultDepth): Gen[Assertion] = frequency(
-    5 -> FactGen.map(Predicate),
-    5 -> Gen.const(True),
-    5 -> Gen.const(False),
-    1 -> (for { assertion1 <- Gen.lzy(AssertionGen(depth-1)); assertion2 <- Gen.lzy(AssertionGen(depth-1)) } yield Conjunction(assertion1, assertion2)),
-    1 -> (for { assertion1 <- Gen.lzy(AssertionGen(depth-1)); assertion2 <- Gen.lzy(AssertionGen(depth-1)) } yield Disjunction(assertion1, assertion2))
-  )
-
   def PathGen(depth: Int = defaultDepth): Gen[Path] = frequency(
-    5 -> Gen.lzy(AssertionGen(depth-1)).map(Assert),
+    5 -> Gen.lzy(FactGen).map(Assert),
     5 -> Gen.lzy(QueryGen(depth-1)).map(Test),
     1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Choice(path1, path2)),
     1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Seq(path1, path2)),
@@ -37,7 +30,7 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
   )
 
   def QueryGen(depth: Int = defaultDepth): Gen[Query] = frequency(
-    5 -> Gen.lzy(AssertionGen(depth-1)).map(Formula),
+    5 -> Gen.lzy(FactGen).map(Formula),
     5 -> Gen.const(TT),
     5 -> Gen.const(FF),
     1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1)); query2 <- Gen.lzy(QueryGen(depth-1)) } yield And(query1, query2)),

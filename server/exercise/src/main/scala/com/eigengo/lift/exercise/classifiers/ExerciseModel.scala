@@ -30,7 +30,7 @@ object ExerciseModel {
    */
   sealed trait Path
 
-  case class Assert(assertion: Assertion) extends Path
+  case class Assert(fact: Fact) extends Path
 
   case class Test(query: Query) extends Path
 
@@ -68,7 +68,7 @@ object ExerciseModel {
    */
   sealed trait Query
 
-  case class Formula(assertion: Assertion) extends Query
+  case class Formula(fact: Fact) extends Query
 
   case object TT extends Query
 

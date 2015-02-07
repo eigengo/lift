@@ -18,50 +18,9 @@ trait StandardEvaluation {
 
   // TODO: introduce use of SMT library (e.g. ScalaZ3 or Scala SMT-LIB)
 
-  def evaluate(fact: Fact, assertion: Option[Assertion]): Boolean = (fact, assertion) match {
-    case (_, None) =>
-      false
-
-    case (fact1, Some(Predicate(fact2))) =>
-      fact1 == fact2
-
-    case (_, Some(True)) =>
-      true
-
-    case (_, Some(False)) =>
-      false
-
-    case (fact1, Some(Conjunction(assert1, assert2, remaining @ _*))) =>
-      val results = (assert1 +: assert2 +: remaining).map(a => evaluate(fact1, Some(a)))
-      results.contains(true)
-
-    case (fact1, Some(Disjunction(assert1, assert2, remaining @ _*))) =>
-      val results = (assert1 +: assert2 +: remaining).map(a => evaluate(fact1, Some(a)))
-      results.forall(_ == true)
-  }
-
-  def evaluate[A <: SensorData](a: Assertion)(state: Bind[A]): Boolean = a match {
-    case Predicate(fact) =>
-      evaluate(fact, state.assertion)
-
-    case True =>
-      true
-
-    case False =>
-      false
-
-    case Conjunction(assert1, assert2, remaining @ _*) =>
-      val results = (assert1 +: assert2 +: remaining).map(a => evaluate(a)(state))
-      results.forall(_ == true)
-
-    case Disjunction(assert1, assert2, remaining @ _*) =>
-      val results = (assert1 +: assert2 +: remaining).map(a => evaluate(a)(state))
-      results.contains(true)
-  }
-
   def evaluate[A <: SensorData](q: Query)(state: Bind[A], lastState: Boolean): QueryValue = q match {
-    case Formula(assertion) =>
-      StableValue(result = evaluate(assertion)(state))
+    case Formula(fact) =>
+      StableValue(result = state.assertion.contains(fact))
 
     case TT =>
       StableValue(result = true)
@@ -77,10 +36,10 @@ trait StandardEvaluation {
       val results = (query1 +: query2 +: remaining).map(q => evaluate(q)(state, lastState))
       results.fold(StableValue(result = false))(join)
 
-    case Exists(Assert(assertion), query1) if !lastState && evaluate(assertion)(state) =>
+    case Exists(Assert(fact), query1) if !lastState && state.assertion.contains(fact) =>
       UnstableValue(result = true, query1)
 
-    case Exists(Assert(assertion), query1) if lastState && evaluate(assertion)(state) =>
+    case Exists(Assert(fact), query1) if lastState && state.assertion.contains(fact) =>
       evaluate(query1)(state, lastState)
 
     case Exists(Assert(assertion), query1) =>
@@ -104,10 +63,10 @@ trait StandardEvaluation {
         evaluate(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
       )
 
-    case All(Assert(assertion), query1) if !lastState && evaluate(assertion)(state) =>
+    case All(Assert(fact), query1) if !lastState && state.assertion.contains(fact) =>
       UnstableValue(result = true, query1)
 
-    case All(Assert(assertion), query1) if lastState && evaluate(assertion)(state) =>
+    case All(Assert(fact), query1) if lastState && state.assertion.contains(fact) =>
       evaluate(query1)(state, lastState)
 
     case All(Assert(_), _) =>

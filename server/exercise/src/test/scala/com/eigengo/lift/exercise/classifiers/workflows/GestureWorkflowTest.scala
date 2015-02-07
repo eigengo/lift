@@ -203,7 +203,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       }
       transformPub.sendNext(None)
 
-      outProbe(1).expectNext(Bind(None, "two"))
+      outProbe(1).expectNext(Bind(Set.empty, "two"))
     }
 
     "request for outputs on all 3 wires (input values present) should be correctly transformed [no gesture]" in {
@@ -226,7 +226,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       transformPub.sendNext(None)
 
       for (n <- 0 until msgs.length) {
-        outProbe(n % 3).expectNext(Bind(None, msgs(n)))
+        outProbe(n % 3).expectNext(Bind(Set.empty, msgs(n)))
       }
     }
 
@@ -250,7 +250,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       transformPub.sendNext(Some(Gesture("transform", 0.42)))
 
       for (n <- 0 until msgs.length) {
-        outProbe(n % 3).expectNext(Bind(Some(Predicate(Gesture("transform", 0.42))), msgs(n)))
+        outProbe(n % 3).expectNext(Bind(Set(Gesture("transform", 0.42)), msgs(n)))
       }
     }
 
@@ -275,7 +275,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       transformPub.sendNext(None)
 
       for (n <- 0 until msgs.length) {
-        outProbe(n % 3).expectNext(Bind(None, msgs(n)))
+        outProbe(n % 3).expectNext(Bind(Set.empty, msgs(n)))
       }
     }
 
@@ -301,9 +301,9 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
       for (n <- 0 until msgs.length) {
         if (n / 3 == 0) {
-          outProbe(n % 3).expectNext(Bind(Some(Predicate(Gesture("transform", 0.42))), msgs(n)))
+          outProbe(n % 3).expectNext(Bind(Set(Gesture("transform", 0.42)), msgs(n)))
         } else {
-          outProbe(n % 3).expectNext(Bind(None, msgs(n)))
+          outProbe(n % 3).expectNext(Bind(Set.empty, msgs(n)))
         }
       }
     }
@@ -372,7 +372,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
         outClassify(n % size).expectNext(msg)
       }
       for ((msg, n) <- modulateEvents.zipWithIndex) {
-        outModulate(n % size).expectNext(Bind(None, msg))
+        outModulate(n % size).expectNext(Bind(Set.empty, msg))
       }
     }
 
@@ -412,7 +412,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
         outClassify(n % size).expectNext(msg)
       }
       for ((msg, n) <- modulateEvents.zipWithIndex) {
-        outModulate(n % size).expectNext(Bind(None, msg))
+        outModulate(n % size).expectNext(Bind(Set.empty, msg))
       }
     }
 
@@ -454,9 +454,9 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       }
       for ((msg, n) <- modulateEvents.zipWithIndex) {
         if (gestureWindow.contains(n)) {
-          outModulate(n % size).expectNext(Bind(Some(Predicate(Gesture(name, threshold))), msg))
+          outModulate(n % size).expectNext(Bind(Set(Gesture(name, threshold)), msg))
         } else {
-          outModulate(n % size).expectNext(Bind(None, msg))
+          outModulate(n % size).expectNext(Bind(Set.empty, msg))
         }
       }
     }
@@ -499,9 +499,9 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       }
       for ((msg, n) <- modulateEvents.zipWithIndex) {
         if (gestureWindow.contains(n)) {
-          outModulate(n % size).expectNext(Bind(Some(Predicate(Gesture(name, threshold))), msg))
+          outModulate(n % size).expectNext(Bind(Set(Gesture(name, threshold)), msg))
         } else {
-          outModulate(n % size).expectNext(Bind(None, msg))
+          outModulate(n % size).expectNext(Bind(Set.empty, msg))
         }
       }
     }
