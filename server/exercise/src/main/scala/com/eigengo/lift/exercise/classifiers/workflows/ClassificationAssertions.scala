@@ -42,6 +42,20 @@ object ClassificationAssertions {
    * @param assertion assertion that is true for the sensor data value
    * @param value     sensor data that assertion holds for
    */
-  case class Bind[A](assertion: Set[Fact], value: A)
+  case class Bind[A](assertion: Set[Fact], value: A) {
+    // `assertion` must be consistent!
+    require(
+      assertion.forall(f => !assertion.contains(not(f)))
+    )
+    require(
+      assertion.forall {
+        case Gesture(nm, prob1) =>
+          assertion.forall { case NegGesture(`nm`, prob2) => prob1 <= prob2; case _ => true }
+
+        case _ =>
+          true
+      }
+    )
+  }
 
 }
