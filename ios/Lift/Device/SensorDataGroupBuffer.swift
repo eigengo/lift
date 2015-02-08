@@ -45,7 +45,6 @@ class SensorDataGroupBuffer {
     func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
         let time = CFAbsoluteTimeGetCurrent()
         sensorDataGroup.decodeAndAdd(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
-        NSLog("INFO: decodeAndAdd(...): sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
         
         lastDecodeTime = time
     }
@@ -56,7 +55,7 @@ class SensorDataGroupBuffer {
     
     /* mutating */
     func encodeWindow() {
-        NSLog(".")
+        NSLog("encodeWindow(): sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
         if let x = lastDecodeTime {
             let start = x - windowDelay - windowSize
             let end   = x - windowDelay
