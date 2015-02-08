@@ -232,6 +232,8 @@ class ManagedExerciseSession : ExerciseSession {
     /// Failed to transmit the data: go offline and start attempting to abandon the session
     ///
     private func submitDataFailed(error: NSError) -> Void {
+        NSLog("WARN: ManagedExerciseSession.submitDataFailed(\(error))")
+
         // we have failed to
         self.isOffline = true
         self.abandon()

@@ -13,7 +13,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(kafkaProducer: ActorRef, userExercises: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(kafkaProducer: ActorRef, userExercisesProcessor: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
     path("exercise" / "musclegroups") {
       get {
         complete {
@@ -41,14 +41,14 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / UserIdValue / "start") { userId ⇒
       post {
         handleWith { sessionProps: SessionProperties ⇒
-          (userExercises ? UserExerciseSessionStart(userId, sessionProps)).mapRight[UUID]
+          (userExercisesProcessor ? UserExerciseSessionStart(userId, sessionProps)).mapRight[UUID]
         }
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "end") { (userId, sessionId) ⇒
       post {
         complete {
-          (userExercises ? UserExerciseSessionEnd(userId, sessionId)).mapRight[Unit]
+          (userExercisesProcessor ? UserExerciseSessionEnd(userId, sessionId)).mapRight[Unit]
         }
       }
     } ~
@@ -60,19 +60,19 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       } ~
       put {
         handleWith { mp: MultiPacket ⇒
-          (userExercises ? UserExerciseDataProcessMultiPacket(userId, sessionId, mp)).mapRight[Unit]
+          (userExercisesProcessor ? UserExerciseDataProcessMultiPacket(userId, sessionId, mp)).mapRight[Unit]
         }
       } ~
       delete {
         complete {
-          (userExercises ? UserExerciseSessionDelete(userId, sessionId)).mapRight[Unit]
+          (userExercisesProcessor ? UserExerciseSessionDelete(userId, sessionId)).mapRight[Unit]
         }
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "metric") { (userId, sessionId) ⇒
       post {
         handleWith { metric: Metric ⇒
-          userExercises ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
+          userExercisesProcessor ! UserExerciseSetExerciseMetric(userId, sessionId, metric)
           ()
         }
       }
@@ -80,37 +80,37 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / UserIdValue / SessionIdValue / "replay") { (userId, sessionId) ⇒
       post {
         handleWith { sessionProps: SessionProperties ⇒
-          (userExercises ? UserExerciseSessionReplayStart(userId, sessionId, sessionProps)).mapRight[UUID]
+          (userExercisesProcessor ? UserExerciseSessionReplayStart(userId, sessionId, sessionProps)).mapRight[UUID]
         }
       } ~
       put {
         ctx ⇒ ctx.complete {
-          (userExercises ? UserExerciseSessionReplayProcessData(userId, sessionId, ctx.request.entity.data.toByteArray)).mapRight[Unit]
+          (userExercisesProcessor ? UserExerciseSessionReplayProcessData(userId, sessionId, ctx.request.entity.data.toByteArray)).mapRight[Unit]
         }
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "abandon") { (userId, sessionId) ⇒
       post {
         complete {
-          (userExercises ? UserExerciseSessionAbandon(userId, sessionId)).mapRight[Unit]
+          (userExercisesProcessor ? UserExerciseSessionAbandon(userId, sessionId)).mapRight[Unit]
         }
       }
     } ~
     path("exercise" / UserIdValue / SessionIdValue / "classification") { (userId, sessionId) ⇒
       get {
         complete {
-          (userExercises ? UserExerciseExplicitClassificationExamples(userId, sessionId)).mapTo[List[Exercise]]
+          (userExercisesProcessor ? UserExerciseExplicitClassificationExamples(userId, sessionId)).mapTo[List[Exercise]]
         }
       } ~
       post {
         handleWith { exercise: Exercise ⇒
-          userExercises ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
+          userExercisesProcessor ! UserExerciseExplicitClassificationStart(userId, sessionId, exercise)
           ()
         }
       } ~
       delete {
         complete {
-          userExercises ! UserExerciseExplicitClassificationEnd(userId, sessionId)
+          userExercisesProcessor ! UserExerciseExplicitClassificationEnd(userId, sessionId)
           ()
         }
       }

@@ -13,11 +13,11 @@ extension ThisDeviceSession {
         init() {
             let readTypes: NSSet = NSSet(object: HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate))
             let shareTypes: NSSet = NSSet()
-            let store = HKHealthStore()
+            store = HKHealthStore()
             let hr = HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)
             store.requestAuthorizationToShareTypes(shareTypes, readTypes: readTypes) { (x, err) in
-                store.enableBackgroundDeliveryForType(hr, frequency: HKUpdateFrequency.Immediate, withCompletion: { (x, err) in
-                    self.heartRateQuery = HKObserverQuery(sampleType: hr, predicate: NSPredicate(), updateHandler: self.heartRateUpdateHandler)
+                self.store.enableBackgroundDeliveryForType(hr, frequency: HKUpdateFrequency.Immediate, withCompletion: { (x, err) in
+                    self.heartRateQuery = HKObserverQuery(sampleType: hr, predicate: nil, updateHandler: self.heartRateUpdateHandler)
                     self.store.executeQuery(self.heartRateQuery!)
                 })
             }

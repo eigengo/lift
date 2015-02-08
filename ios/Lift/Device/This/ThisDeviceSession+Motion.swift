@@ -4,19 +4,27 @@ import CoreMotion
 extension ThisDeviceSession {
     
     class Motion {
-        private var motionManager: CMMotionManager!
-        private var queue: NSOperationQueue! = NSOperationQueue.mainQueue()
+        private let motionManager: CMMotionManager!
+        private let queue: NSOperationQueue! = NSOperationQueue.mainQueue()
+        private let outer: ThisDeviceSession!
+
         private var count: Int = 0
         private var userAccelerationBuffer: NSMutableData!
         private var rotationBuffer: NSMutableData!
 
-        init() {
+        init(outer: ThisDeviceSession) {
+            self.outer = outer
+            
             // CoreMotion initialization
             motionManager = CMMotionManager()
             motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
             motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
             userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
             rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
+        }
+        
+        func stop() {
+            motionManager.stopDeviceMotionUpdates()
         }
 
         func processDeviceMotionData(data: CMDeviceMotion!, error: NSError!) -> Void {
@@ -51,11 +59,10 @@ extension ThisDeviceSession {
             if count == DevicePace.samplesPerPacket {
                 // Update our stats
                 NSLog("Buffer with \(userAccelerationBuffer.length) with count \(count)")
-                updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), identity)
-                updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
+                outer.updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
                     return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.userAccelerationBuffer.length, packets: prev.packets + 1)
                 })
-                updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Gyroscope, deviceId: ThisDevice.Info.id), update: { prev in
+                outer.updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Gyroscope, deviceId: ThisDevice.Info.id), update: { prev in
                     return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.rotationBuffer.length, packets: prev.packets + 1)
                 })
                 
@@ -63,7 +70,7 @@ extension ThisDeviceSession {
                 // Combine all buffers and send to the delegate
                 let data = NSMutableData(data: userAccelerationBuffer)
                 data.appendData(rotationBuffer)
-                deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: ThisDevice.Info.id, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
+                outer.submitDeviceData(data)
                 
                 // Clear buffers
                 count = 0
@@ -76,7 +83,7 @@ extension ThisDeviceSession {
             count += 1
         }
         
-        func emptyAccelerationLikeBuffer(type: UInt8) -> NSMutableData {
+        private func emptyAccelerationLikeBuffer(type: UInt8) -> NSMutableData {
             let header: [UInt8] = [ type, 124, 100, 5, 0 ]
             return NSMutableData(bytes: header, length: 5)
         }

@@ -139,7 +139,7 @@ class UserProfileProcessor(userProfile: ActorRef) extends PersistentActor with A
       knownAccounts.get(email).fold(loginFailed(sender()))(loginTry(sender(), password))
 
     case UserCheckAccount(userId) ⇒
-      sender ! knownAccounts.hasUserId(userId)
+      sender() ! knownAccounts.hasUserId(userId)
 
     case UserSetDevice(userId, device) ⇒
       log.debug("UserSetDevice.")

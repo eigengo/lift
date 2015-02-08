@@ -90,6 +90,9 @@ class SensorDataGroup {
             let sampleSize = header[3]
 
             let length = Int(count) * Int(sampleSize)
+            if data.length < headerSize + length {
+                fatalError("Received \(data.length) bytes, expected \(headerSize + length)")
+            }
             let key = SensorDataArrayHeader(sourceDeviceId: id, type: type, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond)
             let samples = data.subdataWithRange(NSMakeRange(headerSize, length))
             let sensorData = SensorData(startTime: time, samples: samples)
