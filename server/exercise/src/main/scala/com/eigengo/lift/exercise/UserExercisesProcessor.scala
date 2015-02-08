@@ -276,7 +276,7 @@ import scala.concurrent.duration._
   private val userId = UserId(self.path.name)
 
   // decoders
-  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
+  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder, RotationDataDecoder)
 
   // tracing output
   /*private val tracing = */context.actorOf(UserExercisesTracing.props(userId))
