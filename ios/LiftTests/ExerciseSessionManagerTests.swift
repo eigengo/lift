@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-
+/*
 class ExerciseSessionManagerTests : XCTestCase {
     let manager = ExerciseSessionManager.sharedInstance
     let defaultMultiPacket: NSData = NSData()
@@ -97,3 +97,4 @@ class RunningSessionHttpConnection : HTTPConnection {
         return HTTPDataResponse(data: NSData())
     }
 }
+*/
