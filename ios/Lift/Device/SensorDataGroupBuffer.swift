@@ -34,7 +34,7 @@ class SensorDataGroupBuffer {
         let timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue)
         if timer != nil  {
             let interval64: Int64 = Int64(interval * Double(NSEC_PER_SEC))
-            dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, interval64), UInt64(interval64), (1 * NSEC_PER_SEC) / 10)
+            dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, interval64), UInt64(interval64), NSEC_PER_SEC / 100)
             dispatch_source_set_event_handler(timer, block)
             dispatch_resume(timer)
         }
@@ -61,7 +61,6 @@ class SensorDataGroupBuffer {
             let start = x - windowDelay - windowSize
             let end   = x - windowDelay
             
-            NSLog("INFO: encodeWindow(): sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
             let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.3, gapValue: 0x00)
             counter += 1
             if !csdas.isEmpty {

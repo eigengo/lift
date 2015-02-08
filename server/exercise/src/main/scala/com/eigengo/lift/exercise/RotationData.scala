@@ -16,4 +16,7 @@ case class RotationData(samplingRate: Int, values: List[RotationValue]) extends 
  */
 case class RotationValue(x: Int, y: Int, z: Int)
 
-object RotationDataDecoder extends AccelerationDataLikeDecoder(0xad.toByte, RotationValue, RotationData)
+/**
+ * Rotation data decoder
+ */
+object RotationDataDecoder extends AccelerationDataLikeDecoder(0xbd.toByte, RotationValue, RotationData)

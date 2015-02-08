@@ -37,6 +37,12 @@ object UserExercisesTracing {
             val line = tagged(tag, s"${v.x},${v.y},${v.z}\n")
             fos.write(line.getBytes("UTF-8"))
           }
+        case RotationData(_, values) ⇒
+          values.foreach { v ⇒
+            val line = tagged(tag, s"${v.x},${v.y},${v.z}\n")
+            fos.write(line.getBytes("UTF-8"))
+          }
+
       }
       fos.close()
     }

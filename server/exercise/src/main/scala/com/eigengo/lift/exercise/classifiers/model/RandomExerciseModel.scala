@@ -37,7 +37,12 @@ object RandomExerciseModel extends ExerciseModel {
           val xs = values.map(_.x)
           val ys = values.map(_.y)
           val zs = values.map(_.z)
-          println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+          println(s"****** Acceleration ${sdwl.location} | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+        case RotationData(_, values) ⇒
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** Rotation ${sdwl.location} | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
       }
     }
   }

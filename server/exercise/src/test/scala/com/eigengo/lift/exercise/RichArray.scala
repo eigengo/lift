@@ -1,5 +1,9 @@
 package com.eigengo.lift.exercise
 
+import java.io.InputStream
+
+import scala.language.postfixOps
+
 object RichArray {
 
   /**
@@ -17,6 +21,15 @@ object RichArray {
       val b = Integer.parseInt(bs, 16).toByte
       b
     }.toArray
+  }
+
+  /**
+   * Load the data in ``is`` as ``Array[Byte]``
+   * @param is the input stream
+   * @return the array
+   */
+  def fromInputStream(is: InputStream): Array[Byte] = {
+    Iterator continually is.read takeWhile (-1 !=) map (_.toByte) toArray
   }
 
 }
