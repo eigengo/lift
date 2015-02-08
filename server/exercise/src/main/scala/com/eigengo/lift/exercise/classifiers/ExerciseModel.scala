@@ -1,10 +1,16 @@
 package com.eigengo.lift.exercise.classifiers
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{ActorRef, ActorLogging}
 import akka.event.LoggingReceive
-import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
-import com.eigengo.lift.exercise.{SensorData, SessionProperties}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
+import akka.stream.actor.ActorPublisher
+import akka.stream.actor.ActorSubscriber
+import akka.stream.actor.ActorSubscriberMessage.OnNext
+import akka.stream.actor.WatermarkRequestStrategy
+import akka.stream.scaladsl._
+import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
+import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
+import com.eigengo.lift.exercise.{SensorDataSourceLocation, Sensor, SensorData, SessionProperties}
 
 object ExerciseModel {
 
@@ -30,7 +36,7 @@ object ExerciseModel {
    */
   sealed trait Path
 
-  case class Assert(fact: Fact) extends Path
+  case class Assert(fact: Fact) extends Path // FIXME: what about the full range of propositional formulae?
 
   case class Test(query: Query) extends Path
 
@@ -118,6 +124,25 @@ object ExerciseModel {
   }
 
   /**
+   * Convenience function that determines if a query is propositional (i.e. contains no dynamic path subformula).
+   */
+  def propositional(query: Query): Boolean = query match {
+    case Exists(_, _) | All(_, _) =>
+      false
+
+    case Formula(_) | TT | FF =>
+      true
+
+    case And(query1, query2, remaining @ _*) =>
+      val result = (query1 +: query2 +: remaining).map(propositional)
+      result.forall(_ => true)
+
+    case Or(query1, query2, remaining @ _*) =>
+      val result = (query1 +: query2 +: remaining).map(propositional)
+      result.forall(_ => true)
+  }
+
+  /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
   val End: Query = All(Test(Formula(True)), FF)
@@ -157,7 +182,18 @@ object ExerciseModel {
    * Message sent to exercise model actor. Indicates that model is to be updated and the model's `watch` queries are to
    * be checked for satisfiability.
    */
-  case class Update[A <: SensorData](event: ClassifyExerciseEvt[A])
+  case class Update[A <: SensorData](event: Map[SensorDataSourceLocation, A]) {
+    require(event.keySet == Sensor.sourceLocations)
+  }
+
+  /**
+   * Internal actor message. Allows the evaluator to run after a model update has occurred.
+   *
+   * @param next      the next (state) event received - enriched with propositional facts that hold in this state
+   * @param lastState flag indicating if the exercise session stream will close (i.e. we are the last state)
+   * @param listener  actor that receives callbacks on watched formulae
+   */
+  case class NextState[A <: SensorData](next: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean, listener: ActorRef)
 
   /**
    * Values representing the current evaluation state of a given query:
@@ -240,11 +276,12 @@ object ExerciseModel {
  * Model interface trait. Implementations of this trait define specific exercising models that may be updated and queried.
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
-trait ExerciseModel {
-  this: Actor with ActorLogging =>
+trait ExerciseModel[A <: SensorData] extends ActorPublisher[(Map[SensorDataSourceLocation, A], ActorRef)] with ActorSubscriber {
+  this: ActorLogging =>
 
   import ClassificationAssertions.Bind
   import ExerciseModel._
+  import FlowGraphImplicits._
 
   /**
    * Unique name for exercise model
@@ -262,32 +299,70 @@ trait ExerciseModel {
   def positiveWatch: Set[Query]
   def negativeWatch: Set[Query]
 
+  protected def workflow: Flow[Map[SensorDataSourceLocation, A], Map[SensorDataSourceLocation, Bind[A]]]
+
+  val settings = ActorFlowMaterializerSettings(context.system)
+
+  implicit val materializer = ActorFlowMaterializer(settings)
+
+  override val requestStrategy = WatermarkRequestStrategy(context.system.settings.config.getInt("classification.watermark"))
+
+  override def preStart() = {
+    FlowGraph { implicit builder =>
+      val split = Unzip[Map[SensorDataSourceLocation, A], ActorRef]
+      val join = Zip[List[Map[SensorDataSourceLocation, Bind[A]]], ActorRef]
+
+      Source(ActorPublisher(self)) ~> split.in
+      split.left ~> workflow.transform(() => SlidingWindow[Map[SensorDataSourceLocation, Bind[A]]](2)) ~> join.left
+      split.right ~> join.right
+      join.out ~> Flow[(List[Map[SensorDataSourceLocation, Bind[A]]], ActorRef)].map {
+        case (List(event), listener) =>
+          NextState(event, lastState = true, listener)
+
+        case (List(event, _), listener) =>
+          NextState(event, lastState = false, listener)
+      } ~> Sink(ActorSubscriber[NextState[A]](self))
+    }.run()
+  }
+
   /**
    * Evaluates a query to either an error/false (truth) value or a positive/true (truth) value
    *
-   * @param formula formula defining the query to be evaluated
-   * @param current current state (at which formula is to be evaluated) - if end of exercise session, then `None`
-   * @param next    next or following state - if no state follows, then `None`
-   * @return        result of evaluating the query formula
+   * @param formula   formula defining the query to be evaluated
+   * @param current   current state (at which formula is to be evaluated) - if end of exercise session, then `None`
+   * @param lastState next or following state - if no state follows, then `None`
+   * @return          result of evaluating the query formula
    */
-  def evaluate[A](formula: Query)(current: Bind[A], next: Option[Bind[A]]): QueryValue
+  def evaluate(formula: Query)(current: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean): QueryValue
 
-  def receive = LoggingReceive {
-    // Trait implementations determine how the model is updated with the new event
-    case Update(event) =>
+  protected def modelUpdate: Receive = {
+    case Update(event: Map[SensorDataSourceLocation, A]) =>
+      if (isActive && totalDemand > 0) {
+        onNext((event, sender()))
+      } else if (isActive) {
+        log.error(s"Actor publisher is inactive and we received an Update event, so dropping $event")
+      } else {
+        log.warning(s"No demand for the actor publisher and we received an Update event, so dropping $event")
+      }
+  }
+
+  protected def monitorEvents: Receive = {
+    case OnNext(NextState(next: Map[SensorDataSourceLocation, Bind[A]], lastState, listener)) =>
       (positiveWatch ++ negativeWatch).foreach { query =>
-        val value = evaluate(query)(???, ???) // FIXME: need to extract state information from SlidingWindow(2)!
+        val value = evaluate(query)(next, lastState)
 
         if (value.result) {
           if (positiveWatch.contains(query)) {
-            sender() ! QueryResult(query, value)
+            listener ! QueryResult(query, value)
           }
         } else {
           if (negativeWatch.contains(query)) {
-            sender() ! QueryResult(query, value)
+            listener ! QueryResult(query, value)
           }
         }
       }
   }
+
+  def receive = LoggingReceive { modelUpdate orElse monitorEvents }
 
 }

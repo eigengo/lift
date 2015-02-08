@@ -15,7 +15,7 @@ object UserExercisesClassifier {
   def props(sessionProps: SessionProperties): Props = Props(new UserExercisesClassifier(sessionProps))
 
   // By default, we configure exercise model classification with a random model
-  def modelProps(sessionProps: SessionProperties, watch: Set[Query]): Props = Props(RandomExerciseModel(sessionProps, watch))
+  def modelProps(sessionProps: SessionProperties, negativeWatch: Set[Query], positiveWatch: Set[Query]): Props = Props(RandomExerciseModel(sessionProps, negativeWatch, positiveWatch))
 
   /**
    * Muscle group information
@@ -80,15 +80,25 @@ class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
 
   import ClassificationAssertions._
   import ExerciseModel._
+  import RandomExerciseModel.exercises
 
-  val tapGesture = Formula(Gesture("tap", 0.80))
+  val watch: Set[Query] = exercises.values.flatten.map(nm => Formula(Gesture(nm, 0.80))).toSet
 
   // Issue "callback" (via sender actor reference) whenever we detect a tap gesture with a matching probability >= 0.80
-  val model = context.actorOf(modelProps(sessionProps, Set(tapGesture)))
+  val model = context.actorOf(modelProps(sessionProps, Set.empty, watch))
 
   override def receive: Receive = {
-    case event: ClassifyExerciseEvt[_] =>
-      model.tell(Update(event), sender())
+    // FIXME:
+    case sdwls: ClassifyExerciseEvt[_] =>
+/*      sdwls.sensorData.flatMap { sdwl =>
+        sdwl.data.map(av => (sdwl.location, av))
+      }.groupBy(_._1)
+        .mapValues(_.map(_._2))
+        .foreach { case (loc, avs) =>
+        // TODO: need to correctly 'butt' this into *in* workflow
+        model.tell(Update(event), sender())
+      }
+*/
 
     case ClassificationExamples(_) =>
       sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))

@@ -9,16 +9,65 @@ import com.eigengo.lift.exercise.classifiers.workflows.{ClassificationAssertions
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 
-trait StandardEvaluation {
+trait StandardEvaluation[A <: SensorData] {
 
   import ClassificationAssertions._
   import ExerciseModel._
 
   // TODO: introduce memoisation into `evaluate` functions
 
-  // TODO: introduce use of SMT library (e.g. ScalaZ3 or Scala SMT-LIB)
+  // TODO: introduce use of SMT library (e.g. ScalaZ3 or Scala SMT-LIB)?
 
-  def evaluate[A <: SensorData](q: Query)(state: Bind[A], lastState: Boolean): QueryValue = q match {
+  def emptyEvaluate(query: Query): QueryValue = query match {
+    case Formula(_) =>
+      StableValue(result = false)
+
+    case TT =>
+      StableValue(result = true)
+
+    case FF =>
+      StableValue(result = false)
+
+    case And(query1, query2, remaining @ _*) =>
+      val results = (query1 +: query2 +: remaining).map(q => emptyEvaluate(q))
+      results.fold(StableValue(result = true))(meet)
+
+    case Or(query1, query2, remaining @ _*) =>
+      val results = (query1 +: query2 +: remaining).map(q => emptyEvaluate(q))
+      results.fold(StableValue(result = false))(join)
+
+    case Exists(Assert(_), _) =>
+      StableValue(result = false)
+
+    case Exists(Test(query1), query2) =>
+      meet(emptyEvaluate(query1), emptyEvaluate(query2))
+
+    case Exists(Choice(path1, path2, remainingPaths @ _*), query1) =>
+      emptyEvaluate(Or(Exists(path1, query1), Exists(path2, query1), remainingPaths.map(p => Exists(p, query1)): _*))
+
+    case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
+      emptyEvaluate(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))
+
+    case Exists(Repeat(path), query1) =>
+      emptyEvaluate(query1)
+
+    case All(Assert(_), _) =>
+      StableValue(result = true)
+
+    case All(Test(query1), query2) =>
+      join(emptyEvaluate(ExerciseModel.not(query1)), emptyEvaluate(query2))
+
+    case All(Choice(path1, path2, remainingPaths @ _*), query1) =>
+      emptyEvaluate(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))
+
+    case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
+      emptyEvaluate(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))
+
+    case All(Repeat(path), query1) =>
+      emptyEvaluate(query1)
+  }
+
+  def evaluate(query: Query)(state: Bind[A], lastState: Boolean): QueryValue = query match {
     case Formula(fact) =>
       StableValue(result = state.assertion.contains(fact))
 
@@ -37,12 +86,12 @@ trait StandardEvaluation {
       results.fold(StableValue(result = false))(join)
 
     case Exists(Assert(fact), query1) if !lastState && state.assertion.contains(fact) =>
-      UnstableValue(result = true, query1)
+      UnstableValue(result = true, query1) // FIXME: is result correct?
 
     case Exists(Assert(fact), query1) if lastState && state.assertion.contains(fact) =>
-      evaluate(query1)(state, lastState)
+      emptyEvaluate(query1)
 
-    case Exists(Assert(assertion), query1) =>
+    case Exists(Assert(_), _) =>
       StableValue(result = false)
 
     case Exists(Test(query1), query2) =>
@@ -54,20 +103,20 @@ trait StandardEvaluation {
     case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
       evaluate(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))(state, lastState)
 
-    case Exists(Repeat(path), query1) if lastState || testOnly(path) =>
+    case Exists(Repeat(path), query1) if testOnly(path) =>
       evaluate(query1)(state, lastState)
 
-    case Exists(Repeat(path), query1) if !lastState =>
+    case Exists(Repeat(path), query1) =>
       join(
         evaluate(query1)(state, lastState),
         evaluate(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
       )
 
     case All(Assert(fact), query1) if !lastState && state.assertion.contains(fact) =>
-      UnstableValue(result = true, query1)
+      UnstableValue(result = true, query1) // FIXME: is result correct?
 
     case All(Assert(fact), query1) if lastState && state.assertion.contains(fact) =>
-      evaluate(query1)(state, lastState)
+      emptyEvaluate(query1)
 
     case All(Assert(_), _) =>
       StableValue(result = true)
@@ -81,13 +130,13 @@ trait StandardEvaluation {
     case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
       evaluate(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))(state, lastState)
 
-    case All(Repeat(path), query1) if lastState || testOnly(path) =>
+    case All(Repeat(path), query1) if testOnly(path) =>
       evaluate(query1)(state, lastState)
 
-    case All(Repeat(path), query1) if !lastState =>
+    case All(Repeat(path), query1) =>
       meet(
         evaluate(query1)(state, lastState),
-        evaluate(All(path, Exists(Repeat(path), query1)))(state, lastState)
+        evaluate(All(path, All(Repeat(path), query1)))(state, lastState)
       )
   }
 
@@ -107,12 +156,11 @@ trait StandardEvaluation {
  * stream) from the time point they are received by the model.
  *
  * TODO: rewrite model so that these assumptions may be weakened further!
- */
-abstract class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
-  extends ExerciseModel
-  with StandardEvaluation
+ *//*
+class StandardExerciseModel[A <: SensorData](val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
+  extends ExerciseModel[A]
+  with StandardEvaluation[A]
   with GestureWorkflows
-  with ActorPublisher[Any] // FIXME:
   with ActorLogging {
 
   import ClassificationAssertions._
@@ -149,7 +197,7 @@ abstract class StandardExerciseModel(val sessionProps: SessionProperties, val ne
       })
     }
   }.run()
-
+/*
   override def receive = {
     case Update(sdwls) => {
       require(
@@ -174,7 +222,7 @@ abstract class StandardExerciseModel(val sessionProps: SessionProperties, val ne
       },
       "all members of `Sensor.sourceLocations`, have the same length `AccelerometerValue` (flattened) lists"
       )
-/*
+
       sdwls.sensorData.flatMap { sdwl =>
         sdwl.data.map(av => (sdwl.location, av))
       }.groupBy(_._1)
@@ -183,9 +231,10 @@ abstract class StandardExerciseModel(val sessionProps: SessionProperties, val ne
         // TODO: need to correctly 'butt' this into *in* workflow
         in = in + (loc -> in(loc).concat(Source(avs)))
       }
-*/
+
       super.receive(sdwls)
     }
   }
-
+*/
 }
+*/

@@ -6,7 +6,7 @@ object ClassificationAssertions {
    * Facts that may hold of sensor data. Facts are presented in positive/negative pairs. This allows us to keep
    * assertions in negation normal form (NNF).
    */
-  sealed trait Fact
+  trait Fact
   case object True extends Fact
   case object False extends Fact
   /**

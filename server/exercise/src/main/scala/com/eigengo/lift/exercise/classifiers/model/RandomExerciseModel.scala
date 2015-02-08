@@ -1,59 +1,57 @@
 package com.eigengo.lift.exercise.classifiers.model
 
 import akka.actor.{ActorLogging, Actor}
+import akka.stream.scaladsl._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.exercise.UserExercises.ModelMetadata
-import com.eigengo.lift.exercise.UserExercisesClassifier.{FullyClassifiedExercise, UnclassifiedExercise, ClassifiedExercise}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.Bind
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import scala.util.Random
 
 /**
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
  * the listening actor).
  */
-class RandomExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
-  extends ExerciseModel
+class RandomExerciseModel[A <: SensorData](val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
+  extends ExerciseModel[A]
   with Actor
   with ActorLogging {
 
+  import ClassificationAssertions._
   import ExerciseModel._
+  import RandomExerciseModel.exercises
 
   val name = "random"
 
-  private val exercises =
-    Map(
-      "arms" → List("Biceps curl", "Triceps press"),
-      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
-    )
-  private val metadata = ModelMetadata(2)
-
-  private def randomExercise(): ClassifiedExercise = {
+  private def randomExercise(): Set[Fact] = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None, None)))
+    if (exercises.get(mgk).isEmpty) {
+      Set.empty
+    } else {
+      val exerciseType = Random.shuffle(exercises.get(mgk).get).head
+
+      Set(Gesture(exerciseType, 0.80))
+    }
   }
 
-  override def receive = {
-    // No update actually occurs for this model, we simply print out a summary of the received data and return model checking results
-    case Update(sdwls) =>
-      sdwls.sensorData.foreach { sdwl =>
-        sdwl.data.foreach {
-          case AccelerometerData(sr, values) =>
-            val xs = values.map(_.x)
-            val ys = values.map(_.y)
-            val zs = values.map(_.z)
-            println(s"****** X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
-        }
+  val workflow =
+    Flow[Map[SensorDataSourceLocation, A]]
+      .map { sdwls =>
+        val classification = randomExercise()
+        sdwls.mapValues(sd => Bind(classification, sd))
       }
-      // FIXME: we should be returning a QueryResult instance here!!
-      sender() ! randomExercise()
-  }
 
-  def evaluate[A](query: Query)(current: Bind[A], next: Option[Bind[A]]): QueryValue = ??? // FIXME:
+  def evaluate(query: Query)(current: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean) =
+    StableValue(result = true)
 
 }
 
 object RandomExerciseModel {
-  def apply(sessionProps: SessionProperties, watch: Set[Query]) = new RandomExerciseModel(sessionProps, watch)
+  val exercises =
+    Map(
+      "arms" → List("Biceps curl", "Triceps press"),
+      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
+    )
+
+  def apply(sessionProps: SessionProperties, negativeWatch: Set[Query], positiveWatch: Set[Query]) = new RandomExerciseModel(sessionProps, negativeWatch, positiveWatch)
 }

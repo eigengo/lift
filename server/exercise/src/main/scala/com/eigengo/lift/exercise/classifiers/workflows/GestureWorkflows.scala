@@ -21,17 +21,17 @@ trait GestureWorkflows extends SVMClassifier {
   def name: String
   def config: Config
 
-  def frequency = {
+  lazy val frequency = {
     val value = config.getInt("classification.frequency")
     assert(value > 0)
     value
   }
-  def threshold = {
+  lazy val threshold = {
     val value = config.getDouble(s"classification.gesture.$name.threshold")
     assert(0 <= value && value <= 1)
     value
   }
-  def windowSize = {
+  lazy val windowSize = {
     val value = config.getInt(s"classification.gesture.$name.size")
     assert(value > 0)
     value
