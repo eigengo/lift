@@ -5,10 +5,10 @@ struct UITableViewCellReuseIdentifiers {
     internal static let property = "__property"
 }
 
-/**
- * Convenience extension to UITableViewController to allow the custom cells to be dequeued
- * by loading them from their matching nibs
- */
+///
+/// Convenience extension to UITableViewController to allow the custom cells to be dequeued
+/// by loading them from their matching nibs
+///
 extension UITableView {
     
     private func doDequeue<A where A : UITableViewCell>(reuseIdentifier: String, register: UITableView -> Void) -> A {
@@ -29,12 +29,12 @@ extension UITableView {
         return cell
     }
     
-    func dequeueReusableDeviceTableViewCell(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?, delegate: DeviceTableViewCellDelegate?) -> DeviceTableViewCell {
+    func dequeueReusableDeviceTableViewCell(deviceInfo: DeviceInfo?, deviceInfoDetail: DeviceInfo.Detail?) -> DeviceTableViewCell {
         let cell: DeviceTableViewCell = doDequeue(UITableViewCellReuseIdentifiers.device) {
             $0.registerNib(UINib(nibName: "DeviceTableViewCell", bundle: nil),
                 forCellReuseIdentifier: UITableViewCellReuseIdentifiers.device)
         }
-        cell.setDeviceInfosAndDelegate(deviceInfo, deviceInfoDetail: deviceInfoDetail, delegate: delegate)
+        cell.setDeviceInfosAndDelegate(deviceInfo, deviceInfoDetail: deviceInfoDetail)
         return cell
     }
     

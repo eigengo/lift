@@ -276,7 +276,7 @@ import scala.concurrent.duration._
   private val userId = UserId(self.path.name)
 
   // decoders
-  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
+  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder, RotationDataDecoder)
 
   // tracing output
   /*private val tracing = */context.actorOf(UserExercisesTracing.props(userId))
@@ -301,16 +301,21 @@ import scala.concurrent.duration._
       persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(newSessionId, sessionProps))) { case _ :: started :: Nil ⇒
         log.warning("Not yet handling processing of the data")
         sender() ! \/.right(())
-
-        // TODO: Implement proper replay handling. For now, we save the file and end the session.
-        val fos = new FileOutputStream(s"$newSessionId.mp")
-        fos.write(data)
-        fos.close()
-
-        persist(SessionEndedEvt(newSessionId)) { _ ⇒
-          context.become(notExercising)
-        }
       }
+
+      // TODO: Implement proper replay handling. For now, we save the file and end the session.
+      val fos = new FileOutputStream(s"target/$newSessionId.mp")
+      fos.write(data)
+      fos.close()
+
+      persist(SessionEndedEvt(newSessionId)) { _ ⇒
+        log.info("ExerciseSessionReplayProcessData: replaying -> not exercising")
+        context.become(notExercising)
+      }
+
+    case x ⇒
+      log.warning(s"Unexpected $x in replaying")
+      sender() ! \/.left(s"Unexpected in replaying $x")
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProperties): Receive = withPassivation {
@@ -326,7 +331,7 @@ import scala.concurrent.duration._
       }
 
     case ExerciseSessionEnd(`id`) ⇒
-      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
+      log.info("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)
@@ -334,7 +339,7 @@ import scala.concurrent.duration._
       }
 
     case ExerciseSessionAbandon(`id`) ⇒
-      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
+      log.info("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionAbandonedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         context.become(notExercising)
@@ -343,7 +348,7 @@ import scala.concurrent.duration._
 
     // packet from the mobile / wearables
     case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
-      log.debug("ExerciseDataProcess: exercising -> exercising.")
+      log.info("ExerciseDataProcess: exercising -> exercising.")
 
       val (h::t) = packet.packets.map { pwl ⇒
         rootSensorDataDecoder
@@ -370,7 +375,7 @@ import scala.concurrent.duration._
 
     // classification results
     case FullyClassifiedExercise(metadata, confidence, exercise) ⇒
-      log.debug("FullyClassifiedExercise: exercising -> exercising.")
+      log.info("FullyClassifiedExercise: exercising -> exercising.")
       persist(ExerciseEvt(id, metadata, exercise)) { evt ⇒ }
 
     case Tap ⇒
@@ -380,19 +385,26 @@ import scala.concurrent.duration._
 
     case NoExercise(metadata) ⇒
       persist(NoExerciseEvt(id, metadata)) { evt ⇒ }
+
+    case x ⇒
+      log.warning(s"Unexpected $x in exercising")
+      sender() ! \/.left(s"Unexpected in exercising $x")
   }
 
   private def notExercising: Receive = withPassivation {
     case ExerciseSessionStart(sessionProps) ⇒
+      log.info(s"ExerciseSessionStart: not exercising -> exercising")
       persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
         saveSnapshot(evt)
         sender() ! \/.right(evt.sessionId)
+        log.info(s"-> exercising(${evt.sessionId})")
         context.become(exercising(evt.sessionId, sessionProps))
       }
 
     case ExerciseSessionReplayStart(oldSessionId, sessionProps) ⇒
       val newSessionId = SessionId.randomId()
       sender() ! \/.right(newSessionId)
+      log.info(s"ExerciseSessionReplayStart: not exercising -> replaying($newSessionId)")
       context.become(replaying(oldSessionId, newSessionId, sessionProps))
 
     case ExerciseSessionEnd(_) ⇒
@@ -402,6 +414,10 @@ import scala.concurrent.duration._
       persistAndProduceToKafka(SessionDeletedEvt(sessionId)) { evt ⇒
         sender() ! \/.right(())
       }
+
+    case x ⇒
+      log.warning(s"Unexpected $x in not exercising")
+      sender() ! \/.left(s"Unexpected in not exercising $x")
   }
 
   override def receiveCommand: Receive = notExercising

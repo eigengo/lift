@@ -46,7 +46,7 @@ import scalaz.\/-
  * 7801 4ac0 73 -> x =  376, y = 592, z = -784
  * }}}
  */
-class AccelerometerDataTest extends FlatSpec with Matchers {
+class AccelerometerDataLikeDecoderTest extends FlatSpec with Matchers {
 
   val rootDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
 

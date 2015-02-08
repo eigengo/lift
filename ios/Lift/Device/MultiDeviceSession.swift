@@ -38,7 +38,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
         self.deviceDelegate = deviceDelegate
         super.init()
         
-        self.sensorDataGroupBuffer = SensorDataGroupBuffer(delegate: self, queue: dispatch_get_main_queue(), deviceLocations: [:])
+        self.sensorDataGroupBuffer = SensorDataGroupBuffer(delegate: self, queue: dispatch_get_main_queue(), deviceLocations: { LiftUserDefaults.getLocation(deviceId: $0) })
         for device in Devices.devices {
             device.connect(self, deviceSessionDelegate: self, onDone: { d in self.devices += [d] })
         }

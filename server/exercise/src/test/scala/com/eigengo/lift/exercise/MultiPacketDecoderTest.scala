@@ -3,8 +3,9 @@ package com.eigengo.lift.exercise
 import java.nio.ByteBuffer
 
 import org.scalatest.{FlatSpec, Matchers}
-import scodec.bits.ByteVector
+import scodec.bits.{BitVector, ByteVector}
 
+import scala.io.Source
 import scalaz.{-\/, \/-}
 
 class MultiPacketDecoderTest extends FlatSpec with Matchers {
@@ -63,7 +64,7 @@ class MultiPacketDecoderTest extends FlatSpec with Matchers {
     val -\/("Incomplete or truncated input. (65535 bytes payload of packet 0.)") = MultiPacketDecoder.decode(ByteBuffer.wrap(in))
   }
 
-  "Real MultiPacket from iOS" should "decode well" in {
+  "Real small MultiPacket from iOS" should "decode well" in {
     val arr = formNSDataString("cab10400 00000200 07020002 02010041 42000702 01020201 00313200 09020202 02020061 62616300 07010002 02010023 24")
     val \/-(decoded) = MultiPacketDecoder.decode(ByteBuffer.wrap(arr))
     decoded.timestamp should be (2)
@@ -77,6 +78,15 @@ class MultiPacketDecoderTest extends FlatSpec with Matchers {
     phoneData(0).payload should be (ByteVector(0x00, 0x02, 0x02, 0x01, 0x00, 0x41, 0x42).toBitVector)
     phoneData(1).payload should be (ByteVector(0x01, 0x02, 0x02, 0x01, 0x00, 0x31, 0x32).toBitVector)
     phoneData(2).payload should be (ByteVector(0x02, 0x02, 0x02, 0x02, 0x00, 0x61, 0x62, 0x61, 0x63).toBitVector)
+  }
+
+  "Real big MultiPacket from iOS" should "decode well" in {
+    val rootDecoder = RootSensorDataDecoder(AccelerometerDataDecoder, RotationDataDecoder)
+    val bb = ByteBuffer.wrap(fromInputStream(getClass.getResourceAsStream("/ad-bd.mp")))
+    val \/-(decoded) = MultiPacketDecoder.decode(bb)
+    decoded.packets.foreach { pwl ⇒
+      val \/-(samples) = rootDecoder.decodeAll(pwl.payload)
+    }
   }
 
 }

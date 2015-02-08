@@ -28,6 +28,8 @@
 "PublicProfileController.followingDetail"="%d users";
 "PublicProfileController.followersText"="Followers";
 "PublicProfileController.followersDetail"="%d users";
+"PublicProfileController.buddiesText"="Gym buddies";
+"PublicProfileController.buddiesDetail"="%d gym buddies";
 
 "HomeController.SessionSuggestions"="Suggestions";
 "HomeController.SessionSummaries"="Sessions";
@@ -59,3 +61,13 @@
 "Retry?"="Retry?";
 "Home"="Home";
 
+"Wrist"="Wrist";
+"Waist"="Waist";
+"Chest"="Chest";
+"Foot"="Foot";
+"Any"="Any";
+"WristDescription"="Left or right wrist";
+"WaistDescription"="Pocket or belt";
+"ChestDescription"="Across the chest";
+"FootDescription"="Left or right ankle";
+"AnyDescription"="Any location";

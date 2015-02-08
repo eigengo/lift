@@ -91,7 +91,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         // section 1: device
         case (0, let x):
             let cdi = multi!.getDeviceInfo(x)
-            return tableView.dequeueReusableDeviceTableViewCell(cdi.deviceInfo, deviceInfoDetail: cdi.deviceInfoDetail, delegate: nil)
+            return tableView.dequeueReusableDeviceTableViewCell(cdi.deviceInfo, deviceInfoDetail: cdi.deviceInfoDetail)
         // section 2: sensors
         case (1, let x):
             let (key, stats) = multi!.getSessionStats(x)
