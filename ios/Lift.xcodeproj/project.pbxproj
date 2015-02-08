@@ -56,6 +56,7 @@
 		54877F3E1A7A97F600C5130F /* XCTestCase+Matchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54877F3D1A7A97F600C5130F /* XCTestCase+Matchers.swift */; };
 		54988A911A8556E300446DC2 /* LiftUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */; };
 		54988A9A1A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */; };
+		54988A9C1A87604A00446DC2 /* ThisDeviceSession+Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54988A9B1A87604A00446DC2 /* ThisDeviceSession+Motion.swift */; };
 		549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */; };
 		549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
 		549ED2AD1A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */; };
@@ -232,6 +233,7 @@
 		54877F3D1A7A97F600C5130F /* XCTestCase+Matchers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XCTestCase+Matchers.swift"; sourceTree = "<group>"; };
 		54960F081A20C03E00E980AB /* WatchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchKit.framework; path = System/Library/Frameworks/WatchKit.framework; sourceTree = SDKROOT; };
 		54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ThisDeviceSession+HealthKit.swift"; sourceTree = "<group>"; };
+		54988A9B1A87604A00446DC2 /* ThisDeviceSession+Motion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ThisDeviceSession+Motion.swift"; sourceTree = "<group>"; };
 		549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Result+GetOrUnit.swift"; sourceTree = "<group>"; };
 		549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseSessionManager.swift; sourceTree = "<group>"; };
 		549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-LiftTests-CocoaAsyncSocket.a"; path = "Pods/build/Debug-iphoneos/libPods-LiftTests-CocoaAsyncSocket.a"; sourceTree = "<group>"; };
@@ -629,6 +631,7 @@
 				54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */,
 				54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */,
 				54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */,
+				54988A9B1A87604A00446DC2 /* ThisDeviceSession+Motion.swift */,
 			);
 			path = This;
 			sourceTree = "<group>";
@@ -914,6 +917,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
+				54988A9C1A87604A00446DC2 /* ThisDeviceSession+Motion.swift in Sources */,
 				548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */,
 				54C37B831A4C0BD80036C0C8 /* UITableView+CustomCells.swift in Sources */,
 				54008B591A49EC730049A8EA /* String+MD5.swift in Sources */,

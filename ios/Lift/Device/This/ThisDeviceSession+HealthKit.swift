@@ -1,6 +1,9 @@
 import Foundation
 import HealthKit
 
+///
+/// Provides HK connector
+///
 extension ThisDeviceSession {
     
     class HealthKit {

@@ -15,6 +15,8 @@ class ThisDeviceSession : DeviceSession {
     private var rotationBuffer: NSMutableData!
     private let accelerationFactor: Double = 1000
     
+    private let healthKit: HealthKit!
+    
     init(deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
         self.deviceSessionDelegate = deviceSessionDelegate
@@ -27,10 +29,11 @@ class ThisDeviceSession : DeviceSession {
         rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
         
         // HealthKit initialization
-        
+        healthKit = HealthKit()
     }
     
     override func stop() {
+        healthKit.stop()
         motionManager.stopDeviceMotionUpdates()
     }
     
