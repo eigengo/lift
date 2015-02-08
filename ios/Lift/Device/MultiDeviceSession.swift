@@ -59,10 +59,24 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
     }
     
     ///
+    /// Get all device infos
+    ///
+    func getDeviceInfos() -> [ConnectedDeviceInfo] {
+        return deviceInfos.values.array
+    }
+    
+    ///
     /// Get the session stats at the given index
     ///
     func getSessionStats(index: Int) -> (DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry) {
         return combinedStats[index]
+    }
+    
+    ///
+    /// Gets all combined stats
+    ///
+    func getSessionStats() -> [(DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry)] {
+        return combinedStats.toList()
     }
     
     ///

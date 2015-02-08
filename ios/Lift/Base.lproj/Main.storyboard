@@ -33,26 +33,6 @@
                                     </subviews>
                                 </tableViewCellContentView>
                             </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" accessoryType="checkmark" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="exercise" textLabel="cCs-mB-HT5" detailTextLabel="YB7-Ks-Isa" rowHeight="40" style="IBUITableViewCellStyleValue2" id="OKf-UO-cXe">
-                                <autoresizingMask key="autoresizingMask"/>
-                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="OKf-UO-cXe" id="OHN-kA-uxe">
-                                    <autoresizingMask key="autoresizingMask"/>
-                                    <subviews>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cCs-mB-HT5">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="YB7-Ks-Isa">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
-                                    </subviews>
-                                </tableViewCellContentView>
-                            </tableViewCell>
                         </prototypes>
                         <sections/>
                         <connections>
@@ -60,20 +40,81 @@
                             <outlet property="delegate" destination="rWr-64-kYJ" id="Xw8-3j-OPP"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Exercising" prompt="Elapsed 0:00" id="qg4-gZ-5H7">
-                        <barButtonItem key="leftBarButtonItem" title="Stop" id="YTD-AN-SqM">
-                            <connections>
-                                <action selector="stopSession" destination="rWr-64-kYJ" id="aIS-pw-BjX"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
                         <outlet property="stopSessionButton" destination="YTD-AN-SqM" id="Y6W-oZ-K7R"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="TZ5-PN-HER" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="217" y="2968"/>
+            <point key="canvasLocation" x="200" y="3804"/>
+        </scene>
+        <!--Exercising-->
+        <scene sceneID="DqO-Nk-9ak">
+            <objects>
+                <pageViewController autoresizesArchivedViewToFullSize="NO" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="bGb-Zu-wDe" customClass="LiveSessionController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" title="Exercising" prompt="Elapsed 0:00" id="cXZ-Rc-7WV">
+                        <barButtonItem key="leftBarButtonItem" title="Stop" id="YTD-AN-SqM">
+                            <connections>
+                                <action selector="stopSession" destination="bGb-Zu-wDe" id="jWF-pV-lTt"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="stopSessionButton" destination="YTD-AN-SqM" id="6h1-kb-H6a"/>
+                    </connections>
+                </pageViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="5cE-7d-jgD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="200" y="2968"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="3Cv-jB-OuL">
+            <objects>
+                <viewController id="xal-ay-7SM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Y0A-58-PG2">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tagging / sample exercises be here" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="S40-Pj-FPM">
+                                <rect key="frame" x="72" y="235" width="270" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Pbp-cC-tIL" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="678" y="3804"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="YQj-yr-RcD">
+            <objects>
+                <viewController id="b2B-7j-c64" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="RWG-sR-T7c">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SensorDataGroup be here" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="u0t-Og-gqt">
+                                <rect key="frame" x="105" y="222" width="200" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="76p-AD-unn" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1145" y="3804"/>
         </scene>
         <!--Analysis-->
         <scene sceneID="val-vv-QQY">
@@ -178,7 +219,7 @@
                     <connections>
                         <outlet property="tableView" destination="ZQg-Zq-qiD" id="zhB-uH-nlP"/>
                         <segue destination="Sud-w2-i9w" kind="push" identifier="demo" id="Peq-ej-JKh"/>
-                        <segue destination="rWr-64-kYJ" kind="push" identifier="live" id="vqJ-EM-iG3"/>
+                        <segue destination="bGb-Zu-wDe" kind="push" identifier="live" id="HdG-SO-zDk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BkA-qX-mSh" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -492,7 +533,7 @@
                         <segue destination="DyL-Am-q2t" kind="push" identifier="sessionDetail" id="db4-ms-6cg"/>
                         <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>
                         <segue destination="yku-b7-2Yv" kind="modal" identifier="logout" id="chT-fI-k57"/>
-                        <segue destination="rWr-64-kYJ" kind="push" identifier="startSession" id="AWT-28-pzF"/>
+                        <segue destination="bGb-Zu-wDe" kind="push" identifier="startSession" id="gLX-x3-ad0"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kh0-A3-T6m" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -818,6 +859,6 @@
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
         <segue reference="chT-fI-k57"/>
-        <segue reference="AWT-28-pzF"/>
+        <segue reference="gLX-x3-ad0"/>
     </inferredMetricsTieBreakers>
 </document>

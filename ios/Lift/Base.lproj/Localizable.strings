@@ -13,12 +13,10 @@
 "DeviceTableViewCell.notAvailableType.applewatch"="Apple Watch";
 "DeviceTableViewCell.notAvailable"="%@";
 
-"LiveSessionController.sessionStatsTitle"="Session %@";
-"LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
-"LiveSessionController.devices"="Devices";
-"LiveSessionController.sensors"="Sensors";
 "LiveSessionController.exercise"="Exercise";
 "LiveSessionController.elapsed"="Elapsed %d:%02d";
+
+"LiveSessionDevicesController.stats"="%d bytes, %d packets";
 
 "PublicProfileController.pictures"="Pictures";
 "PublicProfileController.profile"="Profile";
@@ -60,6 +58,9 @@
 "Offline"="Offline";
 "Retry?"="Retry?";
 "Home"="Home";
+
+"Devices"="Devices";
+"Sensors"="Sensors";
 
 "Wrist"="Wrist";
 "Waist"="Waist";
