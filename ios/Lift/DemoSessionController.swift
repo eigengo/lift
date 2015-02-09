@@ -105,11 +105,12 @@ class DemoSessionController : UIViewController, UITableViewDelegate, ExerciseSes
     
     // MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let path = tableModel!.filePathAtIndexPath(indexPath)
-        let data = NSFileManager.defaultManager().contentsAtPath(path!)!
-        let mp = MutableMultiPacket().append(DeviceInfo.Location.Wrist, data: data)
-        session?.submitData(mp, const(()))
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        fatalError("This needs work")
+//        let path = tableModel!.filePathAtIndexPath(indexPath)
+//        let data = NSFileManager.defaultManager().contentsAtPath(path!)!
+//        let mp = MutableMultiPacket().append(DeviceInfo.Location.Wrist, data: data)
+//        session?.submitData(mp, const(()))
+//        tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
 
 }

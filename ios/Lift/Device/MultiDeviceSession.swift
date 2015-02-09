@@ -38,7 +38,7 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
         self.deviceDelegate = deviceDelegate
         super.init()
         
-        self.sensorDataGroupBuffer = SensorDataGroupBuffer(delegate: self)
+        self.sensorDataGroupBuffer = SensorDataGroupBuffer(delegate: self, queue: dispatch_get_main_queue(), deviceLocations: { LiftUserDefaults.getLocation(deviceId: $0) })
         for device in Devices.devices {
             device.connect(self, deviceSessionDelegate: self, onDone: { d in self.devices += [d] })
         }
@@ -59,10 +59,24 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
     }
     
     ///
+    /// Get all device infos
+    ///
+    func getDeviceInfos() -> [ConnectedDeviceInfo] {
+        return deviceInfos.values.array
+    }
+    
+    ///
     /// Get the session stats at the given index
     ///
     func getSessionStats(index: Int) -> (DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry) {
         return combinedStats[index]
+    }
+    
+    ///
+    /// Gets all combined stats
+    ///
+    func getSessionStats() -> [(DeviceSessionStatsTypes.KeyWithLocation, DeviceSessionStatsTypes.Entry)] {
+        return combinedStats.toList()
     }
     
     ///

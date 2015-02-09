@@ -99,6 +99,13 @@ final class DeviceSessionStats<K : Hashable> {
         return curr
     }
     
+    ///
+    /// Returns list view of the stats
+    ///
+    final func toList() -> [(K, DeviceSessionStatsTypes.Entry)] {
+        return stats.toList()
+    }
+    
     final subscript(index: Int) -> (K, DeviceSessionStatsTypes.Entry) {
         return stats.toList()[index]
     }

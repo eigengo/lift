@@ -20,7 +20,8 @@ import scalaz.\/-
  *     uint8_t type;                   // 1 (0xad)
  *     uint8_t count;                  // 2
  *     uint8_t samples_per_second;     // 3
- *     uint16_t last;                  // 4, 5
+ *     uint8_t sample_size;            // 4
+ *     uint8_t _pad;                   // 5
  * };
  *
  * /**
@@ -45,7 +46,7 @@ import scalaz.\/-
  * 7801 4ac0 73 -> x =  376, y = 592, z = -784
  * }}}
  */
-class AccelerometerDataTest extends FlatSpec with Matchers {
+class AccelerometerDataLikeDecoderTest extends FlatSpec with Matchers {
 
   val rootDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
 

@@ -1,5 +1,8 @@
 import Foundation
 
+///
+/// Driver for this device (iPhone / iPod with accelerometer, GPS, and all HealthKit data)
+///
 class ThisDevice : NSObject, Device {
     internal struct Info {
         static let id = NSUUID(UUIDString: "00000000-0000-0000-0000-000000000001")!
@@ -23,6 +26,9 @@ class ThisDevice : NSObject, Device {
     
 }
 
+///
+/// Driver for this device (iPhone / iPod with accelerometer, GPS, and all HealthKit data)
+///
 class ThisConnectedDevice : ThisDevice, ConnectedDevice {
     var deviceDelegate: DeviceDelegate!
     var deviceSessionDelegate: DeviceSessionDelegate!

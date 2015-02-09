@@ -14,3 +14,8 @@ case class AccelerometerData(samplingRate: Int, values: List[AccelerometerValue]
  * @param z the z
  */
 case class AccelerometerValue(x: Int, y: Int, z: Int)
+
+/**
+ * Decoder for the 0xad type
+ */
+object AccelerometerDataDecoder extends AccelerationDataLikeDecoder(0xad.toByte, AccelerometerValue, AccelerometerData)
