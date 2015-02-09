@@ -8,7 +8,7 @@ protocol MultiDeviceSessionSettable {
     
 }
 
-class LiveSessionController: UIPageViewController, UIPageViewControllerDataSource, ExerciseSessionSettable, DeviceSessionDelegate, DeviceDelegate {
+class LiveSessionController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ExerciseSessionSettable, DeviceSessionDelegate, DeviceDelegate {
     private var multi: MultiDeviceSession?
     private var timer: NSTimer?
     private var startTime: NSDate?
@@ -21,6 +21,8 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     override func viewWillDisappear(animated: Bool) {
         if let x = timer { x.invalidate() }
         navigationItem.prompt = nil
+        pageControl.removeFromSuperview()
+        pageControl = nil
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -55,6 +57,7 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     override func viewDidLoad() {
         super.viewDidLoad()
         dataSource = self
+        delegate = self
 
         let pagesStoryboard = UIStoryboard(name: "LiveSession", bundle: nil)
         pageViewControllers = ["devices", "sensorDataGroup", "classification"].map { pagesStoryboard.instantiateViewControllerWithIdentifier($0) as UIViewController }
@@ -111,6 +114,13 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
             if x > 0 { return pageViewControllers[x - 1] }
         }
         return nil
+    }
+    
+    // MARK: UIPageViewControllerDelegate
+    func pageViewController(pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [AnyObject], transitionCompleted completed: Bool) {
+        if let x = (pageViewControllers.indexOf { $0 === pageViewController.viewControllers.first! }) {
+            pageControl.currentPage = x
+        }
     }
     
     // MARK: DeviceSessionDelegate

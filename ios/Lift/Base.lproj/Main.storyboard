@@ -7,7 +7,8 @@
         <!--Exercising-->
         <scene sceneID="DqO-Nk-9ak">
             <objects>
-                <pageViewController autoresizesArchivedViewToFullSize="NO" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="bGb-Zu-wDe" customClass="LiveSessionController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                <pageViewController hidesBottomBarWhenPushed="YES" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="bGb-Zu-wDe" customClass="LiveSessionController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Exercising" prompt="Elapsed 0:00" id="cXZ-Rc-7WV">
                         <barButtonItem key="leftBarButtonItem" title="Stop" id="YTD-AN-SqM">
                             <connections>
