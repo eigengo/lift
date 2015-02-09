@@ -14,12 +14,17 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     private var startTime: NSDate?
     private var exerciseSession: ExerciseSession?
     private var pageViewControllers: [UIViewController] = []
+    private var pageControl: UIPageControl!
     @IBOutlet var stopSessionButton: UIBarButtonItem!
     
     // MARK: main
     override func viewWillDisappear(animated: Bool) {
         if let x = timer { x.invalidate() }
         navigationItem.prompt = nil
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
     }
     
     @IBAction
@@ -55,6 +60,15 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
         pageViewControllers = ["devices", "sensorDataGroup", "classification"].map { pagesStoryboard.instantiateViewControllerWithIdentifier($0) as UIViewController }
         setViewControllers([pageViewControllers.first!], direction: UIPageViewControllerNavigationDirection.Forward, animated: false, completion: nil)
         
+        if let nc = navigationController {
+            let navBarSize = nc.navigationBar.bounds.size
+            let origin = CGPoint(x: navBarSize.width / 2, y: navBarSize.height / 2 + navBarSize.height / 4)
+            pageControl = UIPageControl(frame: CGRect(x: origin.x, y: origin.y, width: 0, height: 0))
+            pageControl.numberOfPages = 3
+            nc.navigationBar.addSubview(pageControl)
+        }
+        
+        viewControllers.foreach(updateMulti)
         startTime = NSDate()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }
@@ -87,27 +101,19 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     // MARK: UIPageViewControllerDataSource
     func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
         if let x = (pageViewControllers.indexOf { $0 === viewController }) {
-            if x < pageViewControllers.count { return pageViewControllers[x + 1] }
+            if x < pageViewControllers.count - 1 { return pageViewControllers[x + 1] }
         }
         return nil
     }
     
     func pageViewController(pageViewController: UIPageViewController, viewControllerBeforeViewController viewController: UIViewController) -> UIViewController? {
         if let x = (pageViewControllers.indexOf { $0 === viewController }) {
-            if x > 0 { return pageViewControllers[x + 1] }
+            if x > 0 { return pageViewControllers[x - 1] }
         }
         return nil
     }
     
     // MARK: DeviceSessionDelegate
-    func deviceSession(session: DeviceSession, finishedWarmingUp deviceId: DeviceId) {
-        // ???
-    }
-    
-    func deviceSession(session: DeviceSession, startedWarmingUp deviceId: DeviceId, expectedCompletionIn time: NSTimeInterval) {
-        // ???
-    }
-    
     func deviceSession(session: DeviceSession, endedFrom deviceId: DeviceId) {
         end()
     }
