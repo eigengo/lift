@@ -12,8 +12,10 @@ void am_stop();
 int am_count();
 uint32_t am_tag();
 int am_last_error();
+char* am_last_error_text();
 int am_last_error_distance();
 int am_error_count();
+char* am_get_error_message(int code);
 
 #ifdef __cplusplus
 }

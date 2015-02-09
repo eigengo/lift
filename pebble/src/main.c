@@ -18,8 +18,8 @@ static void disc_layer_update_callback(Layer *me, GContext *ctx) {
 
     char text[50];
 
-    snprintf(text, 49, "Tag: %lx\nLE: %d\nLED: %d\nEC: %d\nP %d\n",
-    	am_tag(), am_last_error(), am_last_error_distance(), am_error_count(), am_count());
+    snprintf(text, 49, "Tag: %lx\nLE: %d %s\nLED: %d\nEC: %d\nP %d\n",
+    	am_tag(), am_last_error(), am_last_error_text(), am_last_error_distance(), am_error_count(), am_count());
 
     graphics_draw_text(ctx,
             text,
