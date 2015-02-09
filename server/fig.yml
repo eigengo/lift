@@ -84,5 +84,3 @@ sparkdriver:
     - zookeeper:zk
     - cassandra:journal.lift.eigengo.com
     - cassandra:snapshot.lift.eigengo.com
-nameserver:
-  image: amplab/dnsmasq-precise
