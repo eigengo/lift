@@ -4,6 +4,4 @@
 #import "../Lift/Device/SensorDataProtocol.h"
 
 #import "Reachability/Reachability.h"
-#import "CocoaHTTPServer/HTTPServer.h"
-#import "CocoaHTTPServer/HTTPConnection.h"
-#import "CocoaHTTPServer/HTTPDataResponse.h"
+

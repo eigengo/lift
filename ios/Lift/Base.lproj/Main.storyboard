@@ -4,76 +4,25 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6735"/>
     </dependencies>
     <scenes>
-        <!--Live Session-->
-        <scene sceneID="499-Ze-D1L">
+        <!--Exercising-->
+        <scene sceneID="DqO-Nk-9ak">
             <objects>
-                <tableViewController title="Running Session" hidesBottomBarWhenPushed="YES" id="rWr-64-kYJ" userLabel="Live Session" customClass="LiveSessionController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleAspectFit" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="73" sectionHeaderHeight="10" sectionFooterHeight="10" id="6Hi-hh-6nu">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" red="0.93725490196078431" green="0.93725490196078431" blue="0.95686274509803926" alpha="1" colorSpace="calibratedRGB"/>
-                        <prototypes>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="sensor" textLabel="DKb-Kv-YXI" detailTextLabel="506-UL-azP" rowHeight="40" style="IBUITableViewCellStyleValue2" id="aBn-xd-uD0">
-                                <autoresizingMask key="autoresizingMask"/>
-                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="aBn-xd-uD0" id="CMq-GI-Rv0">
-                                    <autoresizingMask key="autoresizingMask"/>
-                                    <subviews>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="DKb-Kv-YXI">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <color key="textColor" red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="506-UL-azP">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
-                                    </subviews>
-                                </tableViewCellContentView>
-                            </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" accessoryType="checkmark" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="exercise" textLabel="cCs-mB-HT5" detailTextLabel="YB7-Ks-Isa" rowHeight="40" style="IBUITableViewCellStyleValue2" id="OKf-UO-cXe">
-                                <autoresizingMask key="autoresizingMask"/>
-                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="OKf-UO-cXe" id="OHN-kA-uxe">
-                                    <autoresizingMask key="autoresizingMask"/>
-                                    <subviews>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cCs-mB-HT5">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="YB7-Ks-Isa">
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
-                                    </subviews>
-                                </tableViewCellContentView>
-                            </tableViewCell>
-                        </prototypes>
-                        <sections/>
-                        <connections>
-                            <outlet property="dataSource" destination="rWr-64-kYJ" id="1SZ-9L-ZOI"/>
-                            <outlet property="delegate" destination="rWr-64-kYJ" id="Xw8-3j-OPP"/>
-                        </connections>
-                    </tableView>
-                    <navigationItem key="navigationItem" title="Exercising" prompt="Elapsed 0:00" id="qg4-gZ-5H7">
+                <pageViewController hidesBottomBarWhenPushed="YES" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="bGb-Zu-wDe" customClass="LiveSessionController" customModule="Lift" customModuleProvider="target" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" title="Exercising" prompt="Elapsed 0:00" id="cXZ-Rc-7WV">
                         <barButtonItem key="leftBarButtonItem" title="Stop" id="YTD-AN-SqM">
                             <connections>
-                                <action selector="stopSession" destination="rWr-64-kYJ" id="aIS-pw-BjX"/>
+                                <action selector="stopSession" destination="bGb-Zu-wDe" id="jWF-pV-lTt"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="stopSessionButton" destination="YTD-AN-SqM" id="Y6W-oZ-K7R"/>
+                        <outlet property="stopSessionButton" destination="YTD-AN-SqM" id="6h1-kb-H6a"/>
                     </connections>
-                </tableViewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="TZ5-PN-HER" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                </pageViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="5cE-7d-jgD" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="217" y="2968"/>
+            <point key="canvasLocation" x="200" y="2968"/>
         </scene>
         <!--Analysis-->
         <scene sceneID="val-vv-QQY">
@@ -178,7 +127,7 @@
                     <connections>
                         <outlet property="tableView" destination="ZQg-Zq-qiD" id="zhB-uH-nlP"/>
                         <segue destination="Sud-w2-i9w" kind="push" identifier="demo" id="Peq-ej-JKh"/>
-                        <segue destination="rWr-64-kYJ" kind="push" identifier="live" id="vqJ-EM-iG3"/>
+                        <segue destination="bGb-Zu-wDe" kind="push" identifier="live" id="HdG-SO-zDk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BkA-qX-mSh" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -492,7 +441,7 @@
                         <segue destination="DyL-Am-q2t" kind="push" identifier="sessionDetail" id="db4-ms-6cg"/>
                         <segue destination="ucP-LO-yqW" kind="push" identifier="profile" id="T19-dw-ERl"/>
                         <segue destination="yku-b7-2Yv" kind="modal" identifier="logout" id="chT-fI-k57"/>
-                        <segue destination="rWr-64-kYJ" kind="push" identifier="startSession" id="AWT-28-pzF"/>
+                        <segue destination="bGb-Zu-wDe" kind="push" identifier="startSession" id="gLX-x3-ad0"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kh0-A3-T6m" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -818,6 +767,6 @@
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
         <segue reference="chT-fI-k57"/>
-        <segue reference="AWT-28-pzF"/>
+        <segue reference="gLX-x3-ad0"/>
     </inferredMetricsTieBreakers>
 </document>

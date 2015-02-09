@@ -8,14 +8,14 @@ typealias DeviceSessionId = NSUUID
 ///
 /// The exercise session connected to the device
 ///
-class DeviceSession {
+class DeviceSession : NSObject {
     private var id: DeviceSessionId!
     private let stats = DeviceSessionStats<DeviceSessionStatsTypes.Key>()
     
     ///
     /// Constructs a new session with generated identity
     ///
-    init() {
+    override init() {
         self.id = DeviceSessionId()
     }
 

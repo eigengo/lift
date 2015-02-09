@@ -1,19 +1,32 @@
+import Foundation
 import UIKit
 
-class LiveSessionController: UITableViewController, UITableViewDelegate, UITableViewDataSource, ExerciseSessionSettable,
-    DeviceSessionDelegate, DeviceDelegate {
-    private let showSessionDetails = LiftUserDefaults.showSessionDetails
+@objc
+protocol MultiDeviceSessionSettable {
+    
+    func setMultiDeviceSession(multi: MultiDeviceSession)
+    
+}
+
+class LiveSessionController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ExerciseSessionSettable, DeviceSessionDelegate, DeviceDelegate {
     private var multi: MultiDeviceSession?
-    private var exampleExercises: [Exercise.Exercise] = []
     private var timer: NSTimer?
     private var startTime: NSDate?
     private var exerciseSession: ExerciseSession?
+    private var pageViewControllers: [UIViewController] = []
+    private var pageControl: UIPageControl!
     @IBOutlet var stopSessionButton: UIBarButtonItem!
-
+    
     // MARK: main
     override func viewWillDisappear(animated: Bool) {
         if let x = timer { x.invalidate() }
         navigationItem.prompt = nil
+        pageControl.removeFromSuperview()
+        pageControl = nil
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
     }
     
     @IBAction
@@ -33,16 +46,32 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
         } else {
             NSLog("[WARN] LiveSessionController.end() with sessionId == nil")
         }
-    
+        
         multi?.stop()
         UIApplication.sharedApplication().idleTimerDisabled = false
         if let x = navigationController {
             x.popToRootViewControllerAnimated(true)
         }
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        dataSource = self
+        delegate = self
+
+        let pagesStoryboard = UIStoryboard(name: "LiveSession", bundle: nil)
+        pageViewControllers = ["devices", "sensorDataGroup", "classification"].map { pagesStoryboard.instantiateViewControllerWithIdentifier($0) as UIViewController }
+        setViewControllers([pageViewControllers.first!], direction: UIPageViewControllerNavigationDirection.Forward, animated: false, completion: nil)
+        
+        if let nc = navigationController {
+            let navBarSize = nc.navigationBar.bounds.size
+            let origin = CGPoint(x: navBarSize.width / 2, y: navBarSize.height / 2 + navBarSize.height / 4)
+            pageControl = UIPageControl(frame: CGRect(x: origin.x, y: origin.y, width: 0, height: 0))
+            pageControl.numberOfPages = 3
+            nc.navigationBar.addSubview(pageControl)
+        }
+        
+        viewControllers.foreach(updateMulti)
         startTime = NSDate()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }
@@ -57,109 +86,44 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             stopSessionButton.title = "Stop".localized()
         }
     }
-
+    
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.exerciseSession = session
         multi = MultiDeviceSession(deviceDelegate: self, deviceSessionDelegate: self)
         multi!.start()
-
-        session.getClassificationExamples { $0.getOrUnit { x in
-                self.exampleExercises = x
-                self.tableView.reloadData()
-            }
-        }
         UIApplication.sharedApplication().idleTimerDisabled = true
     }
     
-    // MARK: UITableViewDataSource
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 3 // section 1: device & session, section 2: exercise log
-    }
-    
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0: if let x = multi { return x.deviceInfoCount } else { return 0 }
-        case 1: if let x = multi { return x.sessionStatsCount } else { return 0 }
-        case 2: return exampleExercises.count
-        default: return 0
+    private func updateMulti(ctrl: AnyObject) {
+        if let x = ctrl as? MultiDeviceSessionSettable {
+            if let m = multi { x.setMultiDeviceSession(m) }
         }
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell  {
-        switch (indexPath.section, indexPath.row) {
-        // section 1: device
-        case (0, let x):
-            let cdi = multi!.getDeviceInfo(x)
-            return tableView.dequeueReusableDeviceTableViewCell(cdi.deviceInfo, deviceInfoDetail: cdi.deviceInfoDetail)
-        // section 2: sensors
-        case (1, let x):
-            let (key, stats) = multi!.getSessionStats(x)
-            let cell = tableView.dequeueReusableCellWithIdentifier("sensor") as UITableViewCell
-            cell.textLabel!.text = key.location.localized() + " " + key.sensorKind.localized()
-            cell.detailTextLabel!.text = "LiveSessionController.sessionStatsDetail".localized(stats.bytes, stats.packets)
-            return cell
-        // section 2: exercise log
-        case (2, let x):
-            let cell = tableView.dequeueReusableCellWithIdentifier("exercise") as UITableViewCell
-            cell.textLabel!.text = exampleExercises[x].name
-            cell.selectionStyle = UITableViewCellSelectionStyle.None
-            cell.accessoryType = UITableViewCellAccessoryType.None
-            return cell
-        default: return UITableViewCell()
+    // MARK: UIPageViewControllerDataSource
+    func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
+        if let x = (pageViewControllers.indexOf { $0 === viewController }) {
+            if x < pageViewControllers.count - 1 { return pageViewControllers[x + 1] }
+        }
+        return nil
+    }
+    
+    func pageViewController(pageViewController: UIPageViewController, viewControllerBeforeViewController viewController: UIViewController) -> UIViewController? {
+        if let x = (pageViewControllers.indexOf { $0 === viewController }) {
+            if x > 0 { return pageViewControllers[x - 1] }
+        }
+        return nil
+    }
+    
+    // MARK: UIPageViewControllerDelegate
+    func pageViewController(pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [AnyObject], transitionCompleted completed: Bool) {
+        if let x = (pageViewControllers.indexOf { $0 === pageViewController.viewControllers.first! }) {
+            pageControl.currentPage = x
         }
     }
     
-    override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0: return "LiveSessionController.devices".localized()
-        case 1: return "LiveSessionController.sensors".localized()
-        case 2: return "LiveSessionController.exercise".localized()
-        default: return ""
-        }
-    }
-
-    /*
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        if indexPath.section == 1 {
-            if let selectedCell = tableView.cellForRowAtIndexPath(indexPath) {
-                switch selectedCell.accessoryType {
-                case UITableViewCellAccessoryType.None:
-                    for i in 0...(tableView.numberOfRowsInSection(1) - 1) {
-                        let indexPath = NSIndexPath(forRow: i, inSection: 1)
-                        if (tableView.cellForRowAtIndexPath(indexPath)!.accessoryType == UITableViewCellAccessoryType.Checkmark) {
-                            tableView.cellForRowAtIndexPath(indexPath)!.accessoryType = UITableViewCellAccessoryType.None
-                            exerciseSession?.endExplicitClassification()
-                        }
-                    }
-                    selectedCell.accessoryType = UITableViewCellAccessoryType.Checkmark
-                    exerciseSession?.startExplicitClassification(exampleExercises[indexPath.row])
-                case UITableViewCellAccessoryType.Checkmark:
-                    selectedCell.accessoryType = UITableViewCellAccessoryType.None
-                    exerciseSession?.endExplicitClassification()
-                default: return
-                }
-            }
-        }
-    }
-    */
-    
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        switch indexPath.section {
-        case 0: return 60
-        default: return 40
-        }
-    }
-
     // MARK: DeviceSessionDelegate
-    func deviceSession(session: DeviceSession, finishedWarmingUp deviceId: DeviceId) {
-        // ???
-    }
-    
-    func deviceSession(session: DeviceSession, startedWarmingUp deviceId: DeviceId, expectedCompletionIn time: NSTimeInterval) {
-        // ???
-    }
-
     func deviceSession(session: DeviceSession, endedFrom deviceId: DeviceId) {
         end()
     }
@@ -173,7 +137,7 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
             x.submitData(data, f: const(()))
             
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: UITableViewRowAnimation.None)
+                viewControllers.foreach(updateMulti)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
@@ -182,11 +146,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
+        viewControllers.foreach(updateMulti)
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
+        viewControllers.foreach(updateMulti)
     }
     
     func deviceAppLaunched(deviceId: DeviceId) {
@@ -198,11 +162,11 @@ class LiveSessionController: UITableViewController, UITableViewDelegate, UITable
     }
     
     func deviceDidNotConnect(error: NSError) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
+        viewControllers.foreach(updateMulti)
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: UITableViewRowAnimation.Automatic)
+        viewControllers.foreach(updateMulti)
     }
     
 }
