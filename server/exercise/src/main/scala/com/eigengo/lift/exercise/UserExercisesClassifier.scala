@@ -88,17 +88,48 @@ class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
   val model = context.actorOf(modelProps(sessionProps, Set.empty, watch))
 
   override def receive: Receive = {
-    // FIXME:
+    /**
+     * Assumptions:
+     *   1. at least one sensor location exists
+     *   2. `AccelerometerData` sample rate is fixed to a known constant value for all sensors
+     *   3. for each member of `Sensor.sourceLocations`, there is a unique and corresponding member in the sensor data for
+     *      the `ClassifyExerciseEvt` instance
+     *   4. all members of `Sensor.sourceLocations`, have the same length `AccelerometerValue` (flattened) lists
+     *
+     * TODO: rewrite so that these assumptions may be weakened further!
+     */
     case sdwls: ClassifyExerciseEvt[_] =>
-/*      sdwls.sensorData.flatMap { sdwl =>
-        sdwl.data.map(av => (sdwl.location, av))
-      }.groupBy(_._1)
-        .mapValues(_.map(_._2))
-        .foreach { case (loc, avs) =>
-        // TODO: need to correctly 'butt' this into *in* workflow
-        model.tell(Update(event), sender())
+      require(
+        Sensor.sourceLocations.nonEmpty,
+        "`Sensor.sourceLocations` is non empty"
+      )
+      require(
+        {
+          val n = sdwls.sensorData.head.data.asInstanceOf[List[AccelerometerData]].head.samplingRate
+          Sensor.sourceLocations.forall(sl => sdwls.sensorData.exists(sdwl => sdwl.location == sl && sdwl.data.asInstanceOf[List[AccelerometerData]].forall(_.samplingRate == n)))
+        },
+        "`AccelerometerData` sample rate should be fixed to a known constant value for all sensors"
+      )
+      require(
+        sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.map(_.location).size == Sensor.sourceLocations.size,
+        "for each member of `Sensor.sourceLocations`, there is a unique and corresponding member in the sensor data for the `ClassifyExerciseEvt` instance"
+      )
+      require(
+        {
+          val n = sdwls.sensorData.head.data.asInstanceOf[List[AccelerometerData]].flatMap(_.values).length
+          Sensor.sourceLocations.forall(sl => sdwls.sensorData.exists(sdwl => sdwl.location == sl && sdwl.data.asInstanceOf[List[AccelerometerData]].flatMap(_.values).length == n))
+        },
+        "all members of `Sensor.sourceLocations`, have the same length `AccelerometerValue` (flattened) lists"
+      )
+
+      val sensorMap = sdwls.sensorData.groupBy(_.location).mapValues(_.map(_.data))
+      val blockSize = sensorMap(Sensor.sourceLocations.head).length
+
+      (0 until blockSize).foreach { index =>
+        val sensorEvent = Sensor.sourceLocations.map(loc => (loc, sensorMap(loc)(index))).toMap
+
+        model.tell(Update(sensorEvent), sender())
       }
-*/
 
     case ClassificationExamples(_) =>
       sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
