@@ -29,20 +29,9 @@ class SensorDataGroupBuffer {
         self.deviceLocations = deviceLocations
         windowSize = Double(DevicePace.samplesPerPacket) / 100.0   // matches 124 samples at 100 Hz
         windowDelay = windowSize / 2.0
-        timer = createDispatchTimer(windowSize, queue: queue, block: { self.encodeWindow() })
+        timer = GCDTimer.createDispatchTimer(windowSize, queue: queue, block: { self.encodeWindow() })
     }
     
-    private func createDispatchTimer(interval: CFTimeInterval, queue: dispatch_queue_t, block: dispatch_block_t) -> dispatch_source_t {
-        let timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue)
-        if timer != nil  {
-            let interval64: Int64 = Int64(interval * Double(NSEC_PER_SEC))
-            dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, interval64), UInt64(interval64), NSEC_PER_SEC / 100)
-            dispatch_source_set_event_handler(timer, block)
-            dispatch_resume(timer)
-        }
-        return timer
-    }
-
     /* mutating */
     func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
         let time = CFAbsoluteTimeGetCurrent()

@@ -29,6 +29,8 @@
 		54543A2C1A7A2C6100D599AB /* SensorDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */; };
 		54543A2E1A7A2F3400D599AB /* SensorData+Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54543A2D1A7A2F3400D599AB /* SensorData+Test.swift */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
+		54567B1C1A894AFA0096DAC7 /* GCDTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54567B1B1A894AFA0096DAC7 /* GCDTimer.swift */; };
+		54567B1D1A894B4B0096DAC7 /* GCDTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54567B1B1A894AFA0096DAC7 /* GCDTimer.swift */; };
 		54571B161A728594001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
 		54571B171A728690001419B4 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54571B151A728594001419B4 /* Array.swift */; };
 		545C7AFE1A7BC71100FC3281 /* MultiPacketProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */; };
@@ -213,6 +215,7 @@
 		54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataTests.swift; sourceTree = "<group>"; };
 		54543A2D1A7A2F3400D599AB /* SensorData+Test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorData+Test.swift"; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		54567B1B1A894AFA0096DAC7 /* GCDTimer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCDTimer.swift; sourceTree = "<group>"; };
 		54571B151A728594001419B4 /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MultiPacketProtocol.c; sourceTree = "<group>"; };
 		545C7AFD1A7BC71100FC3281 /* MultiPacketProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiPacketProtocol.h; sourceTree = "<group>"; };
@@ -405,6 +408,7 @@
 				548296381A4D792D00EDCAF0 /* AppleWatch */,
 				54E99ED31A767B8400BA1BD3 /* This */,
 				543B26FE1A49D1A800381298 /* Pebble */,
+				54567B1B1A894AFA0096DAC7 /* GCDTimer.swift */,
 				54DB071A1A49E65400DC1E91 /* Device.swift */,
 				54B562251A7793B000F6FD5D /* DeviceSession.swift */,
 				54B562221A77937200F6FD5D /* DeviceSessionStats.swift */,
@@ -970,6 +974,7 @@
 				54B562231A77937200F6FD5D /* DeviceSessionStats.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
 				54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */,
+				54567B1C1A894AFA0096DAC7 /* GCDTimer.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
 				54AECC471A76AB8A008BD812 /* Dictionary.swift in Sources */,
@@ -1026,6 +1031,7 @@
 				54ED4EB91A6C548100490DA7 /* Operators.swift in Sources */,
 				54ED4EB31A6C547B00490DA7 /* UserModel+Marshalling.swift in Sources */,
 				54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */,
+				54567B1D1A894B4B0096DAC7 /* GCDTimer.swift in Sources */,
 				54ED4EBC1A6C548700490DA7 /* Alamofire+SwiftyJSON.swift in Sources */,
 				281A7ADE1A8266C000421B9E /* NSMutableData+Encoding.swift in Sources */,
 				2835C5E81A8285D30012DEFB /* SensorDataGroupBuffer.swift in Sources */,

@@ -13,29 +13,30 @@ extension ThisDeviceSession {
         private var userAccelerationBuffer: NSMutableData!
         private var rotationBuffer: NSMutableData!
         #if arch(i386) || arch(x86_64)
-        private var timer: NSTimer!
+        private var timer: dispatch_source_t!
         #endif
 
         init(outer: ThisDeviceSession) {
             self.outer = outer
             
             // CoreMotion initialization
-            #if arch(i386) || arch(x86_64)
-
-            timer = NSTimer.scheduledTimerWithTimeInterval(0.01, target: self, selector: Selector("generateMotionData"), userInfo: nil, repeats: true)
-            
-            #else
+        #if arch(i386) || arch(x86_64)
+            timer = GCDTimer.createDispatchTimer(CFTimeInterval(0.01), queue: dispatch_get_main_queue(), block: { self.generateMotionData() })
+        #else
             motionManager = CMMotionManager()
             motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
             motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
-                
-            #endif
+        #endif
             userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
             rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
         }
         
         func stop() {
+        #if arch(i386) || arch(x86_64)
+            dispatch_source_cancel(timer)
+        #else
             motionManager.stopDeviceMotionUpdates()
+        #endif
         }
         
         #if arch(i386) || arch(x86_64)
