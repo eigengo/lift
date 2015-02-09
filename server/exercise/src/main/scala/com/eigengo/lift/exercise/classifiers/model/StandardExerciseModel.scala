@@ -3,7 +3,7 @@ package com.eigengo.lift.exercise.classifiers.model
 import akka.actor.ActorLogging
 import akka.stream.scaladsl._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
-import com.eigengo.lift.exercise.classifiers.workflows.{ZipSet, ClassificationAssertions, GestureWorkflows}
+import com.eigengo.lift.exercise.classifiers.workflows.{ClassificationAssertions, GestureWorkflows}
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 
@@ -164,7 +164,6 @@ class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWat
   with ActorLogging {
 
   import ClassificationAssertions._
-  import ExerciseModel._
   import FlowGraphImplicits._
 
   val name = "gesture"
@@ -173,71 +172,56 @@ class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWat
   private val classifier = IdentifyGestureEvents()
 
   val workflow = {
-    val in = UndefinedSource[SensorNet]
+    val in = UndefinedSource[SensorNetValue]
     val out = UndefinedSink[BindToSensors]
 
     PartialFlowGraph { implicit builder =>
-      val dummyOut = UndefinedSource[AccelerometerValue]
       val inConnectNode = UndefinedSink[SensorValue]
       val outConnectNode = UndefinedSource[Set[Fact]]
-      val split = Broadcast[SensorNet]
-      val merge = Zip[Set[Fact], SensorNet]
+      val split = Broadcast[SensorNetValue]
+      val merge = Zip[Set[Fact], SensorNetValue]
 
       builder.importPartialFlowGraph(classifier.graph)
 
+      builder.connect(inConnectNode, Flow[AccelerometerValue], classifier.in)
+      builder.connect(classifier.out, Flow[Option[Fact]].map(_.toSet), outConnectNode)
+
       in ~> split
 
-      builder.connect(classifier.out, Flow[AccelerometerValue], dummyOut)
-      dummyOut ~> Sink.ignore
-
-      split ~> Flow[SensorNet].map(_.toMap(SensorDataSourceLocationWrist)) ~> inConnectNode
-      builder.connect(inConnectNode, Flow[AccelerometerValue], classifier.in)
-      builder.connect(classifier.tap, Flow[Option[Fact]].map(_.toSet), outConnectNode)
+      split ~> Flow[SensorNetValue].map(_.toMap(SensorDataSourceLocationWrist)) ~> inConnectNode
       outConnectNode ~> merge.left
 
-      split ~> Flow[SensorNet] ~> merge.right
+      split ~> Flow[SensorNetValue] ~> merge.right
 
-      merge.out ~> Flow[(Set[Fact], SensorNet)].map { case (facts, data) => BindToSensors(facts, Set(), Set(), Set(), Set(), data) } ~> out
+      merge.out ~> Flow[(Set[Fact], SensorNetValue)].map { case (facts, data) => BindToSensors(facts, Set(), Set(), Set(), Set(), data) } ~> out
     }.toFlow(in, out)
   }
 
   /**
-   * We use `aroundReceive` here to transform each Update message into a list of Update messages. Essentially, there is
-   * an update message per `AccelerometerValue` (sliced across each sensor net location).
+   * We use `aroundReceive` here to transform each `SensorNet` message into a list of `SensorNetValue` messages.
    */
   override def aroundReceive(receive: Receive, msg: Any) = msg match {
-    /**
-     * Assumptions:
-     *   1. all members of `Sensor.sourceLocations`, have at least one `AccelerometerValue`
-     *   2. all members of `Sensor.sourceLocations`, have the same length `AccelerometerValue` lists
-     *   3. `AccelerometerData` sample rate is fixed to a known constant value for all sensors
-     *
-     * TODO: rewrite so that these assumptions may be weakened further!
-     */
-    case Update(sensorMap: Map[SensorDataSourceLocation, AccelerometerData]) => {
+    // TODO: refactor code so that the following assumptions may be weakened further!
+    case event: SensorNet =>
       require(
-        sensorMap.values.nonEmpty,
-        "all members of `Sensor.sourceLocations`, have at least one `AccelerometerValue` value"
+        event.toMap.values.forall(_.values.nonEmpty),
+        "all sensors in a network should produce some sensor value"
+      )
+      val blockSize = event.toMap.values.head.values.length
+      require(
+        event.toMap.values.forall(_.values.length == blockSize),
+        "all sensors in a network produce the same number of sensor values"
       )
       require(
-        {
-          val n = sensorMap.values.head.values.length
-          Sensor.sourceLocations.forall(sl => sensorMap(sl).values.length == n)
-        },
-        "all members of `Sensor.sourceLocations`, have the same length `AccelerometerValue` lists"
-      )
-      require(
-        Sensor.sourceLocations.forall(sl => sensorMap(sl).samplingRate == samplingRate),
-        "`AccelerometerData` sample rate should be fixed to a known constant value for all sensors"
+        event.toMap.values.forall(_.samplingRate == samplingRate),
+        "all sensors have a fixed known sample rate"
       )
 
-      val eventSize = sensorMap.values.head.values.length
-      val sensorEvents = (0 until eventSize).map(evt => Sensor.sourceLocations.map(sl => (sl, sensorMap(sl).copy(values = List(sensorMap(sl).values(evt))))).toMap)
+      val sensorEvents = (0 until blockSize).map(block => SensorNetValue(event.toMap.mapValues(_.values(block))))
 
       for (event <- sensorEvents) {
         super.aroundReceive(receive, event)
       }
-    }
 
     case _ =>
       super.aroundReceive(receive, msg)

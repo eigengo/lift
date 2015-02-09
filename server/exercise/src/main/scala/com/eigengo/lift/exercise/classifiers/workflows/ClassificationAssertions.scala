@@ -48,7 +48,7 @@ object ClassificationAssertions {
    * @param unknown facts true of this location
    * @param value   raw sensor network data that assertion holds for
    */
-  case class BindToSensors[WR <: SensorValue, WA <: SensorValue, FO <: SensorValue, CH <: SensorValue, UN <: SensorValue](wrist: Set[Fact], waist: Set[Fact], foot: Set[Fact], chest: Set[Fact], unknown: Set[Fact], value: SensorNet[WR, WA, FO, CH, UN]) {
+  case class BindToSensors(wrist: Set[Fact], waist: Set[Fact], foot: Set[Fact], chest: Set[Fact], unknown: Set[Fact], value: SensorNetValue) {
     val toMap = Map[SensorDataSourceLocation, Set[Fact]](
       SensorDataSourceLocationWrist -> wrist,
       SensorDataSourceLocationWaist -> waist,

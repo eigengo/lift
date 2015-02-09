@@ -4,8 +4,14 @@ package com.eigengo.lift.exercise
  * Sensor data marker trait
  */
 trait SensorData {
+  def samplingRate: Int
   def values: List[SensorValue]
 }
+
+/**
+ * Sensor value marker trait
+ */
+trait SensorValue
 
 /**
  * Location of the sensor on the human body. Regardless of what the sensor measures, we
@@ -31,12 +37,22 @@ case object SensorDataSourceLocationChest extends SensorDataSourceLocation
 /// sensor with unknown location or where the location does not make a difference
 case object SensorDataSourceLocationAny extends SensorDataSourceLocation
 
+object Sensor {
+  val sourceLocations = Set(
+    SensorDataSourceLocationWrist,
+    SensorDataSourceLocationWaist,
+    SensorDataSourceLocationFoot,
+    SensorDataSourceLocationChest,
+    SensorDataSourceLocationAny
+  )
+}
+
 /**
  * Used to model a full sensor network of locations that may transmit data to us. Instances of the case class represent
  * sensor signals at a given point in time.
  */
-case class SensorNet[WR <: SensorValue, WA <: SensorValue, FO <: SensorValue, CH <: SensorValue, UN <: SensorValue](wrist: WR, waist: WA, foot: FO, chest: CH, unknown: UN) {
-  val toMap = Map[SensorDataSourceLocation, SensorValue](
+case class SensorNet(wrist: SensorData, waist: SensorData, foot: SensorData, chest: SensorData, unknown: SensorData) {
+  val toMap = Map[SensorDataSourceLocation, SensorData](
     SensorDataSourceLocationWrist -> wrist,
     SensorDataSourceLocationWaist -> waist,
     SensorDataSourceLocationFoot -> foot,
@@ -46,25 +62,38 @@ case class SensorNet[WR <: SensorValue, WA <: SensorValue, FO <: SensorValue, CH
 }
 
 object SensorNet {
-  def apply[WR <: SensorValue, WA <: SensorValue, FO <: SensorValue, CH <: SensorValue, UN <: SensorValue](sensorMap: Map[SensorDataSourceLocation, SensorData]) =
-    SensorNet(
-      sensorMap(SensorDataSourceLocationWrist).asInstanceOf[WR],
-      sensorMap(SensorDataSourceLocationWaist).asInstanceOf[WA],
-      sensorMap(SensorDataSourceLocationFoot).asInstanceOf[FO],
-      sensorMap(SensorDataSourceLocationChest).asInstanceOf[CH],
-      sensorMap(SensorDataSourceLocationAny).asInstanceOf[UN]
+  def apply(sensorMap: Map[SensorDataSourceLocation, SensorData]) =
+    new SensorNet(
+      sensorMap(SensorDataSourceLocationWrist),
+      sensorMap(SensorDataSourceLocationWaist),
+      sensorMap(SensorDataSourceLocationFoot),
+      sensorMap(SensorDataSourceLocationChest),
+      sensorMap(SensorDataSourceLocationAny)
     )
 }
 
-@deprecated
-object Sensor {
-  val sourceLocations: Set[SensorDataSourceLocation] = Set(
-    SensorDataSourceLocationWrist,
-    SensorDataSourceLocationWaist,
-    SensorDataSourceLocationFoot,
-    SensorDataSourceLocationChest,
-    SensorDataSourceLocationAny
+/**
+ * Location or column slice through a sensor network.
+ */
+case class SensorNetValue(wrist: SensorValue, waist: SensorValue, foot: SensorValue, chest: SensorValue, unknown: SensorValue) {
+  val toMap = Map[SensorDataSourceLocation, SensorValue](
+    SensorDataSourceLocationWrist -> wrist,
+    SensorDataSourceLocationWaist -> waist,
+    SensorDataSourceLocationFoot -> foot,
+    SensorDataSourceLocationChest -> chest,
+    SensorDataSourceLocationAny -> unknown
   )
+}
+
+object SensorNetValue {
+  def apply(sensorMap: Map[SensorDataSourceLocation, SensorValue]) =
+    new SensorNetValue(
+      sensorMap(SensorDataSourceLocationWrist),
+      sensorMap(SensorDataSourceLocationWaist),
+      sensorMap(SensorDataSourceLocationFoot),
+      sensorMap(SensorDataSourceLocationChest),
+      sensorMap(SensorDataSourceLocationAny)
+    )
 }
 
 /**
@@ -76,4 +105,4 @@ object Sensor {
  * @param location the location
  * @param data the data
  */
-case class SensorDataWithLocation[D <: SensorData](location: SensorDataSourceLocation, data: List[D])
+case class SensorDataWithLocation(location: SensorDataSourceLocation, data: List[SensorData])

@@ -29,7 +29,7 @@ object UserExercises {
    * @param sessionProps the session
    * @param sensorData the sensor data
    */
-  case class ClassifyExerciseEvt[D <: SensorData](sessionProps: SessionProperties, sensorData: List[SensorDataWithLocation[D]])
+  case class ClassifyExerciseEvt(sessionProps: SessionProperties, sensorData: List[SensorDataWithLocation])
 
   /**
    * The session has started

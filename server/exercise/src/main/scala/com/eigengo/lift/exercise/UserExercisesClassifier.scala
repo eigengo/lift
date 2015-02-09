@@ -88,39 +88,21 @@ class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
   val model = context.actorOf(modelProps(sessionProps, Set.empty, watch))
 
   override def receive: Receive = {
-    /**
-     * Assumptions:
-     *   1. at least one sensor location exists
-     *   2. for each member of `Sensor.sourceLocations`, there is a unique and corresponding member in the sensor data for
-     *      the `ClassifyExerciseEvt` instance
-     *   3. all members of `Sensor.sourceLocations` have a length of data in the sensor data for the `ClassifyExerciseEvt`
-     *      instance
-     *
-     * TODO: rewrite so that these assumptions may be weakened further!
-     */
-    case sdwls: ClassifyExerciseEvt[_] =>
-      require(
-        Sensor.sourceLocations.nonEmpty,
-        "`Sensor.sourceLocations` is non empty"
-      )
+    // TODO: refactor code so that the following assumptions may be weakened further!
+    case sdwls: ClassifyExerciseEvt =>
       require(
         sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.map(_.location).size == Sensor.sourceLocations.size,
-        "for each member of `Sensor.sourceLocations`, there is a unique and corresponding member in the sensor data for the `ClassifyExerciseEvt` instance"
+        "for each sensor location, there is a unique and corresponding member in the sensor data for the `ClassifyExerciseEvt` instance"
       )
-      require(
-        {
-          val sensorMap = sdwls.sensorData.groupBy(_.location).mapValues(_.map(_.data))
-          val blockSize = sensorMap(Sensor.sourceLocations.head).length
-          Sensor.sourceLocations.forall(sl => sensorMap(sl).length == blockSize)
-        },
-        "all members of `Sensor.sourceLocations` have a length of data in the sensor data for the `ClassifyExerciseEvt` instance"
-      )
-
       val sensorMap = sdwls.sensorData.groupBy(_.location).mapValues(_.flatMap(_.data))
-      val blockSize = sensorMap(Sensor.sourceLocations.head).length
+      val blockSize = sensorMap(SensorDataSourceLocationWrist).length
+      require(
+        sensorMap.values.forall(_.length == blockSize),
+        "all sensor data locations have a common data length"
+      )
 
       (0 until blockSize).foreach { block =>
-        val sensorEvent = Sensor.sourceLocations.map(loc => (loc, sensorMap(loc)(block))).toMap
+        val sensorEvent = sensorMap.map { case (loc, _) => (loc, sensorMap(loc)(block)) }.toMap
 
         model.tell(SensorNet(sensorEvent), sender())
       }

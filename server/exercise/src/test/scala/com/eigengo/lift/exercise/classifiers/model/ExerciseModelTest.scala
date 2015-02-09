@@ -1,8 +1,8 @@
 package com.eigengo.lift.exercise.classifiers.model
 
+import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
-import com.eigengo.lift.exercise.Sensor
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
@@ -19,7 +19,7 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
   val SensorQueryGen: Gen[SensorQuery] = frequency(
     1 -> Gen.const(AllSensors),
     1 -> Gen.const(SomeSensor),
-    1 -> Gen.oneOf(Sensor.sourceLocations.toList).map(NamedSensor)
+    1 -> Gen.oneOf(SensorDataSourceLocationWrist, SensorDataSourceLocationWaist, SensorDataSourceLocationFoot, SensorDataSourceLocationChest, SensorDataSourceLocationAny).map(NamedSensor)
   )
 
   val FactGen: Gen[Fact] = frequency(

@@ -284,7 +284,7 @@ object ExerciseModel {
  * Model interface trait. Implementations of this trait define specific exercising models that may be updated and queried.
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
-trait ExerciseModel extends ActorPublisher[(SensorNet, ActorRef)] with ActorSubscriber {
+trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with ActorSubscriber {
   this: ActorLogging =>
 
   import ExerciseModel._
@@ -306,7 +306,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNet, ActorRef)] with ActorSubs
   def positiveWatch: Set[Query]
   def negativeWatch: Set[Query]
 
-  protected def workflow: Flow[SensorNet, BindToSensors]
+  protected def workflow: Flow[SensorNetValue, BindToSensors]
 
   val config = context.system.settings.config
 
@@ -320,10 +320,10 @@ trait ExerciseModel extends ActorPublisher[(SensorNet, ActorRef)] with ActorSubs
 
   override def preStart() = {
     FlowGraph { implicit builder =>
-      val split = Unzip[SensorNet, ActorRef]
+      val split = Unzip[SensorNetValue, ActorRef]
       val join = Zip[List[BindToSensors], ActorRef]
 
-      Source(ActorPublisher(self)) ~> Flow[(SensorNet, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+      Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
       split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> join.left
       split.right ~> join.right
       join.out ~> Flow[(List[BindToSensors], ActorRef)].map {
@@ -347,7 +347,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNet, ActorRef)] with ActorSubs
   def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
 
   protected def modelUpdate: Receive = {
-    case event: SensorNet =>
+    case event: SensorNetValue =>
       if (isActive && totalDemand > 0) {
         onNext((event, sender()))
       } else if (isActive) {

@@ -51,13 +51,14 @@ class RandomExerciseModel(val sessionProps: SessionProperties, val negativeWatch
     }
   }
 
-  val workflow =
-    Flow[SensorNet]
+  val workflow = ???
+  /*
+    Flow[SensorNetValue]
       .map { sn =>
         val classification = randomExercise()
         Bind(classification, sn) // FIXME:
       }
-
+*/
   def evaluate(query: Query)(current: BindToSensors, lastState: Boolean) =
     StableValue(result = true)
 
