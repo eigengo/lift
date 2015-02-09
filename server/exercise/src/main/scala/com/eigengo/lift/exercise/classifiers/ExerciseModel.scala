@@ -2,13 +2,12 @@ package com.eigengo.lift.exercise.classifiers
 
 import akka.actor.{ActorRef, ActorLogging}
 import akka.event.LoggingReceive
-import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
+import akka.stream.{OverflowStrategy, ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorSubscriber
 import akka.stream.actor.ActorSubscriberMessage.OnNext
 import akka.stream.actor.WatermarkRequestStrategy
 import akka.stream.scaladsl._
-import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
 import com.eigengo.lift.exercise.{SensorDataSourceLocation, Sensor, SensorData, SessionProperties}
 
@@ -31,12 +30,28 @@ object ExerciseModel {
    *   and Marco Montali
    */
 
+  sealed trait SensorQuery
+  case object AllSensors extends SensorQuery
+  case object SomeSensor extends SensorQuery
+  case class NamedSensor(name: SensorDataSourceLocation) extends SensorQuery
+
+  def not(sensor: SensorQuery): SensorQuery = sensor match {
+    case AllSensors =>
+      SomeSensor
+
+    case SomeSensor =>
+      AllSensors
+
+    case _ =>
+      sensor
+  }
+
   /**
    * Path language - we encode path regular expressions here
    */
   sealed trait Path
 
-  case class Assert(fact: Fact) extends Path // FIXME: what about the full range of propositional formulae?
+  case class Assert(sensor: SensorQuery, fact: Fact) extends Path // FIXME: what about the full range of propositional formulae?
 
   case class Test(query: Query) extends Path
 
@@ -53,7 +68,7 @@ object ExerciseModel {
    * @param path path to be tested
    */
   def testOnly(path: Path): Boolean = path match {
-    case Assert(_) =>
+    case Assert(_, _) =>
       false
 
     case Test(_) =>
@@ -74,7 +89,7 @@ object ExerciseModel {
    */
   sealed trait Query
 
-  case class Formula(fact: Fact) extends Query
+  case class Formula(sensor: SensorQuery, fact: Fact) extends Query
 
   case object TT extends Query
 
@@ -101,8 +116,8 @@ object ExerciseModel {
    * size of the query.
    */
   def not(query: Query): Query = query match {
-    case Formula(assertion) =>
-      Formula(ClassificationAssertions.not(assertion))
+    case Formula(sensor, assertion) =>
+      Formula(not(sensor), ClassificationAssertions.not(assertion))
 
     case TT =>
       FF
@@ -130,7 +145,7 @@ object ExerciseModel {
     case Exists(_, _) | All(_, _) =>
       false
 
-    case Formula(_) | TT | FF =>
+    case Formula(_, _) | TT | FF =>
       true
 
     case And(query1, query2, remaining @ _*) =>
@@ -145,12 +160,12 @@ object ExerciseModel {
   /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
-  val End: Query = All(Test(Formula(True)), FF)
+  val End: Query = All(Test(Formula(SomeSensor, True)), FF)
 
   /**
    * Denotes the last step of the exercise session
    */
-  val Last: Query = Exists(Assert(True), End)
+  val Last: Query = Exists(Assert(SomeSensor, True), End)
 
   /**
    * Following definitions allow linear-time logic to be encoded within the current logic. Translation here is linear in
@@ -160,23 +175,23 @@ object ExerciseModel {
   /**
    * At the next point of the exercise session, the query will hold
    */
-  def Next(query: Query): Query = Exists(Assert(True), query)
+  def Next(query: Query): Query = Exists(Assert(SomeSensor, True), query)
 
   /**
    * At some point in the exercise session, the query will hold
    */
-  def Diamond(query: Query): Query = Exists(Repeat(Assert(True)), query)
+  def Diamond(query: Query): Query = Exists(Repeat(Assert(SomeSensor, True)), query)
 
   /**
    * For all points in the exercise session, the query holds
    */
-  def Box(query: Query): Query = All(Repeat(Assert(True)), query)
+  def Box(query: Query): Query = All(Repeat(Assert(AllSensors, True)), query)
 
   /**
    * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
    * session.
    */
-  def Until(query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), Assert(True))), query2)
+  def Until(query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), Assert(SomeSensor, True))), query2)
 
   /**
    * Message sent to exercise model actor. Indicates that model is to be updated and the model's `watch` queries are to
@@ -301,18 +316,22 @@ trait ExerciseModel[A <: SensorData] extends ActorPublisher[(Map[SensorDataSourc
 
   protected def workflow: Flow[Map[SensorDataSourceLocation, A], Map[SensorDataSourceLocation, Bind[A]]]
 
+  val config = context.system.settings.config
+
   val settings = ActorFlowMaterializerSettings(context.system)
+  // Received sensor data is buffered
+  val bufferSize = config.getInt("classification.buffer")
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
-  override val requestStrategy = WatermarkRequestStrategy(context.system.settings.config.getInt("classification.watermark"))
+  override val requestStrategy = WatermarkRequestStrategy(config.getInt("classification.watermark"))
 
   override def preStart() = {
     FlowGraph { implicit builder =>
       val split = Unzip[Map[SensorDataSourceLocation, A], ActorRef]
       val join = Zip[List[Map[SensorDataSourceLocation, Bind[A]]], ActorRef]
 
-      Source(ActorPublisher(self)) ~> split.in
+      Source(ActorPublisher(self)) ~> Flow[(Map[SensorDataSourceLocation, A], ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
       split.left ~> workflow.transform(() => SlidingWindow[Map[SensorDataSourceLocation, Bind[A]]](2)) ~> join.left
       split.right ~> join.right
       join.out ~> Flow[(List[Map[SensorDataSourceLocation, Bind[A]]], ActorRef)].map {

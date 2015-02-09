@@ -137,11 +137,8 @@ trait GestureWorkflows extends SVMClassifier {
       // We separate out 1-element case since `Broadcast` nodes need at least 2 downstream nodes
       if (locations.size == 1) {
         val zip = ZipWith[A, Option[Fact], Bind[A]]((msg: A, tag: Option[Fact]) => tag match {
-          case Some(Gesture(name, matchProb)) =>
-            Bind(Set(Gesture(name, matchProb)), msg)
-
-          case Some(NegGesture(name, matchProb)) =>
-            Bind(Set(NegGesture(name, matchProb)), msg)
+          case Some(fact) =>
+            Bind(Set(fact), msg)
 
           case None =>
             Bind(Set.empty, msg)
@@ -156,11 +153,8 @@ trait GestureWorkflows extends SVMClassifier {
         transform ~> broadcast
         for ((location, sensor) <- in) {
           val zip = ZipWith[A, Option[Fact], Bind[A]]((msg: A, tag: Option[Fact]) => tag match {
-            case Some(Gesture(name, matchProb)) =>
-              Bind(Set(Gesture(name, matchProb)), msg)
-
-            case Some(NegGesture(name, matchProb)) =>
-              Bind(Set(NegGesture(name, matchProb)), msg)
+            case Some(fact) =>
+              Bind(Set(fact), msg)
 
             case None =>
               Bind(Set.empty, msg)
