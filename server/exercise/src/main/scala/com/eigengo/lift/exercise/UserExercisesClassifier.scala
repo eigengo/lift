@@ -122,7 +122,7 @@ class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
       (0 until blockSize).foreach { block =>
         val sensorEvent = Sensor.sourceLocations.map(loc => (loc, sensorMap(loc)(block))).toMap
 
-        model.tell(Update(sensorEvent), sender())
+        model.tell(SensorNet(sensorEvent), sender())
       }
 
     case ClassificationExamples(_) =>

@@ -8,8 +8,9 @@ import akka.stream.actor.ActorSubscriber
 import akka.stream.actor.ActorSubscriberMessage.OnNext
 import akka.stream.actor.WatermarkRequestStrategy
 import akka.stream.scaladsl._
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.BindToSensors
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
-import com.eigengo.lift.exercise.{SensorDataSourceLocation, Sensor, SensorData, SessionProperties}
+import com.eigengo.lift.exercise._
 
 object ExerciseModel {
 
@@ -194,21 +195,13 @@ object ExerciseModel {
   def Until(query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), Assert(SomeSensor, True))), query2)
 
   /**
-   * Message sent to exercise model actor. Indicates that model is to be updated and the model's `watch` queries are to
-   * be checked for satisfiability.
-   */
-  case class Update[A <: SensorData](event: Map[SensorDataSourceLocation, A]) {
-    require(event.keySet == Sensor.sourceLocations)
-  }
-
-  /**
    * Internal actor message. Allows the evaluator to run after a model update has occurred.
    *
    * @param next      the next (state) event received - enriched with propositional facts that hold in this state
    * @param lastState flag indicating if the exercise session stream will close (i.e. we are the last state)
    * @param listener  actor that receives callbacks on watched formulae
    */
-  case class NextState[A <: SensorData](next: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean, listener: ActorRef)
+  case class NextState(next: BindToSensors, lastState: Boolean, listener: ActorRef)
 
   /**
    * Values representing the current evaluation state of a given query:
@@ -291,10 +284,9 @@ object ExerciseModel {
  * Model interface trait. Implementations of this trait define specific exercising models that may be updated and queried.
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
-trait ExerciseModel[A <: SensorData] extends ActorPublisher[(Map[SensorDataSourceLocation, A], ActorRef)] with ActorSubscriber {
+trait ExerciseModel extends ActorPublisher[(SensorNet, ActorRef)] with ActorSubscriber {
   this: ActorLogging =>
 
-  import ClassificationAssertions.Bind
   import ExerciseModel._
   import FlowGraphImplicits._
 
@@ -314,7 +306,7 @@ trait ExerciseModel[A <: SensorData] extends ActorPublisher[(Map[SensorDataSourc
   def positiveWatch: Set[Query]
   def negativeWatch: Set[Query]
 
-  protected def workflow: Flow[Map[SensorDataSourceLocation, A], Map[SensorDataSourceLocation, Bind[A]]]
+  protected def workflow: Flow[SensorNet, BindToSensors]
 
   val config = context.system.settings.config
 
@@ -328,19 +320,19 @@ trait ExerciseModel[A <: SensorData] extends ActorPublisher[(Map[SensorDataSourc
 
   override def preStart() = {
     FlowGraph { implicit builder =>
-      val split = Unzip[Map[SensorDataSourceLocation, A], ActorRef]
-      val join = Zip[List[Map[SensorDataSourceLocation, Bind[A]]], ActorRef]
+      val split = Unzip[SensorNet, ActorRef]
+      val join = Zip[List[BindToSensors], ActorRef]
 
-      Source(ActorPublisher(self)) ~> Flow[(Map[SensorDataSourceLocation, A], ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
-      split.left ~> workflow.transform(() => SlidingWindow[Map[SensorDataSourceLocation, Bind[A]]](2)) ~> join.left
+      Source(ActorPublisher(self)) ~> Flow[(SensorNet, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+      split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> join.left
       split.right ~> join.right
-      join.out ~> Flow[(List[Map[SensorDataSourceLocation, Bind[A]]], ActorRef)].map {
+      join.out ~> Flow[(List[BindToSensors], ActorRef)].map {
         case (List(event), listener) =>
           NextState(event, lastState = true, listener)
 
         case (List(event, _), listener) =>
           NextState(event, lastState = false, listener)
-      } ~> Sink(ActorSubscriber[NextState[A]](self))
+      } ~> Sink(ActorSubscriber[NextState](self))
     }.run()
   }
 
@@ -352,21 +344,21 @@ trait ExerciseModel[A <: SensorData] extends ActorPublisher[(Map[SensorDataSourc
    * @param lastState next or following state - if no state follows, then `None`
    * @return          result of evaluating the query formula
    */
-  def evaluate(formula: Query)(current: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean): QueryValue
+  def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
 
   protected def modelUpdate: Receive = {
-    case Update(event: Map[SensorDataSourceLocation, A]) =>
+    case event: SensorNet =>
       if (isActive && totalDemand > 0) {
         onNext((event, sender()))
       } else if (isActive) {
-        log.error(s"Actor publisher is inactive and we received an Update event, so dropping $event")
+        log.error(s"Actor publisher is inactive and we received a SensorNet event, so dropping $event")
       } else {
-        log.warning(s"No demand for the actor publisher and we received an Update event, so dropping $event")
+        log.warning(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
       }
   }
 
   protected def monitorEvents: Receive = {
-    case OnNext(NextState(next: Map[SensorDataSourceLocation, Bind[A]], lastState, listener)) =>
+    case OnNext(NextState(next, lastState, listener)) =>
       (positiveWatch ++ negativeWatch).foreach { query =>
         val value = evaluate(query)(next, lastState)
 

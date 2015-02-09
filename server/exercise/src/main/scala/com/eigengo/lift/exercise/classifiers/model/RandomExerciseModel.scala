@@ -12,8 +12,8 @@ import scala.util.Random
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
  * the listening actor).
  */
-class RandomExerciseModel[A <: SensorData](val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
-  extends ExerciseModel[A]
+class RandomExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
+  extends ExerciseModel
   with Actor
   with ActorLogging {
 
@@ -52,13 +52,13 @@ class RandomExerciseModel[A <: SensorData](val sessionProps: SessionProperties, 
   }
 
   val workflow =
-    Flow[Map[SensorDataSourceLocation, A]]
-      .map { sdwls =>
+    Flow[SensorNet]
+      .map { sn =>
         val classification = randomExercise()
-        sdwls.mapValues(sd => Bind(classification, sd))
+        Bind(classification, sn) // FIXME:
       }
 
-  def evaluate(query: Query)(current: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean) =
+  def evaluate(query: Query)(current: BindToSensors, lastState: Boolean) =
     StableValue(result = true)
 
 }

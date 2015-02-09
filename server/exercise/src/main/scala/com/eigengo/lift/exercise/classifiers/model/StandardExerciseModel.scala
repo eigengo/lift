@@ -7,7 +7,7 @@ import com.eigengo.lift.exercise.classifiers.workflows.{ZipSet, ClassificationAs
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 
-trait StandardEvaluation[A <: SensorData] {
+trait StandardEvaluation {
 
   import ClassificationAssertions._
   import ExerciseModel._
@@ -16,15 +16,15 @@ trait StandardEvaluation[A <: SensorData] {
 
   // TODO: introduce use of SMT library (e.g. ScalaZ3 or Scala SMT-LIB)?
   
-  def evaluateAtSensor(fact: Fact, sensor: SensorQuery)(state: Map[SensorDataSourceLocation, Bind[A]]): Boolean = sensor match {
+  def evaluateAtSensor(fact: Fact, sensor: SensorQuery)(state: BindToSensors): Boolean = sensor match {
     case AllSensors =>
-      state.values.forall(_.assertion.contains(fact))
+      state.toMap.values.forall(_.contains(fact))
 
     case SomeSensor =>
-      state.values.exists(_.assertion.contains(fact))
+      state.toMap.values.exists(_.contains(fact))
 
     case NamedSensor(location) =>
-      state(location).assertion.contains(fact)
+      state.toMap(location).contains(fact)
   }
 
   def emptyEvaluate(query: Query): QueryValue = query match {
@@ -76,7 +76,7 @@ trait StandardEvaluation[A <: SensorData] {
       emptyEvaluate(query1)
   }
 
-  def evaluate(query: Query)(state: Map[SensorDataSourceLocation, Bind[A]], lastState: Boolean): QueryValue = query match {
+  def evaluate(query: Query)(state: BindToSensors, lastState: Boolean): QueryValue = query match {
     case Formula(sensor, fact) =>
       StableValue(result = evaluateAtSensor(fact, sensor)(state))
 
@@ -158,8 +158,8 @@ trait StandardEvaluation[A <: SensorData] {
  * stream) from the time point they are received by the model.
  */
 class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
-  extends ExerciseModel[AccelerometerData]
-  with StandardEvaluation[AccelerometerData]
+  extends ExerciseModel
+  with StandardEvaluation
   with GestureWorkflows
   with ActorLogging {
 
@@ -170,48 +170,34 @@ class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWat
   val name = "gesture"
   val samplingRate = config.getInt("classification.frequency")
 
-  // Here we only monitor wrist locations for recognisable gestures
-  private val classifier = GestureClassification(Set[SensorDataSourceLocation](SensorDataSourceLocationWrist), Sensor.sourceLocations)
+  private val classifier = IdentifyGestureEvents()
 
-  /**
-   * NOTE: `AccelerometerData` instances flowing here will have one `AccelerometerValue`
-   */
   val workflow = {
-    val in = UndefinedSource[Map[SensorDataSourceLocation, AccelerometerData]]
-    val out = UndefinedSink[Map[SensorDataSourceLocation, Bind[AccelerometerData]]]
+    val in = UndefinedSource[SensorNet]
+    val out = UndefinedSink[BindToSensors]
 
     PartialFlowGraph { implicit builder =>
-      val split = Broadcast[Map[SensorDataSourceLocation, AccelerometerValue]]
-      val merge = ZipSet[(SensorDataSourceLocation, Bind[AccelerometerData]), SensorDataSourceLocation](Sensor.sourceLocations)
+      val dummyOut = UndefinedSource[AccelerometerValue]
+      val inConnectNode = UndefinedSink[SensorValue]
+      val outConnectNode = UndefinedSource[Set[Fact]]
+      val split = Broadcast[SensorNet]
+      val merge = Zip[Set[Fact], SensorNet]
 
       builder.importPartialFlowGraph(classifier.graph)
 
-      in ~> Flow[Map[SensorDataSourceLocation, AccelerometerData]].map(_.mapValues(_.values.head)) ~> split
+      in ~> split
 
-      for (loc <- Sensor.sourceLocations) {
-        val connectNode = UndefinedSink[AccelerometerValue]
+      builder.connect(classifier.out, Flow[AccelerometerValue], dummyOut)
+      dummyOut ~> Sink.ignore
 
-        if (loc == SensorDataSourceLocationWrist) {
-          split ~> Flow[Map[SensorDataSourceLocation, AccelerometerValue]].map(_(loc)) ~> connectNode
-          builder.connect(connectNode, Flow[AccelerometerValue], classifier.inputTap(SensorDataSourceLocationWrist))
-          builder.connect(classifier.outputTap(SensorDataSourceLocationWrist), Flow[AccelerometerValue], classifier.inputModulate(loc))
-        } else {
-          split ~> Flow[Map[SensorDataSourceLocation, AccelerometerValue]].map(_(loc)) ~> connectNode
-          builder.connect(connectNode, Flow[AccelerometerValue], classifier.inputModulate(loc))
-        }
-      }
+      split ~> Flow[SensorNet].map(_.toMap(SensorDataSourceLocationWrist)) ~> inConnectNode
+      builder.connect(inConnectNode, Flow[AccelerometerValue], classifier.in)
+      builder.connect(classifier.tap, Flow[Option[Fact]].map(_.toSet), outConnectNode)
+      outConnectNode ~> merge.left
 
-      for (loc <- Sensor.sourceLocations) {
-        val connectNode = UndefinedSource[Bind[AccelerometerValue]]
+      split ~> Flow[SensorNet] ~> merge.right
 
-        builder.connect(classifier.outputModulate(loc), Flow[Bind[AccelerometerValue]], connectNode)
-        connectNode ~> Flow[Bind[AccelerometerValue]].map {
-          case Bind(assertion, value) =>
-            (loc, Bind(assertion, AccelerometerData(samplingRate, List(value))))
-        } ~> merge.in(loc)
-      }
-
-      merge.out ~> Flow[Set[(SensorDataSourceLocation, Bind[AccelerometerData])]].map(_.toMap) ~> out
+      merge.out ~> Flow[(Set[Fact], SensorNet)].map { case (facts, data) => BindToSensors(facts, Set(), Set(), Set(), Set(), data) } ~> out
     }.toFlow(in, out)
   }
 

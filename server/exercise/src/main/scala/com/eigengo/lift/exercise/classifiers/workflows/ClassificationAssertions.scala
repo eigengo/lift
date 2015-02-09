@@ -1,5 +1,7 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
+import com.eigengo.lift.exercise._
+
 object ClassificationAssertions {
 
   /**
@@ -37,24 +39,22 @@ object ClassificationAssertions {
   }
 
   /**
-   * Bind an assertion to a sensor data value. In doing this, assertion is true for that value.
+   * Bind inferred (e.g. machine learnt) assertions to sensors in a network of sensorse.
    *
-   * @param assertion assertion that is true for the sensor data value
-   * @param value     sensor data that assertion holds for
+   * @param wrist   facts true of this location
+   * @param waist   facts true of this location
+   * @param foot    facts true of this location
+   * @param chest   facts true of this location
+   * @param unknown facts true of this location
+   * @param value   raw sensor network data that assertion holds for
    */
-  case class Bind[A](assertion: Set[Fact], value: A) {
-    // `assertion` must be consistent!
-    require(
-      assertion.forall(f => !assertion.contains(not(f)))
-    )
-    require(
-      assertion.forall {
-        case Gesture(nm, prob1) =>
-          assertion.forall { case NegGesture(`nm`, prob2) => prob1 <= prob2; case _ => true }
-
-        case _ =>
-          true
-      }
+  case class BindToSensors[WR <: SensorValue, WA <: SensorValue, FO <: SensorValue, CH <: SensorValue, UN <: SensorValue](wrist: Set[Fact], waist: Set[Fact], foot: Set[Fact], chest: Set[Fact], unknown: Set[Fact], value: SensorNet[WR, WA, FO, CH, UN]) {
+    val toMap = Map[SensorDataSourceLocation, Set[Fact]](
+      SensorDataSourceLocationWrist -> wrist,
+      SensorDataSourceLocationWaist -> waist,
+      SensorDataSourceLocationFoot -> foot,
+      SensorDataSourceLocationChest -> chest,
+      SensorDataSourceLocationAny -> unknown
     )
   }
 
