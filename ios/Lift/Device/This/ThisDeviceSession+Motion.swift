@@ -12,14 +12,24 @@ extension ThisDeviceSession {
         private var count: Int = 0
         private var userAccelerationBuffer: NSMutableData!
         private var rotationBuffer: NSMutableData!
+        #if arch(i386) || arch(x86_64)
+        private var timer: NSTimer!
+        #endif
 
         init(outer: ThisDeviceSession) {
             self.outer = outer
             
             // CoreMotion initialization
+            #if arch(i386) || arch(x86_64)
+
+            timer = NSTimer.scheduledTimerWithTimeInterval(0.01, target: self, selector: Selector("generateMotionData"), userInfo: nil, repeats: true)
+            
+            #else
             motionManager = CMMotionManager()
             motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
             motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
+                
+            #endif
             userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
             rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
         }
@@ -27,6 +37,15 @@ extension ThisDeviceSession {
         func stop() {
             motionManager.stopDeviceMotionUpdates()
         }
+        
+        #if arch(i386) || arch(x86_64)
+        
+        func generateMotionData() {
+            processDeviceMotionData(DummyCMDeviceMotion(), error: nil)
+        }
+        
+        #endif
+        
 
         func processDeviceMotionData(data: CMDeviceMotion!, error: NSError!) -> Void {
             
@@ -91,3 +110,33 @@ extension ThisDeviceSession {
     }
     
 }
+
+#if arch(i386) || arch(x86_64)
+    class DummyCMDeviceMotion : CMDeviceMotion {
+        private let _userAcceleration: CMAcceleration!
+        private let _rotationRate: CMRotationRate!
+        
+        override init() {
+            _userAcceleration = CMAcceleration(x: 0, y: 0, z: 0)
+            _rotationRate = CMRotationRate(x: 0, y: 0, z: 0)
+            super.init()
+        }
+     
+        required init(coder aDecoder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+   
+        override var userAcceleration: CMAcceleration {
+            get {
+                return _userAcceleration
+            }
+        }
+        
+        override var rotationRate: CMRotationRate {
+            get {
+                return _rotationRate
+            }
+        }
+    }
+    
+#endif
