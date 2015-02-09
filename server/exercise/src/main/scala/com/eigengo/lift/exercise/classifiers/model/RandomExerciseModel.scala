@@ -31,6 +31,23 @@ class RandomExerciseModel[A <: SensorData](val sessionProps: SessionProperties, 
       val exerciseType = Random.shuffle(exercises.get(mgk).get).head
 
       Set(Gesture(exerciseType, 0.80))
+/* TODO: need to handle multi-sensor data types!!
+  // No update occurs here, we simply print out a summary of the received data
+  def update[A <: SensorData](sdwls: ClassifyExerciseEvt[A]) = {
+    sdwls.sensorData.foreach { sdwl =>
+      sdwl.data.foreach {
+        case AccelerometerData(sr, values) =>
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** Acceleration ${sdwl.location} | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+        case RotationData(_, values) ⇒
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** Rotation ${sdwl.location} | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+      }
+*/
     }
   }
 

@@ -16,11 +16,11 @@
  * 5 B in header
  */
 struct __attribute__((__packed__)) gfs_header {
-    uint8_t type;                   // 1
-    uint8_t count;                  // 2
-    uint8_t samples_per_second;     // 3
-    uint8_t sample_size;            // 4
-    uint8_t __pading;
+    uint8_t  type;                   // 1
+    uint8_t  count;                  // 2
+    uint8_t  samples_per_second;     // 3
+    uint8_t  sample_size;            // 4
+    uint8_t  _padding;               // 5
 };
 
 /**

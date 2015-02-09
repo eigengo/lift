@@ -412,8 +412,8 @@ public class LiftServer {
     ///
     /// Submit data (received from the smartwatch most likely) to the running session
     ///
-    func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: MultiPacket, f: Result<Void> -> Void) -> Void {
-        request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data.data()))
+    func exerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID, data: NSData, f: Result<Void> -> Void) -> Void {
+        request(LiftServerURLs.ExerciseSessionSubmitData(userId, sessionId), body: .Data(data: data))
             .responseAsResutlt(asu(), f, const(()))
     }
     

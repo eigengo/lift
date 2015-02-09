@@ -18,6 +18,17 @@ extension Array {
     }
     
     ///
+    /// Returns the index of the first element that satisfies ``predicate``
+    ///
+    func indexOf(predicate: Element -> Bool) -> Int? {
+        for (i, e) in enumerate(self) {
+            if predicate(e) { return i }
+        }
+        return nil
+    }
+    
+    
+    ///
     /// Finds the first element that satisfies ``predicate``
     ///
     func find(predicate: Element -> Bool) -> Element? {

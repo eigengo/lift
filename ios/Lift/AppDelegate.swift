@@ -70,6 +70,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     // MARK: UIApplicationDelegate implementation
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        if LiftUserDefaults.isRunningTests { return true }
+        
         // notifications et al
         registerSettingsAndDelegates()
         

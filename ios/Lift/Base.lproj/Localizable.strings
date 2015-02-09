@@ -13,12 +13,10 @@
 "DeviceTableViewCell.notAvailableType.applewatch"="Apple Watch";
 "DeviceTableViewCell.notAvailable"="%@";
 
-"LiveSessionController.sessionStatsTitle"="Session %@";
-"LiveSessionController.sessionStatsDetail"="%d bytes, %d packets";
-"LiveSessionController.devices"="Devices";
-"LiveSessionController.sensors"="Sensors";
 "LiveSessionController.exercise"="Exercise";
 "LiveSessionController.elapsed"="Elapsed %d:%02d";
+
+"LiveSessionDevicesController.stats"="%d bytes, %d packets";
 
 "PublicProfileController.pictures"="Pictures";
 "PublicProfileController.profile"="Profile";
@@ -28,6 +26,8 @@
 "PublicProfileController.followingDetail"="%d users";
 "PublicProfileController.followersText"="Followers";
 "PublicProfileController.followersDetail"="%d users";
+"PublicProfileController.buddiesText"="Gym buddies";
+"PublicProfileController.buddiesDetail"="%d gym buddies";
 
 "HomeController.SessionSuggestions"="Suggestions";
 "HomeController.SessionSummaries"="Sessions";
@@ -59,3 +59,16 @@
 "Retry?"="Retry?";
 "Home"="Home";
 
+"Devices"="Devices";
+"Sensors"="Sensors";
+
+"Wrist"="Wrist";
+"Waist"="Waist";
+"Chest"="Chest";
+"Foot"="Foot";
+"Any"="Any";
+"WristDescription"="Left or right wrist";
+"WaistDescription"="Pocket or belt";
+"ChestDescription"="Across the chest";
+"FootDescription"="Left or right ankle";
+"AnyDescription"="Any location";

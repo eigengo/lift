@@ -88,8 +88,11 @@ class SensorDataGroup {
             let count = header[1]
             let samplesPerSecond = header[2]
             let sampleSize = header[3]
-            
+
             let length = Int(count) * Int(sampleSize)
+            if data.length < headerSize + length {
+                fatalError("Received \(data.length) bytes, expected \(headerSize + length)")
+            }
             let key = SensorDataArrayHeader(sourceDeviceId: id, type: type, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond)
             let samples = data.subdataWithRange(NSMakeRange(headerSize, length))
             let sensorData = SensorData(startTime: time, samples: samples)
@@ -213,8 +216,50 @@ struct ContinuousSensorDataArray {
     /// the continuous (possibly padded) SensorData
     var sensorData: SensorData
     
-    func encode(mutating data: NSMutableData) {
+    ///
+    /// Encodes the date here into the form that was received from the server.
+    /// 
+    /// Given
+    ///
+    /// input = [type,...,|#########], that is some bytes of the given ``type``
+    /// received from device with ``deviceId``
+    /// 
+    /// When
+    /// 
+    /// result = NSMutableData()
+    /// sdg = SensorDataGroup()
+    /// sdg.decodeAndAdd(input, ...)
+    /// sdg.continuousSensorDataArrays(...)
+    ///    .find { $0.header.sourceDeviceId == deviceId && $0.header.type == type }!
+    ///    .encode(mutating: result)
+    /// 
+    /// Then
+    ///
+    /// result = input
+    ///
+    func encode(mutating data: NSMutableData) -> Void {
+        let c = sensorData.samples.length / Int(header.sampleSize)
+        if c > 255 { fatalError("Too many samples. Consider changing count to be uint16_t.") }
+        let count = UInt8(c)
+        data.appendUInt8(header.type)
+        data.appendUInt8(count)
+        data.appendUInt8(header.samplesPerSecond)
+        data.appendUInt8(header.sampleSize)
+        data.appendUInt8(0)
         
+        data.appendData(sensorData.samples)
+        
+    }
+    
+    ///
+    /// Computes the entire length of this CSDA. This is the number of 
+    /// bytes that will be appended when calling the ``encode(mutating:)`` method
+    ///
+    var length: Int {
+        get {
+            // We *know* that the header is 5B long
+            return 5 + sensorData.samples.length
+        }
     }
 }
 

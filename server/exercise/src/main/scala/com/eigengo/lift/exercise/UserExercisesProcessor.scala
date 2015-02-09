@@ -5,7 +5,6 @@ import akka.contrib.pattern.ShardRegion
 import akka.persistence.SnapshotOffer
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import java.io.FileOutputStream
-import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
 import com.eigengo.lift.exercise.classifiers.ExerciseModelChecking
 import scala.language.postfixOps
 import scalaz.\/
@@ -276,7 +275,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
   private val userId = UserId(self.path.name)
 
   // decoders
-  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder)
+  private val rootSensorDataDecoder = RootSensorDataDecoder(AccelerometerDataDecoder, RotationDataDecoder)
 
   // tracing output
   /*private val tracing = */context.actorOf(UserExercisesTracing.props(userId))
@@ -301,17 +300,22 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       persist(Seq(SessionAbandonedEvt(oldSessionId), SessionStartedEvt(newSessionId, sessionProps))) { case _ :: started :: Nil ⇒
         log.warning("Not yet handling processing of the data")
         sender() ! \/.right(())
-
-        // TODO: Implement proper replay handling. For now, we save the file and end the session.
-        val fos = new FileOutputStream(s"$newSessionId.mp")
-        fos.write(data)
-        fos.close()
-
-        persist(SessionEndedEvt(newSessionId)) { _ ⇒
-          unregisterModelChecking()
-          context.become(notExercising)
-        }
       }
+
+      // TODO: Implement proper replay handling. For now, we save the file and end the session.
+      val fos = new FileOutputStream(s"target/$newSessionId.mp")
+      fos.write(data)
+      fos.close()
+
+      persist(SessionEndedEvt(newSessionId)) { _ ⇒
+        log.info("ExerciseSessionReplayProcessData: replaying -> not exercising")
+        unregisterModelChecking()
+        context.become(notExercising)
+      }
+
+    case x ⇒
+      log.warning(s"Unexpected $x in replaying")
+      sender() ! \/.left(s"Unexpected in replaying $x")
   }
 
   private def exercising(id: SessionId, sessionProps: SessionProperties): Receive = withPassivation {
@@ -328,7 +332,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       }
 
     case ExerciseSessionEnd(`id`) ⇒
-      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
+      log.info("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionEndedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         unregisterModelChecking()
@@ -337,7 +341,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       }
 
     case ExerciseSessionAbandon(`id`) ⇒
-      log.debug("ExerciseSessionEnd: exercising -> not exercising.")
+      log.info("ExerciseSessionEnd: exercising -> not exercising.")
       persist(SessionAbandonedEvt(id)) { evt ⇒
         saveSnapshot(evt)
         unregisterModelChecking()
@@ -347,7 +351,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
 
     // packet from the mobile / wearables
     case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
-      log.debug("ExerciseDataProcess: exercising -> exercising.")
+      log.info("ExerciseDataProcess: exercising -> exercising.")
 
       if (classifier.isEmpty) {
         sender() ! \/.left("Attempted to classify multi-packet exercising data when no classifier was defined!")
@@ -378,7 +382,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
 
     // classification results
     case FullyClassifiedExercise(metadata, confidence, exercise) ⇒
-      log.debug("FullyClassifiedExercise: exercising -> exercising.")
+      log.info("FullyClassifiedExercise: exercising -> exercising.")
       persist(ExerciseEvt(id, metadata, exercise)) { evt ⇒ }
 
     case Tap ⇒
@@ -388,13 +392,19 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
 
     case NoExercise(metadata) ⇒
       persist(NoExerciseEvt(id, metadata)) { evt ⇒ }
+
+    case x ⇒
+      log.warning(s"Unexpected $x in exercising")
+      sender() ! \/.left(s"Unexpected in exercising $x")
   }
 
   private def notExercising: Receive = withPassivation {
     case ExerciseSessionStart(sessionProps) ⇒
+      log.info(s"ExerciseSessionStart: not exercising -> exercising")
       persist(SessionStartedEvt(SessionId.randomId(), sessionProps)) { evt ⇒
         saveSnapshot(evt)
         sender() ! \/.right(evt.sessionId)
+        log.info(s"-> exercising(${evt.sessionId})")
         registerModelChecking(sessionProps)
         context.become(exercising(evt.sessionId, sessionProps))
       }
@@ -402,6 +412,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
     case ExerciseSessionReplayStart(oldSessionId, sessionProps) ⇒
       val newSessionId = SessionId.randomId()
       sender() ! \/.right(newSessionId)
+      log.info(s"ExerciseSessionReplayStart: not exercising -> replaying($newSessionId)")
       unregisterModelChecking()
       context.become(replaying(oldSessionId, newSessionId, sessionProps))
 
@@ -412,6 +423,10 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       persistAndProduceToKafka(SessionDeletedEvt(sessionId)) { evt ⇒
         sender() ! \/.right(())
       }
+
+    case x ⇒
+      log.warning(s"Unexpected $x in not exercising")
+      sender() ! \/.left(s"Unexpected in not exercising $x")
   }
 
   override def receiveCommand: Receive = notExercising
