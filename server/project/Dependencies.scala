@@ -100,7 +100,6 @@ object Dependencies {
       .exclude("org.slf4j", "slf4j-api")
       .exclude("org.apache.spark", "spark-core_2.10")
       .exclude("commons-logging", "commons-logging")
-      .exclude("org.apache.hadoop", "hadoop-yarn-api")
   }
 
   val typesafeConfig   = "com.typesafe" % "config" % "1.2.1"

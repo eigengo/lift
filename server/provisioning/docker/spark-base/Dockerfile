@@ -10,12 +10,12 @@ ENV SPARK_HOME /opt/spark-$SPARK_VERSION
 ENV PATH $SPARK_HOME:$SCALA_HOME/bin:$PATH
 
 # install a few other useful packages plus Open Jdk 7
-RUN yum install -y wget unzip zip tar git \
-    java-1.6.0-openjdk-devel java-1.7.0-openjdk-devel
-#RUN yum -y -q install java-1.8.0-openjdk java-1.8.0-openjdk-devel
+#RUN yum install -y wget unzip zip tar git \
+#    java-1.6.0-openjdk-devel java-1.7.0-openjdk-devel
+RUN yum -y -q install java-1.8.0-openjdk java-1.8.0-openjdk-devel
 
 #apt-get update && apt-get upgrade -y && apt-get install -y less openjdk-7-jre-headless net-tools vim-tiny sudo openssh-server iputils-ping python2.7
-ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
 # Install Scala
 ADD http://www.scala-lang.org/files/archive/scala-$SCALA_VERSION.tgz /
