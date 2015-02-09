@@ -37,6 +37,7 @@
 		545E06061A304CBD00AB633B /* ExerciseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06051A304CBD00AB633B /* ExerciseModel.swift */; };
 		545E06081A304D3100AB633B /* LiftServerURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E06071A304D3100AB633B /* LiftServerURLs.swift */; };
 		545E06101A30540A00AB633B /* ExerciseIntensityKey+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */; };
+		545E4F851A88F38000A009AB /* LiveSessionSensorDataGroupController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545E4F841A88F38000A009AB /* LiveSessionSensorDataGroupController.swift */; };
 		54614BB81A7EA9D000B34C75 /* SensorData+Printable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */; };
 		54614BB91A7EA9D500B34C75 /* SensorData+Printable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */; };
 		546336381A338A1600004FAA /* MuscleGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546336371A338A1600004FAA /* MuscleGroupView.swift */; };
@@ -219,6 +220,7 @@
 		545E06051A304CBD00AB633B /* ExerciseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExerciseModel.swift; sourceTree = "<group>"; };
 		545E06071A304D3100AB633B /* LiftServerURLs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerURLs.swift; sourceTree = "<group>"; };
 		545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseIntensityKey+Color.swift"; sourceTree = "<group>"; };
+		545E4F841A88F38000A009AB /* LiveSessionSensorDataGroupController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveSessionSensorDataGroupController.swift; sourceTree = "<group>"; };
 		54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorData+Printable.swift"; sourceTree = "<group>"; };
 		546336371A338A1600004FAA /* MuscleGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MuscleGroupView.swift; sourceTree = "<group>"; };
 		54680BA21A332DE0004FC897 /* LiftServerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServerCache.swift; sourceTree = "<group>"; };
@@ -365,22 +367,27 @@
 		5405D78C1A87DC6A0037382A /* Exercise */ = {
 			isa = PBXGroup;
 			children = (
+				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
+				549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */,
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
 				5405D78A1A87DC500037382A /* LiveSessionController.swift */,
 				54CC699E19C4AD8E00B29EC8 /* LiveSessionDevicesController.swift */,
+				545E4F841A88F38000A009AB /* LiveSessionSensorDataGroupController.swift */,
 				54DF27DF1A87E2D300DB1323 /* LiveSession.storyboard */,
 			);
 			name = Exercise;
 			sourceTree = "<group>";
 		};
-		5405D78D1A87DC7A0037382A /* Profile */ = {
+		5405D78D1A87DC7A0037382A /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
+				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				547F64791A2E4FB400F887EE /* PublicProfileController.swift */,
 				543911951A852745001EC62A /* DeviceSettingsController.swift */,
 			);
-			name = Profile;
+			name = Home;
 			sourceTree = "<group>";
 		};
 		540894451A2F4E18009FDD10 /* AccelerometerData */ = {
@@ -539,12 +546,8 @@
 				5427CDEE19C60530005C9B4E /* Lift.entitlements */,
 				54CC699C19C4AD8E00B29EC8 /* AppDelegate.swift */,
 				54F780B51A276E8700E4F3C5 /* AccountViewController.swift */,
-				54D8DD2B1A2E59FA0005E2ED /* ExerciseSession.swift */,
-				549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */,
-				54C6EFE31A2F899A0044BDAB /* HomeController.swift */,
-				54C6EFE91A2F8FF00044BDAB /* SessionDetailController.swift */,
 				5405D78C1A87DC6A0037382A /* Exercise */,
-				5405D78D1A87DC7A0037382A /* Profile */,
+				5405D78D1A87DC7A0037382A /* Home */,
 				54CC69A019C4AD8E00B29EC8 /* Main.storyboard */,
 				54CC69A319C4AD8E00B29EC8 /* Images.xcassets */,
 				54CC55EB19EED8B900F705F7 /* Lift-Bridging-Header.h */,
@@ -975,6 +978,7 @@
 				54C6EFDC1A2F5E650044BDAB /* Predef.swift in Sources */,
 				54E99EDE1A76997A00BA1BD3 /* DeviceInfo+Localization.swift in Sources */,
 				54CC699D19C4AD8E00B29EC8 /* AppDelegate.swift in Sources */,
+				545E4F851A88F38000A009AB /* LiveSessionSensorDataGroupController.swift in Sources */,
 				547F647A1A2E4FB400F887EE /* PublicProfileController.swift in Sources */,
 				54C6EFD91A2F5E650044BDAB /* Box.swift in Sources */,
 				543911961A852745001EC62A /* DeviceSettingsController.swift in Sources */,

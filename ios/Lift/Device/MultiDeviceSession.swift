@@ -97,6 +97,15 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
         }
     }
     
+    ///
+    /// Returns the currently held sensorDataGroup
+    ///
+    var sensorDataGroup: SensorDataGroup {
+        get {
+            return sensorDataGroupBuffer.sensorDataGroup
+        }
+    }
+    
     override func stop() {
         for d in devices { d.stop() }
         sensorDataGroupBuffer.stop()
