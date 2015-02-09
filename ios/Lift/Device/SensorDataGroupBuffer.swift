@@ -6,6 +6,8 @@ protocol SensorDataGroupBufferDelegate {
     
     func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedAt time: CFAbsoluteTime, data: NSData)
     
+    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, encodingSensorDataGroup group: SensorDataGroup)
+    
 }
 
 ///
@@ -55,8 +57,9 @@ class SensorDataGroupBuffer {
     
     /* mutating */
     func encodeWindow() {
-        NSLog("encodeWindow(): sensorDataGroup.rawCount = %d, sensorDataGroup.length = %d", sensorDataGroup.rawCount, sensorDataGroup.length)
         if let x = lastDecodeTime {
+            delegate.sensorDataGroupBuffer(self, encodingSensorDataGroup: sensorDataGroup)
+            
             let start = x - windowDelay - windowSize
             let end   = x - windowDelay
             
@@ -76,11 +79,8 @@ class SensorDataGroupBuffer {
                 }
                 
                 delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedAt: start, data: result)
-                NSLog("INFO: Data \(result.length)")
                 sensorDataGroup.removeSensorDataArraysEndingBefore(start - windowSize)
-            } else {
-                NSLog("WARN: Empty range \(start) - \(end)")
-            }
+            } 
         }
         
     }

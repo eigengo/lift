@@ -8,7 +8,8 @@ protocol MultiDeviceSessionSettable {
     
 }
 
-class LiveSessionController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ExerciseSessionSettable, DeviceSessionDelegate, DeviceDelegate {
+class LiveSessionController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ExerciseSessionSettable,
+    DeviceSessionDelegate, DeviceDelegate, MultiDeviceSessionDelegate {
     private var multi: MultiDeviceSession?
     private var timer: NSTimer?
     private var startTime: NSDate?
@@ -71,7 +72,7 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
             nc.navigationBar.addSubview(pageControl)
         }
         
-        viewControllers.foreach(updateMulti)
+        viewControllers.foreach(updateMulti(multi))
         startTime = NSDate()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }
@@ -90,14 +91,16 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     // MARK: ExerciseSessionSettable
     func setExerciseSession(session: ExerciseSession) {
         self.exerciseSession = session
-        multi = MultiDeviceSession(deviceDelegate: self, deviceSessionDelegate: self)
+        multi = MultiDeviceSession(delegate: self, deviceDelegate: self, deviceSessionDelegate: self)
         multi!.start()
         UIApplication.sharedApplication().idleTimerDisabled = true
     }
     
-    private func updateMulti(ctrl: AnyObject) {
-        if let x = ctrl as? MultiDeviceSessionSettable {
-            if let m = multi { x.setMultiDeviceSession(m) }
+    private func updateMulti(multi: MultiDeviceSession?) -> (AnyObject) -> Void {
+        return { ctrl in
+            if let x = ctrl as? MultiDeviceSessionSettable {
+                if let m = multi { x.setMultiDeviceSession(m) }
+            }
         }
     }
     
@@ -123,6 +126,11 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
         }
     }
     
+    // MARK: MultiDeviceSessionDelegate
+    func multiDeviceSession(session: MultiDeviceSession, encodingSensorDataGroup group: SensorDataGroup) {
+        viewControllers.foreach(updateMulti(multi))
+    }
+    
     // MARK: DeviceSessionDelegate
     func deviceSession(session: DeviceSession, endedFrom deviceId: DeviceId) {
         end()
@@ -137,7 +145,7 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
             x.submitData(data, f: const(()))
             
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                viewControllers.foreach(updateMulti)
+                viewControllers.foreach(updateMulti(multi))
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
@@ -146,11 +154,11 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        viewControllers.foreach(updateMulti)
+        viewControllers.foreach(updateMulti(multi))
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        viewControllers.foreach(updateMulti)
+        viewControllers.foreach(updateMulti(multi))
     }
     
     func deviceAppLaunched(deviceId: DeviceId) {
@@ -162,11 +170,11 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     }
     
     func deviceDidNotConnect(error: NSError) {
-        viewControllers.foreach(updateMulti)
+        viewControllers.foreach(updateMulti(multi))
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        viewControllers.foreach(updateMulti)
+        viewControllers.foreach(updateMulti(multi))
     }
     
 }

@@ -10,6 +10,10 @@ class SensorDataGroupBufferTests : XCTestCase {
             NSLog("**** Got %@", data)
             self.data = data
         }
+        
+        func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, encodingSensorDataGroup group: SensorDataGroup) {
+            
+        }
     }
     
     func testContinuous() {

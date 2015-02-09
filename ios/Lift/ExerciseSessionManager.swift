@@ -166,7 +166,6 @@ class ExerciseSessionManager {
         }
         
         func remove() {
-            NSLog("Removed %@", rootPath)
             NSFileManager.defaultManager().removeItemAtPath(rootPath, error: nil)
         }
         
@@ -175,8 +174,6 @@ class ExerciseSessionManager {
             handle.seekToEndOfFile()
             handle.writeData(mp)
             handle.closeFile()
-            
-            NSLog("Written to %@", allMultiPacketsFileName)
         }
         
     }

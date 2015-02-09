@@ -7,6 +7,7 @@ extension ThisDeviceSession {
         private let motionManager: CMMotionManager!
         private let queue: NSOperationQueue! = NSOperationQueue.mainQueue()
         private let outer: ThisDeviceSession!
+        private let samplesPerPacket = 40 //DevicePace.samplesPerPacket 
 
         private var count: Int = 0
         private var userAccelerationBuffer: NSMutableData!
@@ -56,9 +57,8 @@ extension ThisDeviceSession {
                 data.appendBytes(&buffer, length: 5)
             }
             
-            if count == DevicePace.samplesPerPacket {
+            if count == samplesPerPacket {
                 // Update our stats
-                NSLog("Buffer with \(userAccelerationBuffer.length) with count \(count)")
                 outer.updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
                     return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.userAccelerationBuffer.length, packets: prev.packets + 1)
                 })
@@ -84,7 +84,7 @@ extension ThisDeviceSession {
         }
         
         private func emptyAccelerationLikeBuffer(type: UInt8) -> NSMutableData {
-            let header: [UInt8] = [ type, 124, 100, 5, 0 ]
+            let header: [UInt8] = [ type, UInt8(samplesPerPacket), 100, 5, 0 ]
             return NSMutableData(bytes: header, length: 5)
         }
 
