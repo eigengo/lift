@@ -18,6 +18,8 @@
 		5405D78B1A87DC500037382A /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5405D78A1A87DC500037382A /* LiveSessionController.swift */; };
 		540A1AC11A78073200F5D84B /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540A1AC01A78073200F5D84B /* SensorData.swift */; };
 		541C41D41A797FD300F49124 /* SensorDataProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 541C41D31A797FD300F49124 /* SensorDataProtocol.c */; };
+		542037861A8959DC00839A59 /* SensorData+Time.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542037851A8959DC00839A59 /* SensorData+Time.swift */; };
+		542037871A8959DC00839A59 /* SensorData+Time.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542037851A8959DC00839A59 /* SensorData+Time.swift */; };
 		54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */; };
 		54231EB01A49DC8500F7C640 /* NSError+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */; };
 		5427CDEB19C5F259005C9B4E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5427CDEA19C5F259005C9B4E /* CoreMotion.framework */; };
@@ -202,6 +204,7 @@
 		540A1AB71A78034100F5D84B /* SensorDataProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SensorDataProtocol.h; sourceTree = "<group>"; };
 		540A1AC01A78073200F5D84B /* SensorData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorData.swift; sourceTree = "<group>"; };
 		541C41D31A797FD300F49124 /* SensorDataProtocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SensorDataProtocol.c; sourceTree = "<group>"; };
+		542037851A8959DC00839A59 /* SensorData+Time.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorData+Time.swift"; sourceTree = "<group>"; };
 		54204A031A4E08F800DAF6C0 /* UserModel+Marshalling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserModel+Marshalling.swift"; sourceTree = "<group>"; };
 		54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSError+Convenience.swift"; sourceTree = "<group>"; };
 		5427CDE819C5F203005C9B4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -421,8 +424,9 @@
 				540A1AB71A78034100F5D84B /* SensorDataProtocol.h */,
 				541C41D31A797FD300F49124 /* SensorDataProtocol.c */,
 				540A1AC01A78073200F5D84B /* SensorData.swift */,
-				54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */,
+				542037851A8959DC00839A59 /* SensorData+Time.swift */,
 				54614BB71A7EA9D000B34C75 /* SensorData+Printable.swift */,
+				54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -1014,6 +1018,7 @@
 				54B562261A7793B000F6FD5D /* DeviceSession.swift in Sources */,
 				54849C6D1A531DA8007CDCC2 /* UIImage+Effects.swift in Sources */,
 				54B0A3BC1A80D6A400346AD6 /* SensorDataGroupBuffer.swift in Sources */,
+				542037861A8959DC00839A59 /* SensorData+Time.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1046,6 +1051,7 @@
 				546D72CA1A79825A009C9629 /* SensorDataProtocol.c in Sources */,
 				54877F3C1A7A757D00C5130F /* SensorDataGroupTests.swift in Sources */,
 				54988A911A8556E300446DC2 /* LiftUserDefaults.swift in Sources */,
+				542037871A8959DC00839A59 /* SensorData+Time.swift in Sources */,
 				54877F3A1A7A46FB00C5130F /* SensorDataArrayTests.swift in Sources */,
 				54AECC491A76B022008BD812 /* DeviceSessionDelegate.swift in Sources */,
 				54ED4EB11A6C547B00490DA7 /* LiftServerURLs.swift in Sources */,

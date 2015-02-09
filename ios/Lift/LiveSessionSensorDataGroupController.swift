@@ -14,51 +14,6 @@ class LiveSessionSensorDataGroupController : UIViewController, MultiDeviceSessio
     
 }
 
-extension SensorDataGroup {
-
-    ///
-    /// Returns the start time of the earliest block of data
-    ///
-    var startTime: CFAbsoluteTime? {
-        get {
-            return sensorDataArrays.flatMap { $0.startTime }.minBy(identity)
-        }
-    }
-    
-    ///
-    /// Returns the end time of the last block of data
-    ///
-    var endTime: CFAbsoluteTime? {
-        get {
-            return sensorDataArrays.flatMap { $0.endTime }.maxBy(identity)
-        }
-    }
-    
-}
-
-
-extension SensorDataArray {
-    
-    ///
-    /// Returns the start time of the earliest block of data
-    ///
-    var startTime: CFAbsoluteTime? {
-        get {
-            return sensorDatas.map { $0.startTime }.minBy(identity)
-        }
-    }
-    
-    ///
-    /// Returns the end time of the last block of data
-    ///
-    var endTime: CFAbsoluteTime? {
-        get {
-            return sensorDatas.map { $0.endTime(self.header.sampleSize, samplesPerSecond: self.header.samplesPerSecond) }.maxBy(identity)
-        }
-    }
-    
-}
-
 class SensorDataGroupView : UIView {
     var sensorDataGroup: SensorDataGroup?
     
@@ -86,7 +41,6 @@ class SensorDataGroupView : UIView {
             }
             
         }
-        
         
         let context = UIGraphicsGetCurrentContext()
         if let sdg = sensorDataGroup {
