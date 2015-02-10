@@ -28,7 +28,7 @@ extension NSMutableData {
     }
     
     /// Appends the given bytes to this data
-    private func appendBytes(value: [UInt8]) -> Void {
+    func appendBytes(value: [UInt8]) -> Void {
         var bytes = value
         self.appendBytes(&bytes, length: value.count)
     }

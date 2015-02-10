@@ -11,7 +11,7 @@ protocol SensorDataGroupBufferDelegate {
 }
 
 ///
-///
+/// Collects, buffers and marks data for transfer.
 ///
 class SensorDataGroupBuffer {
     var sensorDataGroup: SensorDataGroup = SensorDataGroup()
@@ -49,12 +49,12 @@ class SensorDataGroupBuffer {
         
         if let range = sensorDataGroup.range {
             if range.length > windowSize + windowDelay {
-                if !sensorDataGroup.endTimesAlignWithin(maximumGap: 0.2) { return }
 
-                let start = range.end - windowSize
-                let end   = range.end
+                let start  = range.start
+                let end    = range.start + windowSize
+                let window = TimeRange(start: start, end: end)
                 
-                let csdas = sensorDataGroup.continuousSensorDataArrays(within: TimeRange(start: start, end: end), maximumGap: 0.2, gapValue: 0x00)
+                let csdas = sensorDataGroup.continuousSensorDataArrays(within: window, maximumGap: window.length, gapValue: 0x00)
                 counter += 1
                 if !csdas.isEmpty {
                     if csdas.count > 255 { fatalError("Too many sensors") }
@@ -69,10 +69,8 @@ class SensorDataGroupBuffer {
                         csda.encode(mutating: result)
                     }
                     
-                    delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedRange: TimeRange(start: start, end: end), data: result)
-                    if !csdas.isEmpty {
-                        sensorDataGroup.removeSensorDataArraysEndingBefore(start)
-                    }
+                    delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedRange: window, data: result)
+                    sensorDataGroup.removeSensorDataArraysEndingBefore(end)
                 }
             }
         }

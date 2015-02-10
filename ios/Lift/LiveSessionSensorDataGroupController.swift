@@ -97,7 +97,7 @@ class SensorDataGroupView : UIView {
         let context = UIGraphicsGetCurrentContext()
         if let sdg = sensorDataGroup {
             if let st = sdg.startTime {
-                drawLayer(context, sdg, st)
+                drawLayer(context, sdg, st - 2.0)
                 drawTimeGrid(context)
             }
         }
