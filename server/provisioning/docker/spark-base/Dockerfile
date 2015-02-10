@@ -22,7 +22,7 @@ ADD http://www.scala-lang.org/files/archive/scala-$SCALA_VERSION.tgz /
 RUN (cd / && gunzip < scala-$SCALA_VERSION.tgz)|(cd /opt && tar -xvf -)
 RUN rm /scala-$SCALA_VERSION.tgz
 
-# Install Spark 
+# Install Spark
 ADD http://d3kbcqa49mib13.cloudfront.net/spark-$SPARK_VERSION-bin-hadoop2.4.tgz /
 RUN (cd / && gunzip < spark-$SPARK_VERSION-bin-hadoop2.4.tgz)|(cd /opt && tar -xvf -)
 RUN (ln -s /opt/spark-$SPARK_VERSION-bin-hadoop2.4 /opt/spark-$SPARK_VERSION && rm /spark-$SPARK_VERSION-bin-hadoop2.4.tgz)
