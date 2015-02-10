@@ -143,25 +143,6 @@ object ExerciseModel {
   }
 
   /**
-   * Convenience function that determines if a query is propositional (i.e. contains no dynamic path subformula).
-   */
-  def propositional(query: Query): Boolean = query match {
-    case Exists(_, _) | All(_, _) =>
-      false
-
-    case Formula(_) | TT | FF =>
-      true
-
-    case And(query1, query2, remaining @ _*) =>
-      val result = (query1 +: query2 +: remaining).map(propositional)
-      result.forall(_ => true)
-
-    case Or(query1, query2, remaining @ _*) =>
-      val result = (query1 +: query2 +: remaining).map(propositional)
-      result.forall(_ => true)
-  }
-
-  /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
   def End(location: SensorDataSourceLocation): Query = All(Test(Formula(Assert(location, True))), FF)
