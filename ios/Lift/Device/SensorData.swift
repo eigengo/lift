@@ -52,13 +52,14 @@ func ==(lhs: SensorKind, rhs: SensorKind) -> Bool {
 struct TimeRange : Equatable {
     var start: CFAbsoluteTime
     var end: CFAbsoluteTime
-    
+
     ///
-    /// Intersection of ``self`` and ``that``, returning a ``TimeRange`` that contains both
-    /// self and that.
+    /// Computers the length of this interval
     ///
-    func intersect(that: TimeRange) -> TimeRange {
-        fatalError("Implement me")
+    var length: CFTimeInterval {
+        get {
+            return end - start
+        }
     }
     
     ///

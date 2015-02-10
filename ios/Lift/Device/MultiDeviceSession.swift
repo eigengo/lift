@@ -20,6 +20,8 @@ protocol MultiDeviceSessionDelegate {
     
     func multiDeviceSession(session: MultiDeviceSession, encodingSensorDataGroup group: SensorDataGroup)
     
+    func multiDeviceSession(session: MultiDeviceSession, continuousSensorDataEncodedRange range: TimeRange)
+    
 }
 
 ///
@@ -169,8 +171,9 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
     
     // MARK: SensorDataGroupBufferDelegate implementation
     
-    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedAt time: CFAbsoluteTime, data: NSData) {
+    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedRange range: TimeRange, data: NSData) {
         deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: multiDeviceId, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
+        delegate.multiDeviceSession(self, continuousSensorDataEncodedRange: range)
     }
     
     func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, encodingSensorDataGroup group: SensorDataGroup) {

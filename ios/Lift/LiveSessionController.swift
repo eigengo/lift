@@ -4,7 +4,9 @@ import UIKit
 @objc
 protocol MultiDeviceSessionSettable {
     
-    func setMultiDeviceSession(multi: MultiDeviceSession)
+    func multiDeviceSessionEncoding(session: MultiDeviceSession)
+    
+    func mutliDeviceSession(session: MultiDeviceSession, continuousSensorDataEncodedBetween start: CFAbsoluteTime, and end: CFAbsoluteTime)
     
 }
 
@@ -72,7 +74,7 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
             nc.navigationBar.addSubview(pageControl)
         }
         
-        viewControllers.foreach(updateMulti(multi))
+        multiDeviceSessionEncoding(multi)
         startTime = NSDate()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }
@@ -96,10 +98,20 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
         UIApplication.sharedApplication().idleTimerDisabled = true
     }
     
-    private func updateMulti(multi: MultiDeviceSession?) -> (AnyObject) -> Void {
-        return { ctrl in
-            if let x = ctrl as? MultiDeviceSessionSettable {
-                if let m = multi { x.setMultiDeviceSession(m) }
+    private func multiDeviceSessionEncoding(session: MultiDeviceSession?) {
+        if let x = session {
+            viewControllers.foreach { e in
+                if let s = e as? MultiDeviceSessionSettable {
+                    s.multiDeviceSessionEncoding(x)
+                }
+            }
+        }
+    }
+    
+    private func multiDeviceSession(session: MultiDeviceSession, continuousSensorDataEncodedBetween start: CFAbsoluteTime, and end: CFAbsoluteTime) {
+        viewControllers.foreach { e in
+            if let s = e as? MultiDeviceSessionSettable {
+                s.mutliDeviceSession(session, continuousSensorDataEncodedBetween: start, and: end)
             }
         }
     }
@@ -128,7 +140,11 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     
     // MARK: MultiDeviceSessionDelegate
     func multiDeviceSession(session: MultiDeviceSession, encodingSensorDataGroup group: SensorDataGroup) {
-        viewControllers.foreach(updateMulti(multi))
+        multiDeviceSessionEncoding(multi)
+    }
+    
+    func multiDeviceSession(session: MultiDeviceSession, continuousSensorDataEncodedRange range: TimeRange) {
+        multiDeviceSession(session, continuousSensorDataEncodedBetween: range.start, and: range.end)
     }
     
     // MARK: DeviceSessionDelegate
@@ -145,7 +161,7 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
             x.submitData(data, f: const(()))
             
             if UIApplication.sharedApplication().applicationState != UIApplicationState.Background {
-                viewControllers.foreach(updateMulti(multi))
+                multiDeviceSessionEncoding(multi)
             }
         } else {
             RKDropdownAlert.title("Internal inconsistency", message: "AD received, but no sessionId.", backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3)
@@ -154,11 +170,11 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     
     // MARK: DeviceDelegate
     func deviceGotDeviceInfo(deviceId: DeviceId, deviceInfo: DeviceInfo) {
-        viewControllers.foreach(updateMulti(multi))
+        multiDeviceSessionEncoding(multi)
     }
     
     func deviceGotDeviceInfoDetail(deviceId: DeviceId, detail: DeviceInfo.Detail) {
-        viewControllers.foreach(updateMulti(multi))
+        multiDeviceSessionEncoding(multi)
     }
     
     func deviceAppLaunched(deviceId: DeviceId) {
@@ -170,11 +186,11 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
     }
     
     func deviceDidNotConnect(error: NSError) {
-        viewControllers.foreach(updateMulti(multi))
+        multiDeviceSessionEncoding(multi)
     }
     
     func deviceDisconnected(deviceId: DeviceId) {
-        viewControllers.foreach(updateMulti(multi))
+        multiDeviceSessionEncoding(multi)
     }
     
 }
