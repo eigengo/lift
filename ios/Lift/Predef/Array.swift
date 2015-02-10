@@ -17,6 +17,48 @@ extension Array {
         }
     }
     
+    private func comparingBy<C : Comparable>(value: Element -> C, compare: (C, C) -> Bool) -> Element? {
+        if isEmpty { return nil }
+        var (r, vr) = (first!, value(first!))
+        for e in self {
+            let ve = value(e)
+            if compare(ve, vr) {
+                (r, vr) = (e, ve)
+            }
+        }
+        
+        return r
+    }
+
+    ///
+    /// Return minimum element by applying ``value`` to each element to determine
+    /// its comparable value
+    ///
+    func minBy<C : Comparable>(value: Element -> C) -> Element? {
+        return comparingBy(value) { $0 < $1 }
+    }
+    
+    ///
+    /// Returns the maximum element by applying ``value`` to each element to determine
+    /// its comparable value
+    ///
+    func maxBy<C : Comparable>(value: Element -> C) -> Element? {
+        return comparingBy(value) { $0 > $1 }
+    }
+    
+    ///
+    /// Flat maps all elements by applying ``f``
+    ///
+    func flatMap<That>(f: Element -> That?) -> [That] {
+        var r: [That] = []
+        for e in self {
+            if let x = f(e) {
+                r += [x]
+            }
+        }
+        return r
+    }
+    
     ///
     /// Returns the index of the first element that satisfies ``predicate``
     ///

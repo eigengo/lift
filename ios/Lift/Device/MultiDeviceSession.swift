@@ -16,6 +16,14 @@ struct ConnectedDeviceInfo {
     }
 }
 
+protocol MultiDeviceSessionDelegate {
+    
+    func multiDeviceSession(session: MultiDeviceSession, encodingSensorDataGroup group: SensorDataGroup)
+    
+    func multiDeviceSession(session: MultiDeviceSession, continuousSensorDataEncodedRange range: TimeRange)
+    
+}
+
 ///
 /// Packs togehter multiple devices
 ///
@@ -31,11 +39,13 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
     private var sensorDataGroupBuffer: SensorDataGroupBuffer!
     private let deviceSessionDelegate: DeviceSessionDelegate!
     private let deviceDelegate: DeviceDelegate!
+    private let delegate: MultiDeviceSessionDelegate!
     
-    required init(deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate) {
+    required init(delegate: MultiDeviceSessionDelegate, deviceDelegate: DeviceDelegate, deviceSessionDelegate: DeviceSessionDelegate) {
         // Multi device's ID is all zeros
         self.deviceSessionDelegate = deviceSessionDelegate
         self.deviceDelegate = deviceDelegate
+        self.delegate = delegate
         super.init()
         
         self.sensorDataGroupBuffer = SensorDataGroupBuffer(delegate: self, queue: dispatch_get_main_queue(), deviceLocations: { LiftUserDefaults.getLocation(deviceId: $0) })
@@ -97,6 +107,15 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
         }
     }
     
+    ///
+    /// Returns the currently held sensorDataGroup
+    ///
+    var sensorDataGroup: SensorDataGroup {
+        get {
+            return sensorDataGroupBuffer.sensorDataGroup
+        }
+    }
+    
     override func stop() {
         for d in devices { d.stop() }
         sensorDataGroupBuffer.stop()
@@ -152,8 +171,13 @@ class MultiDeviceSession : DeviceSession, DeviceSessionDelegate, DeviceDelegate,
     
     // MARK: SensorDataGroupBufferDelegate implementation
     
-    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedAt time: CFAbsoluteTime, data: NSData) {
+    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedRange range: TimeRange, data: NSData) {
         deviceSessionDelegate.deviceSession(self, sensorDataReceivedFrom: multiDeviceId, atDeviceTime: CFAbsoluteTimeGetCurrent(), data: data)
+        delegate.multiDeviceSession(self, continuousSensorDataEncodedRange: range)
+    }
+    
+    func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, encodingSensorDataGroup group: SensorDataGroup) {
+        delegate.multiDeviceSession(self, encodingSensorDataGroup: group)
     }
     
 }
