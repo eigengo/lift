@@ -7,25 +7,46 @@ extension ThisDeviceSession {
         private let motionManager: CMMotionManager!
         private let queue: NSOperationQueue! = NSOperationQueue.mainQueue()
         private let outer: ThisDeviceSession!
+        private let samplesPerPacket = 40 //DevicePace.samplesPerPacket 
 
         private var count: Int = 0
         private var userAccelerationBuffer: NSMutableData!
         private var rotationBuffer: NSMutableData!
+        #if arch(i386) || arch(x86_64)
+        private var timer: dispatch_source_t!
+        #endif
 
         init(outer: ThisDeviceSession) {
             self.outer = outer
             
             // CoreMotion initialization
+        #if arch(i386) || arch(x86_64)
+            timer = GCDTimer.createDispatchTimer(CFTimeInterval(0.01), queue: dispatch_get_main_queue(), block: { self.generateMotionData() })
+        #else
             motionManager = CMMotionManager()
             motionManager.deviceMotionUpdateInterval = NSTimeInterval(0.01)         // 10 ms ~> 100 Hz
             motionManager.startDeviceMotionUpdatesToQueue(queue, withHandler: processDeviceMotionData)
+        #endif
             userAccelerationBuffer = emptyAccelerationLikeBuffer(0xad)
             rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
         }
         
         func stop() {
+        #if arch(i386) || arch(x86_64)
+            dispatch_source_cancel(timer)
+        #else
             motionManager.stopDeviceMotionUpdates()
+        #endif
         }
+        
+        #if arch(i386) || arch(x86_64)
+        
+        func generateMotionData() {
+            processDeviceMotionData(DummyCMDeviceMotion(), error: nil)
+        }
+        
+        #endif
+        
 
         func processDeviceMotionData(data: CMDeviceMotion!, error: NSError!) -> Void {
             
@@ -56,9 +77,8 @@ extension ThisDeviceSession {
                 data.appendBytes(&buffer, length: 5)
             }
             
-            if count == DevicePace.samplesPerPacket {
+            if count == samplesPerPacket {
                 // Update our stats
-                NSLog("Buffer with \(userAccelerationBuffer.length) with count \(count)")
                 outer.updateStats(DeviceSessionStatsTypes.Key(sensorKind: .Accelerometer, deviceId: ThisDevice.Info.id), update: { prev in
                     return DeviceSessionStatsTypes.Entry(bytes: prev.bytes + self.userAccelerationBuffer.length, packets: prev.packets + 1)
                 })
@@ -84,10 +104,40 @@ extension ThisDeviceSession {
         }
         
         private func emptyAccelerationLikeBuffer(type: UInt8) -> NSMutableData {
-            let header: [UInt8] = [ type, 124, 100, 5, 0 ]
+            let header: [UInt8] = [ type, UInt8(samplesPerPacket), 100, 5, 0 ]
             return NSMutableData(bytes: header, length: 5)
         }
 
     }
     
 }
+
+#if arch(i386) || arch(x86_64)
+    class DummyCMDeviceMotion : CMDeviceMotion {
+        private let _userAcceleration: CMAcceleration!
+        private let _rotationRate: CMRotationRate!
+        
+        override init() {
+            _userAcceleration = CMAcceleration(x: 0, y: 0, z: 0)
+            _rotationRate = CMRotationRate(x: 0, y: 0, z: 0)
+            super.init()
+        }
+     
+        required init(coder aDecoder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+   
+        override var userAcceleration: CMAcceleration {
+            get {
+                return _userAcceleration
+            }
+        }
+        
+        override var rotationRate: CMRotationRate {
+            get {
+                return _rotationRate
+            }
+        }
+    }
+    
+#endif

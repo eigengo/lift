@@ -23,7 +23,7 @@ struct DeviceSessionStatsTypes {
         
         var hashValue: Int {
             get {
-                return sensorKind.hashValue + 21 * deviceId.hashValue
+                return sensorKind.hashValue ^ deviceId.hashValue
             }
         }
     }
@@ -38,7 +38,7 @@ struct DeviceSessionStatsTypes {
         
         var hashValue: Int {
             get {
-                return sensorKind.hashValue + 21 * deviceId.hashValue
+                return sensorKind.hashValue ^ deviceId.hashValue
             }
         }
     }
