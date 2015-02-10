@@ -1,5 +1,6 @@
 #pragma once
 #include "gfs.h"
+#include "queue.h"
 
 #define DL_TAG 0x0fb0
 
@@ -15,7 +16,7 @@ int am_last_error();
 char* am_last_error_text();
 int am_last_error_distance();
 int am_error_count();
-char* am_get_error_message(int code);
+int am_queue_length();
 
 #ifdef __cplusplus
 }

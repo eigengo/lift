@@ -12,18 +12,20 @@ static Layer *disc_layer;
 
 static AppTimer *timer;
 
+#define TEXT_LENGTH 150
+
 static void disc_layer_update_callback(Layer *me, GContext *ctx) {
     graphics_context_set_text_color(ctx, GColorWhite);
     GRect bounds = layer_get_frame(me);
 
-    char text[50];
+    char text[TEXT_LENGTH];
 
-    snprintf(text, 49, "Tag: %lx\nLE: %d %s\nLED: %d\nEC: %d\nP %d\n",
-    	am_tag(), am_last_error(), am_last_error_text(), am_last_error_distance(), am_error_count(), am_count());
+    snprintf(text, TEXT_LENGTH - 1, "Tag: %lx\nLE: %d %s\nLED: %d\nEC: %d\nP: %d\nQueue: %d\nUB: %d",
+    	am_tag(), am_last_error(), am_last_error_text(), am_last_error_distance(), am_error_count(), am_count(), am_queue_length(), heap_bytes_used());
 
     graphics_draw_text(ctx,
             text,
-            fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+            fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
             GRect(5, 5, bounds.size.w - 10, 100),
             GTextOverflowModeWordWrap,
             GTextAlignmentLeft,
