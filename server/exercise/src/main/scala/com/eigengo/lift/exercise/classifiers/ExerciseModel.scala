@@ -31,20 +31,23 @@ object ExerciseModel {
    *   and Marco Montali
    */
 
-  sealed trait SensorQuery
-  case object AllSensors extends SensorQuery
-  case object SomeSensor extends SensorQuery
-  case class NamedSensor(name: SensorDataSourceLocation) extends SensorQuery
+  sealed trait Proposition
 
-  def not(sensor: SensorQuery): SensorQuery = sensor match {
-    case AllSensors =>
-      SomeSensor
+  case class Assert(sensor: SensorDataSourceLocation, fact: Fact) extends Proposition
 
-    case SomeSensor =>
-      AllSensors
+  case class Conjunction(fact1: Proposition, fact2: Proposition, remainingFacts: Proposition*) extends Proposition
 
-    case _ =>
-      sensor
+  case class Disjunction(fact1: Proposition, fact2: Proposition, remainingFacts: Proposition*) extends Proposition
+
+  def not(fact: Proposition): Proposition = fact match {
+    case Assert(sensor, fact1) =>
+      Assert(sensor, ClassificationAssertions.not(fact1))
+
+    case Conjunction(fact1, fact2, remaining @ _*) =>
+      Disjunction(not(fact1), not(fact2), remaining.map(not): _*)
+
+    case Disjunction(fact1, fact2, remaining @ _*) =>
+      Conjunction(not(fact1), not(fact2), remaining.map(not): _*)
   }
 
   /**
@@ -52,7 +55,7 @@ object ExerciseModel {
    */
   sealed trait Path
 
-  case class Assert(sensor: SensorQuery, fact: Fact) extends Path // FIXME: what about the full range of propositional formulae?
+  case class AssertFact(fact: Proposition) extends Path
 
   case class Test(query: Query) extends Path
 
@@ -69,7 +72,7 @@ object ExerciseModel {
    * @param path path to be tested
    */
   def testOnly(path: Path): Boolean = path match {
-    case Assert(_, _) =>
+    case AssertFact(_) =>
       false
 
     case Test(_) =>
@@ -90,7 +93,7 @@ object ExerciseModel {
    */
   sealed trait Query
 
-  case class Formula(sensor: SensorQuery, fact: Fact) extends Query
+  case class Formula(fact: Proposition) extends Query
 
   case object TT extends Query
 
@@ -117,8 +120,8 @@ object ExerciseModel {
    * size of the query.
    */
   def not(query: Query): Query = query match {
-    case Formula(sensor, assertion) =>
-      Formula(not(sensor), ClassificationAssertions.not(assertion))
+    case Formula(fact) =>
+      Formula(not(fact))
 
     case TT =>
       FF
@@ -146,7 +149,7 @@ object ExerciseModel {
     case Exists(_, _) | All(_, _) =>
       false
 
-    case Formula(_, _) | TT | FF =>
+    case Formula(_) | TT | FF =>
       true
 
     case And(query1, query2, remaining @ _*) =>
@@ -161,12 +164,12 @@ object ExerciseModel {
   /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
-  val End: Query = All(Test(Formula(SomeSensor, True)), FF)
+  def End(location: SensorDataSourceLocation): Query = All(Test(Formula(Assert(location, True))), FF)
 
   /**
    * Denotes the last step of the exercise session
    */
-  val Last: Query = Exists(Assert(SomeSensor, True), End)
+  def Last(location: SensorDataSourceLocation): Query = Exists(AssertFact(Assert(location, True)), End(location))
 
   /**
    * Following definitions allow linear-time logic to be encoded within the current logic. Translation here is linear in
@@ -176,23 +179,23 @@ object ExerciseModel {
   /**
    * At the next point of the exercise session, the query will hold
    */
-  def Next(query: Query): Query = Exists(Assert(SomeSensor, True), query)
+  def Next(location: SensorDataSourceLocation, query: Query): Query = Exists(AssertFact(Assert(location, True)), query)
 
   /**
    * At some point in the exercise session, the query will hold
    */
-  def Diamond(query: Query): Query = Exists(Repeat(Assert(SomeSensor, True)), query)
+  def Diamond(location: SensorDataSourceLocation, query: Query): Query = Exists(Repeat(AssertFact(Assert(location, True))), query)
 
   /**
    * For all points in the exercise session, the query holds
    */
-  def Box(query: Query): Query = All(Repeat(Assert(AllSensors, True)), query)
+  def Box(location: SensorDataSourceLocation, query: Query): Query = All(Repeat(AssertFact(Assert(location, True))), query)
 
   /**
    * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
    * session.
    */
-  def Until(query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), Assert(SomeSensor, True))), query2)
+  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), AssertFact(Assert(location, True)))), query2)
 
   /**
    * Internal actor message. Allows the evaluator to run after a model update has occurred.
@@ -313,6 +316,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
   val settings = ActorFlowMaterializerSettings(context.system)
   // Received sensor data is buffered
   val bufferSize = config.getInt("classification.buffer")
+  val samplingRate = config.getInt("classification.frequency")
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
@@ -324,6 +328,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
       val join = Zip[List[BindToSensors], ActorRef]
 
       Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+      // 2 element sliding window allows workflow to look ahead and determine if we're in the last state or not
       split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> join.left
       split.right ~> join.right
       join.out ~> Flow[(List[BindToSensors], ActorRef)].map {
@@ -347,6 +352,28 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
   def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
 
   protected def modelUpdate: Receive = {
+    // TODO: refactor code so that the following assumptions may be weakened further!
+    case event: SensorNet =>
+      require(
+        event.toMap.values.forall(_.values.nonEmpty),
+        "all sensors in a network should produce some sensor value"
+      )
+      val blockSize = event.toMap.values.head.values.length
+      require(
+        event.toMap.values.forall(_.values.length == blockSize),
+        "all sensors in a network produce the same number of sensor values"
+      )
+      require(
+        event.toMap.values.forall(_.samplingRate == samplingRate),
+        "all sensors have a fixed known sample rate"
+      )
+
+      val sensorEvents = (0 until blockSize).map(block => SensorNetValue(event.toMap.mapValues(_.values(block))))
+
+      for (evt <- sensorEvents) {
+        self.tell(evt, sender())
+      }
+
     case event: SensorNetValue =>
       if (isActive && totalDemand > 0) {
         onNext((event, sender()))

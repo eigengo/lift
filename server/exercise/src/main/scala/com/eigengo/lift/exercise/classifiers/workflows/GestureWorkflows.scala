@@ -16,7 +16,6 @@ import com.typesafe.config.Config
 trait GestureWorkflows extends SVMClassifier {
 
   import ClassificationAssertions._
-  import FlowGraphImplicits._
 
   def name: String
   def config: Config
@@ -57,31 +56,25 @@ trait GestureWorkflows extends SVMClassifier {
   /**
    * Flowgraph that taps the in stream and, if a gesture is recognised, sends a `Fact` message to the `out` sink.
    */
-  class IdentifyGestureEvents {
-    val in = UndefinedSource[AccelerometerValue]
-    val out = UndefinedSink[Option[Fact]]
-
-    val graph = PartialFlowGraph { implicit builder =>
-      in ~> Flow[AccelerometerValue].transform(() => SlidingWindow[AccelerometerValue](windowSize)).map { (sample: List[AccelerometerValue]) =>
-        if (sample.length == windowSize) {
-          // Saturated windows may be classified
-          val matchProbability = probabilityOfGestureEvent(sample)
-
-          if (matchProbability >= threshold) {
-            Some(Gesture(name, threshold))
-          } else {
-            Some(NegGesture(name, threshold))
-          }
-        } else {
-          // Truncated windows are never classified (these typically occur when the stream closes)
-          None
-        }
-      } ~> out
-    }
-  }
-
   object IdentifyGestureEvents {
-    def apply() = new IdentifyGestureEvents()
+    def apply(): Flow[AccelerometerValue, Option[Fact]] =
+      Flow[AccelerometerValue]
+        .transform(() => SlidingWindow[AccelerometerValue](windowSize))
+        .map { (sample: List[AccelerometerValue]) =>
+          if (sample.length == windowSize) {
+            // Saturated windows may be classified
+            val matchProbability = probabilityOfGestureEvent(sample)
+
+            if (matchProbability >= threshold) {
+              Some(Gesture(name, threshold))
+            } else {
+              Some(NegGesture(name, threshold))
+            }
+          } else {
+            // Truncated windows are never classified (these typically occur when the stream closes)
+            None
+          }
+        }
   }
 
 }

@@ -1,6 +1,7 @@
 package com.eigengo.lift.exercise.classifiers
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Props, ActorRef, Actor}
+import com.eigengo.lift.exercise.classifiers.model.RandomExerciseModel
 import com.eigengo.lift.exercise.{SessionProperties, UserExercisesClassifier}
 
 trait ExerciseModelChecking {
@@ -10,7 +11,7 @@ trait ExerciseModelChecking {
 
   def registerModelChecking(sessionProps: SessionProperties): Unit = {
     classifier.foreach(context.stop)
-    classifier = Some(context.actorOf(UserExercisesClassifier.props(sessionProps)))
+    classifier = Some(context.actorOf(UserExercisesClassifier.props(sessionProps, Props(new RandomExerciseModel(sessionProps)))))
   }
   
   def unregisterModelChecking(): Unit = {

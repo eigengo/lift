@@ -58,4 +58,16 @@ object ClassificationAssertions {
     )
   }
 
+  object BindToSensors {
+    def apply(sensorMap: Map[SensorDataSourceLocation, Set[Fact]], value: SensorNetValue) =
+      new BindToSensors(
+        sensorMap(SensorDataSourceLocationWrist),
+        sensorMap(SensorDataSourceLocationWaist),
+        sensorMap(SensorDataSourceLocationFoot),
+        sensorMap(SensorDataSourceLocationChest),
+        sensorMap(SensorDataSourceLocationAny),
+        value
+      )
+  }
+
 }

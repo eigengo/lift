@@ -2,20 +2,14 @@ package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
 import com.eigengo.lift.exercise.UserExercisesClassifier._
-import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
-import com.eigengo.lift.exercise.classifiers.model.RandomExerciseModel
-import com.eigengo.lift.exercise.classifiers.ExerciseModel
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import UserExercises._
 
 /**
  * Companion object for the classifier
  */
 object UserExercisesClassifier {
-  def props(sessionProps: SessionProperties): Props = Props(new UserExercisesClassifier(sessionProps))
-
-  // By default, we configure exercise model classification with a random model
-  def modelProps(sessionProps: SessionProperties, negativeWatch: Set[Query], positiveWatch: Set[Query]): Props = Props(RandomExerciseModel(sessionProps, negativeWatch, positiveWatch))
+  def props(sessionProps: SessionProperties, modelProps: Props): Props =
+    Props(new UserExercisesClassifier(sessionProps, modelProps))
 
   /**
    * Muscle group information
@@ -76,16 +70,10 @@ object UserExercisesClassifier {
 /**
  * Match the received exercise data using the given model.
  */
-class UserExercisesClassifier(sessionProps: SessionProperties) extends Actor {
-
-  import ClassificationAssertions._
-  import ExerciseModel._
-  import RandomExerciseModel.exercises
-
-  val watch: Set[Query] = exercises.values.flatten.map(nm => Formula(SomeSensor, Gesture(nm, 0.80))).toSet
+class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props) extends Actor {
 
   // Issue "callback" (via sender actor reference) whenever we detect a tap gesture with a matching probability >= 0.80
-  val model = context.actorOf(modelProps(sessionProps, Set.empty, watch))
+  val model = context.actorOf(modelProps)
 
   override def receive: Receive = {
     // TODO: refactor code so that the following assumptions may be weakened further!

@@ -16,11 +16,8 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
 
   val defaultDepth = 3
 
-  val SensorQueryGen: Gen[SensorQuery] = frequency(
-    1 -> Gen.const(AllSensors),
-    1 -> Gen.const(SomeSensor),
-    1 -> Gen.oneOf(SensorDataSourceLocationWrist, SensorDataSourceLocationWaist, SensorDataSourceLocationFoot, SensorDataSourceLocationChest, SensorDataSourceLocationAny).map(NamedSensor)
-  )
+  val SensorQueryGen: Gen[SensorDataSourceLocation] =
+    Gen.oneOf(SensorDataSourceLocationWrist, SensorDataSourceLocationWaist, SensorDataSourceLocationFoot, SensorDataSourceLocationChest, SensorDataSourceLocationAny)
 
   val FactGen: Gen[Fact] = frequency(
     1 -> Gen.oneOf(True, False),
@@ -28,8 +25,14 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
     1 -> (for { name <- arbitrary[String]; matchProbability <- arbitrary[Double] } yield NegGesture(name, matchProbability))
   )
 
-  def PathGen(depth: Int = defaultDepth): Gen[Path] = frequency(
+  def PropositionGen(depth: Int = defaultDepth): Gen[Proposition] = frequency(
     5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(FactGen) } yield Assert(sensor, fact)),
+    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1)); fact2 <- Gen.lzy(PropositionGen(depth-1)) } yield Conjunction(fact1, fact2)),
+    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1)); fact2 <- Gen.lzy(PropositionGen(depth-1)) } yield Disjunction(fact1, fact2))
+  )
+
+  def PathGen(depth: Int = defaultDepth): Gen[Path] = frequency(
+    5 -> Gen.lzy(PropositionGen(depth-1)).map(AssertFact),
     5 -> Gen.lzy(QueryGen(depth-1)).map(Test),
     1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Choice(path1, path2)),
     1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Seq(path1, path2)),
@@ -37,7 +40,7 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
   )
 
   def QueryGen(depth: Int = defaultDepth): Gen[Query] = frequency(
-    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(FactGen) } yield Formula(sensor, fact)),
+    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(PropositionGen(depth-1)) } yield Formula(fact)),
     5 -> Gen.const(TT),
     5 -> Gen.const(FF),
     1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1)); query2 <- Gen.lzy(QueryGen(depth-1)) } yield And(query1, query2)),

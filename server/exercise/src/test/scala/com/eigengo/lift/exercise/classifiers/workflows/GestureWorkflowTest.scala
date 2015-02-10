@@ -15,7 +15,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
   val name = "tap"
   val config = system.settings.config
 
-  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1024)
+  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
@@ -27,21 +27,16 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
   "IdentifyGestureEvents" must {
 
-    def component(in: PublisherProbe[AccelerometerValue], out: SubscriberProbe[Option[Fact]]) = FlowGraph { implicit builder =>
-      val identify = IdentifyGestureEvents()
-
-      builder.importPartialFlowGraph(identify.graph)
-
-      builder.attachSource(identify.in, Source(in))
-      builder.attachSink(identify.out, Sink(out))
-    }
+    def component(in: PublisherProbe[AccelerometerValue], out: SubscriberProbe[Option[Fact]]) =
+      IdentifyGestureEvents().runWith(Source(in), Sink(out))
 
     "in messages should pass through unaltered and tap's are not detected [no tap request]" in {
       val msgs = noTapEvents
       val inProbe = PublisherProbe[AccelerometerValue]()
       val outProbe = SubscriberProbe[Option[Fact]]()
 
-      component(inProbe, outProbe).run()
+      component(inProbe, outProbe)
+
       val inPub = inProbe.expectSubscription()
       val outSub = outProbe.expectSubscription()
 
@@ -66,7 +61,8 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       val inProbe = PublisherProbe[AccelerometerValue]()
       val outProbe = SubscriberProbe[Option[Fact]]()
 
-      component(inProbe, outProbe).run()
+      component(inProbe, outProbe)
+
       val inPub = inProbe.expectSubscription()
       val outSub = outProbe.expectSubscription()
 
