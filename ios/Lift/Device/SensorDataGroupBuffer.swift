@@ -28,7 +28,7 @@ class SensorDataGroupBuffer {
         self.delegate = delegate
         self.deviceLocations = deviceLocations
         windowSize = 1.24
-        windowDelay = 2.5
+        windowDelay = 1.24
         encodeInterval = windowSize / 3
         timer = GCDTimer.createDispatchTimer(encodeInterval, queue: queue, block: { self.encodeWindow() })
     }
@@ -48,8 +48,9 @@ class SensorDataGroupBuffer {
         delegate.sensorDataGroupBuffer(self, encodingSensorDataGroup: sensorDataGroup)
         
         if let range = sensorDataGroup.range {
-            println(range.length)
             if range.length > windowSize + windowDelay {
+                if !sensorDataGroup.endTimesAlignWithin(maximumGap: 0.2) { return }
+
                 let start = range.end - windowSize
                 let end   = range.end
                 

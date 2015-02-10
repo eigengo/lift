@@ -6,6 +6,7 @@ class LiveSessionSensorDataGroupController : UIViewController, MultiDeviceSessio
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        sensorDataGroupView.backgroundColor = UIColor.groupTableViewBackgroundColor()
     }
     
     func multiDeviceSessionEncoding(session: MultiDeviceSession) {
@@ -21,7 +22,7 @@ class LiveSessionSensorDataGroupController : UIViewController, MultiDeviceSessio
 class SensorDataGroupView : UIView {
     private var sensorDataGroup: SensorDataGroup?
     private var lastEncodedTimeRange: TimeRange?
-    private let secondWidth = 20.0
+    private let secondWidth = 40.0
     
     private let colors: [UIColor] = [
         UIColor(red: CGFloat(0.37), green: CGFloat(0.74), blue: CGFloat(0.95), alpha: CGFloat(1.0)),
@@ -84,8 +85,12 @@ class SensorDataGroupView : UIView {
                 let x = (range.start - startTime) * secondWidth
                 let w = (range.end - startTime) * secondWidth
                 let rect = CGRect(x: x, y: 0, width: w, height: y)
+                CGContextSetFillColorWithColor(ctx, UIColor(red: 1, green: 0, blue: 0, alpha: 0.3).CGColor)
+                CGContextFillRect(ctx, rect)
                 CGContextSetStrokeColorWithColor(ctx, UIColor.redColor().CGColor)
                 CGContextStrokeRect(ctx, rect)
+                
+                lastEncodedTimeRange = nil
             }
         }
         

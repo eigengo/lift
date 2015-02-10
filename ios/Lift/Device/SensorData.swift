@@ -161,6 +161,16 @@ class SensorDataGroup {
     }
     
     ///
+    /// Indicates that the ends of the intervals align within the given ``gap``
+    ///
+    func endTimesAlignWithin(maximumGap gap: CFTimeInterval) -> Bool {
+        let x = sensorDataArrays.flatMap { $0.endTime }
+        if x.isEmpty { return false }
+        let fet = x.first!
+        return x.forall { et in abs(et - fet) < gap }
+    }
+    
+    ///
     /// Computes the continuous ``SensorDataArray``s
     ///
     func continuousSensorDataArrays(within range: TimeRange, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> [ContinuousSensorDataArray] {
