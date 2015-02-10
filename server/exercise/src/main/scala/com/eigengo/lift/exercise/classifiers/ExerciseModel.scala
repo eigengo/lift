@@ -199,7 +199,15 @@ object ExerciseModel {
      */
     def result: Boolean
   }
+  /**
+   * @param result validity of linear dynamic logic statement at this and future points in time
+   */
   case class StableValue(result: Boolean) extends QueryValue
+  /**
+   * @param result validity of linear dynamic logic statement at this point in time (it may become permanently true or
+   *               false in the future)
+   * @param state  positive propositional description of the next states for an alternating automaton over words
+   */
   case class UnstableValue(result: Boolean, state: Query) extends QueryValue
 
   /**
