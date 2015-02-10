@@ -40,7 +40,7 @@ dockerfile in docker := {
   val artifact = (outputPath in assembly).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
-    from("dockerfile/java")
+    from("java:openjdk-8-jdk")
     add(artifact, artifactTargetPath)
     entryPoint("java", "-jar", artifactTargetPath)
   }

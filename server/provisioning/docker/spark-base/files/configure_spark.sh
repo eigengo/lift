@@ -21,7 +21,7 @@ function configure_spark() {
     sed -i s/__MASTER__/$1/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
     #sed -i s/__MASTER__/master/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
     sed -i s/__SPARK_HOME__/"\/opt\/spark-${SPARK_VERSION}"/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
-    sed -i s/__JAVA_HOME__/"\/usr\/lib\/jvm\/java-8-openjdk-amd64"/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
+    sed -i s/__JAVA_HOME__/"\/usr\/lib\/jvm\/java-1.8.0-openjdk"/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 }
 
 function prepare_spark() {

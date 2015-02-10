@@ -62,25 +62,25 @@ kafka:
     KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
-sparkmaster:
-  image: martinz/spark-master:latest
-  ports:
-    - "8080"
-    - "7077:7077"
-sparkworker:
-  image: martinz/spark-worker:latest
-  ports:
-    - "8081:8081"
-    - "8888:8888"
-  links:
-    - sparkmaster
-sparkdriver:
-  image: janm399/lift:spark
-  ports:
-    - "4040:4040"
-    - "9001:9001"
-  links:
-    - sparkmaster
-    - zookeeper:zk
-    - cassandra:journal.lift.eigengo.com
-    - cassandra:snapshot.lift.eigengo.com
+#sparkmaster:
+#  image: martinz/spark-master:latest
+#  ports:
+#    - "8080"
+#    - "7077:7077"
+#sparkworker:
+#  image: martinz/spark-worker:latest
+#  ports:
+#    - "8081:8081"
+#    - "8888:8888"
+#  links:
+#    - sparkmaster
+#sparkdriver:
+#  image: janm399/lift:spark
+#  ports:
+#    - "4040:4040"
+#    - "9001:9001"
+#  links:
+#    - sparkmaster
+#    - zookeeper:zk
+#    - cassandra:journal.lift.eigengo.com
+#    - cassandra:snapshot.lift.eigengo.com
