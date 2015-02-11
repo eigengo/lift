@@ -70,7 +70,7 @@ struct TimeRange : Equatable {
     }
     
     ///
-    /// Indicates whether the given value is contained in thsi range.
+    /// Indicates whether the given value is contained in this range.
     ///
     func contains(value: CFAbsoluteTime) -> Bool {
         return (start <= value) && (value <= end)
