@@ -1,12 +1,12 @@
 package com.eigengo.lift.exercise
 
-import java.util.Date
-
-import akka.actor.Actor
-import akka.actor.Props
-import akka.testkit.{TestProbe, TestActorRef}
-import java.text.SimpleDateFormat
+import akka.actor.{ActorRef, ActorSystem, Actor, Props}
+import akka.event.LoggingReceive
+import akka.testkit.{TestKit, TestProbe, TestActorRef}
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
+import com.typesafe.config.ConfigFactory
+import java.text.SimpleDateFormat
+import java.util.Date
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
@@ -34,8 +34,9 @@ trait ExerciseGenerators {
   val SensorDataSourceLocationGen: Gen[SensorDataSourceLocation] =
     Gen.oneOf(SensorDataSourceLocationWrist, SensorDataSourceLocationWaist, SensorDataSourceLocationFoot, SensorDataSourceLocationChest, SensorDataSourceLocationAny)
 
-  def SensorDataWithLocationGen(location: SensorDataSourceLocation, width: Int, height: Int): Gen[SensorDataWithLocation] =
+  def SensorDataWithLocationGen(width: Int, height: Int): Gen[SensorDataWithLocation] =
     for {
+      location <- SensorDataSourceLocationGen
       data <- listOfN(width, SensorDataGen(height))
     } yield SensorDataWithLocation(location, data)
 
@@ -46,16 +47,18 @@ trait ExerciseGenerators {
       intensity <- Gen.choose[Double](0, 1) suchThat (_ > 0)
     } yield SessionProperties(date, group, intensity)
 
-  def ClassifyExerciseEvtGen(size: Int, width: Int, height: Int): Gen[ClassifyExerciseEvt] =
+  // Generator ensures that `sensorData` list has information for each known sensor
+  def ClassifyExerciseEvtGen(width: Int, height: Int): Gen[ClassifyExerciseEvt] =
     for {
       sessionProps <- SessionPropertiesGen
-      events <- mapOf(Sensor.sourceLocations.map(l => SensorDataWithLocationGen(l, width, height))) // FIXME:
+      events <- listOfN(Sensor.sourceLocations.size, SensorDataWithLocationGen(width, height)).map(_.zipWithIndex.map { case (sdwl, n) => sdwl.copy(location = Sensor.sourceLocations.toList(n)) })
     } yield ClassifyExerciseEvt(sessionProps, events)
 
 }
 
 class UserExercisesClassifierTest
-  extends PropSpec
+  extends TestKit(ActorSystem("TestSystem", ConfigFactory.load("test.conf")))
+  with PropSpecLike
   with PropertyChecks
   with Matchers
   with ExerciseGenerators {
@@ -64,23 +67,26 @@ class UserExercisesClassifierTest
   val startDate = dateFormat.parse("1970-01-01")
   val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
 
-  class DummyModel(probe: TestProbe) extends Actor {
-    def receive = {
+  class DummyModel(probe: ActorRef) extends Actor {
+    def receive = LoggingReceive {
       case event: SensorNet =>
-        probe.ref ! event
+        probe ! event
     }
   }
 
-  property("") {
-    forAll(ClassifyExerciseEvtGen(10, 20, 30)) { (event: ClassifyExerciseEvt) =>
+  property("UserExercisesClassifier should correctly 'slice up' ClassifyExerciseEvt into SensorNet events") {
+    val width = 20
+    val height = 30
+
+    forAll(ClassifyExerciseEvtGen(width, height)) { (event: ClassifyExerciseEvt) =>
       val modelProbe = TestProbe()
-      val classifier = TestActorRef(new UserExercisesClassifier(sessionProps, Props(new DummyModel(modelProbe)))).underlyingActor
+      val classifier = TestActorRef(new UserExercisesClassifier(sessionProps, Props(new DummyModel(modelProbe.ref))))
 
-      classifier.receive(event)
+      classifier ! event
 
-      for (block <- 0 to 10) {
-        val result = modelProbe.expectMsgType[SensorNet]
-        // TODO: add in expectations on result
+      val msgs = modelProbe.receiveN(width).asInstanceOf[Vector[SensorNet]]
+      for (result <- msgs) {
+        assert(result.toMap.values.forall(_.values.length == height))
       }
     }
   }
