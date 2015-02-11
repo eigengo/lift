@@ -76,6 +76,9 @@ struct TimeRange : Equatable {
         return (start <= value) && (value <= end)
     }
     
+    ///
+    /// Returns true if the TimeRange ``other`` contains any common time point with this instance.
+    ///
     func intersects(other: TimeRange) -> Bool {
         return ((other.start >= start) && (other.start <= end)) || ((start >= other.start) && (start <= other.end))
     }
@@ -531,6 +534,9 @@ class SensorData {
         }
     }
     
+    ///
+    /// Computes the sample bytes that fall into the time range indicated by ``range``, if any.
+    ///
     func sliceSamples(range: TimeRange, sampleSize: UInt8, samplesPerSecond: UInt8) -> [UInt8]? {
         let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
         if !range.intersects(myRange) { return .None }
@@ -542,6 +548,10 @@ class SensorData {
         return buffer
     }
     
+    ///
+    /// Creates a new ``SensorData`` that is computed by removing all samples that
+    /// are recorded for the time before ``start``.
+    ///
     func sliceFromStart(start: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData? {
         let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
         if myRange.end <= start { return .None }

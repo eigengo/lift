@@ -55,16 +55,4 @@ extension SensorDataArray {
         }
     }
     
-    var longestAvailablePeriod: CFTimeInterval? {
-        get {
-            if let start = startTime {
-                if let end = endTime {
-                    return end - start
-                }
-            }
-            
-            return .None
-        }
-    }
-    
 }
