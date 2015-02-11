@@ -6,9 +6,13 @@ class SensorDataGroupBufferTests : XCTestCase {
     class TestSenorDataGroupBufferDelegate : SensorDataGroupBufferDelegate {
         var data: NSData?
         
-        func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedAt time: CFAbsoluteTime, data: NSData) {
+        func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, continuousSensorDataEncodedRange range: TimeRange, data: NSData) {
             NSLog("**** Got %@", data)
             self.data = data
+        }
+        
+        func sensorDataGroupBuffer(buffer: SensorDataGroupBuffer, encodingSensorDataGroup group: SensorDataGroup) {
+            
         }
     }
     

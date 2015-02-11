@@ -148,24 +148,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     
     // MARK: LiftServerDelegate implementation
     
-    private func notTooLoud(f: @autoclosure () -> Void) -> Void {
-        let minimumAlertTime: NSTimeInterval = 5.0
-        if let x = lastAlertTime {
-            if NSDate().timeIntervalSinceDate(x) < minimumAlertTime { return }
-        }
-        lastAlertTime = NSDate()
-        f()
-    }
-    
     func liftServer(liftServer: LiftServer, availabilityStateChanged newState: AvailabilityState) {
         currentLiftServerDelegate?.liftServer(liftServer, availabilityStateChanged: newState)
         
         if newState.isOnline() {
-            notTooLoud(RKDropdownAlert.title("Online".localized(), backgroundColor: UIColor.greenColor(), textColor: UIColor.blackColor(), time: 3))
-            UINavigationBar.appearance().barTintColor = nil
+            UINavigationBar.appearance().titleTextAttributes = [:]
         } else {
-            notTooLoud(RKDropdownAlert.title("Offline".localized(), backgroundColor: UIColor.orangeColor(), textColor: UIColor.blackColor(), time: 3))
-            UINavigationBar.appearance().barTintColor = UIColor.orangeColor()
+            UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName : UIColor.orangeColor()]
         }
     }
 
