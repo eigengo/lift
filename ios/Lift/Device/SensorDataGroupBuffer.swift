@@ -37,6 +37,7 @@ class SensorDataGroupBuffer {
     func decodeAndAdd(data: NSData, fromDeviceId id: DeviceId, maximumGap gap: CFTimeInterval = 0.3, gapValue: UInt8 = 0x00) -> Void {
         let time = CFAbsoluteTimeGetCurrent()
         sensorDataGroup.decodeAndAdd(data, fromDeviceId: id, at: time, maximumGap: gap, gapValue: gapValue)
+        delegate.sensorDataGroupBuffer(self, encodingSensorDataGroup: sensorDataGroup)
     }
     
     func stop() {

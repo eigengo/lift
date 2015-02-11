@@ -335,7 +335,7 @@ class SensorDataArray {
         }
         var r: [SensorData] = []
         for sd in filtered {
-            if let slice = sd.slice(start: time, trimmedTo: CFAbsoluteTime.infinity, maximumGap: 0, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: 0) {
+            if let slice = sd.sliceFromStart(time, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond) {
                 r += [slice]
             }
         }
@@ -540,6 +540,19 @@ class SensorData {
         var buffer = [UInt8](count: count, repeatedValue: 0)
         samples.getBytes(&buffer, range: NSMakeRange(startIndex, count))
         return buffer
+    }
+    
+    func sliceFromStart(start: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData? {
+        let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
+        if myRange.end <= start { return .None }
+        if myRange.start >= start { return self }
+        if let bytes = sliceSamples(TimeRange(start: start, end: myRange.end), sampleSize: sampleSize, samplesPerSecond: samplesPerSecond) {
+            let data = NSMutableData()
+            data.appendBytes(bytes)
+            return SensorData(startTime: start, samples: data)
+        }
+        
+        return .None
     }
 
 }
