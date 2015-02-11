@@ -6,7 +6,6 @@ import akka.testkit.{TestKit, TestProbe, TestActorRef}
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
-import org.scalacheck.Gen
 import org.scalatest._
 import org.scalatest.prop._
 

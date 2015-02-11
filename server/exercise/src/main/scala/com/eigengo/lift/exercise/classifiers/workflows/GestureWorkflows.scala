@@ -56,25 +56,23 @@ trait GestureWorkflows extends SVMClassifier {
   /**
    * Flowgraph that taps the in stream and, if a gesture is recognised, sends a `Fact` message to the `out` sink.
    */
-  object IdentifyGestureEvents {
-    def apply(): Flow[AccelerometerValue, Option[Fact]] =
-      Flow[AccelerometerValue]
-        .transform(() => SlidingWindow[AccelerometerValue](windowSize))
-        .map { (sample: List[AccelerometerValue]) =>
-          if (sample.length == windowSize) {
-            // Saturated windows may be classified
-            val matchProbability = probabilityOfGestureEvent(sample)
+  def IdentifyGestureEvents(): Flow[AccelerometerValue, Option[Fact]] =
+    Flow[AccelerometerValue]
+      .transform(() => SlidingWindow[AccelerometerValue](windowSize))
+      .map { (sample: List[AccelerometerValue]) =>
+        if (sample.length == windowSize) {
+          // Saturated windows may be classified
+          val matchProbability = probabilityOfGestureEvent(sample)
 
-            if (matchProbability >= threshold) {
-              Some(Gesture(name, threshold))
-            } else {
-              Some(NegGesture(name, threshold))
-            }
+          if (matchProbability >= threshold) {
+            Some(Gesture(name, threshold))
           } else {
-            // Truncated windows are never classified (these typically occur when the stream closes)
-            None
+            Some(NegGesture(name, threshold))
           }
+        } else {
+          // Truncated windows are never classified (these typically occur when the stream closes)
+          None
         }
-  }
+      }
 
 }

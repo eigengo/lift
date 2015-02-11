@@ -9,12 +9,14 @@ class SlidingWindowTest extends AkkaSpec {
   import FlowGraphImplicits._
   import StreamTestKit._
 
-  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  val settings = ActorFlowMaterializerSettings(system)//.withInputBuffer(initialSize = 1, maxSize = 1)
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
+  val windowSize = 10
+
   def sample(in: Source[String], out: Sink[List[String]]) = FlowGraph { implicit builder =>
-    in ~> Flow[String].transform(() => SlidingWindow[String](5)) ~> out
+    in ~> Flow[String].transform(() => SlidingWindow[String](windowSize)) ~> out
   }
 
   "SlidingWindow" must {
@@ -37,7 +39,7 @@ class SlidingWindowTest extends AkkaSpec {
     }
 
     "a saturated SlidingWindow should emit elements in the order they are received" in {
-      val msgs = List("one", "two", "three", "four", "five", "six", "seven")
+      val msgs = (0 until (windowSize+2)).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
@@ -51,13 +53,13 @@ class SlidingWindowTest extends AkkaSpec {
         pub.sendNext(msg)
       }
 
-      out.expectNext(msgs.slice(0, 5), msgs.slice(1, 6), msgs.slice(2, 7))
+      out.expectNext(msgs.slice(0, windowSize), msgs.slice(1, windowSize+1), msgs.slice(2, windowSize+2))
       out.expectNoMsg() // since buffer is saturated and no more messages are arriving
     }
 
     "a saturated SlidingWindow should emit elements in the order they are received [lots of input]" in {
       val limit = 1000
-      val msgs = (0 to limit).map(n => s"message-$n")
+      val msgs = (0 to limit).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
@@ -71,8 +73,8 @@ class SlidingWindowTest extends AkkaSpec {
         pub.sendNext(msg)
       }
 
-      for (n <- 0 to (limit - 5 + 1)) {
-        out.expectNext(msgs.slice(n, n+5).toList)
+      for (n <- 0 to (limit - windowSize + 1)) {
+        out.expectNext(msgs.slice(n, n+windowSize))
       }
       out.expectNoMsg() // since buffer is saturated and no more messages are arriving
     }
@@ -93,7 +95,7 @@ class SlidingWindowTest extends AkkaSpec {
       }
       pub.sendComplete()
 
-      out.expectNext(msgs.slice(0, 5), msgs.slice(1, 6), msgs.slice(2, 7))
+      out.expectNext(msgs.slice(0, windowSize), msgs.slice(1, windowSize+1), msgs.slice(2, windowSize+2))
       out.expectComplete()
     }
 
@@ -113,13 +115,13 @@ class SlidingWindowTest extends AkkaSpec {
       }
       pub.sendComplete()
 
-      out.expectNext(msgs.slice(0, 5), msgs.slice(1, 6), msgs.slice(2, 7), msgs.slice(3, 8), msgs.slice(4, 9), msgs.slice(5, 10), msgs.slice(6, 11))
+      out.expectNext(msgs.slice(0, windowSize), msgs.slice(1, windowSize+1), msgs.slice(2, windowSize+2), msgs.slice(3, windowSize+3), msgs.slice(4, windowSize+4), msgs.slice(5, windowSize+5), msgs.slice(6, windowSize+6))
       out.expectComplete()
     }
 
     "closing a saturated SlidingWindow should flush buffered elements [lots of input]" in {
       val limit = 1000
-      val msgs = (0 to limit).map(n => s"message-$n")
+      val msgs = (0 to limit).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
@@ -135,7 +137,7 @@ class SlidingWindowTest extends AkkaSpec {
       pub.sendComplete()
 
       for (n <- 0 to limit) {
-        out.expectNext(msgs.slice(n, n+5).toList)
+        out.expectNext(msgs.slice(n, n+windowSize))
       }
       out.expectComplete()
     }
@@ -162,7 +164,7 @@ class SlidingWindowTest extends AkkaSpec {
 
     "exceptions (i.e. catastrophic stream errors) on a saturated SlidingWindow materialise 'immediately'" in {
       val exn = new RuntimeException("fake error")
-      val msgs = List("one", "two", "three", "four", "five", "six")
+      val msgs = (0 until (windowSize+1)).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then errors
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
@@ -177,14 +179,14 @@ class SlidingWindowTest extends AkkaSpec {
       }
       pub.sendError(exn)
 
-      out.expectNext(msgs.slice(0, 5), msgs.slice(1, 6))
+      out.expectNext(msgs.slice(0, windowSize), msgs.slice(1, windowSize+1))
       out.expectError(exn)
     }
 
     "exceptions (i.e. catastrophic stream errors) on a saturated SlidingWindow materialise 'immediately' [lots of input]" in {
       val exn = new RuntimeException("fake error")
       val limit = 1000
-      val msgs = (0 to limit).map(n => s"message-$n")
+      val msgs = (0 to limit).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then errors
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
@@ -199,8 +201,8 @@ class SlidingWindowTest extends AkkaSpec {
       }
       pub.sendError(exn)
 
-      for (n <- 0 to (limit - 5 + 1)) {
-        out.expectNext(msgs.slice(n, n+5).toList)
+      for (n <- 0 to (limit - windowSize + 1)) {
+        out.expectNext(msgs.slice(n, n+windowSize))
       }
       out.expectError(exn)
       out.expectNoMsg()

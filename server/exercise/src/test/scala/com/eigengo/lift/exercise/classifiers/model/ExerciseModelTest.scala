@@ -3,7 +3,6 @@ package com.eigengo.lift.exercise.classifiers.model
 import akka.actor.{ActorSystem, ActorLogging}
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
-import akka.stream.testkit.StreamTestKit
 import akka.testkit.{TestKit, TestProbe, TestActorRef}
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
@@ -168,7 +167,6 @@ class ExerciseModelTest
           super.aroundReceive(receive, msg)
       }
     })
-
 
     forAll(SensorNetGen(30)) { (rawEvent: SensorNet) =>
       val event = SensorNet(rawEvent.toMap.mapValues(evt => new SensorData { val samplingRate = rate; val values = evt.values }))
