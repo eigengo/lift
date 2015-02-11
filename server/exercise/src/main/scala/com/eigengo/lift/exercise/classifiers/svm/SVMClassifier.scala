@@ -52,7 +52,7 @@ trait SVMClassifier {
   }
 
   protected def taylorRadialKernel(degree: Int = 2)(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
-    def factorial(n: Int, accumalator: Int = 1): Int = if (n == 0) { accumalator } else { factorial(n - 1, n * accumalator) }
+    def factorial(n: Int, accumulator: Int = 1): Int = if (n == 0) { accumulator } else { factorial(n - 1, n * accumulator) }
     val taylor_expansion = (0 until degree).map(i => 1.0 / factorial(i)).toArray[Double]
 
     exp(-gamma * sum(x :* x)) * exp(-gamma * sum(y :* y)) * polyval(taylor_expansion, gamma * 2 * sum(x :* y))
