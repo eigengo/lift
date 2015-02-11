@@ -534,7 +534,7 @@ class SensorData {
     func sliceSamples(range: TimeRange, sampleSize: UInt8, samplesPerSecond: UInt8) -> [UInt8]? {
         let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
         if !range.intersects(myRange) { return .None }
-        let startIndex = max(0, Int(floor(((range.start - startTime) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))))
+        let startIndex = max(0, Int(ceil(((range.start - myRange.start) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))))
         let count = min(samples.length - startIndex, Int(floor(range.length * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize))))
         if count <= 0 { return .None }
         var buffer = [UInt8](count: count, repeatedValue: 0)
