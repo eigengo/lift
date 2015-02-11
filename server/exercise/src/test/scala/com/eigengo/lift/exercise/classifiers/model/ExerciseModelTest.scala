@@ -158,7 +158,7 @@ class ExerciseModelTest
       val positiveWatch = Set.empty[Query]
       val negativeWatch = Set.empty[Query]
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
-      def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value

@@ -8,6 +8,7 @@ import akka.stream.actor.ActorSubscriber
 import akka.stream.actor.ActorSubscriberMessage.OnNext
 import akka.stream.actor.WatermarkRequestStrategy
 import akka.stream.scaladsl._
+import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.BindToSensors
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
 import com.eigengo.lift.exercise._
@@ -277,7 +278,7 @@ object ExerciseModel {
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
 trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with ActorSubscriber {
-  this: ActorLogging =>
+  this: SMTInterface with ActorLogging =>
 
   import ExerciseModel._
   import FlowGraphImplicits._
@@ -330,6 +331,9 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
     }.run()
   }
 
+  // TODO: document!!!
+  def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
+
   /**
    * Evaluates a query to either an error/false (truth) value or a positive/true (truth) value
    *
@@ -338,7 +342,13 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
    * @param lastState next or following state - if no state follows, then `None`
    * @return          result of evaluating the query formula
    */
-  def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
+  def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue = evaluateQuery(formula)(current, lastState) match {
+    case UnstableValue(result, nextQuery) =>
+      satisfiable(nextQuery).fold(UnstableValue(result, simplify(nextQuery)))(value => UnstableValue(value, simplify(nextQuery)))
+
+    case result: StableValue =>
+      result
+  }
 
   protected def modelUpdate: Receive = {
     // TODO: refactor code so that the following assumptions may be weakened further!

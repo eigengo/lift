@@ -13,6 +13,7 @@ import scala.util.Random
  */
 class RandomExerciseModel(val sessionProps: SessionProperties)
   extends ExerciseModel
+  with SMTInterface
   with Actor
   with ActorLogging {
 
@@ -53,8 +54,14 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
         BindToSensors(sn.toMap.map { case (location, _) => if (location == sensor) (location, classification) else (location, Set.empty[Fact]) }.toMap, sn)
       }
 
+  // Random model performs no query simplification
+  def simplify(query: Query): Query = query
+
+  // Random model always claims that query is satisfiable
+  def satisfiable(query: Query) = Some(true)
+
   // Random model evaluator always returns true!
-  def evaluate(query: Query)(current: BindToSensors, lastState: Boolean) =
+  def evaluateQuery(query: Query)(current: BindToSensors, lastState: Boolean) =
     StableValue(result = true)
 
   /**

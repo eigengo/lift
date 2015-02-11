@@ -13,11 +13,13 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
  * Essentially, we view our model traces as being streams here. As a result, all queries are evaluated (on the actual
  * stream) from the time point they are received by the model.
  */
-class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
+abstract class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
   extends ExerciseModel
   with StandardEvaluation
   with GestureWorkflows
   with ActorLogging {
+  // FIXME: need to mixin a suitable SMT prover implementation here!
+  this: SMTInterface =>
 
   import ClassificationAssertions._
   import FlowGraphImplicits._

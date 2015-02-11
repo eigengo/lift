@@ -8,9 +8,7 @@ trait StandardEvaluation {
   import ClassificationAssertions._
   import ExerciseModel._
 
-  // TODO: introduce memoisation into `evaluate` functions
-
-  // TODO: introduce use of SMT library (e.g. ScalaZ3 or Scala SMT-LIB)?
+  // TODO: introduce memoisation into `evaluate` functions?
 
   def evaluateAtSensor(path: Proposition, state: BindToSensors): Boolean = path match {
     case Assert(sensor, fact) =>
@@ -74,7 +72,7 @@ trait StandardEvaluation {
       emptyEvaluate(query1)
   }
 
-  def evaluate(query: Query)(state: BindToSensors, lastState: Boolean): QueryValue = query match {
+  def evaluateQuery(query: Query)(state: BindToSensors, lastState: Boolean): QueryValue = query match {
     case Formula(fact) =>
       StableValue(result = evaluateAtSensor(fact, state))
 
@@ -85,11 +83,11 @@ trait StandardEvaluation {
       StableValue(result = false)
 
     case And(query1, query2, remaining @ _*) =>
-      val results = (query1 +: query2 +: remaining).map(q => evaluate(q)(state, lastState))
+      val results = (query1 +: query2 +: remaining).map(q => evaluateQuery(q)(state, lastState))
       results.fold(StableValue(result = true))(meet)
 
     case Or(query1, query2, remaining @ _*) =>
-      val results = (query1 +: query2 +: remaining).map(q => evaluate(q)(state, lastState))
+      val results = (query1 +: query2 +: remaining).map(q => evaluateQuery(q)(state, lastState))
       results.fold(StableValue(result = false))(join)
 
     case Exists(AssertFact(fact), query1) if !lastState && evaluateAtSensor(fact, state) =>
@@ -102,21 +100,21 @@ trait StandardEvaluation {
       StableValue(result = false)
 
     case Exists(Test(query1), query2) =>
-      meet(evaluate(query1)(state, lastState), evaluate(query2)(state, lastState))
+      meet(evaluateQuery(query1)(state, lastState), evaluateQuery(query2)(state, lastState))
 
     case Exists(Choice(path1, path2, remainingPaths @ _*), query1) =>
-      evaluate(Or(Exists(path1, query1), Exists(path2, query1), remainingPaths.map(p => Exists(p, query1)): _*))(state, lastState)
+      evaluateQuery(Or(Exists(path1, query1), Exists(path2, query1), remainingPaths.map(p => Exists(p, query1)): _*))(state, lastState)
 
     case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
-      evaluate(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))(state, lastState)
+      evaluateQuery(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))(state, lastState)
 
     case Exists(Repeat(path), query1) if testOnly(path) =>
-      evaluate(query1)(state, lastState)
+      evaluateQuery(query1)(state, lastState)
 
     case Exists(Repeat(path), query1) =>
       join(
-        evaluate(query1)(state, lastState),
-        evaluate(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
+        evaluateQuery(query1)(state, lastState),
+        evaluateQuery(Exists(path, Exists(Repeat(path), query1)))(state, lastState)
       )
 
     case All(AssertFact(fact), query1) if !lastState && evaluateAtSensor(fact, state) =>
@@ -129,21 +127,21 @@ trait StandardEvaluation {
       StableValue(result = true)
 
     case All(Test(query1), query2) =>
-      join(evaluate(ExerciseModel.not(query1))(state, lastState), evaluate(query2)(state, lastState))
+      join(evaluateQuery(ExerciseModel.not(query1))(state, lastState), evaluateQuery(query2)(state, lastState))
 
     case All(Choice(path1, path2, remainingPaths @ _*), query1) =>
-      evaluate(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))(state, lastState)
+      evaluateQuery(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))(state, lastState)
 
     case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
-      evaluate(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))(state, lastState)
+      evaluateQuery(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))(state, lastState)
 
     case All(Repeat(path), query1) if testOnly(path) =>
-      evaluate(query1)(state, lastState)
+      evaluateQuery(query1)(state, lastState)
 
     case All(Repeat(path), query1) =>
       meet(
-        evaluate(query1)(state, lastState),
-        evaluate(All(path, All(Repeat(path), query1)))(state, lastState)
+        evaluateQuery(query1)(state, lastState),
+        evaluateQuery(All(path, All(Repeat(path), query1)))(state, lastState)
       )
   }
 
