@@ -1,18 +1,34 @@
 package com.eigengo.lift.exercise.classifiers.model
 
+import akka.actor.{ActorSystem, ActorLogging}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
+import akka.stream.scaladsl._
+import akka.stream.testkit.StreamTestKit
+import akka.testkit.{TestKit, TestProbe, TestActorRef}
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
+import com.typesafe.config.ConfigFactory
+import java.text.SimpleDateFormat
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
 
-class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
+class ExerciseModelTest
+  extends TestKit(ActorSystem("TestSystem", ConfigFactory.load("test.conf").withFallback(ConfigFactory.load("classification.conf"))))
+  with PropSpecLike
+  with PropertyChecks
+  with Matchers
+  with ExerciseGenerators {
 
   import ClassificationAssertions._
   import ExerciseModel._
+
+  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+
+  implicit val materializer = ActorFlowMaterializer(settings)
 
   val defaultDepth = 3
 
@@ -129,6 +145,40 @@ class ExerciseModelTest extends PropSpec with PropertyChecks with Matchers {
   property("not(not(x)) == x") {
     forAll(QueryGen()) { (query: Query) =>
       ExerciseModel.not(ExerciseModel.not(query)) === query
+    }
+  }
+
+  property("ExerciseModel should correctly 'slice up' SensorNet messages into SensorValue events") {
+    val rate = system.settings.config.getInt("classification.frequency")
+    val modelProbe = TestProbe()
+    val model = TestActorRef(new ExerciseModel with ActorLogging {
+      val name = "test"
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      val startDate = dateFormat.parse("1970-01-01")
+      val sessionProps = SessionProperties(startDate, scala.Seq("Legs"), 1.0)
+      val positiveWatch = Set.empty[Query]
+      val negativeWatch = Set.empty[Query]
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      override def aroundReceive(receive: Receive, msg: Any) = msg match {
+        case value: SensorNetValue =>
+          modelProbe.ref ! value
+
+        case _ =>
+          super.aroundReceive(receive, msg)
+      }
+    })
+
+
+    forAll(SensorNetGen(30)) { (rawEvent: SensorNet) =>
+      val event = SensorNet(rawEvent.toMap.mapValues(evt => new SensorData { val samplingRate = rate; val values = evt.values }))
+
+      model ! event
+
+      val msgs = modelProbe.receiveN(event.wrist.values.length).asInstanceOf[Vector[SensorNetValue]].toList
+      for (sensor <- Sensor.sourceLocations) {
+        assert(msgs.map(_.toMap(sensor)) == event.toMap(sensor).values)
+      }
     }
   }
 
