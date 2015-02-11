@@ -53,7 +53,7 @@ trait GestureWorkflows extends SVMClassifier {
 
     val data = DenseMatrix(sample.map(v => (v.x.toDouble, v.y.toDouble, v.z.toDouble)): _*)
 
-    predict(model, data, taylor_radial_kernel()).positiveMatch
+    predict(model, data, taylorRadialKernel()).positiveMatch
   }
 
   /**
