@@ -79,14 +79,10 @@ class SensorDataGroupView : UIView {
             let padding = 4.0
             var y: Double = padding
             for (i, sda) in enumerate(sdg.sensorDataArrays) {
-                var lastEnd = 0.0   // !!!!
                 for (j, sd) in enumerate(sda.sensorDatas) {
                     let x = (sd.startTime - startTime) * secondWidth
                     let end = (sd.endTime(sda.header.sampleSize, samplesPerSecond: sda.header.samplesPerSecond) - startTime) * secondWidth
                     let w = end - x
-                    
-                    if lastEnd < end { lastEnd = end } //  !!!!!!!!!!
-                    
                     let frame = CGRect(x: x, y: y, width: w, height: height)
                     CGContextSetFillColorWithColor(ctx, colors[i % colors.count].CGColor)
                     CGContextFillRect(ctx, frame)
@@ -96,11 +92,6 @@ class SensorDataGroupView : UIView {
                     CGContextStrokeRect(ctx, frame)
                 }
                 y += height + padding
-                if i == 2 && lastEnd <= 0.01 {     // !!!!!!!!!
-                    let dataLength = sda.length
-                    let dataStart = sda.startTime
-                    println("lastEnd: \(lastEnd)")
-                }
             }
 
             if let range = lastEncodedTimeRange {

@@ -53,6 +53,7 @@ class SensorDataGroupBuffer {
 
                 let start  = range.start
                 let end    = range.start + windowSize
+                if end + windowDelay >= CFAbsoluteTimeGetCurrent() { return }
                 let window = TimeRange(start: start, end: end)
                 
                 let csdas = sensorDataGroup.continuousSensorDataArrays(within: window, maximumGap: window.length, gapValue: 0x00)
