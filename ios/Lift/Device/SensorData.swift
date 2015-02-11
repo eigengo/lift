@@ -68,6 +68,20 @@ struct TimeRange : Equatable {
     func within(that: TimeRange, maximumGap gap: CFTimeInterval) -> Bool {
         return (start - gap) >= that.start && (end + gap) <= that.end
     }
+    
+    ///
+    /// Indicates whether the given value is contained in this range.
+    ///
+    func contains(value: CFAbsoluteTime) -> Bool {
+        return (start <= value) && (value <= end)
+    }
+    
+    ///
+    /// Returns true if the TimeRange ``other`` contains any common time point with this instance.
+    ///
+    func intersects(other: TimeRange) -> Bool {
+        return ((other.start >= start) && (other.start <= end)) || ((start >= other.start) && (start <= other.end))
+    }
 }
 
 func ==(lhs: TimeRange, rhs: TimeRange) -> Bool {
@@ -158,16 +172,6 @@ class SensorDataGroup {
         for v in sensorDataArrays {
             v.removeSensorDataEndingBefore(time)
         }
-    }
-    
-    ///
-    /// Indicates that the ends of the intervals align within the given ``gap``
-    ///
-    func endTimesAlignWithin(maximumGap gap: CFTimeInterval) -> Bool {
-        let x = sensorDataArrays.flatMap { $0.endTime }
-        if x.isEmpty { return false }
-        let fet = x.first!
-        return x.forall { et in abs(et - fet) < gap }
     }
     
     ///
@@ -334,7 +338,7 @@ class SensorDataArray {
         }
         var r: [SensorData] = []
         for sd in filtered {
-            if let slice = sd.slice(start: time, trimmedTo: CFAbsoluteTime.infinity, maximumGap: 0, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: 0) {
+            if let slice = sd.sliceFromStart(time, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond) {
                 r += [slice]
             }
         }
@@ -346,37 +350,34 @@ class SensorDataArray {
     /// Computes slice of all sensor datas here into a continuous SDA, if possible
     ///
     func slice(range: TimeRange, maximumGap gap: CFTimeInterval, gapValue: UInt8) -> ContinuousSensorDataArray? {
-        var firstSensorData: (Int, SensorData)?
-        for (i, sensorData) in enumerate(sensorDatas) {
-            let endTime = sensorData.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
-            if endTime > range.start {
-                if let x = sensorData.slice(start: range.start, trimmedTo: range.end, maximumGap: gap, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue) {
-                    firstSensorData = (i, x)
-                    break
-                }
+        let samplesPerSecond = header.samplesPerSecond
+        let sampleSize = header.sampleSize
+        let bufferBytesCount = Int(floor(range.length * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))
+        var buffer = [UInt8](count: bufferBytesCount, repeatedValue: gapValue)
+        
+        let slices = sensorDatas.flatMap { (current: SensorData) -> (CFAbsoluteTime, [UInt8]?) in
+            return (current.startTime, current.sliceSamples(range, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond))
+        }
+        
+        let slicesInRange = slices.filter { (start, bytes) in
+            if let byteArray = bytes { return byteArray.count > 0 }
+            else { return false }
+        }
+        
+        if slicesInRange.count <= 0 { return .None }
+        
+        let slicesOrdered = slicesInRange.sorted { $0.0 <= $1.0 } // Order by start.
+        for (start, bytes) in slicesOrdered {
+            let bufferRangeStart = max (0, Int(floor((start - range.start) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize))))
+            let bufferRangeCount = min(bufferBytesCount - bufferRangeStart, bytes!.count)
+            if bufferRangeCount > 0 {
+                buffer[bufferRangeStart..<(bufferRangeStart + bufferRangeCount)] = bytes![0..<bufferRangeCount]
             }
         }
-        if firstSensorData == nil { return nil }
         
-        var (j, result) = firstSensorData!
-        for i in (j + 1)..<sensorDatas.count {
-            let resultEndTime = result.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
-            if resultEndTime >= range.end { break }
-            
-            let sensorData = sensorDatas[i]
-            
-            if let slice = sensorData.slice(start: resultEndTime, trimmedTo: range.end, maximumGap: gap, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue) {
-                result.append(samples: slice.samples)
-            } else {
-                return nil
-            }
-        }
-        
-        if let slice = result.slice(end: range.end, maximumGap: gap, sampleSize: header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue) {
-            return ContinuousSensorDataArray(header: header, sensorData: slice)
-        }
-        
-        return nil
+        let data = NSMutableData()
+        data.appendBytes(buffer)
+        return ContinuousSensorDataArray(header: header, sensorData: SensorData(startTime: range.start, samples: data))
     }
     
     ///
@@ -531,6 +532,37 @@ class SensorData {
             }
             return SensorData(startTime: startTime - startGap, samples: r)
         }
+    }
+    
+    ///
+    /// Computes the sample bytes that fall into the time range indicated by ``range``, if any.
+    ///
+    func sliceSamples(range: TimeRange, sampleSize: UInt8, samplesPerSecond: UInt8) -> [UInt8]? {
+        let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
+        if !range.intersects(myRange) { return .None }
+        let startIndex = max(0, Int(ceil(((range.start - myRange.start) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))))
+        let count = min(samples.length - startIndex, Int(floor(range.length * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize))))
+        if count <= 0 { return .None }
+        var buffer = [UInt8](count: count, repeatedValue: 0)
+        samples.getBytes(&buffer, range: NSMakeRange(startIndex, count))
+        return buffer
+    }
+    
+    ///
+    /// Creates a new ``SensorData`` that is computed by removing all samples that
+    /// are recorded for the time before ``start``.
+    ///
+    func sliceFromStart(start: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData? {
+        let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
+        if myRange.end <= start { return .None }
+        if myRange.start >= start { return self }
+        if let bytes = sliceSamples(TimeRange(start: start, end: myRange.end), sampleSize: sampleSize, samplesPerSecond: samplesPerSecond) {
+            let data = NSMutableData()
+            data.appendBytes(bytes)
+            return SensorData(startTime: start, samples: data)
+        }
+        
+        return .None
     }
 
 }

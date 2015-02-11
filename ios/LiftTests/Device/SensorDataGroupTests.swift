@@ -93,7 +93,7 @@ class SensorDataGroupTests : XCTestCase {
         XCTAssertEqual(two.find { $0.header.type == 0 && $0.header.sourceDeviceId == TestSensorData.phone }!.sensorData.asString(),  "BA")
         XCTAssertEqual(two.find { $0.header.type == 1 && $0.header.sourceDeviceId == TestSensorData.phone }!.sensorData.asString(),  "21")
         XCTAssertEqual(two.find { $0.header.type == 2 && $0.header.sourceDeviceId == TestSensorData.phone }!.sensorData.asString(),  "acab")
-        XCTAssertEqual(two.find { $0.header.type == 0 && $0.header.sourceDeviceId == TestSensorData.pebble }!.sensorData.asString(), "#")         // we've cut off one value
+        XCTAssertEqual(two.find { $0.header.type == 0 && $0.header.sourceDeviceId == TestSensorData.pebble }!.sensorData.asString(), "#$")
         
         // 3.5 - 4.5
         XCTAssertEqual(three.find { $0.header.type == 0 && $0.header.sourceDeviceId == TestSensorData.phone }!.sensorData.asString(), "BA")
