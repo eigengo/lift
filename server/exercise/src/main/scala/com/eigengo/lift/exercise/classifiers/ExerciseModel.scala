@@ -381,15 +381,15 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
 
   protected def monitorEvents: Receive = {
     case OnNext(NextState(next, lastState, listener)) =>
+      // FIXME: can we iterate over watch in a concurrent manner???
       watch.foreach { case (query, currentState) =>
         val value = evaluate(currentState)(next, lastState)
         val result = ??? // TODO: use satisfiability of SMT here???
 
         listener ! QueryResult(query, value, result)
 
-        (value: @unchecked) match {
-          case value: StableValue =>
-            watch -= query
+        if (value.isInstanceOf[StableValue]) {
+          watch -= query
         }
       }
   }
