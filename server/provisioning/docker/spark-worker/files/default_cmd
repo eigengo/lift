@@ -1,0 +1,23 @@
+#!/bin/bash
+
+IP=$(ip -o -4 addr list eth0 | perl -n -e 'if (m{inet\s([\d\.]+)\/\d+\s}xms) { print $1 }')
+echo "WORKER_IP=$IP"
+
+echo "preparing Spark"
+# This is now unfortunately required, because shell needs to be executed in special scope to be able to update env vars
+sed -i s/__SPARK_LOCAL_IP__/$IP/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
+sed -i s/__MASTER__/$SPARKMASTER_PORT_7077_TCP_ADDR/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
+. /opt/spark-1.2.0/conf/spark-env.sh
+
+env
+
+echo "starting Hadoop Datanode"
+service hadoop-datanode start
+
+echo "starting sshd"
+/usr/sbin/sshd
+
+sleep 5
+
+echo "starting Spark Worker"
+${SPARK_HOME}/bin/spark-class org.apache.spark.deploy.worker.Worker spark://$SPARKMASTER_PORT_7077_TCP_ADDR:$SPARKMASTER_PORT_7077_TCP_PORT -h $SPARK_LOCAL_IP

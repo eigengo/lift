@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+export SPARK_MASTER_IP=__MASTER__
+echo "SPARK_MASTER_IP=$SPARK_MASTER_IP"
+
+export SPARK_LOCAL_IP=__SPARK_LOCAL_IP__
+echo "SPARK_LOCAL_IP=$SPARK_LOCAL_IP"
+
+export MASTER="spark://__MASTER__:7077"
+echo "MASTER=$MASTER"

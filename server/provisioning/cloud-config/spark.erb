@@ -1,0 +1,26 @@
+<%= ERB.new(File.read("cloud-config/default.erb"), 0, "<>", '_default').result(binding) %>
+
+# Cloud config data for creating Spark compute nodes
+
+coreos:
+  units:
+    - name: install-spark.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        After=docker.service
+        Description=Download Spark Docker image
+        Requires=docker.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+
+        # Download our Akka container image from the Docker repository
+        ExecStartPre=/usr/bin/docker pull <%= @docker[:spark] %>
+        ExecStart=/bin/echo Docker Spark Image Installed
+
+        [X-Fleet]
+        # Only download on Spark deployment nodes
+        MachineMetadata=type=spark
