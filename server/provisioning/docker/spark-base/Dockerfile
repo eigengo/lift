@@ -3,6 +3,9 @@
 #
 FROM sequenceiq/hadoop-docker:2.6.0
 
+# Add config files and configure script
+ADD files /root/spark_files
+
 ENV SCALA_VERSION 2.11.4
 ENV SPARK_VERSION 1.2.0
 ENV SCALA_HOME /opt/scala-$SCALA_VERSION
@@ -47,6 +50,3 @@ RUN (rm -rf /opt/spark-$SPARK_VERSION/logs)
 RUN (mkdir -p /opt/spark-$SPARK_VERSION/logs)
 RUN (cp /root/spark_files/spark-env.sh /opt/spark-$SPARK_VERSION/conf/)
 RUN (cp /root/spark_files/log4j.properties /opt/spark-$SPARK_VERSION/conf/)
-
-# Add Shark config files and configure script
-ADD files /root/spark_files
