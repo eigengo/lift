@@ -9,6 +9,8 @@ sed -i s/__SPARK_LOCAL_IP__/$IP/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 sed -i s/__MASTER__/$IP/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 . /opt/spark-1.2.0/conf/spark-env.sh
 
+env
+
 echo "starting Hadoop Namenode"
 hadoop namenode -format > /dev/null 2>&1
 service hadoop-namenode start > /dev/null 2>&1

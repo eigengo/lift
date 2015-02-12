@@ -9,6 +9,8 @@ sed -i s/__SPARK_LOCAL_IP__/$IP/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 sed -i s/__MASTER__/$SPARKMASTER_PORT_7077_TCP_ADDR/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 . /opt/spark-1.2.0/conf/spark-env.sh
 
+env
+
 echo "starting Hadoop Datanode"
 service hadoop-datanode start
 
@@ -18,7 +20,4 @@ echo "starting sshd"
 sleep 5
 
 echo "starting Spark Worker"
-cp /root/spark_worker_files/run_spark_worker.sh /
-chmod a+rx /run_spark_worker.sh
-
 ${SPARK_HOME}/bin/spark-class org.apache.spark.deploy.worker.Worker spark://$SPARKMASTER_PORT_7077_TCP_ADDR:$SPARKMASTER_PORT_7077_TCP_PORT -h $SPARK_LOCAL_IP
