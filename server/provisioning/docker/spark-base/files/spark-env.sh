@@ -1,45 +1,10 @@
 #!/usr/bin/env bash
 
-export SCALA_HOME=/opt/scala-2.11.4
-echo "SCALA_HOME=$SCALA_HOME"
-
-export SPARK_HOME=__SPARK_HOME__
-echo "SPARK_HOME=$SPARK_HOME"
-
-export SPARK_EXECUTOR_MEMORY=1500m
-echo "SPARK_EXECUTOR_MEMORY=$SPARK_EXECUTOR_MEMORY"
-
-export SPARK_DRIVER_MEMORY=1500m
-echo "SPARK_DRIVER_MEMORYE=$SPARK_DRIVER_MEMORY"
-
-export SPARK_WORKER_MEMORY=1500m
-echo "SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY"
-
-export SPARK_MASTER_MEM=1500m
-echo "SPARK_MASTER_MEM=$SPARK_MASTER_MEM"
-
 export SPARK_MASTER_IP=__MASTER__
 echo "SPARK_MASTER_IP=$SPARK_MASTER_IP"
 
 export SPARK_LOCAL_IP=__SPARK_LOCAL_IP__
 echo "SPARK_LOCAL_IP=$SPARK_LOCAL_IP"
 
-export HADOOP_HOME="/etc/hadoop"
-echo "HADOOP_HOME=$HADOOP_HOME"
-
 export MASTER="spark://__MASTER__:7077"
 echo "MASTER=$MASTER"
-
-export SPARK_LOCAL_DIR=/tmp/spark
-echo "SPARK_LOCAL_DIR=$SPARK_LOCAL_DIR"
-
-#SPARK_JAVA_OPTS="-Dspark.local.dir=/tmp/spark "
-#SPARK_JAVA_OPTS+=" -Dspark.akka.logLifecycleEvents=true "
-#SPARK_JAVA_OPTS+="-Dspark.kryoserializer.buffer.mb=10 "
-#SPARK_JAVA_OPTS+="-verbose:gc -XX:-PrintGCDetails -XX:+PrintGCTimeStamps "
-#export SPARK_JAVA_OPTS
-#SPARK_DAEMON_JAVA_OPTS+=" -Dspark.akka.logLifecycleEvents=true "
-#export SPARK_DAEMON_JAVA_OPTS
-
-export JAVA_HOME=__JAVA_HOME__
-echo "JAVA_HOME=$JAVA_HOME"
