@@ -67,6 +67,9 @@ extension ThisDeviceSession {
             func appendAcceleration(acceleration: CMAcceleration, toData data: NSMutableData) {
                 // CMAcceleration units are in 10 m/s^2. Pebble measures acceleration
                 // in 10 mm/s^2, therefore, we multiply by 1000 to get the same unit.
+                //
+                // The acceleration vector is constructed so that it contains the gravity
+                // vector too. See docs in CMDeviceMotion+MeasuredValue.swift.
                 
                 var buffer = [UInt8](count: 5, repeatedValue: 0)
                 let x = Int16(acceleration.x * 1000)
@@ -98,7 +101,7 @@ extension ThisDeviceSession {
                 rotationBuffer = emptyAccelerationLikeBuffer(0xbd)
             }
             
-            appendAcceleration(data.userAcceleration, toData: userAccelerationBuffer)
+            appendAcceleration(data.measuredAcceleration, toData: userAccelerationBuffer)
             appendRotation(data.rotationRate, toData: rotationBuffer)
             count += 1
         }
