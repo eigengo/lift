@@ -28,7 +28,8 @@ class ByteVector {
     ///
     /* mutating */
     func readInt13s() -> [Int16] {
-        assert(currentPosition + 5 <= bytes.count)
+        let packedStructureLength = 5
+        assert(currentPosition + packedStructureLength <= bytes.count)
         let result = bytes.withUnsafeBufferPointer { (pointer: UnsafeBufferPointer<UInt8>) -> [Int16] in
             var x: Int16 = 0
             var y: Int16 = 0
@@ -37,7 +38,7 @@ class ByteVector {
             decode_lift_accelerometer_data(pointerAtOffset, &x, &y, &z)
             return [x, y, z]
         }
-        currentPosition += 5
+        currentPosition += packedStructureLength
         return result
     }
     
