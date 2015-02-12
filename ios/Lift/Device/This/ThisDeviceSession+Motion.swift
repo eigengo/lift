@@ -53,10 +53,10 @@ extension ThisDeviceSession {
             func appendRotation(rotation: CMRotationRate, toData data: NSMutableData) {
                 // CMRotationRate units are in rad/s. We assume that the largest acceleration a user
                 // will give to the device in the order of 10 rad/s; the units we send to the server
-                // are therefore in mrad/s
+                // are therefore in 10 mrad/s
                 
                 var buffer = [UInt8](count: 5, repeatedValue: 0)
-                let x = Int16(rotation.x * 100)  // mrad/sec
+                let x = Int16(rotation.x * 100)  // crad/sec
                 let y = Int16(rotation.y * 100)
                 let z = Int16(rotation.z * 100)
                 
