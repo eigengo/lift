@@ -4,6 +4,7 @@ IP=$(ip -o -4 addr list eth0 | perl -n -e 'if (m{inet\s([\d\.]+)\/\d+\s}xms) { p
 echo "MASTER_IP=$IP"
 
 echo "preparing Spark"
+# This is now unfortunately required, because shell needs to be executed in special scope to be able to update env vars
 sed -i s/__SPARK_LOCAL_IP__/$IP/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 sed -i s/__MASTER__/$IP/ /opt/spark-$SPARK_VERSION/conf/spark-env.sh
 . /opt/spark-1.2.0/conf/spark-env.sh
@@ -18,9 +19,7 @@ echo "starting sshd"
 sleep 5
 
 echo "starting Spark Master"
-cp /root/spark_master_files/run_spark_master.sh /
-chmod a+rx /run_spark_master.sh
-SPARK_VERSION=$SPARK_VERSION /run_spark_master.sh
+${SPARK_HOME}/sbin/start-master.sh
 
 while [ 1 ];
 do

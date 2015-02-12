@@ -10,7 +10,7 @@ ENV SPARK_HOME /opt/spark-$SPARK_VERSION
 ENV PATH $SPARK_HOME:$SCALA_HOME/bin:$PATH
 
 # Spark settings default values
-EMV SCALA_HOME /opt/scala-2.11.4
+ENV SCALA_HOME /opt/scala-2.11.4
 ENV SPARK_EXECUTOR_MEMORY 1500m
 ENV SPARK_DRIVER_MEMORY 1500m
 ENV SPARK_WORKER_MEMORY 1500m
@@ -38,16 +38,15 @@ RUN (ln -s /opt/spark-$SPARK_VERSION-bin-hadoop2.4 /opt/spark-$SPARK_VERSION && 
 RUN (ln -s /opt/spark-$SPARK_VERSION-bin-hadoop2.4 spark)
 
 # Spark configuration
-RUN rm -rf /opt/spark-$SPARK_VERSION/work
-RUN mkdir -p /opt/spark-$SPARK_VERSION/work
-RUN mkdir /tmp/spark
-RUN rm -rf /var/lib/hadoop/hdfs
-RUN mkdir -p /var/lib/hadoop/hdfs
-RUN rm -rf /opt/spark-$SPARK_VERSION/logs
-RUN mkdir -p /opt/spark-$SPARK_VERSION/logs
-RUN cp /root/spark_files/spark-env.sh /opt/spark-$SPARK_VERSION/conf/
-RUN cp /root/spark_files/log4j.properties /opt/spark-$SPARK_VERSION/conf/
-
+RUN (rm -rf /opt/spark-$SPARK_VERSION/work)
+RUN (mkdir -p /opt/spark-$SPARK_VERSION/work)
+RUN (mkdir /tmp/spark)
+RUN (rm -rf /var/lib/hadoop/hdfs)
+RUN (mkdir -p /var/lib/hadoop/hdfs)
+RUN (rm -rf /opt/spark-$SPARK_VERSION/logs)
+RUN (mkdir -p /opt/spark-$SPARK_VERSION/logs)
+RUN (cp /root/spark_files/spark-env.sh /opt/spark-$SPARK_VERSION/conf/)
+RUN (cp /root/spark_files/log4j.properties /opt/spark-$SPARK_VERSION/conf/)
 
 # Add Shark config files and configure script
 ADD files /root/spark_files
