@@ -35,12 +35,20 @@ import sbtdocker.mutable.Dockerfile
 
 dockerSettings
 
-// Define a Dockerfile
+// Define a Dockerfile for:
+//   - `LiftLocalApp`
+//   - `LiftContainerApp`
 
-mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
+lazy val LiftLocalApp = config("local-app") extend Compile
+lazy val LiftContainerApp = config("container-app") extend Compile
 
-// Main class for running in Phase 2
-// mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
+inConfig(LiftLocalApp)(Seq(
+  mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
+))
+
+inConfig(LiftContainerApp)(Seq(
+  mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
+))
 
 docker <<= (docker dependsOn assembly)
 
