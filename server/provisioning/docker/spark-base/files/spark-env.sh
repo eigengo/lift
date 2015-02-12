@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export SCALA_HOME=/opt/scala-2.10.3
+export SCALA_HOME=/opt/scala-2.11.4
 echo "SCALA_HOME=$SCALA_HOME"
 
 export SPARK_HOME=__SPARK_HOME__
