@@ -4,6 +4,7 @@ import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.stream.testkit.{StreamTestKit, AkkaSpec}
 import akka.testkit.TestActorRef
+import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{NegGesture, Gesture, BindToSensors}
 import com.eigengo.lift.exercise.{AccelerometerValue, SensorNetValue, SessionProperties}
 import com.typesafe.config.ConfigFactory
@@ -12,6 +13,7 @@ import scala.io.{Source => IOSource}
 
 class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classification.conf")) {
 
+  import ExerciseModel._
   import StreamTestKit._
 
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
@@ -31,7 +33,10 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
   "StandardExerciseModel workflow" must {
 
     def component(in: Source[SensorNetValue], out: Sink[BindToSensors]) = {
-      val workflow = TestActorRef(new StandardExerciseModel(sessionProps)).underlyingActor.workflow
+      val workflow = TestActorRef(new StandardExerciseModel(sessionProps) with SMTInterface {
+        def simplify(query: Query): Query = query
+        def satisfiable(query: Query) = Some(true)
+      }).underlyingActor.workflow
       workflow.runWith(in, out)
     }
 

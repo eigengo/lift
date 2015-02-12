@@ -50,7 +50,7 @@ trait StandardEvaluation {
     case Exists(Choice(path1, path2, remainingPaths @ _*), query1) =>
       emptyEvaluate(Or(Exists(path1, query1), Exists(path2, query1), remainingPaths.map(p => Exists(p, query1)): _*))
 
-    case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
+    case Exists(Sequence(path1, path2, remainingPaths @ _*), query1) =>
       emptyEvaluate(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))
 
     case Exists(Repeat(path), query1) =>
@@ -65,7 +65,7 @@ trait StandardEvaluation {
     case All(Choice(path1, path2, remainingPaths @ _*), query1) =>
       emptyEvaluate(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))
 
-    case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
+    case All(Sequence(path1, path2, remainingPaths @ _*), query1) =>
       emptyEvaluate(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))
 
     case All(Repeat(path), query1) =>
@@ -105,7 +105,7 @@ trait StandardEvaluation {
     case Exists(Choice(path1, path2, remainingPaths @ _*), query1) =>
       evaluateQuery(Or(Exists(path1, query1), Exists(path2, query1), remainingPaths.map(p => Exists(p, query1)): _*))(state, lastState)
 
-    case Exists(Seq(path1, path2, remainingPaths @ _*), query1) =>
+    case Exists(Sequence(path1, path2, remainingPaths @ _*), query1) =>
       evaluateQuery(Exists(path1, Exists(path2, remainingPaths.foldLeft(query1) { case (q, p) => Exists(p, q) })))(state, lastState)
 
     case Exists(Repeat(path), query1) if testOnly(path) =>
@@ -132,7 +132,7 @@ trait StandardEvaluation {
     case All(Choice(path1, path2, remainingPaths @ _*), query1) =>
       evaluateQuery(And(All(path1, query1), All(path2, query1), remainingPaths.map(p => All(p, query1)): _*))(state, lastState)
 
-    case All(Seq(path1, path2, remainingPaths @ _*), query1) =>
+    case All(Sequence(path1, path2, remainingPaths @ _*), query1) =>
       evaluateQuery(All(path1, All(path2, remainingPaths.foldLeft(query1) { case (q, p) => All(p, q) })))(state, lastState)
 
     case All(Repeat(path), query1) if testOnly(path) =>

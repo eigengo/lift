@@ -50,7 +50,7 @@ class ExerciseModelTest
     5 -> Gen.lzy(PropositionGen(depth-1)).map(AssertFact),
     5 -> Gen.lzy(QueryGen(depth-1)).map(Test),
     1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Choice(path1, path2)),
-    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Seq(path1, path2)),
+    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Sequence(path1, path2)),
     5 -> Gen.lzy(PathGen(depth-1)).map(Repeat)
   )
 
@@ -150,15 +150,17 @@ class ExerciseModelTest
   property("ExerciseModel should correctly 'slice up' SensorNet messages into SensorValue events") {
     val rate = system.settings.config.getInt("classification.frequency")
     val modelProbe = TestProbe()
-    val model = TestActorRef(new ExerciseModel with ActorLogging {
+    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
       val name = "test"
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       val startDate = dateFormat.parse("1970-01-01")
-      val sessionProps = SessionProperties(startDate, scala.Seq("Legs"), 1.0)
+      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
       val positiveWatch = Set.empty[Query]
       val negativeWatch = Set.empty[Query]
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def simplify(query: Query): Query = query
+      def satisfiable(query: Query) = Some(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value

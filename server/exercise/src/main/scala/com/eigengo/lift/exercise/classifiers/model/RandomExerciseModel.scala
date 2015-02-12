@@ -2,6 +2,8 @@ package com.eigengo.lift.exercise.classifiers.model
 
 import akka.actor.{ActorLogging, Actor}
 import akka.stream.scaladsl._
+import com.eigengo.lift.exercise.UserExercises.ModelMetadata
+import com.eigengo.lift.exercise.UserExercisesClassifier.{UnclassifiedExercise, FullyClassifiedExercise}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
@@ -33,6 +35,8 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
   // As the random model evaluator always returns true, there is no point in watching for query failures!
   val negativeWatch = Set.empty[Query]
 
+  private val metadata = ModelMetadata(2)
+
   private def randomExercise(): Set[Fact] = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
     if (exercises.get(mgk).isEmpty) {
@@ -63,6 +67,15 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
   // Random model evaluator always returns true!
   def evaluateQuery(query: Query)(current: BindToSensors, lastState: Boolean) =
     StableValue(result = true)
+
+  def makeDecision(result: QueryResult) =
+    if (result.value.result) {
+      val exercise = result.query // FIXME:
+
+      FullyClassifiedExercise(metadata, 1.0, exercise)
+    } else {
+      UnclassifiedExercise(metadata)
+    }
 
   /**
    * We use `aroundReceive` here to print out a summary `SensorNet` message.

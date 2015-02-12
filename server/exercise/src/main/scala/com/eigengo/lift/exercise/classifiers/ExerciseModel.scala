@@ -8,6 +8,7 @@ import akka.stream.actor.ActorSubscriber
 import akka.stream.actor.ActorSubscriberMessage.OnNext
 import akka.stream.actor.WatermarkRequestStrategy
 import akka.stream.scaladsl._
+import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.BindToSensors
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
@@ -62,7 +63,7 @@ object ExerciseModel {
 
   case class Choice(path1: Path, path2: Path, remaining: Path*) extends Path
 
-  case class Seq(path1: Path, path2: Path, remaining: Path*) extends Path
+  case class Sequence(path1: Path, path2: Path, remaining: Path*) extends Path
 
   case class Repeat(path: Path) extends Path
 
@@ -82,7 +83,7 @@ object ExerciseModel {
     case Choice(path1, path2, remainingPaths @ _*) =>
       (path1 +: path2 +: remainingPaths).map(testOnly).fold(true) { case (x, y) => x && y }
 
-    case Seq(path1, path2, remainingPaths @ _*) =>
+    case Sequence(path1, path2, remainingPaths @ _*) =>
       (path1 +: path2 +: remainingPaths).map(testOnly).fold(true) { case (x, y) => x && y }
 
     case Repeat(path1) =>
@@ -177,7 +178,7 @@ object ExerciseModel {
    * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
    * session.
    */
-  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Seq(Test(query1), AssertFact(Assert(location, True)))), query2)
+  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Sequence(Test(query1), AssertFact(Assert(location, True)))), query2)
 
   /**
    * Internal actor message. Allows the evaluator to run after a model update has occurred.
@@ -333,6 +334,9 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
 
   // TODO: document!!!
   def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
+  
+  // TODO: document!!!
+  def makeDecision(result: QueryResult): ClassifiedExercise
 
   /**
    * Evaluates a query to either an error/false (truth) value or a positive/true (truth) value
@@ -390,11 +394,11 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
 
         if (value.result) {
           if (positiveWatch.contains(query)) {
-            listener ! QueryResult(query, value)
+            listener ! makeDecision(QueryResult(query, value))
           }
         } else {
           if (negativeWatch.contains(query)) {
-            listener ! QueryResult(query, value)
+            listener ! makeDecision(QueryResult(query, value))
           }
         }
       }
