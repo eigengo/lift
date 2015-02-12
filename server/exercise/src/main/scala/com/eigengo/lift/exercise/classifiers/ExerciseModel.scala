@@ -261,10 +261,11 @@ object ExerciseModel {
   /**
    * Result message - returned to sender as model evaluates `watch` queries.
    *
-   * @param query query that triggered this response message
-   * @param value result or outcome of model evaluation
+   * @param query  query that triggered this response message
+   * @param value  next state of model evaluation
+   * @param result result of model evaluation
    */
-  case class QueryResult(query: Query, value: QueryValue)
+  case class QueryResult(query: Query, value: QueryValue, result: Boolean)
 
 }
 
@@ -382,10 +383,9 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
     case OnNext(NextState(next, lastState, listener)) =>
       watch.foreach { case (query, currentState) =>
         val value = evaluate(currentState)(next, lastState)
+        val result = ??? // TODO: use satisfiability of SMT here???
 
-        if (watch.contains(query)) {
-          listener ! QueryResult(query, value)
-        }
+        listener ! QueryResult(query, value, result)
 
         (value: @unchecked) match {
           case value: StableValue =>
