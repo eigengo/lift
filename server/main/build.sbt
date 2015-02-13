@@ -68,5 +68,5 @@ imageName in docker := {
   ImageName(
     namespace = Some("janm399"),
     repository = "lift",
-    tag = Some(name.value))
+    tag = Some(s"${name.value}-production"))
 }
