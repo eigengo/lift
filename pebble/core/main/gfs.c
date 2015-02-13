@@ -16,7 +16,7 @@ static struct {
     uint16_t buffer_position;
 } gfs_context;
 
-#define SIGNED_12_MAX(x) (uint16_t)((x) > 4095 ? 4095 : ((x) < -4095 ? -4095 : (x)))
+#define SIGNED_12_MAX(x) (int16_t)((x) > 4095 ? 4095 : ((x) < -4095 ? -4095 : (x)))
 
 /**
  * Write the header and reset the buffer position
