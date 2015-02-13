@@ -18,4 +18,10 @@ typedef struct __attribute__((__packed__)) {
  */
 void encode_lift_accelerometer_data(int16_t x, int16_t y, int16_t z, void* data);
 
+/**
+ * Decodes the values in x, y, z from the ``buffer``.
+ * The memory in ``buffer`` must be at least 5 B long.
+ */
+void decode_lift_accelerometer_data(const void* buffer, int16_t* x, int16_t* y, int16_t* z);
+
 #endif
