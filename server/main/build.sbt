@@ -37,18 +37,8 @@ import sbtdocker.mutable.Dockerfile
 dockerSettings
 
 // Define a Dockerfile for:
-//   - `LiftLocalApp`
-//   - `LiftContainerApp`
-
-// TODO: work out how to do multiple docker container builds!
-//inConfig(LiftLocalApp)(Seq(
-//  mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
-//))
-
-//inConfig(LiftContainerApp)(Seq(
-//  mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
-//))
-mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
+//   - `LiftLocalApp`     (via local-app:docker)
+//   - `LiftContainerApp` (via container-app:docker)
 
 docker <<= (docker dependsOn assembly)
 

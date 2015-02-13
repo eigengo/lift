@@ -26,7 +26,11 @@ lazy val notification = project.in(file("notification")).dependsOn(common, notif
 lazy val notificationProtocol = project.in(file("notification-protocol")).dependsOn(common)
 
 //Main
-lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common, kafka).configs(LiftLocalApp, LiftContainerApp)
+lazy val main = project.in(file("main")).
+  dependsOn(exercise, profile, notification, common, kafka).
+  configs(LiftLocalApp, LiftContainerApp).
+  settings(inConfig(LiftLocalApp)(Seq(mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp"))): _*).
+  settings(inConfig(LiftContainerApp)(Seq(mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp"))): _*)
 
 //The unified API adapter
 lazy val adapter = project.in(file("adapter")).dependsOn(common)
