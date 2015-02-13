@@ -33,8 +33,7 @@ class SensorDataGroupBuffer {
         windowDelay = 1.24
         encodeInterval = windowSize / 3
         timer = GCDTimer.createDispatchTimer(encodeInterval, queue: queue, block: { self.encodeWindow() })
-        
-        if storeSentDataToFile { File.newSession() }
+        newSessionFile()
     }
     
     /* mutating */
@@ -46,8 +45,7 @@ class SensorDataGroupBuffer {
     
     func stop() {
         dispatch_source_cancel(timer)
-        
-        if storeSentDataToFile { File.closeCurrent() }
+        closeSessionFile()
     }
     
     /* mutating */
@@ -80,9 +78,27 @@ class SensorDataGroupBuffer {
                     delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedRange: window, data: result)
                     sensorDataGroup.removeSensorDataArraysEndingBefore(end)
                     
-                    if storeSentDataToFile { File.writeToFile(result) }
+                    storeDataInSessionFile(result)
                 }
             }
+        }
+    }
+    
+    private func newSessionFile() {
+        if storeSentDataToFile {
+            File.newSession()
+        }
+    }
+    
+    private func closeSessionFile() {
+        if storeSentDataToFile {
+            File.closeCurrent()
+        }
+    }
+    
+    private func storeDataInSessionFile(data: NSData) {
+        if storeSentDataToFile {
+            File.writeToFile(data)
         }
     }
     
