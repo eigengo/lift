@@ -4,9 +4,6 @@ import akka.actor.{ActorRef, ActorLogging}
 import akka.event.LoggingReceive
 import akka.stream.{OverflowStrategy, ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.actor.ActorPublisher
-import akka.stream.actor.ActorSubscriber
-import akka.stream.actor.ActorSubscriberMessage.OnNext
-import akka.stream.actor.WatermarkRequestStrategy
 import akka.stream.scaladsl._
 import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
@@ -183,15 +180,6 @@ object ExerciseModel {
   def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Sequence(Test(query1), AssertFact(Assert(location, True)))), query2)
 
   /**
-   * Internal actor message. Allows the evaluator to run after a model update has occurred.
-   *
-   * @param next      the next (state) event received - enriched with propositional facts that hold in this state
-   * @param lastState flag indicating if the exercise session stream will close (i.e. we are the last state)
-   * @param listener  actor that receives callbacks on watched formulae
-   */
-  case class NextState(next: BindToSensors, lastState: Boolean, listener: ActorRef)
-
-  /**
    * Values representing the current evaluation state of a given query:
    *   - stable queries are values that hold now and, no matter how the model develops, will remain in their current state
    *   - unstable queries are values that hold now and, for some sequence of possible events updates, may deviate from
@@ -274,7 +262,7 @@ object ExerciseModel {
  * Model interface trait. Implementations of this trait define specific exercising models that may be updated and queried.
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
-trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with ActorSubscriber {
+trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
   this: SMTInterface with ActorLogging =>
 
   import ExerciseModel._
@@ -293,7 +281,9 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
   /**
    * Collection of queries that are to be evaluated/checked for each update message that we receive
    */
-  def watch: mutable.ParMap[Query, Query]
+  protected def watch: mutable.ParMap[Query, Query]
+
+  private val stableQuery = mutable.ParMap.empty[Query, QueryValue]
 
   protected def workflow: Flow[SensorNetValue, BindToSensors]
 
@@ -306,24 +296,73 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
-  override val requestStrategy = WatermarkRequestStrategy(config.getInt("classification.watermark"))
+  def evaluate(query: Query) =
+    Flow[List[BindToSensors]].map {
+      case _ if stableQuery.contains(query) =>
+        stableQuery(query)
+
+      case List(event) =>
+        evaluateQuery(watch(query))(event, lastState = true)
+
+      case List(event, _) =>
+        evaluateQuery(watch(query))(event, lastState = false)
+    }.map {
+      case UnstableValue(nextQuery) =>
+        val nextState = simplify(nextQuery)
+        watch += (query -> nextState)
+        satisfiable(nextQuery) match {
+          case None =>
+            val errMsg = s"Whilst evaluating $query, we failed to determine if $nextQuery was satisfiable/unsatisfiable"
+            log.error(errMsg)
+            throw new RuntimeException(errMsg)
+
+          case Some(result) =>
+            makeDecision(QueryResult(query, UnstableValue(nextState), result))
+        }
+
+      case value: StableValue =>
+        if (!stableQuery.contains(query)) {
+          watch -= query
+          stableQuery += (query -> value)
+        }
+        makeDecision(QueryResult(query, value, value.result))
+    }
 
   override def preStart() = {
     FlowGraph { implicit builder =>
-      val split = Unzip[SensorNetValue, ActorRef]
-      val join = Zip[List[BindToSensors], ActorRef]
+      if (watch.isEmpty) {
+        // No queries to watch, so we ignore all SensorNetValue's
+        Source(ActorPublisher(self)) ~> Sink.ignore
+      } else {
+        // We have at least one SensorNetValue to watch and report upon
+        val split = Unzip[SensorNetValue, ActorRef]
 
-      Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
-      // 2 element sliding window allows workflow to look ahead and determine if we're in the last state or not
-      split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> join.left
-      split.right ~> join.right
-      join.out ~> Flow[(List[BindToSensors], ActorRef)].map {
-        case (List(event), listener) =>
-          NextState(event, lastState = true, listener)
+        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
 
-        case (List(event, _), listener) =>
-          NextState(event, lastState = false, listener)
-      } ~> Sink(ActorSubscriber[NextState](self))
+        if (watch.size == 1) {
+          val join = Zip[ClassifiedExercise, ActorRef]
+          val query = watch.keys.head
+
+          // 2 element sliding window allows workflow to look ahead one step and determine if we're in the last state or not
+          split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> evaluate(query) ~> join.left
+          split.right ~> join.right
+          join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise}
+        } else {
+          val listener = Broadcast[ActorRef]
+          val event = Broadcast[List[BindToSensors]]
+
+          // 2 element sliding window allows workflow to look ahead one step and determine if we're in the last state or not
+          split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> event
+          split.right ~> listener
+          for (query <- watch.keys) {
+            val join = Zip[ClassifiedExercise, ActorRef]
+
+            event ~> evaluate(query) ~> join.left
+            listener ~> join.right
+            join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise}
+          }
+        }
+      }
     }.run()
   }
 
@@ -333,24 +372,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
   // TODO: document!!!
   def makeDecision(result: QueryResult): ClassifiedExercise
 
-  /**
-   * Evaluates a query to either an error/false (truth) value or a positive/true (truth) value
-   *
-   * @param formula   formula defining the query to be evaluated
-   * @param current   current state (at which formula is to be evaluated) - if end of exercise session, then `None`
-   * @param lastState next or following state - if no state follows, then `None`
-   * @return          result of evaluating the query formula
-   */
-  def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue = evaluateQuery(formula)(current, lastState) match {
-    case UnstableValue(nextQuery) =>
-      // FIXME: a None value should be reported higher???
-      satisfiable(nextQuery).fold(UnstableValue(simplify(nextQuery)))(value => UnstableValue(simplify(nextQuery)))
-
-    case result: StableValue =>
-      result
-  }
-
-  protected def modelUpdate: Receive = {
+  def receive = LoggingReceive {
     // TODO: refactor code so that the following assumptions may be weakened further!
     case event: SensorNet =>
       require(
@@ -382,22 +404,5 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
         log.warning(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
       }
   }
-
-  protected def monitorEvents: Receive = {
-    case OnNext(NextState(next, lastState, listener)) =>
-      // FIXME: can we iterate over watch in a concurrent manner???
-      watch.foreach { case (query, currentState) =>
-        val value = evaluate(currentState)(next, lastState)
-        val result = ??? // TODO: use satisfiability of SMT here???
-
-        listener ! makeDecision(QueryResult(query, value, result))
-
-        if (value.isInstanceOf[StableValue]) {
-          watch -= query
-        }
-      }
-  }
-
-  def receive = LoggingReceive { modelUpdate orElse monitorEvents }
 
 }

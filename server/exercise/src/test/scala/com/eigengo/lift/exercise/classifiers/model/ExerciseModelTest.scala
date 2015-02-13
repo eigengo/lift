@@ -4,6 +4,7 @@ import akka.actor.{ActorSystem, ActorLogging}
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.testkit.{TestKit, TestProbe, TestActorRef}
+import com.eigengo.lift.exercise.UserExercisesClassifier.Tap
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
@@ -14,6 +15,7 @@ import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
+import scala.collection.parallel.mutable
 
 class ExerciseModelTest
   extends TestKit(ActorSystem("TestSystem", ConfigFactory.load("test.conf").withFallback(ConfigFactory.load("classification.conf"))))
@@ -155,10 +157,10 @@ class ExerciseModelTest
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       val startDate = dateFormat.parse("1970-01-01")
       val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      val positiveWatch = Set.empty[Query]
-      val negativeWatch = Set.empty[Query]
+      val watch = mutable.ParMap.empty[Query, Query]
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def makeDecision(result: QueryResult) = Tap
       def simplify(query: Query): Query = query
       def satisfiable(query: Query) = Some(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
