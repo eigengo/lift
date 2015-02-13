@@ -1,3 +1,4 @@
+import Config._
 import Dependencies._
 
 Build.Settings.project
@@ -39,16 +40,15 @@ dockerSettings
 //   - `LiftLocalApp`
 //   - `LiftContainerApp`
 
-lazy val LiftLocalApp = config("local-app") extend Compile
-lazy val LiftContainerApp = config("container-app") extend Compile
+// TODO: work out how to do multiple docker container builds!
+//inConfig(LiftLocalApp)(Seq(
+//  mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
+//))
 
-inConfig(LiftLocalApp)(Seq(
-  mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
-))
-
-inConfig(LiftContainerApp)(Seq(
-  mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
-))
+//inConfig(LiftContainerApp)(Seq(
+//  mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
+//))
+mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
 
 docker <<= (docker dependsOn assembly)
 
