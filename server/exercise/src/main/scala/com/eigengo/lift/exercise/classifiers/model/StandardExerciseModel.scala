@@ -6,6 +6,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
 import com.eigengo.lift.exercise.classifiers.workflows.{ClassificationAssertions, GestureWorkflows}
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
+import scala.collection.parallel.mutable
 
 /**
  * Gesture classification model.
@@ -13,7 +14,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
  * Essentially, we view our model traces as being streams here. As a result, all queries are evaluated (on the actual
  * stream) from the time point they are received by the model.
  */
-abstract class StandardExerciseModel(val sessionProps: SessionProperties, val negativeWatch: Set[Query] = Set.empty, val positiveWatch: Set[Query] = Set.empty)
+abstract class StandardExerciseModel(val sessionProps: SessionProperties, val watch: mutable.ParTrieMap[Query, Query] = mutable.ParTrieMap.empty)
   extends ExerciseModel
   with StandardEvaluation
   with GestureWorkflows

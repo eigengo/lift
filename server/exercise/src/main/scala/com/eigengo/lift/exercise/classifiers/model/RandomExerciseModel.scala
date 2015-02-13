@@ -7,6 +7,7 @@ import com.eigengo.lift.exercise.UserExercisesClassifier.{UnclassifiedExercise, 
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
+import scala.collection.parallel.mutable
 import scala.util.Random
 
 /**
@@ -31,9 +32,7 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
     )
 
   // For the random model, we watch and report on all exercises and all sensors
-  val positiveWatch = exercises.values.flatMap(_.flatMap(t => Sensor.sourceLocations.map(l => Formula(Assert(l, Gesture(t, 0.80)))))).toSet[Query]
-  // As the random model evaluator always returns true, there is no point in watching for query failures!
-  val negativeWatch = Set.empty[Query]
+  val watch = mutable.ParTrieMap(exercises.values.flatMap(_.flatMap(t => Sensor.sourceLocations.map(l => Formula(Assert(l, Gesture(t, 0.80)))))).map((f: Query) => (f, f)).toSeq: _*)
 
   private val metadata = ModelMetadata(2)
 

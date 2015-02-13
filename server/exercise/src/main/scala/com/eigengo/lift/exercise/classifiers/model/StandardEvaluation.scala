@@ -91,7 +91,7 @@ trait StandardEvaluation {
       results.fold(StableValue(result = false))(join)
 
     case Exists(AssertFact(fact), query1) if !lastState && evaluateAtSensor(fact, state) =>
-      UnstableValue(result = true, query1)
+      UnstableValue(query1)
 
     case Exists(AssertFact(fact), query1) if lastState && evaluateAtSensor(fact, state) =>
       emptyEvaluate(query1)
@@ -118,7 +118,7 @@ trait StandardEvaluation {
       )
 
     case All(AssertFact(fact), query1) if !lastState && evaluateAtSensor(fact, state) =>
-      UnstableValue(result = true, query1)
+      UnstableValue(query1)
 
     case All(AssertFact(fact), query1) if lastState && evaluateAtSensor(fact, state) =>
       emptyEvaluate(query1)

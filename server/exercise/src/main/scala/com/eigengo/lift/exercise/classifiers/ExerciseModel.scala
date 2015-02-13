@@ -13,6 +13,8 @@ import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.BindToSensors
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
 import com.eigengo.lift.exercise._
+import scala.collection.parallel.mutable
+import scala.language.higherKinds
 
 object ExerciseModel {
 
@@ -195,22 +197,15 @@ object ExerciseModel {
    *   - unstable queries are values that hold now and, for some sequence of possible events updates, may deviate from
    *     their current value
    */
-  sealed trait QueryValue {
-    /**
-     * The actual query result or value
-     */
-    def result: Boolean
-  }
+  sealed trait QueryValue
   /**
    * @param result validity of linear dynamic logic statement at this and future points in time
    */
   case class StableValue(result: Boolean) extends QueryValue
   /**
-   * @param result validity of linear dynamic logic statement at this point in time (it may become permanently true or
-   *               false in the future)
    * @param state  positive propositional description of the next states for an alternating automaton over words
    */
-  case class UnstableValue(result: Boolean, state: Query) extends QueryValue
+  case class UnstableValue(state: Query) extends QueryValue
 
   /**
    * Auxillary functions that support QueryValue lattice structure
@@ -220,19 +215,19 @@ object ExerciseModel {
     case (StableValue(result1), StableValue(result2)) =>
       StableValue(result1 && result2)
 
-    case (UnstableValue(result1, atom1), UnstableValue(result2, atom2)) =>
-      UnstableValue(result1 && result2, And(atom1, atom2))
+    case (UnstableValue(atom1), UnstableValue(atom2)) =>
+      UnstableValue(And(atom1, atom2))
 
-    case (StableValue(true), result2 @ UnstableValue(_, _)) =>
+    case (StableValue(true), result2 @ UnstableValue(_)) =>
       result2
 
-    case (result1 @ StableValue(false), UnstableValue(_, _)) =>
+    case (result1 @ StableValue(false), UnstableValue(_)) =>
       result1
 
-    case (result1 @ UnstableValue(_, _), StableValue(true)) =>
+    case (result1 @ UnstableValue(_), StableValue(true)) =>
       result1
 
-    case (UnstableValue(_, _), result2 @ StableValue(false)) =>
+    case (UnstableValue(_), result2 @ StableValue(false)) =>
       result2
   }
 
@@ -240,19 +235,19 @@ object ExerciseModel {
     case (StableValue(result1), StableValue(result2)) =>
       StableValue(result1 || result2)
 
-    case (UnstableValue(result1, atom1), UnstableValue(result2, atom2)) =>
-      UnstableValue(result1 || result2, Or(atom1, atom2))
+    case (UnstableValue(atom1), UnstableValue(atom2)) =>
+      UnstableValue(Or(atom1, atom2))
 
-    case (result1 @ StableValue(true), UnstableValue(_, _)) =>
+    case (result1 @ StableValue(true), UnstableValue(_)) =>
       result1
 
-    case (StableValue(false), result2 @ UnstableValue(_, _)) =>
+    case (StableValue(false), result2 @ UnstableValue(_)) =>
       result2
 
-    case (UnstableValue(_, _), result2 @ StableValue(true)) =>
+    case (UnstableValue(_), result2 @ StableValue(true)) =>
       result2
 
-    case (result1 @ UnstableValue(_, _), StableValue(false)) =>
+    case (result1 @ UnstableValue(_), StableValue(false)) =>
       result1
   }
 
@@ -260,17 +255,18 @@ object ExerciseModel {
     case StableValue(result) =>
       StableValue(!result)
 
-    case UnstableValue(result, atom) =>
-      UnstableValue(!result, not(atom))
+    case UnstableValue(atom) =>
+      UnstableValue(not(atom))
   }
 
   /**
    * Result message - returned to sender as model evaluates `watch` queries.
    *
-   * @param query query that triggered this response message
-   * @param value result or outcome of model evaluation
+   * @param query  query that triggered this response message
+   * @param value  next state of model evaluation
+   * @param result result of model evaluation
    */
-  case class QueryResult(query: Query, value: QueryValue)
+  case class QueryResult(query: Query, value: QueryValue, result: Boolean)
 
 }
 
@@ -297,8 +293,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
   /**
    * Collection of queries that are to be evaluated/checked for each update message that we receive
    */
-  def positiveWatch: Set[Query]
-  def negativeWatch: Set[Query]
+  def watch: mutable.ParMap[Query, Query]
 
   protected def workflow: Flow[SensorNetValue, BindToSensors]
 
@@ -347,8 +342,9 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
    * @return          result of evaluating the query formula
    */
   def evaluate(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue = evaluateQuery(formula)(current, lastState) match {
-    case UnstableValue(result, nextQuery) =>
-      satisfiable(nextQuery).fold(UnstableValue(result, simplify(nextQuery)))(value => UnstableValue(value, simplify(nextQuery)))
+    case UnstableValue(nextQuery) =>
+      // FIXME: a None value should be reported higher???
+      satisfiable(nextQuery).fold(UnstableValue(simplify(nextQuery)))(value => UnstableValue(simplify(nextQuery)))
 
     case result: StableValue =>
       result
@@ -389,17 +385,15 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] with Acto
 
   protected def monitorEvents: Receive = {
     case OnNext(NextState(next, lastState, listener)) =>
-      (positiveWatch ++ negativeWatch).foreach { query =>
-        val value = evaluate(query)(next, lastState)
+      // FIXME: can we iterate over watch in a concurrent manner???
+      watch.foreach { case (query, currentState) =>
+        val value = evaluate(currentState)(next, lastState)
+        val result = ??? // TODO: use satisfiability of SMT here???
 
-        if (value.result) {
-          if (positiveWatch.contains(query)) {
-            listener ! makeDecision(QueryResult(query, value))
-          }
-        } else {
-          if (negativeWatch.contains(query)) {
-            listener ! makeDecision(QueryResult(query, value))
-          }
+        listener ! makeDecision(QueryResult(query, value, result))
+
+        if (value.isInstanceOf[StableValue]) {
+          watch -= query
         }
       }
   }
