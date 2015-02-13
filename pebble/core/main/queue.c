@@ -1,16 +1,23 @@
 #include "queue.h"
 
 Queue* queue_create() {
+    APP_LOG_DEBUG("queue_create - begin");
+    
     Queue* queue = (Queue*)malloc(sizeof(Queue));
     queue->length = 0;
     queue->first = (struct QueueNode*)malloc(sizeof(QueueNodeStruct));
     queue->first->buffer = NULL;
     queue->first->size = 0;
     queue->first->next = NULL;
+    
+    APP_LOG_DEBUG("queue_create - end");
+    
     return queue;
 }
 
 void queue_add(Queue* queue, uint8_t* buffer, uint16_t size) {
+    APP_LOG_DEBUG("queue_add - begin");
+    
     struct QueueNode* last = (struct QueueNode*)malloc(sizeof(QueueNodeStruct));
     last->buffer = (uint8_t*)malloc(size);
     memcpy(last->buffer, buffer, size);
@@ -28,14 +35,22 @@ void queue_add(Queue* queue, uint8_t* buffer, uint16_t size) {
         queue->length = 1;
         free(empty);
     }
+    
+    APP_LOG_DEBUG("queue_add - end");
 }
 
 void queue_peek(Queue* queue, uint8_t** buffer, uint16_t* size) {
+    APP_LOG_DEBUG("queue_peek - begin");
+    
     (*buffer) = queue->first->buffer;
     (*size) = queue->first->size;
+    
+    APP_LOG_DEBUG("queue_peek - end");
 }
 
 void queue_pop(Queue* queue, uint8_t** buffer, uint16_t* size) {
+    APP_LOG_DEBUG("queue_pop - begin");
+    
     struct QueueNode* node = queue->first;
     (*buffer) = node->buffer;
     (*size) = node->size;
@@ -49,4 +64,6 @@ void queue_pop(Queue* queue, uint8_t** buffer, uint16_t* size) {
         queue->first = node->next;
         free(node);
     }
+    
+    APP_LOG_DEBUG("queue_pop - end");
 }

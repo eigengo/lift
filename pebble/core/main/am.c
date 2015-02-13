@@ -30,26 +30,35 @@ char* _am_get_error_message(int code) {
 }
 
 void _pop_message() {
+    APP_LOG_DEBUG("_pop_message - begin");
+    
     uint8_t* buffer;
     uint16_t size;
     
     queue_pop(_am_message_queue, &buffer, &size);
     if (buffer != NULL)
         free(buffer);
+    
+    APP_LOG_DEBUG("_pop_message - end");
 }
 
 void _send_next_message() {
+    APP_LOG_DEBUG("_send_next_message - begin");
+    
     uint8_t* buffer;
     uint16_t size;
     queue_peek(_am_message_queue, &buffer, &size);
-    if (buffer == NULL)
+    if (buffer == NULL) {
+        APP_LOG_DEBUG("_send_next_message - no message - end");
         return;
+    }
 
     DictionaryIterator* message;
     AppMessageResult app_message_result;
     if ((app_message_result = app_message_outbox_begin(&message)) != APP_MSG_OK) {
         
         if (app_message_result == APP_MSG_BUSY) {
+            APP_LOG_DEBUG("_send_next_message - busy - end");
             return;
         }
         
@@ -57,6 +66,8 @@ void _send_next_message() {
         _am_last_error_distance = 0;
         _am_last_error = -1000 - app_message_result;
         _am_last_error_text = _am_get_error_message(app_message_result);
+        
+        APP_LOG_DEBUG("_send_next_message - error - end");
         return;
     }
 
@@ -66,29 +77,43 @@ void _send_next_message() {
         _am_last_error_distance = 0;
         _am_last_error = -2000 - dictionary_result;
         _am_last_error_text = _am_get_error_message(dictionary_result);
+        
+        APP_LOG_DEBUG("_send_next_message - error - end");
         return;
     }
     dict_write_end(message);
-    if (message == NULL)
+    if (message == NULL) {
+        APP_LOG_DEBUG("_send_next_message - programming error - end");
         return;
+    }
     
     if ((app_message_result = app_message_outbox_send()) != APP_MSG_OK) {
         _am_error_count++;
         _am_last_error_distance = 0;
         _am_last_error = -1100 - app_message_result;
         _am_last_error_text = _am_get_error_message(app_message_result);
+        
+        APP_LOG_DEBUG("_send_next_message - error - end");
         return;
     }
+    
+    APP_LOG_DEBUG("_send_next_message - end");
 }
 
 void _am_outbox_sent(DictionaryIterator *iterator, void *context) {
+    APP_LOG_DEBUG("_am_outbox_sent - begin");
+    
     _pop_message();
     _am_count++;
     _am_last_error_distance++;
     _send_next_message();
+    
+    APP_LOG_DEBUG("_am_outbox_sent - end");
 }
 
 void _am_outbox_failed(DictionaryIterator* iterator, AppMessageResult reason, void* context) {
+    APP_LOG_DEBUG("_am_outbox_failed - begin");
+    
     _pop_message();
     _am_error_count++;
     _am_last_error_distance = 0;
@@ -100,6 +125,8 @@ void _am_outbox_failed(DictionaryIterator* iterator, AppMessageResult reason, vo
     }
     
     _send_next_message();
+    
+    APP_LOG_DEBUG("_am_outbox_failed - end");
 }
 
 void _am_gfs_sample_callback(uint8_t* buffer, uint16_t size) {
@@ -118,6 +145,8 @@ gfs_sample_callback_t am_start() {
 }
 
 void am_stop() {
+    APP_LOG_DEBUG("am_stop - begin");
+    
     for (int i = 0; i < 10; ++i) {
         DictionaryIterator *iter;
         if (app_message_outbox_begin(&iter) == APP_MSG_OK) {
@@ -130,6 +159,8 @@ void am_stop() {
     _am_last_error_distance = -1;
     _am_error_count = 0;
     _am_count = 0;
+    
+    APP_LOG_DEBUG("am_stop - end");
 }
 
 int am_count() {

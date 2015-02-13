@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pebble.h"
+#include "debug_macros.h"
 
 #ifdef __cplusplus
 extern "C" {
