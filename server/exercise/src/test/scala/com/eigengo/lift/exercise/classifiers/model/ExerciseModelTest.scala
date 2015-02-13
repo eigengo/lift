@@ -184,4 +184,94 @@ class ExerciseModelTest
     }
   }
 
+  property("ExerciseModel should generate no decisions if it watches no queries") {
+    val rate = system.settings.config.getInt("classification.frequency")
+    val senderProbe = TestProbe()
+    val modelProbe = TestProbe()
+    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
+      val name = "test"
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      val startDate = dateFormat.parse("1970-01-01")
+      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+      val watch = mutable.ParMap.empty[Query, Query]
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def makeDecision(result: QueryResult) = {
+        modelProbe.ref ! result
+        Tap
+      }
+      def simplify(query: Query): Query = query
+      def satisfiable(query: Query) = Some(true)
+    })
+
+    forAll(SensorNetValueGen) { (event: SensorNetValue) =>
+      model.tell(event, senderProbe.ref)
+
+      senderProbe.expectNoMsg()
+      modelProbe.expectNoMsg()
+    }
+  }
+
+  property("ExerciseModel should generate single decisions if it watches a single query") {
+    val rate = system.settings.config.getInt("classification.frequency")
+    val senderProbe = TestProbe()
+    val modelProbe = TestProbe()
+    val example = Formula(Assert(SensorDataSourceLocationAny, Gesture("example", 0.9876)))
+    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
+      val name = "test"
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      val startDate = dateFormat.parse("1970-01-01")
+      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+      val watch = mutable.ParMap[Query, Query](example -> TT)
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def makeDecision(result: QueryResult) = {
+        modelProbe.ref ! result
+        Tap
+      }
+      def simplify(query: Query): Query = query
+      def satisfiable(query: Query) = Some(true)
+    })
+
+    forAll(SensorNetValueGen) { (event: SensorNetValue) =>
+      model.tell(event, senderProbe.ref)
+
+      senderProbe.expectMsg(Tap)
+      val result = modelProbe.expectMsgType[QueryResult]
+      result === QueryResult(example, StableValue(result = true), result = true)
+    }
+  }
+
+  property("ExerciseModel should generate multiple decisions if it watches multiple queries") {
+    val rate = system.settings.config.getInt("classification.frequency")
+    val senderProbe = TestProbe()
+    val modelProbe = TestProbe()
+    val example1 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example1", 0.9876)))
+    val example2 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example2", 0.5432)))
+    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
+      val name = "test"
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      val startDate = dateFormat.parse("1970-01-01")
+      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+      val watch = mutable.ParMap[Query, Query](example1 -> TT, example2 -> TT)
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def makeDecision(result: QueryResult) = {
+        modelProbe.ref ! result
+        Tap
+      }
+      def simplify(query: Query): Query = query
+      def satisfiable(query: Query) = Some(true)
+    })
+
+    forAll(SensorNetValueGen) { (event: SensorNetValue) =>
+      model.tell(event, senderProbe.ref)
+
+      senderProbe.expectMsg(Tap)
+      senderProbe.expectMsg(Tap)
+      val result = receiveN(2).asInstanceOf[Vector[QueryResult]].toSet
+      result === Set(QueryResult(example1, StableValue(result = true), result = true), QueryResult(example2, StableValue(result = true), result = true))
+    }
+  }
+
 }
