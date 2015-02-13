@@ -1,10 +1,9 @@
-package com.eigengo.lift.common
+package com.eigengo.lift.kafkaUtil
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
-
-import scala.util.{Failure, Success, Try}
-import scalaz.\/
-import com.eigengo.lift.common.MessagePayload._
+import scala.util.{Failure, Try, Success}
+import scalaz.{\/, \/-, -\/}
+import com.eigengo.lift.kafkaUtil.MessagePayload._
 
 trait JavaSerializationCodecs {
 

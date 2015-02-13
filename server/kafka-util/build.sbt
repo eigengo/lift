@@ -2,10 +2,10 @@ import Dependencies._
 
 Build.Settings.project
 
-name := "kafka"
+name := "kafkaUtil"
 
 libraryDependencies ++= Seq(
-  akka.actor,
+  typesafeConfig,
   kafka.kafka,
   slf4j_simple,
   scalaz.core

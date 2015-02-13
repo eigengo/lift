@@ -1,0 +1,8 @@
+<%
+  @image          = @docker[:spark]
+  @description    = "Supporting Service: Spark"
+  @ip_address     = "10.42.7.%i"
+  @affinity_rules = "MachineMetadata=type=spark"
+%>
+
+<%= ERB.new(File.read("unit-files/lift/default-service.erb"), 0, "<>", "_unit").result(binding) %>

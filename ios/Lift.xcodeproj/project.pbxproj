@@ -12,7 +12,12 @@
 		281A7ADE1A8266C000421B9E /* NSMutableData+Encoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281A7ADA1A82436F00421B9E /* NSMutableData+Encoding.swift */; };
 		2835C5E71A8284860012DEFB /* SensorDataGroupBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2835C5E61A8284860012DEFB /* SensorDataGroupBufferTests.swift */; };
 		2835C5E81A8285D30012DEFB /* SensorDataGroupBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0A3BB1A80D6A400346AD6 /* SensorDataGroupBuffer.swift */; };
+		2836BF561A8BBD110084A1E2 /* ByteVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2836BF551A8BBD110084A1E2 /* ByteVector.swift */; };
+		2836BF581A8BC1250084A1E2 /* NSData+Decoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2836BF571A8BC1250084A1E2 /* NSData+Decoding.swift */; };
+		2836BF591A8BC14A0084A1E2 /* NSData+Decoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2836BF571A8BC1250084A1E2 /* NSData+Decoding.swift */; };
+		2836BF5A1A8BC1510084A1E2 /* ByteVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2836BF551A8BBD110084A1E2 /* ByteVector.swift */; };
 		28766A181A829995001D8808 /* ContinuousSensorDataArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28766A171A829995001D8808 /* ContinuousSensorDataArrayTests.swift */; };
+		28A035221A8D04E00083164B /* CMDeviceMotion+MeasuredValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28A035211A8D04E00083164B /* CMDeviceMotion+MeasuredValue.swift */; };
 		390DD5F7C530950EB2D40268 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
 		5405D78B1A87DC500037382A /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5405D78A1A87DC500037382A /* LiveSessionController.swift */; };
@@ -150,7 +155,6 @@
 		54F780B61A276E8700E4F3C5 /* AccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B51A276E8700E4F3C5 /* AccountViewController.swift */; };
 		54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F780B81A278EFC00E4F3C5 /* LiftServer.swift */; };
 		54F9444B1A82BE5200FC7328 /* TestSensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F9444A1A82BE5200FC7328 /* TestSensorData.swift */; };
-		54F9444D1A82BFC600FC7328 /* NSData+Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F9444C1A82BFC600FC7328 /* NSData+Tests.swift */; };
 		54FBCD1F1A5BF0FA00E2CB2C /* arms-bicep-curl.dat in Resources */ = {isa = PBXBuildFile; fileRef = 54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */; };
 		83596E4AB21AF7BB754F28CE /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 /* End PBXBuildFile section */
@@ -197,7 +201,10 @@
 		0293CE44C9B33D93ACF27719 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		281A7ADA1A82436F00421B9E /* NSMutableData+Encoding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSMutableData+Encoding.swift"; sourceTree = "<group>"; };
 		2835C5E61A8284860012DEFB /* SensorDataGroupBufferTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataGroupBufferTests.swift; sourceTree = "<group>"; };
+		2836BF551A8BBD110084A1E2 /* ByteVector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ByteVector.swift; sourceTree = "<group>"; };
+		2836BF571A8BC1250084A1E2 /* NSData+Decoding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSData+Decoding.swift"; sourceTree = "<group>"; };
 		28766A171A829995001D8808 /* ContinuousSensorDataArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContinuousSensorDataArrayTests.swift; sourceTree = "<group>"; };
+		28A035211A8D04E00083164B /* CMDeviceMotion+MeasuredValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CMDeviceMotion+MeasuredValue.swift"; path = "../CMDeviceMotion+MeasuredValue.swift"; sourceTree = "<group>"; };
 		4426590D0160CE631890E9AC /* libPods-LiftTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LiftTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54008B581A49EC730049A8EA /* String+MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+MD5.swift"; sourceTree = "<group>"; };
 		5405D78A1A87DC500037382A /* LiveSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveSessionController.swift; sourceTree = "<group>"; };
@@ -318,7 +325,6 @@
 		54F780B51A276E8700E4F3C5 /* AccountViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountViewController.swift; sourceTree = "<group>"; };
 		54F780B81A278EFC00E4F3C5 /* LiftServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiftServer.swift; sourceTree = "<group>"; };
 		54F9444A1A82BE5200FC7328 /* TestSensorData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestSensorData.swift; sourceTree = "<group>"; };
-		54F9444C1A82BFC600FC7328 /* NSData+Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSData+Tests.swift"; sourceTree = "<group>"; };
 		54FBCD1E1A5BF0FA00E2CB2C /* arms-bicep-curl.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "arms-bicep-curl.dat"; sourceTree = "<group>"; };
 		5D984E2C657088D05D0AE494 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		604C4FB0BC879EB56AD28A81 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -411,12 +417,14 @@
 				548296381A4D792D00EDCAF0 /* AppleWatch */,
 				54E99ED31A767B8400BA1BD3 /* This */,
 				543B26FE1A49D1A800381298 /* Pebble */,
-				54567B1B1A894AFA0096DAC7 /* GCDTimer.swift */,
+				2836BF551A8BBD110084A1E2 /* ByteVector.swift */,
 				54DB071A1A49E65400DC1E91 /* Device.swift */,
 				54B562251A7793B000F6FD5D /* DeviceSession.swift */,
 				54B562221A77937200F6FD5D /* DeviceSessionStats.swift */,
 				543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */,
 				5482963F1A4D7F3A00EDCAF0 /* Devices.swift */,
+				54567B1B1A894AFA0096DAC7 /* GCDTimer.swift */,
+				2836BF571A8BC1250084A1E2 /* NSData+Decoding.swift */,
 				281A7ADA1A82436F00421B9E /* NSMutableData+Encoding.swift */,
 				54E99EDB1A76882300BA1BD3 /* MultiDeviceSession.swift */,
 				545C7AFC1A7BC71100FC3281 /* MultiPacketProtocol.c */,
@@ -451,7 +459,6 @@
 				54803C401A8500DA00098F7A /* SensorDataProtocolTests.swift */,
 				28766A171A829995001D8808 /* ContinuousSensorDataArrayTests.swift */,
 				54F9444A1A82BE5200FC7328 /* TestSensorData.swift */,
-				54F9444C1A82BFC600FC7328 /* NSData+Tests.swift */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -661,6 +668,7 @@
 		54E99ED31A767B8400BA1BD3 /* This */ = {
 			isa = PBXGroup;
 			children = (
+				28A035211A8D04E00083164B /* CMDeviceMotion+MeasuredValue.swift */,
 				54E99ED41A767B8400BA1BD3 /* ThisDevice.swift */,
 				54E99ED91A76823F00BA1BD3 /* ThisDeviceSession.swift */,
 				54988A991A8681F200446DC2 /* ThisDeviceSession+HealthKit.swift */,
@@ -969,6 +977,7 @@
 				54E99EDC1A76882300BA1BD3 /* MultiDeviceSession.swift in Sources */,
 				54B29B201A2C801B00098D2A /* SwiftyJSON.swift in Sources */,
 				54F780B91A278EFC00E4F3C5 /* LiftServer.swift in Sources */,
+				28A035221A8D04E00083164B /* CMDeviceMotion+MeasuredValue.swift in Sources */,
 				54E99ED51A767B8400BA1BD3 /* ThisDevice.swift in Sources */,
 				54614BB81A7EA9D000B34C75 /* SensorData+Printable.swift in Sources */,
 				54C6EFDD1A2F5E650044BDAB /* Result.swift in Sources */,
@@ -976,8 +985,10 @@
 				54CC699F19C4AD8E00B29EC8 /* LiveSessionDevicesController.swift in Sources */,
 				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54B562231A77937200F6FD5D /* DeviceSessionStats.swift in Sources */,
+				2836BF581A8BC1250084A1E2 /* NSData+Decoding.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
 				54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */,
+				2836BF561A8BBD110084A1E2 /* ByteVector.swift in Sources */,
 				54567B1C1A894AFA0096DAC7 /* GCDTimer.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
 				54D8DD2A1A2E58660005E2ED /* DemoSessionController.swift in Sources */,
@@ -1037,11 +1048,11 @@
 				54ED4EB31A6C547B00490DA7 /* UserModel+Marshalling.swift in Sources */,
 				54ED4EBD1A6C548700490DA7 /* SwiftyJSON.swift in Sources */,
 				54567B1D1A894B4B0096DAC7 /* GCDTimer.swift in Sources */,
+				2836BF591A8BC14A0084A1E2 /* NSData+Decoding.swift in Sources */,
 				54ED4EBC1A6C548700490DA7 /* Alamofire+SwiftyJSON.swift in Sources */,
 				281A7ADE1A8266C000421B9E /* NSMutableData+Encoding.swift in Sources */,
 				2835C5E81A8285D30012DEFB /* SensorDataGroupBuffer.swift in Sources */,
 				54AECC451A769CDE008BD812 /* Device.swift in Sources */,
-				54F9444D1A82BFC600FC7328 /* NSData+Tests.swift in Sources */,
 				54F9444B1A82BE5200FC7328 /* TestSensorData.swift in Sources */,
 				54AECC481A76AC04008BD812 /* Dictionary.swift in Sources */,
 				546D72CB1A79825F009C9629 /* SensorData.swift in Sources */,
@@ -1060,6 +1071,7 @@
 				54ED4EC11A6C54C100490DA7 /* NSError+Convenience.swift in Sources */,
 				54ED4EB71A6C548100490DA7 /* Box.swift in Sources */,
 				54614BB91A7EA9D500B34C75 /* SensorData+Printable.swift in Sources */,
+				2836BF5A1A8BC1510084A1E2 /* ByteVector.swift in Sources */,
 				54ED4EB41A6C547B00490DA7 /* ExerciseModel.swift in Sources */,
 				54803C411A8500DA00098F7A /* SensorDataProtocolTests.swift in Sources */,
 				54ED4EBE1A6C548700490DA7 /* Alamofire.swift in Sources */,
