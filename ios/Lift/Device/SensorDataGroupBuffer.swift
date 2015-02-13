@@ -24,6 +24,8 @@ class SensorDataGroupBuffer {
     let deviceLocations: DeviceId -> DeviceInfo.Location!
     var counter: UInt32 = 0
     
+    let storeSentDataToFile = false // stores data in session files, if true
+    
     init(delegate: SensorDataGroupBufferDelegate, queue: dispatch_queue_t, deviceLocations: DeviceId -> DeviceInfo.Location) {
         self.delegate = delegate
         self.deviceLocations = deviceLocations
@@ -31,6 +33,7 @@ class SensorDataGroupBuffer {
         windowDelay = 1.24
         encodeInterval = windowSize / 3
         timer = GCDTimer.createDispatchTimer(encodeInterval, queue: queue, block: { self.encodeWindow() })
+        newSessionFile()
     }
     
     /* mutating */
@@ -42,6 +45,7 @@ class SensorDataGroupBuffer {
     
     func stop() {
         dispatch_source_cancel(timer)
+        closeSessionFile()
     }
     
     /* mutating */
@@ -73,8 +77,28 @@ class SensorDataGroupBuffer {
                     
                     delegate.sensorDataGroupBuffer(self, continuousSensorDataEncodedRange: window, data: result)
                     sensorDataGroup.removeSensorDataArraysEndingBefore(end)
+                    
+                    storeDataInSessionFile(result)
                 }
             }
+        }
+    }
+    
+    private func newSessionFile() {
+        if storeSentDataToFile {
+            File.newSession()
+        }
+    }
+    
+    private func closeSessionFile() {
+        if storeSentDataToFile {
+            File.closeCurrent()
+        }
+    }
+    
+    private func storeDataInSessionFile(data: NSData) {
+        if storeSentDataToFile {
+            File.writeToFile(data)
         }
     }
     
