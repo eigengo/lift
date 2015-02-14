@@ -24,10 +24,7 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
   import FlowGraphImplicits._
 
   // Workflow for recognising 'tap' gestures
-  object Tap extends GestureWorkflows {
-    val name = "tap"
-    val config = context.system.settings.config
-  }
+  object Tap extends GestureWorkflows("tap", context.system.settings.config)
 
   /**
    * Monitor wrist sensor and add in tap gesture detection.
@@ -37,7 +34,7 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
     val out = UndefinedSink[BindToSensors]
 
     PartialFlowGraph { implicit builder =>
-      val classifier = Tap.IdentifyGestureEvents()
+      val classifier = Tap.identifyEvent
       val split = Broadcast[SensorNetValue]
       val merge = Zip[Set[Fact], SensorNetValue]
 

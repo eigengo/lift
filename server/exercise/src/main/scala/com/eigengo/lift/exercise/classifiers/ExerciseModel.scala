@@ -286,19 +286,32 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
    */
   private val stableQuery = mutable.ParMap.empty[Query, QueryValue]
 
-  // TODO: document!!!
-  protected def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
+  /**
+   * Defined by implementing subclasses. Given a new event in our sensor trace, determines the next state that our model
+   * evaluator will assume.
+   *
+   * @param current   current model evaluator state
+   * @param event     new event received by the sensor network
+   * @param lastState determines if this is the last event to be received by the sensor network or not
+   */
+  protected def evaluateQuery(current: Query)(event: BindToSensors, lastState: Boolean): QueryValue
 
-  // TODO: document!!!
+  /**
+   * Defined by implementing subclasses. Determines the message sent back to the UserExercisesProcessor.
+   *
+   * @param query  query that we have been requested to watch
+   * @param value  current model evaluated value for this query
+   * @param result currently evaluated result for this query
+   */
   protected def makeDecision(query: Query, value: QueryValue, result: Boolean): ClassifiedExercise
 
   /**
-   * Configurable flow defined by implementing subclasses
+   * Defined by implementing subclasses. Configurable flow defined by implementing subclasses
    */
   protected def workflow: Flow[SensorNetValue, BindToSensors]
 
   /**
-   * Flow that defines how query evaluation influences decision making
+   * Flow that defines how per query evaluation influences decision making (and so messages received by UserExercisesProcessor)
    */
   private def evaluate(query: Query) = {
     require(watch.contains(query))
@@ -329,6 +342,55 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
     }
   }
 
+  /**
+   * Flow graph that defines:
+   *   - how sensor events (received by this actor) are added to a (i.e. essentially `Source[SensorNetValue]`) trace
+   *   - how (`watch`) queries are evaluated (i.e. `evaluateQuery`) over that trace
+   *   - how decision messages (i.e. result of `makeDecision`) are relayed back to `UserExercisesProcessor`.
+   *
+   * NOTE: input data is buffered in order to help deal with fast (i.e. external) producers.
+   */
+  private def model: FlowGraph = {
+    if (watch.isEmpty) {
+      // No queries to watch, so we ignore all SensorNetValue's
+      FlowGraph { implicit builder =>
+        Source(ActorPublisher(self)) ~> Sink.ignore
+      }
+    } else if (watch.size == 1) {
+      // We have at least one query to watch and report upon
+      FlowGraph { implicit builder =>
+        val split = Unzip[SensorNetValue, ActorRef]
+        val join = Zip[ClassifiedExercise, ActorRef]
+        val query = watch.keys.head
+
+        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+        // 2 element sliding window allows workflow to look ahead one step and determine if the event trace is in its last state or not
+        split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> evaluate(query) ~> join.left
+        split.right ~> join.right
+        join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise }
+      }
+    } else {
+      // We have multiple queries to watch and report upon
+      FlowGraph { implicit builder =>
+        val split = Unzip[SensorNetValue, ActorRef]
+        val listener = Broadcast[ActorRef]
+        val event = Broadcast[List[BindToSensors]]
+
+        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+        // 2 element sliding window allows workflow to look ahead one step and determine if the event trace is in its last state or not
+        split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> event
+        split.right ~> listener
+        for (query <- watch.keys) {
+          val join = Zip[ClassifiedExercise, ActorRef]
+
+          event ~> evaluate(query) ~> join.left
+          listener ~> join.right
+          join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise }
+        }
+      }
+    }
+  }
+
   override def preStart() = {
     // Reset mutable data structures
     watch.clear()
@@ -338,43 +400,7 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
     }
 
     // Setup model evaluation workflow
-    if (watch.isEmpty) {
-      // No queries to watch, so we ignore all SensorNetValue's
-      FlowGraph { implicit builder =>
-        Source(ActorPublisher(self)) ~> Sink.ignore
-      }.run()
-    } else if (watch.size == 1) {
-      FlowGraph { implicit builder =>
-        // We have at least one SensorNetValue to watch and report upon
-        val split = Unzip[SensorNetValue, ActorRef]
-        val join = Zip[ClassifiedExercise, ActorRef]
-        val query = watch.keys.head
-
-        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
-        // 2 element sliding window allows workflow to look ahead one step and determine if we're in the last state or not
-        split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> evaluate(query) ~> join.left
-        split.right ~> join.right
-        join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise}
-      }.run()
-    } else {
-      FlowGraph { implicit builder =>
-        val split = Unzip[SensorNetValue, ActorRef]
-        val listener = Broadcast[ActorRef]
-        val event = Broadcast[List[BindToSensors]]
-
-        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
-        // 2 element sliding window allows workflow to look ahead one step and determine if we're in the last state or not
-        split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> event
-        split.right ~> listener
-        for (query <- watch.keys) {
-          val join = Zip[ClassifiedExercise, ActorRef]
-
-          event ~> evaluate(query) ~> join.left
-          listener ~> join.right
-          join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise}
-        }
-      }.run()
-    }
+    model.run()
   }
 
   def receive = LoggingReceive {

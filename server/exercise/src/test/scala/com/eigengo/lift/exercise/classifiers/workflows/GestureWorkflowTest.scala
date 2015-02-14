@@ -7,13 +7,14 @@ import com.eigengo.lift.exercise.AccelerometerValue
 import com.typesafe.config.ConfigFactory
 import scala.io.{Source => IOSource}
 
-class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.conf")) with GestureWorkflows {
+class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.conf")) {
 
   import ClassificationAssertions._
   import StreamTestKit._
 
   val name = "tap"
-  val config = system.settings.config
+
+  object Tap extends GestureWorkflows(name, system.settings.config)
 
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
@@ -28,7 +29,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
   "IdentifyGestureEvents" must {
 
     def component(in: PublisherProbe[AccelerometerValue], out: SubscriberProbe[Option[Fact]]) =
-      IdentifyGestureEvents().runWith(Source(in), Sink(out))
+      Tap.identifyEvent.runWith(Source(in), Sink(out))
 
     "in messages should pass through unaltered and tap's are not detected [no tap request]" in {
       val msgs = noTapEvents
@@ -47,8 +48,8 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
       inPub.sendComplete()
 
       for ((msg, index) <- msgs.zipWithIndex) {
-        if (index <= msgs.length - windowSize) {
-          outProbe.expectNext(Some(NegGesture(name, threshold)))
+        if (index <= msgs.length - Tap.windowSize) {
+          outProbe.expectNext(Some(NegGesture(name, Tap.threshold)))
         } else {
           outProbe.expectNext(None)
         }
@@ -74,12 +75,12 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
       for ((msg, index) <- msgs.zipWithIndex) {
         val event = outProbe.expectNext()
-        if (index > msgs.length - windowSize) {
+        if (index > msgs.length - Tap.windowSize) {
           event should be(None)
         } else if (gestureWindow.contains(index)) {
-          event should be(Some(Gesture(name, threshold)))
+          event should be(Some(Gesture(name, Tap.threshold)))
         } else {
-          event should be(Some(NegGesture(name, threshold)))
+          event should be(Some(NegGesture(name, Tap.threshold)))
         }
       }
     }

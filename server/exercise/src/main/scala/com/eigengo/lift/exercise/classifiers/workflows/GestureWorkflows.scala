@@ -7,24 +7,13 @@ import com.eigengo.lift.exercise.classifiers.svm.{SVMClassifier, SVMModelParser}
 import com.typesafe.config.Config
 
 /**
- * Trait that implements reactive stream components that can:
- *
- *   * [IdentifyGestureEvents] tap into sensor streams and generate fact events whenever a sample window is classified as a gesture
- *   * [MergeSignals]          merge collections of fact signals into a single fact event
- *   * [ModulateSensorNet]     modulate the signals (e.g. by binding them with facts) in a network of sensors
+ * Class that implements reactive stream components that use support vector machines (SVM) to recognise gesture events
+ * (e.g. taps).
  */
-trait GestureWorkflows extends SVMClassifier {
+class GestureWorkflows(name: String, config: Config) extends SVMClassifier {
 
   import ClassificationAssertions._
 
-  def name: String
-  def config: Config
-
-  lazy val frequency = {
-    val value = config.getInt("classification.frequency")
-    assert(value > 0)
-    value
-  }
   lazy val threshold = {
     val value = config.getDouble(s"classification.gesture.$name.threshold")
     assert(0 <= value && value <= 1)
@@ -56,7 +45,7 @@ trait GestureWorkflows extends SVMClassifier {
   /**
    * Flow that taps the in stream and, if a gesture is recognised, sends a `Fact` message to the `out` sink.
    */
-  def IdentifyGestureEvents(): Flow[AccelerometerValue, Option[Fact]] =
+  def identifyEvent: Flow[AccelerometerValue, Option[Fact]] =
     Flow[AccelerometerValue]
       .transform(() => SlidingWindow[AccelerometerValue](windowSize))
       .map { (sample: List[AccelerometerValue]) =>
