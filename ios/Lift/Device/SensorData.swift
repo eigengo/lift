@@ -124,13 +124,6 @@ class SensorDataGroup {
         }
     }
     
-    private func _debug_printMinMaxValues(type: UInt8, samples: NSData) {
-        let decodedData = samples.asInt13s()
-        let minimumValue = decodedData.minBy { $0 }
-        let maximumValue = decodedData.maxBy { $0 }
-        println("decoded data (type = \(type)): [ \(minimumValue!) - \(maximumValue!) ]")
-    }
-    
     ///
     /// The number of raw SDAs
     ///
