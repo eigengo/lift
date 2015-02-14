@@ -65,9 +65,9 @@ class RandomExerciseModel(sessionProps: SessionProperties)
   def evaluateQuery(query: Query)(current: BindToSensors, lastState: Boolean) =
     StableValue(result = true)
 
-  def makeDecision(value: QueryResult) =
-    if (value.result) {
-      val exercise = (value.query: @unchecked) match {
+  def makeDecision(query: Query, value: QueryValue, result: Boolean) =
+    if (result) {
+      val exercise = (query: @unchecked) match {
         case Formula(Assert(_, Gesture(nm, _))) =>
           Exercise(nm, None, None)
       }

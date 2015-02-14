@@ -249,15 +249,6 @@ object ExerciseModel {
       UnstableValue(not(atom))
   }
 
-  /**
-   * Result message - returned to sender as model evaluates `watch` queries.
-   *
-   * @param query  query that triggered this response message
-   * @param value  next state of model evaluation
-   * @param result result of model evaluation
-   */
-  case class QueryResult(query: Query, value: QueryValue, result: Boolean)
-
 }
 
 /**
@@ -274,28 +265,41 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   import ExerciseModel._
   import FlowGraphImplicits._
 
-  /**
-   * Collection of queries that are to be evaluated/checked for each update message that we receive. Implementing classes
-   * need to add watch queries to this map.
-   *
-   * NOTE: mutable map may get accessed concurrently from separate evaluation workflows
-   */
-  private val watch = mutable.ParMap.empty[Query, Query]
-
-  // NOTE: mutable map may get accessed concurrently from separate evaluation workflows
-  private val stableQuery = mutable.ParMap.empty[Query, QueryValue]
-
-  protected def workflow: Flow[SensorNetValue, BindToSensors]
-
   val config = context.system.settings.config
-
   val settings = ActorFlowMaterializerSettings(context.system)
-  // Received sensor data is buffered
+  // Received sensor data is buffered - configuration data determines buffer size
   val bufferSize = config.getInt("classification.buffer")
   val samplingRate = config.getInt("classification.frequency")
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
+  /**
+   * Collection of queries that are to be evaluated/checked for each update message that we receive.
+   *
+   * NOTE: mutable map may get accessed concurrently from separate evaluation workflows
+   */
+  private val watch = mutable.ParMap.empty[Query, Query]
+  /**
+   * Collection of queries that a stable result value has been evaluated for.
+   *
+   * NOTE: mutable map may get accessed concurrently from separate evaluation workflows
+   */
+  private val stableQuery = mutable.ParMap.empty[Query, QueryValue]
+
+  // TODO: document!!!
+  protected def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
+
+  // TODO: document!!!
+  protected def makeDecision(query: Query, value: QueryValue, result: Boolean): ClassifiedExercise
+
+  /**
+   * Configurable flow defined by implementing subclasses
+   */
+  protected def workflow: Flow[SensorNetValue, BindToSensors]
+
+  /**
+   * Flow that defines how query evaluation influences decision making
+   */
   private def evaluate(query: Query) = {
     require(watch.contains(query))
 
@@ -315,22 +319,25 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
           watch += (query -> nextState)
           val result = await(satisfiable(nextQuery))
 
-          makeDecision(QueryResult(query, UnstableValue(nextState), result))
+          makeDecision(query, UnstableValue(nextState), result)
         }
 
       case value: StableValue =>
         stableQuery += (query -> value)
 
-        Future(makeDecision(QueryResult(query, value, value.result)))
+        Future(makeDecision(query, value, value.result))
     }
   }
 
   override def preStart() = {
+    // Reset mutable data structures
     watch.clear()
+    stableQuery.clear()
     for (query <- toWatch) {
       watch += (query -> query)
     }
 
+    // Setup model evaluation workflow
     if (watch.isEmpty) {
       // No queries to watch, so we ignore all SensorNetValue's
       FlowGraph { implicit builder =>
@@ -369,12 +376,6 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
       }.run()
     }
   }
-
-  // TODO: document!!!
-  protected def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
-  
-  // TODO: document!!!
-  protected def makeDecision(result: QueryResult): ClassifiedExercise
 
   def receive = LoggingReceive {
     // TODO: refactor code so that the following assumptions may be weakened further!

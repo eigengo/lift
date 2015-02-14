@@ -159,7 +159,7 @@ class ExerciseModelTest
     val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
-      def makeDecision(result: QueryResult) = Tap
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
       def simplify(query: Query) = Future(query)
       def satisfiable(query: Query) = Future(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
@@ -193,7 +193,7 @@ class ExerciseModelTest
     val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
-      def makeDecision(result: QueryResult) = {
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! result
         Tap
       }
@@ -222,7 +222,7 @@ class ExerciseModelTest
     val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example)) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
-      def makeDecision(result: QueryResult) = {
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! result
         Tap
       }
@@ -236,8 +236,8 @@ class ExerciseModelTest
       model.tell(event2, senderProbe.ref)
 
       senderProbe.expectMsg(Tap)
-      val result = modelProbe.expectMsgType[QueryResult]
-      result === QueryResult(example, StableValue(result = true), result = true)
+      val result = modelProbe.expectMsgType[(Query, QueryValue, Boolean)]
+      result === (example, StableValue(result = true), true)
     }
   }
 
@@ -253,7 +253,7 @@ class ExerciseModelTest
     val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example1, example2)) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
-      def makeDecision(result: QueryResult) = {
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! result
         Tap
       }
@@ -269,8 +269,8 @@ class ExerciseModelTest
       // As we're watching multiple queries, we expect a proportionate number of responses
       senderProbe.expectMsg(Tap)
       senderProbe.expectMsg(Tap)
-      val result = receiveN(2).asInstanceOf[Vector[QueryResult]].toSet
-      result === Set(QueryResult(example1, StableValue(result = true), result = true), QueryResult(example2, StableValue(result = true), result = true))
+      val result = receiveN(2).asInstanceOf[Vector[(Query, QueryValue, Boolean)]].toSet
+      result === Set((example1, StableValue(result = true), true), (example2, StableValue(result = true), true))
     }
   }
 
