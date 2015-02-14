@@ -15,7 +15,6 @@ import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
-import scala.collection.parallel.mutable
 import scala.concurrent.Future
 
 class ExerciseModelTest
@@ -154,11 +153,10 @@ class ExerciseModelTest
   property("ExerciseModel should correctly 'slice up' SensorNet messages into SensorValue events") {
     val rate = system.settings.config.getInt("classification.frequency")
     val modelProbe = TestProbe()
-    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
-      val name = "test"
-      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-      val startDate = dateFormat.parse("1970-01-01")
-      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = Tap
@@ -189,11 +187,10 @@ class ExerciseModelTest
     val rate = system.settings.config.getInt("classification.frequency")
     val senderProbe = TestProbe()
     val modelProbe = TestProbe()
-    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
-      val name = "test"
-      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-      val startDate = dateFormat.parse("1970-01-01")
-      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = {
@@ -219,12 +216,10 @@ class ExerciseModelTest
     val senderProbe = TestProbe()
     val modelProbe = TestProbe()
     val example = Formula(Assert(SensorDataSourceLocationAny, Gesture("example", 0.9876)))
-    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
-      val name = "test"
-      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-      val startDate = dateFormat.parse("1970-01-01")
-      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      watch += (example -> TT)
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example)) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = {
@@ -250,14 +245,12 @@ class ExerciseModelTest
     val rate = system.settings.config.getInt("classification.frequency")
     val senderProbe = TestProbe()
     val modelProbe = TestProbe()
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
     val example1 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example1", 0.9876)))
     val example2 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example2", 0.5432)))
-    val model = TestActorRef(new ExerciseModel with SMTInterface with ActorLogging {
-      val name = "test"
-      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-      val startDate = dateFormat.parse("1970-01-01")
-      val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      watch += (example1 -> TT, example2 -> TT)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example1, example2)) with SMTInterface with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = {

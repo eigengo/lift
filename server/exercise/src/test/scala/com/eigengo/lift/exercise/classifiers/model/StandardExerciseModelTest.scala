@@ -4,7 +4,7 @@ import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.stream.testkit.{StreamTestKit, AkkaSpec}
 import akka.testkit.TestActorRef
-import com.eigengo.lift.exercise.UserExercisesClassifier.Tap
+import com.eigengo.lift.exercise.UserExercisesClassifier.{Tap => TapEvent}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{NegGesture, Gesture, BindToSensors}
 import com.eigengo.lift.exercise.{AccelerometerValue, SensorNetValue, SessionProperties}
@@ -37,7 +37,7 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
 
     def component(in: Source[SensorNetValue], out: Sink[BindToSensors]) = {
       val workflow = TestActorRef(new StandardExerciseModel(sessionProps) with SMTInterface {
-        def makeDecision(result: QueryResult) = Tap
+        def makeDecision(result: QueryResult) = TapEvent
         def simplify(query: Query) = Future(query)
         def satisfiable(query: Query) = Future(true)
       }).underlyingActor.workflow

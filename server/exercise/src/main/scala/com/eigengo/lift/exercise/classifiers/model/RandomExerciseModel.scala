@@ -6,41 +6,31 @@ import com.eigengo.lift.exercise.UserExercises.ModelMetadata
 import com.eigengo.lift.exercise.UserExercisesClassifier.{UnclassifiedExercise, FullyClassifiedExercise}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
+import com.eigengo.lift.exercise.classifiers.ExerciseModel._
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions._
 import scala.concurrent.Future
 import scala.util.Random
+
+object RandomExerciseModel {
+  val exercises =
+    Map(
+      "arms" → List("Biceps curl", "Triceps press"),
+      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
+    )
+}
 
 /**
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
  * the listening actor).
  */
-class RandomExerciseModel(val sessionProps: SessionProperties)
-  extends ExerciseModel
+class RandomExerciseModel(sessionProps: SessionProperties)
+  extends ExerciseModel("random", sessionProps, for (sensor <- Sensor.sourceLocations; exercise <- RandomExerciseModel.exercises.values.flatten) yield Formula(Assert(sensor, Gesture(exercise, 0.80))))
   with SMTInterface
   with Actor
   with ActorLogging {
 
-  import ClassificationAssertions._
   import context.dispatcher
-  import ExerciseModel._
-
-  val name = "random"
-
-  private val exercises =
-    Map(
-      "arms" → List("Biceps curl", "Triceps press"),
-      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
-    )
-
-  // For the random model, we watch and report on all exercises and all sensors
-  for (
-    sensor <- Sensor.sourceLocations;
-    exercise <- exercises.values.flatten
-  ) {
-    val query = Formula(Assert(sensor, Gesture(exercise, 0.80)))
-
-    watch += (query -> query)
-  }
+  import RandomExerciseModel._
 
   private val metadata = ModelMetadata(2)
 
