@@ -54,7 +54,7 @@ trait GestureWorkflows extends SVMClassifier {
   }
 
   /**
-   * Flowgraph that taps the in stream and, if a gesture is recognised, sends a `Fact` message to the `out` sink.
+   * Flow that taps the in stream and, if a gesture is recognised, sends a `Fact` message to the `out` sink.
    */
   def IdentifyGestureEvents(): Flow[AccelerometerValue, Option[Fact]] =
     Flow[AccelerometerValue]

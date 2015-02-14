@@ -6,7 +6,6 @@ import akka.stream.testkit.{ AkkaSpec, StreamTestKit }
 
 class SlidingWindowTest extends AkkaSpec {
 
-  import FlowGraphImplicits._
   import StreamTestKit._
 
   val settings = ActorFlowMaterializerSettings(system)//.withInputBuffer(initialSize = 1, maxSize = 1)
@@ -16,9 +15,8 @@ class SlidingWindowTest extends AkkaSpec {
   val windowSize = 10
   assert(windowSize > 1)
 
-  def sample(in: Source[String], out: Sink[List[String]]) = FlowGraph { implicit builder =>
-    in ~> Flow[String].transform(() => SlidingWindow[String](windowSize)) ~> out
-  }
+  def sample(in: Source[String], out: Sink[List[String]]) =
+    Flow[String].transform(() => SlidingWindow[String](windowSize)).runWith(in, out)
 
   "SlidingWindow" must {
     "SlidingWindow should receive elements, but not emit them whilst its internal buffer is not full" in {
@@ -27,8 +25,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length)
@@ -45,8 +42,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length)
@@ -58,15 +54,14 @@ class SlidingWindowTest extends AkkaSpec {
       out.expectNoMsg() // since buffer is saturated and no more messages are arriving
     }
 
-    "a saturated SlidingWindow should emit elements in the order they are received [lots of input]" in {
+    "a saturated SlidingWindow should emit elements in the order they are received [lots of input; publisher source]" in {
       val limit = 1000
       val msgs = (0 to limit).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length)
@@ -80,14 +75,31 @@ class SlidingWindowTest extends AkkaSpec {
       out.expectNoMsg() // since buffer is saturated and no more messages are arriving
     }
 
+    "a saturated SlidingWindow should emit elements in the order they are received [lots of input; iterable source]" in {
+      val limit = 1000
+      val msgs = (0 to limit).map(n => s"message-$n").toList
+      val out = SubscriberProbe[List[String]]()
+
+      sample(Source(msgs), Sink(out))
+      val sub = out.expectSubscription()
+      sub.request(msgs.length)
+
+      for (n <- 0 to (limit - windowSize + 1)) {
+        out.expectNext(msgs.slice(n, n+windowSize))
+      }
+      // since iterable source closes, and no more messages are arriving, contents will flush out
+      for (n <- (limit - windowSize + 1 + 1) to limit) {
+        out.expectNext(msgs.slice(n, n+windowSize))
+      }
+    }
+
     "closing a partially full SlidingWindow should flush buffered elements" in {
       val msgs = List("one", "two", "three")
       // Simulate source that outputs messages and then completes
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length + 1) // + OnComplete
@@ -106,8 +118,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length + 1) // + OnComplete
@@ -127,8 +138,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length + 1) // + OnComplete
@@ -150,8 +160,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length)
@@ -170,8 +179,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length)
@@ -192,8 +200,7 @@ class SlidingWindowTest extends AkkaSpec {
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
 
-      val workflow = sample(Source(in), Sink(out))
-      workflow.run()
+      sample(Source(in), Sink(out))
       val pub = in.expectSubscription()
       val sub = out.expectSubscription()
       sub.request(msgs.length)

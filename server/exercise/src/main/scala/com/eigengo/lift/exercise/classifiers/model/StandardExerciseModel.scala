@@ -18,7 +18,7 @@ abstract class StandardExerciseModel(val sessionProps: SessionProperties, toWatc
   with StandardEvaluation
   with GestureWorkflows
   with ActorLogging {
-  // FIXME: need to mixin a suitable SMT prover implementation here!
+
   this: SMTInterface =>
 
   import ClassificationAssertions._
