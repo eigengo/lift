@@ -269,7 +269,7 @@ class ExerciseModelTest
       // As we're watching multiple queries, we expect a proportionate number of responses
       senderProbe.expectMsg(Tap)
       senderProbe.expectMsg(Tap)
-      val result = receiveN(2).asInstanceOf[Vector[(Query, QueryValue, Boolean)]].toSet
+      val result = modelProbe.receiveN(2).asInstanceOf[Vector[(Query, QueryValue, Boolean)]].toSet
       result === Set((example1, StableValue(result = true), true), (example2, StableValue(result = true), true))
     }
   }
