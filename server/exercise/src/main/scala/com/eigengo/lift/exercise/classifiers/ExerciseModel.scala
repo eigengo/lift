@@ -5,12 +5,14 @@ import akka.event.LoggingReceive
 import akka.stream.{OverflowStrategy, ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl._
+import scala.async.Async._
 import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.BindToSensors
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
 import com.eigengo.lift.exercise._
 import scala.collection.parallel.mutable
+import scala.concurrent.Future
 import scala.language.higherKinds
 
 object ExerciseModel {
@@ -265,6 +267,7 @@ object ExerciseModel {
 trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
   this: SMTInterface with ActorLogging =>
 
+  import context.dispatcher
   import ExerciseModel._
   import FlowGraphImplicits._
 
@@ -306,18 +309,14 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
 
       case List(event, _) =>
         evaluateQuery(watch(query))(event, lastState = false)
-    }.map {
+    }.mapAsync {
       case UnstableValue(nextQuery) =>
-        val nextState = simplify(nextQuery)
-        watch += (query -> nextState)
-        satisfiable(nextQuery) match {
-          case None =>
-            val errMsg = s"Whilst evaluating $query, we failed to determine if $nextQuery was satisfiable/unsatisfiable"
-            log.error(errMsg)
-            throw new RuntimeException(errMsg)
+        async {
+          val nextState = await(simplify(nextQuery))
+          watch += (query -> nextState)
+          val result = await(satisfiable(nextQuery))
 
-          case Some(result) =>
-            makeDecision(QueryResult(query, UnstableValue(nextState), result))
+          makeDecision(QueryResult(query, UnstableValue(nextState), result))
         }
 
       case value: StableValue =>
@@ -325,7 +324,7 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
           watch -= query
           stableQuery += (query -> value)
         }
-        makeDecision(QueryResult(query, value, value.result))
+        Future(makeDecision(QueryResult(query, value, value.result)))
     }
 
   override def preStart() = {

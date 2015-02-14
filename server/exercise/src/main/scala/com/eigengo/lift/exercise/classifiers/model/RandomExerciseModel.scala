@@ -8,6 +8,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import scala.collection.parallel.mutable
+import scala.concurrent.Future
 import scala.util.Random
 
 /**
@@ -21,6 +22,7 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
   with ActorLogging {
 
   import ClassificationAssertions._
+  import context.dispatcher
   import ExerciseModel._
 
   val name = "random"
@@ -58,10 +60,10 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
       }
 
   // Random model performs no query simplification
-  def simplify(query: Query): Query = query
+  def simplify(query: Query) = Future(query)
 
   // Random model always claims that query is satisfiable
-  def satisfiable(query: Query) = Some(true)
+  def satisfiable(query: Query) = Future(true)
 
   // Random model evaluator always returns true!
   def evaluateQuery(query: Query)(current: BindToSensors, lastState: Boolean) =

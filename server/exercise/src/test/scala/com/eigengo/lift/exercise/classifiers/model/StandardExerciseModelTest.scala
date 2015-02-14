@@ -10,12 +10,14 @@ import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.
 import com.eigengo.lift.exercise.{AccelerometerValue, SensorNetValue, SessionProperties}
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
+import scala.concurrent.Future
 import scala.io.{Source => IOSource}
 
 class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classification.conf")) {
 
   import ExerciseModel._
   import StreamTestKit._
+  import system.dispatcher
 
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
@@ -36,8 +38,8 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
     def component(in: Source[SensorNetValue], out: Sink[BindToSensors]) = {
       val workflow = TestActorRef(new StandardExerciseModel(sessionProps) with SMTInterface {
         def makeDecision(result: QueryResult) = Tap
-        def simplify(query: Query): Query = query
-        def satisfiable(query: Query) = Some(true)
+        def simplify(query: Query) = Future(query)
+        def satisfiable(query: Query) = Future(true)
       }).underlyingActor.workflow
       workflow.runWith(in, out)
     }

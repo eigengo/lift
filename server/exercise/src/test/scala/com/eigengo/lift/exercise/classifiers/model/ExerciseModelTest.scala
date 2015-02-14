@@ -16,6 +16,7 @@ import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
 import scala.collection.parallel.mutable
+import scala.concurrent.Future
 
 class ExerciseModelTest
   extends TestKit(ActorSystem("TestSystem", ConfigFactory.load("test.conf").withFallback(ConfigFactory.load("classification.conf"))))
@@ -25,6 +26,7 @@ class ExerciseModelTest
   with ExerciseGenerators {
 
   import ClassificationAssertions._
+  import system.dispatcher
   import ExerciseModel._
 
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
@@ -161,8 +163,8 @@ class ExerciseModelTest
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = Tap
-      def simplify(query: Query): Query = query
-      def satisfiable(query: Query) = Some(true)
+      def simplify(query: Query) = Future(query)
+      def satisfiable(query: Query) = Future(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value
@@ -200,8 +202,8 @@ class ExerciseModelTest
         modelProbe.ref ! result
         Tap
       }
-      def simplify(query: Query): Query = query
-      def satisfiable(query: Query) = Some(true)
+      def simplify(query: Query) = Future(query)
+      def satisfiable(query: Query) = Future(true)
     })
 
     forAll(SensorNetValueGen) { (event: SensorNetValue) =>
@@ -229,8 +231,8 @@ class ExerciseModelTest
         modelProbe.ref ! result
         Tap
       }
-      def simplify(query: Query): Query = query
-      def satisfiable(query: Query) = Some(true)
+      def simplify(query: Query) = Future(query)
+      def satisfiable(query: Query) = Future(true)
     })
 
     forAll(SensorNetValueGen) { (event: SensorNetValue) =>
@@ -260,8 +262,8 @@ class ExerciseModelTest
         modelProbe.ref ! result
         Tap
       }
-      def simplify(query: Query): Query = query
-      def satisfiable(query: Query) = Some(true)
+      def simplify(query: Query) = Future(query)
+      def satisfiable(query: Query) = Future(true)
     })
 
     forAll(SensorNetValueGen) { (event: SensorNetValue) =>
