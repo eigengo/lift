@@ -7,7 +7,6 @@ import com.eigengo.lift.exercise.UserExercisesClassifier.{UnclassifiedExercise, 
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
-import scala.collection.parallel.mutable
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -34,7 +33,14 @@ class RandomExerciseModel(val sessionProps: SessionProperties)
     )
 
   // For the random model, we watch and report on all exercises and all sensors
-  val watch = mutable.ParTrieMap(exercises.values.flatMap(_.flatMap(t => Sensor.sourceLocations.map(l => Formula(Assert(l, Gesture(t, 0.80)))))).map((f: Query) => (f, f)).toSeq: _*)
+  for (
+    sensor <- Sensor.sourceLocations;
+    exercise <- exercises.values.flatten
+  ) {
+    val query = Formula(Assert(sensor, Gesture(exercise, 0.80)))
+
+    watch += (query -> query)
+  }
 
   private val metadata = ModelMetadata(2)
 

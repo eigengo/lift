@@ -19,7 +19,6 @@ trait SMTInterface {
    * Function that interacts with an SMT prover and determines if the query is satisfiable or not.
    *
    * @param query LDL formula that is treated as being propositional
-   * @return      None indicates timeout, ...
    */
   def satisfiable(query: Query): Future[Boolean]
 

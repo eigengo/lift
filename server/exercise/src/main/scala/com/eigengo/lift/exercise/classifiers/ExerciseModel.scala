@@ -282,10 +282,14 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
   def sessionProps: SessionProperties
 
   /**
-   * Collection of queries that are to be evaluated/checked for each update message that we receive
+   * Collection of queries that are to be evaluated/checked for each update message that we receive. Implementing classes
+   * need to add watch queries to this map.
+   *
+   * NOTE: mutable map may get accessed concurrently from separate evaluation workflows
    */
-  protected def watch: mutable.ParMap[Query, Query]
+  protected val watch = mutable.ParMap.empty[Query, Query]
 
+  // NOTE: mutable map may get accessed concurrently from separate evaluation workflows
   private val stableQuery = mutable.ParMap.empty[Query, QueryValue]
 
   protected def workflow: Flow[SensorNetValue, BindToSensors]
@@ -299,7 +303,9 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
-  def evaluate(query: Query) =
+  private def evaluate(query: Query) = {
+    require(watch.contains(query))
+
     Flow[List[BindToSensors]].map {
       case _ if stableQuery.contains(query) =>
         stableQuery(query)
@@ -320,12 +326,11 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
         }
 
       case value: StableValue =>
-        if (!stableQuery.contains(query)) {
-          watch -= query
-          stableQuery += (query -> value)
-        }
+        stableQuery += (query -> value)
+
         Future(makeDecision(QueryResult(query, value, value.result)))
     }
+  }
 
   override def preStart() = {
     FlowGraph { implicit builder =>
@@ -347,6 +352,8 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
           split.right ~> join.right
           join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { case (exercise, ref) => ref ! exercise}
         } else {
+          assert(watch.size >= 2)
+
           val listener = Broadcast[ActorRef]
           val event = Broadcast[List[BindToSensors]]
 
@@ -366,10 +373,10 @@ trait ExerciseModel extends ActorPublisher[(SensorNetValue, ActorRef)] {
   }
 
   // TODO: document!!!
-  def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
+  protected def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean): QueryValue
   
   // TODO: document!!!
-  def makeDecision(result: QueryResult): ClassifiedExercise
+  protected def makeDecision(result: QueryResult): ClassifiedExercise
 
   def receive = LoggingReceive {
     // TODO: refactor code so that the following assumptions may be weakened further!

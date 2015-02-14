@@ -159,7 +159,6 @@ class ExerciseModelTest
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       val startDate = dateFormat.parse("1970-01-01")
       val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      val watch = mutable.ParMap.empty[Query, Query]
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = Tap
@@ -195,7 +194,6 @@ class ExerciseModelTest
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       val startDate = dateFormat.parse("1970-01-01")
       val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      val watch = mutable.ParMap.empty[Query, Query]
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = {
@@ -206,8 +204,10 @@ class ExerciseModelTest
       def satisfiable(query: Query) = Future(true)
     })
 
-    forAll(SensorNetValueGen) { (event: SensorNetValue) =>
-      model.tell(event, senderProbe.ref)
+    // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
+    forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.tell(event1, senderProbe.ref)
+      model.tell(event2, senderProbe.ref)
 
       senderProbe.expectNoMsg()
       modelProbe.expectNoMsg()
@@ -224,7 +224,7 @@ class ExerciseModelTest
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       val startDate = dateFormat.parse("1970-01-01")
       val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      val watch = mutable.ParMap[Query, Query](example -> TT)
+      watch += (example -> TT)
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = {
@@ -235,8 +235,10 @@ class ExerciseModelTest
       def satisfiable(query: Query) = Future(true)
     })
 
-    forAll(SensorNetValueGen) { (event: SensorNetValue) =>
-      model.tell(event, senderProbe.ref)
+    // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
+    forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.tell(event1, senderProbe.ref)
+      model.tell(event2, senderProbe.ref)
 
       senderProbe.expectMsg(Tap)
       val result = modelProbe.expectMsgType[QueryResult]
@@ -255,7 +257,7 @@ class ExerciseModelTest
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       val startDate = dateFormat.parse("1970-01-01")
       val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-      val watch = mutable.ParMap[Query, Query](example1 -> TT, example2 -> TT)
+      watch += (example1 -> TT, example2 -> TT)
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(result: QueryResult) = {
@@ -266,9 +268,12 @@ class ExerciseModelTest
       def satisfiable(query: Query) = Future(true)
     })
 
-    forAll(SensorNetValueGen) { (event: SensorNetValue) =>
-      model.tell(event, senderProbe.ref)
+    // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
+    forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.tell(event1, senderProbe.ref)
+      model.tell(event2, senderProbe.ref)
 
+      // As we're watching multiple queries, we expect a proportionate number of responses
       senderProbe.expectMsg(Tap)
       senderProbe.expectMsg(Tap)
       val result = receiveN(2).asInstanceOf[Vector[QueryResult]].toSet

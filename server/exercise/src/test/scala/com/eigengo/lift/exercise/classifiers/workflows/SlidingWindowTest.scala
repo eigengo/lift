@@ -14,6 +14,7 @@ class SlidingWindowTest extends AkkaSpec {
   implicit val materializer = ActorFlowMaterializer(settings)
 
   val windowSize = 10
+  assert(windowSize > 1)
 
   def sample(in: Source[String], out: Sink[List[String]]) = FlowGraph { implicit builder =>
     in ~> Flow[String].transform(() => SlidingWindow[String](windowSize)) ~> out
@@ -21,7 +22,7 @@ class SlidingWindowTest extends AkkaSpec {
 
   "SlidingWindow" must {
     "SlidingWindow should receive elements, but not emit them whilst its internal buffer is not full" in {
-      val msgs = List("one", "two", "three")
+      val msgs = (0 until (windowSize-1)).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
@@ -144,7 +145,7 @@ class SlidingWindowTest extends AkkaSpec {
 
     "exceptions (i.e. catastrophic stream errors) on a partially full SlidingWindow materialise 'immediately'" in {
       val exn = new RuntimeException("fake error")
-      val msgs = List("one", "two", "three")
+      val msgs = (0 until (windowSize-1)).map(n => s"message-$n").toList
       // Simulate source that outputs messages and then errors
       val in = PublisherProbe[String]()
       val out = SubscriberProbe[List[String]]()
