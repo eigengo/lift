@@ -65,8 +65,6 @@
 		54988A9C1A87604A00446DC2 /* ThisDeviceSession+Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54988A9B1A87604A00446DC2 /* ThisDeviceSession+Motion.swift */; };
 		549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE581A6BFD09000FBB78 /* Result+GetOrUnit.swift */; };
 		549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 549BAE5A1A6C24B5000FBB78 /* ExerciseSessionManager.swift */; };
-		549ED2AD1A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2A91A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a */; };
-		549ED2AE1A6D8867002588B9 /* libPods-LiftTests-CocoaHTTPServer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2AA1A6D8867002588B9 /* libPods-LiftTests-CocoaHTTPServer.a */; };
 		549ED2B21A6D8884002588B9 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 549ED2B11A6D8884002588B9 /* libxml2.dylib */; };
 		54A53EC41A2EF5EC00EDD092 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54A53EC21A2EF5EC00EDD092 /* Localizable.strings */; };
 		54AECC451A769CDE008BD812 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB071A1A49E65400DC1E91 /* Device.swift */; };
@@ -346,8 +344,6 @@
 			files = (
 				54CFACB01A7568C700E3803C /* QuartzCore.framework in Frameworks */,
 				549ED2B21A6D8884002588B9 /* libxml2.dylib in Frameworks */,
-				549ED2AD1A6D8867002588B9 /* libPods-LiftTests-CocoaAsyncSocket.a in Frameworks */,
-				549ED2AE1A6D8867002588B9 /* libPods-LiftTests-CocoaHTTPServer.a in Frameworks */,
 				23929FB2F2C8236CF369D326 /* libPods-LiftTests.a in Frameworks */,
 				390DD5F7C530950EB2D40268 /* libPods.a in Frameworks */,
 			);
