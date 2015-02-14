@@ -1,4 +1,4 @@
-package com.eigengo.lift.common
+package com.eigengo.lift.kafkaUtil
 
 object MessagePayload {
   type Payload = Array[Byte]

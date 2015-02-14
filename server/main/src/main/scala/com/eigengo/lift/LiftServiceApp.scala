@@ -5,10 +5,10 @@ import akka.cluster.Cluster
 import com.eigengo.lift.common.MicroserviceApp
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
 import com.eigengo.lift.exercise.ExerciseBoot
-import com.eigengo.lift.kafka.{KafkaBoot, KafkaProducerActor}
+import com.eigengo.lift.kafka.KafkaBoot
 import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.ProfileBoot
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 
 /**
  * This is the dockerified Microservice app main.

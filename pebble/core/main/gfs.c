@@ -16,7 +16,7 @@ static struct {
     uint16_t buffer_position;
 } gfs_context;
 
-#define SIGNED_12_MAX(x) (uint16_t)((x) > 4095 ? 4095 : ((x) < -4095 ? -4095 : (x)))
+#define SIGNED_12_MAX(x) (int16_t)((x) > 4095 ? 4095 : ((x) < -4095 ? -4095 : (x)))
 
 /**
  * Write the header and reset the buffer position
@@ -25,7 +25,7 @@ void gfs_write_header() {
     struct gfs_header *h = (struct gfs_header *) gfs_context.buffer;
     h->type = GFS_HEADER_TYPE;
     h->count = 0;
-    h->sample_size = 5;
+    h->sample_size = sizeof(struct gfs_packed_accel_data);
     h->samples_per_second = gfs_context.samples_per_second;
     gfs_context.buffer_position = sizeof(struct gfs_header);
 }

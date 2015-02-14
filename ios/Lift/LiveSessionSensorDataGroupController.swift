@@ -62,6 +62,18 @@ class SensorDataGroupView : UIView {
             CGContextRestoreGState(ctx)
         }
         
+        func drawCurrentTime(ctx: CGContextRef, startTime: CFAbsoluteTime) {
+            let currentTime = CFAbsoluteTimeGetCurrent()
+            let x = (currentTime - startTime) * secondWidth
+            
+            CGContextSetStrokeColorWithColor(ctx, UIColor.blackColor().CGColor)
+            CGContextSetLineWidth(ctx, 0.5)
+            CGContextBeginPath(ctx)
+            CGContextMoveToPoint(ctx, CGFloat(x), 0)
+            CGContextAddLineToPoint(ctx, CGFloat(x), frame.height)
+            CGContextStrokePath(ctx)
+        }
+        
         func drawLayer(ctx: CGContextRef, sdg: SensorDataGroup, startTime: CFAbsoluteTime) {
             let height = 40.0
             let padding = 4.0
@@ -69,7 +81,8 @@ class SensorDataGroupView : UIView {
             for (i, sda) in enumerate(sdg.sensorDataArrays) {
                 for (j, sd) in enumerate(sda.sensorDatas) {
                     let x = (sd.startTime - startTime) * secondWidth
-                    let w = (sd.endTime(sda.header.sampleSize, samplesPerSecond: sda.header.samplesPerSecond) - startTime) * secondWidth
+                    let end = (sd.endTime(sda.header.sampleSize, samplesPerSecond: sda.header.samplesPerSecond) - startTime) * secondWidth
+                    let w = end - x
                     let frame = CGRect(x: x, y: y, width: w, height: height)
                     CGContextSetFillColorWithColor(ctx, colors[i % colors.count].CGColor)
                     CGContextFillRect(ctx, frame)
@@ -83,7 +96,8 @@ class SensorDataGroupView : UIView {
 
             if let range = lastEncodedTimeRange {
                 let x = (range.start - startTime) * secondWidth
-                let w = (range.end - startTime) * secondWidth
+                let end = (range.end - startTime) * secondWidth
+                let w = end - x
                 let rect = CGRect(x: x, y: 0, width: w, height: y)
                 CGContextSetFillColorWithColor(ctx, UIColor(red: 1, green: 0, blue: 0, alpha: 0.3).CGColor)
                 CGContextFillRect(ctx, rect)
@@ -97,8 +111,10 @@ class SensorDataGroupView : UIView {
         let context = UIGraphicsGetCurrentContext()
         if let sdg = sensorDataGroup {
             if let st = sdg.startTime {
-                drawLayer(context, sdg, st)
+                let offset = 2.0
+                drawLayer(context, sdg, st - offset)
                 drawTimeGrid(context)
+                drawCurrentTime(context, st - offset)
             }
         }
     }

@@ -131,7 +131,7 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
 
   property("vector and matrix DCTs are equal when matrix is a vector") {
     forAll(DenseVectorGen) { (data: DenseVector[Double]) =>
-      assert(discrete_cosine_transform(data) === discrete_cosine_transform(data.toDenseMatrix).toDenseVector)
+      assert(discreteCosineTransform(data) === discreteCosineTransform(data.toDenseMatrix).toDenseVector)
     }
   }
 
@@ -139,13 +139,13 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
     val data = DenseMatrix(accelerometer_data: _*)
     val result = DenseMatrix(transformed_accelerometer_data: _*)
 
-    assert(abs(discrete_cosine_transform(data) :- result).forall(v => v === (0.0 +- 0.0001)))
+    assert(abs(discreteCosineTransform(data) :- result).forall(v => v === (0.0 +- 0.0001)))
   }
 
   property("standard and taylor approximated RDFs are equal") {
     forAll(Gen.oneOf(2, 3, 4), Gen.oneOf(1 to 5)) { (degree: Int, size: Int) =>
       forAll(DenseVectorOfNGen(size), DenseVectorOfNGen(size), arbitrary[Double]) { (x: DenseVector[Double], y: DenseVector[Double], gamma: Double) =>
-        (radial_kernel(x, y, gamma) - taylor_radial_kernel(degree)(x, y, gamma)) === (0.0 +- 0.03)
+        (radialKernel(x, y, gamma) - taylorRadialKernel(degree)(x, y, gamma)) === (0.0 +- 0.03)
       }
     }
   }
@@ -157,7 +157,7 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
         val dataCols = svm.SV.cols / svm.SV.rows
 
         forAll(DenseMatrixOfNGen(dataRows, dataCols)) { (data: DenseMatrix[Double]) =>
-          val classification = predict(svm, data, rbf = radial_kernel)
+          val classification = predict(svm, data, rbf = radialKernel)
 
           (classification.result < 0) === (classification.negativeMatch > classification.positiveMatch)
           (classification.result >= 0) === (classification.negativeMatch <= classification.positiveMatch)
@@ -174,7 +174,7 @@ class SVMClassifierTest extends PropSpec with PropertyChecks with Matchers with 
         val dataCols = svm.SV.cols / svm.SV.rows
 
         forAll(DenseMatrixOfNGen(dataRows, dataCols)) { (data: DenseMatrix[Double]) =>
-          val classification = predict(svm, data, rbf = taylor_radial_kernel(degree))
+          val classification = predict(svm, data, rbf = taylorRadialKernel(degree))
 
           (classification.result < 0) === (classification.negativeMatch > classification.positiveMatch)
           (classification.result >= 0) === (classification.negativeMatch <= classification.positiveMatch)

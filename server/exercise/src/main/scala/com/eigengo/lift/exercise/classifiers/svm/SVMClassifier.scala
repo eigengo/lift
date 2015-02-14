@@ -22,8 +22,8 @@ trait SVMClassifier {
    * @param data vector of data to be transformed
    * @return     vector of DCT transform coefficients
    */
-  private[svm] def discrete_cosine_transform(data: DenseVector[Double]): DenseVector[Double] = {
-    val n = dim(data)
+  private[svm] def discreteCosineTransform(data: DenseVector[Double]): DenseVector[Double] = {
+    val n: Int = dim(data)
 
     DenseVector.tabulate(n) { (k: Int) => sum(data :* cos(DenseVector.tabulate(n) { (i: Int) => (Pi / n) * (i + 0.5) * k })) }
   }
@@ -35,10 +35,10 @@ trait SVMClassifier {
    * @param data matrix of data to be transformed
    * @return     concatenation of type I DCT results applied to each data row
    */
-  private[svm] def discrete_cosine_transform(data: DenseMatrix[Double]): DenseMatrix[Double] = {
-    val rowDCT = DenseMatrix.vertcat((0 until data.rows).map { r => discrete_cosine_transform(data(r,::).t).toDenseMatrix }: _*)
+  private[svm] def discreteCosineTransform(data: DenseMatrix[Double]): DenseMatrix[Double] = {
+    val rowDCT = DenseMatrix.vertcat((0 until data.rows).map { r => discreteCosineTransform(data(r,::).t).toDenseMatrix }: _*)
 
-    DenseVector.horzcat((0 until data.cols).map { c => discrete_cosine_transform(rowDCT(::,c)) }: _*)
+    DenseVector.horzcat((0 until data.cols).map { c => discreteCosineTransform(rowDCT(::,c)) }: _*)
   }
 
   /**
@@ -47,12 +47,12 @@ trait SVMClassifier {
    *   * `taylor_radial_kernel` - implementation that uses a taylor expansion (for efficiency)
    */
 
-  protected def radial_kernel(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
+  protected def radialKernel(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
     exp(-gamma * sum((x :- y) :* (x :- y)))
   }
 
-  protected def taylor_radial_kernel(degree: Int = 2)(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
-    def factorial(n: Int, accumalator: Int = 1): Int = if (n == 0) { accumalator } else { factorial(n - 1, n * accumalator) }
+  protected def taylorRadialKernel(degree: Int = 2)(x: DenseVector[Double], y: DenseVector[Double], gamma: Double): Double = {
+    def factorial(n: Int, accumulator: Int = 1): Int = if (n == 0) { accumulator } else { factorial(n - 1, n * accumulator) }
     val taylor_expansion = (0 until degree).map(i => 1.0 / factorial(i)).toArray[Double]
 
     exp(-gamma * sum(x :* x)) * exp(-gamma * sum(y :* y)) * polyval(taylor_expansion, gamma * 2 * sum(x :* y))
@@ -66,13 +66,13 @@ trait SVMClassifier {
    * @param rbf  radial basis function that the SVM predictor is to use
    */
   def predict(svm: SVMModel, data: DenseMatrix[Double], rbf: (DenseVector[Double], DenseVector[Double], Double) => Double): SVMClassification = {
-    val feature = discrete_cosine_transform(data)
+    val feature = discreteCosineTransform(data)
     val featureVector = feature.t.toDenseVector // row-major transformation
-    val scaled_feature = svm.scaled.map {
+    val scaledFeature = svm.scaled.map {
       case scaling =>
         (featureVector :- scaling.center) :/ scaling.scale
     }.getOrElse(featureVector)
-    val result = sum((0 until svm.nSV).map(j => rbf(svm.SV(j,::).t, scaled_feature, svm.gamma) * svm.coefs(j))) - svm.rho
+    val result = sum((0 until svm.nSV).map(j => rbf(svm.SV(j,::).t, scaledFeature, svm.gamma) * svm.coefs(j))) - svm.rho
     val probability = 1 / (1 + exp(svm.probA * result + svm.probB))
 
     SVMClassification(result, probability, 1-probability)
