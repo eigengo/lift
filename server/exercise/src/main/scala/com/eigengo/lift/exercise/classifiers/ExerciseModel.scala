@@ -2,7 +2,7 @@ package com.eigengo.lift.exercise.classifiers
 
 import akka.actor.{ActorRef, ActorLogging}
 import akka.event.LoggingReceive
-import akka.stream.{OverflowStrategy, ActorFlowMaterializer, ActorFlowMaterializerSettings}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl._
 import scala.async.Async._
@@ -11,7 +11,6 @@ import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.BindToSensors
 import com.eigengo.lift.exercise.classifiers.workflows.{SlidingWindow, ClassificationAssertions}
 import com.eigengo.lift.exercise._
-import scala.collection.parallel.mutable
 import scala.concurrent.Future
 import scala.language.higherKinds
 
@@ -274,19 +273,6 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   implicit val materializer = ActorFlowMaterializer(settings)
 
   /**
-   * Collection of queries that are to be evaluated/checked for each update message that we receive.
-   *
-   * NOTE: mutable map may get accessed concurrently from separate evaluation workflows
-   */
-  private val watch = mutable.ParMap.empty[Query, Query]
-  /**
-   * Collection of queries that a stable result value has been evaluated for.
-   *
-   * NOTE: mutable map may get accessed concurrently from separate evaluation workflows
-   */
-  private val stableQuery = mutable.ParMap.empty[Query, QueryValue]
-
-  /**
    * Defined by implementing subclasses. Given a new event in our sensor trace, determines the next state that our model
    * evaluator will assume.
    *
@@ -314,29 +300,30 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
    * Flow that defines how per query evaluation influences decision making (and so messages received by UserExercisesProcessor)
    */
   private def evaluate(query: Query) = {
-    require(watch.contains(query))
+    require(toWatch.contains(query))
+
+    var currentState: Query = query
+    var stableState: Option[QueryValue] = None
 
     Flow[List[BindToSensors]].map {
-      case _ if stableQuery.contains(query) =>
-        stableQuery(query)
+      case _ if stableState.isDefined =>
+        stableState.get
 
       case List(event) =>
-        evaluateQuery(watch(query))(event, lastState = true)
+        evaluateQuery(currentState)(event, lastState = true)
 
       case List(event, _) =>
-        evaluateQuery(watch(query))(event, lastState = false)
+        evaluateQuery(currentState)(event, lastState = false)
     }.mapAsync {
       case UnstableValue(nextQuery) =>
         async {
-          val nextState = await(simplify(nextQuery))
-          watch += (query -> nextState)
-          val result = await(satisfiable(nextQuery))
+          currentState = await(simplify(nextQuery))
 
-          makeDecision(query, UnstableValue(nextState), result)
+          makeDecision(query, UnstableValue(currentState), await(satisfiable(nextQuery)))
         }
 
       case value: StableValue =>
-        stableQuery += (query -> value)
+        stableState = Some(value)
 
         Future(makeDecision(query, value, value.result))
     }
@@ -347,23 +334,21 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
    *   - how sensor events (received by this actor) are added to a (i.e. essentially `Source[SensorNetValue]`) trace
    *   - how (`watch`) queries are evaluated (i.e. `evaluateQuery`) over that trace
    *   - how decision messages (i.e. result of `makeDecision`) are relayed back to `UserExercisesProcessor`.
-   *
-   * NOTE: input data is buffered in order to help deal with fast (i.e. external) producers.
    */
   private def model: FlowGraph = {
-    if (watch.isEmpty) {
+    if (toWatch.isEmpty) {
       // No queries to watch, so we ignore all SensorNetValue's
       FlowGraph { implicit builder =>
         Source(ActorPublisher(self)) ~> Sink.ignore
       }
-    } else if (watch.size == 1) {
+    } else if (toWatch.size == 1) {
       // We have at least one query to watch and report upon
       FlowGraph { implicit builder =>
         val split = Unzip[SensorNetValue, ActorRef]
         val join = Zip[ClassifiedExercise, ActorRef]
-        val query = watch.keys.head
+        val query = toWatch.head
 
-        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+        Source(ActorPublisher(self)) ~> split.in
         // 2 element sliding window allows workflow to look ahead one step and determine if the event trace is in its last state or not
         split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> evaluate(query) ~> join.left
         split.right ~> join.right
@@ -376,11 +361,11 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
         val listener = Broadcast[ActorRef]
         val event = Broadcast[List[BindToSensors]]
 
-        Source(ActorPublisher(self)) ~> Flow[(SensorNetValue, ActorRef)].buffer(bufferSize, OverflowStrategy.dropHead) ~> split.in
+        Source(ActorPublisher(self)) ~> split.in
         // 2 element sliding window allows workflow to look ahead one step and determine if the event trace is in its last state or not
         split.left ~> workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> event
         split.right ~> listener
-        for (query <- watch.keys) {
+        for (query <- toWatch) {
           val join = Zip[ClassifiedExercise, ActorRef]
 
           event ~> evaluate(query) ~> join.left
@@ -392,13 +377,6 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   }
 
   override def preStart() = {
-    // Reset mutable data structures
-    watch.clear()
-    stableQuery.clear()
-    for (query <- toWatch) {
-      watch += (query -> query)
-    }
-
     // Setup model evaluation workflow
     model.run()
   }
@@ -430,9 +408,10 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
       if (isActive && totalDemand > 0) {
         onNext((event, sender()))
       } else if (isActive) {
-        log.error(s"Actor publisher is inactive and we received a SensorNet event, so dropping $event")
+        // FIXME: do we need an internal buffer for storing excess SensorNetValue events?
+        log.error(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
       } else {
-        log.warning(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
+        log.warning(s"Actor publisher is inactive and we received a SensorNet event, so dropping $event")
       }
   }
 

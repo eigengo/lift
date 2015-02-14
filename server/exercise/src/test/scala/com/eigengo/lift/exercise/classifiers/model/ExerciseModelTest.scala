@@ -194,7 +194,7 @@ class ExerciseModelTest
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
-        modelProbe.ref ! result
+        modelProbe.ref ! (query, value, result)
         Tap
       }
       def simplify(query: Query) = Future(query)
@@ -223,7 +223,7 @@ class ExerciseModelTest
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
-        modelProbe.ref ! result
+        modelProbe.ref ! (query, value, result)
         Tap
       }
       def simplify(query: Query) = Future(query)
@@ -254,7 +254,7 @@ class ExerciseModelTest
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
-        modelProbe.ref ! result
+        modelProbe.ref ! (query, value, result)
         Tap
       }
       def simplify(query: Query) = Future(query)
