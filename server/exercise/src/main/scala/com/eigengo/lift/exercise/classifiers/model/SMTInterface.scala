@@ -22,4 +22,11 @@ trait SMTInterface {
    */
   def satisfiable(query: Query)(implicit ec: ExecutionContext): Future[Boolean]
 
+  /**
+   * Function that interacts with an SMT prover and determines if the query is valid or not.
+   *
+   * @param query LDL formula that is treated as being propositional
+   */
+  def valid(query: Query)(implicit ec: ExecutionContext): Future[Boolean]
+
 }

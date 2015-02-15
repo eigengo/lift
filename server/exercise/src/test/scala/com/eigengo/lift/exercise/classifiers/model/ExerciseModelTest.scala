@@ -120,6 +120,7 @@ class ExerciseModelTest
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
       def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
       def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value
@@ -157,6 +158,7 @@ class ExerciseModelTest
       }
       def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
       def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -186,6 +188,7 @@ class ExerciseModelTest
       }
       def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
       def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -217,6 +220,7 @@ class ExerciseModelTest
       }
       def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
       def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!

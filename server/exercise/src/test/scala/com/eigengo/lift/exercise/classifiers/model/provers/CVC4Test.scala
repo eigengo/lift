@@ -17,11 +17,9 @@ class CVC4Test
 
   val cvc4 = new CVC4()
 
-  property("unsatisfiable(~(p --> p))") {
+  property("valid(p --> p)") {
     forAll(QueryGen()) { (query: Query) =>
-      val x = cvc4.satisfiable(ExerciseModel.not(Or(ExerciseModel.not(query), query))).futureValue
-      println("DEBUG:", query, x)
-      assert(!x)
+      assert(cvc4.valid(Or(ExerciseModel.not(query), query)).futureValue)
     }
   }
 
@@ -31,9 +29,9 @@ class CVC4Test
     }
   }
 
-  property("unsatisfiable(~(p & q --> p))") {
+  property("valid(p & q --> p)") {
     forAll(QueryGen(), QueryGen()) { (query1: Query, query2: Query) =>
-      assert(!cvc4.satisfiable(ExerciseModel.not(Or(ExerciseModel.not(And(query1, query2)), query1))).futureValue)
+      assert(cvc4.valid(Or(ExerciseModel.not(And(query1, query2)), query1)).futureValue)
     }
   }
 
@@ -43,9 +41,9 @@ class CVC4Test
     }
   }
 
-  property("unsatisfiable(~(p & q --> q))") {
+  property("valid(p & q --> q)") {
     forAll(QueryGen(), QueryGen()) { (query1: Query, query2: Query) =>
-      assert(!cvc4.satisfiable(ExerciseModel.not(Or(ExerciseModel.not(And(query1, query2)), query2))).futureValue)
+      assert(cvc4.valid(Or(ExerciseModel.not(And(query1, query2)), query2)).futureValue)
     }
   }
 
@@ -55,9 +53,9 @@ class CVC4Test
     }
   }
 
-  property("unsatisfiable(~(p --> p | q))") {
+  property("valid(p --> p | q)") {
     forAll(QueryGen(), QueryGen()) { (query1: Query, query2: Query) =>
-      assert(!cvc4.satisfiable(ExerciseModel.not(Or(ExerciseModel.not(query1), Or(query1, query2)))).futureValue)
+      assert(cvc4.valid(Or(ExerciseModel.not(query1), Or(query1, query2))).futureValue)
     }
   }
 
@@ -67,9 +65,9 @@ class CVC4Test
     }
   }
 
-  property("unsatisfiable(~(q --> p | q))") {
+  property("valid(q --> p | q)") {
     forAll(QueryGen(), QueryGen()) { (query1: Query, query2: Query) =>
-      assert(!cvc4.satisfiable(ExerciseModel.not(Or(ExerciseModel.not(query2), Or(query1, query2)))).futureValue)
+      assert(cvc4.valid(Or(ExerciseModel.not(query2), Or(query1, query2))).futureValue)
     }
   }
 
@@ -79,9 +77,9 @@ class CVC4Test
     }
   }
 
-  property("unsatisfiable(~(p & (p --> q) --> q))") {
+  property("valid(p & (p --> q) --> q)") {
     forAll(QueryGen(), QueryGen()) { (query1: Query, query2: Query) =>
-      assert(!cvc4.satisfiable(ExerciseModel.not(Or(ExerciseModel.not(And(query1, Or(ExerciseModel.not(query1), query2))), query2))).futureValue)
+      assert(cvc4.valid(Or(ExerciseModel.not(And(query1, Or(ExerciseModel.not(query1), query2))), query2)).futureValue)
     }
   }
 

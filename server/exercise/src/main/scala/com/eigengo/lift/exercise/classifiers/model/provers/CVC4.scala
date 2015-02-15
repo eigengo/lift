@@ -24,9 +24,9 @@ class CVC4 extends SMTInterface {
   private val em = new ExprManager()
   private val smt = new SmtEngine(em)
   private var queryCount: Int = 0
-  private val queryMapping = mutable.HashMap.empty[Query, String]
+  private val queryMapping = mutable.HashMap.empty[Query, Expr]
   private var propCount: Int = 0
-  private val propMapping = mutable.HashMap.empty[Proposition, String]
+  private val propMapping = mutable.HashMap.empty[Proposition, Expr]
 
   // Quantifier-free logic of undefined functions
   smt.setLogic("QF_UF")
@@ -43,14 +43,13 @@ class CVC4 extends SMTInterface {
         // Ensure both +ve and -ve forms of sensor assertion are represented by propositions
         val newProp = s"sensor_$propCount"
         propCount += 1
-        propMapping += (prop -> newProp, not(prop) -> s"not_$newProp")
-        // "$newProp" == ~ "not_$newProp"
-        val eq = new vectorExpr()
-        eq.add(em.mkVar(newProp, em.booleanType()))
-        eq.add(em.mkExpr(Kind.NOT, em.mkVar(s"not_$newProp", em.booleanType())))
-        smt.assertFormula(em.mkExpr(Kind.IFF, eq)) // add relational fact to SMT theory base
+        // CVC4 distinguishes variables by their memory instance, so we store freshly generated propositions for latter usage
+        propMapping += (prop -> em.mkVar(newProp, em.booleanType()), not(prop) -> em.mkVar(s"not_$newProp", em.booleanType()))
+        // "$newProp" != "not_$newProp"
+        val eq = em.mkExpr(Kind.DISTINCT, propMapping(prop), propMapping(not(prop)))
+        smt.assertFormula(eq) // add relational fact to SMT theory base
       }
-      em.mkVar(propMapping(prop), em.booleanType())
+      propMapping(prop)
 
     case Conjunction(fact1, fact2, remaining @ _*) =>
       val and = new vectorExpr()
@@ -97,18 +96,20 @@ class CVC4 extends SMTInterface {
         // Ensure both +ve and -ve forms of LDL formula are represented by propositions
         val newProp = s"query_$queryCount"
         queryCount += 1
-        queryMapping += (query -> newProp, not(query) -> s"not_$newProp")
-        // "$newProp" == ~ "not_$newProp"
-        val eq = new vectorExpr()
-        eq.add(em.mkVar(newProp, em.booleanType()))
-        eq.add(em.mkExpr(Kind.NOT, em.mkVar(s"not_$newProp", em.booleanType())))
-        smt.assertFormula(em.mkExpr(Kind.IFF, eq)) // add relational fact to SMT theory base
+        // CVC4 distinguishes variables by their memory instance, so we store freshly generated propositions for latter usage
+        queryMapping += (query -> em.mkVar(newProp, em.booleanType()), not(query) -> em.mkVar(s"not_$newProp", em.booleanType()))
+        // "$newProp" != "not_$newProp"
+        val eq = em.mkExpr(Kind.DISTINCT, queryMapping(query), queryMapping(not(query)))
+        smt.assertFormula(eq) // add relational fact to SMT theory base
       }
-      em.mkVar(queryMapping(query), em.booleanType())
+      queryMapping(query)
   }
 
-  // TODO: provide a viable implementation for simplify
-  def simplify(query: Query)(implicit ec: ExecutionContext): Future[Query] = Future.successful(query)
+  def simplify(query: Query)(implicit ec: ExecutionContext): Future[Query] = {
+    smt.simplify(mapToProposition(query)) // TODO: implement the map back into an LDL query
+
+    Future.successful(query)
+  }
 
   def satisfiable(query: Query)(implicit ec: ExecutionContext): Future[Boolean] = {
     // Determine if current model state is satisfiable or not
@@ -121,6 +122,20 @@ class CVC4 extends SMTInterface {
 
       case Result.Sat.SAT_UNKNOWN =>
         Future.failed(new RuntimeException(s"Failed to determine if $query was satisfiable or not"))
+    }
+  }
+
+  def valid(query: Query)(implicit ec: ExecutionContext): Future[Boolean] = {
+    // Determine if current model state is valid or not
+    smt.query(mapToProposition(query)).isValid match {
+      case Result.Validity.VALID =>
+        Future.successful(true)
+
+      case Result.Validity.INVALID =>
+        Future.successful(false)
+
+      case Result.Validity.VALIDITY_UNKNOWN =>
+        Future.failed(new RuntimeException(s"Failed to determine if $query was valid or not"))
     }
   }
 

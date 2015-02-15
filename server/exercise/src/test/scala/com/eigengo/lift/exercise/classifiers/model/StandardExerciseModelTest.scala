@@ -40,6 +40,7 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
         def makeDecision(query: Query, value: QueryValue, result: Boolean) = TapEvent
         def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
         def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+        def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
       }).underlyingActor.workflow
       workflow.runWith(in, out)
     }

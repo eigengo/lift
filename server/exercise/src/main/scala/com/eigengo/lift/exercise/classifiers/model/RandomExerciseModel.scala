@@ -61,6 +61,9 @@ class RandomExerciseModel(sessionProps: SessionProperties)
   // Random model always claims that query is satisfiable
   def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
 
+  // Random model always claims that query is valid
+  def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+
   // Random model evaluator always returns true!
   def evaluateQuery(query: Query)(current: BindToSensors, lastState: Boolean) =
     StableValue(result = true)
