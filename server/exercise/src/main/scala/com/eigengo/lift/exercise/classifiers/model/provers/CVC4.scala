@@ -4,6 +4,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{False, True}
 import edu.nyu.acsys.CVC4._
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -137,6 +138,10 @@ class CVC4 extends SMTInterface {
       case Result.Validity.VALIDITY_UNKNOWN =>
         Future.failed(new RuntimeException(s"Failed to determine if $query was valid or not"))
     }
+  }
+
+  def statistics: Map[String, String] = {
+    smt.getStatistics.iterator().map(stat => (stat(0).toString, stat(1).toString)).toMap
   }
 
 }

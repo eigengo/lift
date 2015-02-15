@@ -10,12 +10,20 @@ class CVC4Test
   extends PropSpec
   with PropertyChecks
   with Matchers
+  with BeforeAndAfterAll
   with concurrent.ScalaFutures
   with ModelGenerators {
 
   import ExerciseModel._
 
   val cvc4 = new CVC4()
+
+  override def afterAll() {
+    println("CVC4 prover statistics:")
+    for ((key, value) <- cvc4.statistics) {
+      println(s"$key = $value")
+    }
+  }
 
   property("valid(p --> p)") {
     forAll(QueryGen()) { (query: Query) =>
