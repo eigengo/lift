@@ -15,7 +15,7 @@ import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ExerciseModelTest
   extends TestKit(ActorSystem("TestSystem", ConfigFactory.load("test.conf").withFallback(ConfigFactory.load("classification.conf"))))
@@ -160,8 +160,8 @@ class ExerciseModelTest
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
-      def simplify(query: Query) = Future(query)
-      def satisfiable(query: Query) = Future(true)
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value
@@ -197,8 +197,8 @@ class ExerciseModelTest
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query) = Future(query)
-      def satisfiable(query: Query) = Future(true)
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -226,8 +226,8 @@ class ExerciseModelTest
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query) = Future(query)
-      def satisfiable(query: Query) = Future(true)
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -257,8 +257,8 @@ class ExerciseModelTest
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query) = Future(query)
-      def satisfiable(query: Query) = Future(true)
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
