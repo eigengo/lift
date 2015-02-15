@@ -32,7 +32,7 @@ class CVC4 extends SMTInterface {
   // Quantifier-free logic of undefined functions
   smt.setLogic("QF_UF")
 
-  private def mapToProposition(fact: Proposition): Expr = fact match {
+  private def propositionToExpr(fact: Proposition): Expr = fact match {
     case Assert(_, True) =>
       em.mkConst(true)
 
@@ -55,21 +55,21 @@ class CVC4 extends SMTInterface {
     case Conjunction(fact1, fact2, remaining @ _*) =>
       val and = new vectorExpr()
       for (subFact <- fact1 +: fact2 +: remaining) {
-        and.add(mapToProposition(subFact))
+        and.add(propositionToExpr(subFact))
       }
       em.mkExpr(Kind.AND, and)
 
     case Disjunction(fact1, fact2, remaining @ _*) =>
       val or = new vectorExpr()
       for (subFact <- fact1 +: fact2 +: remaining) {
-        or.add(mapToProposition(subFact))
+        or.add(propositionToExpr(subFact))
       }
       em.mkExpr(Kind.OR, or)
   }
 
-  private def mapToProposition(query: Query): Expr = query match {
+  private def queryToExpr(query: Query): Expr = query match {
     case Formula(fact) =>
-      mapToProposition(fact)
+      propositionToExpr(fact)
 
     case TT =>
       em.mkConst(true)
@@ -80,14 +80,14 @@ class CVC4 extends SMTInterface {
     case And(query1, query2, remaining @ _*) =>
       val and = new vectorExpr()
       for (subQuery <- query1 +: query2 +: remaining) {
-        and.add(mapToProposition(subQuery))
+        and.add(queryToExpr(subQuery))
       }
       em.mkExpr(Kind.AND, and)
 
     case Or(query1, query2, remaining @ _*) =>
       val or = new vectorExpr()
       for (subQuery <- query1 +: query2 +: remaining) {
-        or.add(mapToProposition(subQuery))
+        or.add(queryToExpr(subQuery))
       }
       em.mkExpr(Kind.OR, or)
 
@@ -107,14 +107,14 @@ class CVC4 extends SMTInterface {
   }
 
   def simplify(query: Query)(implicit ec: ExecutionContext): Future[Query] = {
-    smt.simplify(mapToProposition(query)) // TODO: implement the map back into an LDL query
+    smt.simplify(queryToExpr(query)) // TODO: implement the map back into an LDL query
 
     Future.successful(query)
   }
 
   def satisfiable(query: Query)(implicit ec: ExecutionContext): Future[Boolean] = {
     // Determine if current model state is satisfiable or not
-    smt.checkSat(mapToProposition(query)).isSat match {
+    smt.checkSat(queryToExpr(query)).isSat match {
       case Result.Sat.SAT =>
         Future.successful(true)
 
@@ -128,7 +128,7 @@ class CVC4 extends SMTInterface {
 
   def valid(query: Query)(implicit ec: ExecutionContext): Future[Boolean] = {
     // Determine if current model state is valid or not
-    smt.query(mapToProposition(query)).isValid match {
+    smt.query(queryToExpr(query)).isValid match {
       case Result.Validity.VALID =>
         Future.successful(true)
 
