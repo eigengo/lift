@@ -97,4 +97,12 @@ class CVC4Test
     }
   }
 
+  property("valid(p <-> simplify(p))") {
+    forAll(QueryGen()) { (query: Query) =>
+      assert(cvc4.valid(Or(ExerciseModel.not(query), cvc4.simplify(query).futureValue)).futureValue)
+      assert(cvc4.valid(Or(query, cvc4.simplify(ExerciseModel.not(query)).futureValue)).futureValue)
+      assert(cvc4.valid(Or(query, ExerciseModel.not(cvc4.simplify(query).futureValue))).futureValue)
+    }
+  }
+
 }
