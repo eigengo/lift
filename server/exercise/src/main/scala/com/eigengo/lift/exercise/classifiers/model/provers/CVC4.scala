@@ -31,9 +31,6 @@ class CVC4 extends SMTInterface {
   // Quantifier-free logic of undefined functions
   smt.setLogic("QF_UF")
 
-  // TODO: provide a viable implementation for simplify
-  def simplify(query: Query)(implicit ec: ExecutionContext): Future[Query] = Future.successful(query)
-
   private def mapToProposition(fact: Proposition): Expr = fact match {
     case Assert(_, True) =>
       em.mkConst(true)
@@ -109,6 +106,9 @@ class CVC4 extends SMTInterface {
       }
       em.mkVar(queryMapping(query), em.booleanType())
   }
+
+  // TODO: provide a viable implementation for simplify
+  def simplify(query: Query)(implicit ec: ExecutionContext): Future[Query] = Future.successful(query)
 
   def satisfiable(query: Query)(implicit ec: ExecutionContext): Future[Boolean] = {
     // Determine if current model state is satisfiable or not
