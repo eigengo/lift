@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 class CVC4 extends SMTInterface {
 
-  System.loadLibrary("cvc4jni")
+  System.load("/usr/local/Cellar/cvc4/1.4/lib/jni/libcvc4jni.dylib")
 
   import ExerciseModel._
 
@@ -48,7 +48,7 @@ class CVC4 extends SMTInterface {
         val eq = new vectorExpr()
         eq.add(em.mkVar(newProp, em.booleanType()))
         eq.add(em.mkExpr(Kind.NOT, em.mkVar(s"not_$newProp", em.booleanType())))
-        smt.assertFormula(em.mkExpr(Kind.EQUAL, eq)) // add relational fact to SMT theory base
+        smt.assertFormula(em.mkExpr(Kind.IFF, eq)) // add relational fact to SMT theory base
       }
       em.mkVar(propMapping(prop), em.booleanType())
 
@@ -102,7 +102,7 @@ class CVC4 extends SMTInterface {
         val eq = new vectorExpr()
         eq.add(em.mkVar(newProp, em.booleanType()))
         eq.add(em.mkExpr(Kind.NOT, em.mkVar(s"not_$newProp", em.booleanType())))
-        smt.assertFormula(em.mkExpr(Kind.EQUAL, eq)) // add relational fact to SMT theory base
+        smt.assertFormula(em.mkExpr(Kind.IFF, eq)) // add relational fact to SMT theory base
       }
       em.mkVar(queryMapping(query), em.booleanType())
   }
