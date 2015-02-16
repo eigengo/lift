@@ -8,7 +8,7 @@ import akka.stream.scaladsl._
 import akka.testkit.{TestKit, TestProbe, TestActorRef}
 import com.eigengo.lift.exercise.UserExercisesClassifier.{ClassifiedExercise, Tap}
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.exercise.classifiers.ExerciseModel
+import com.eigengo.lift.exercise.classifiers.model.provers.CVC4
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
@@ -133,13 +133,15 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
-      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
-      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
-      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
+    implicit val prover = new SMTInterface {
       def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
       def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
       def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps) with ActorLogging {
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value
@@ -168,16 +170,18 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
-      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -198,16 +202,18 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example)) with SMTInterface with ActorLogging {
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example)) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
-      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -230,16 +236,18 @@ class ExerciseModelTest
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
     val example1 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example1", 0.9876)))
     val example2 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example2", 0.5432)))
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example1, example2)) with SMTInterface with ActorLogging {
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example1, example2)) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
-      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
@@ -264,7 +272,8 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with SMTInterface with ActorLogging {
+    implicit val cvc4 = new CVC4
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = {
         evaluationProbe.ref ! (formula, current, lastState)
@@ -272,9 +281,6 @@ class ExerciseModelTest
         StableValue(result = true)
       }
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
-      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>

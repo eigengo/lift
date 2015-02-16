@@ -254,11 +254,9 @@ object ExerciseModel {
  * Exercising model interface. Implementations of this abstract class define specific exercising models that may be updated and queried.
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
-abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWatch: Set[ExerciseModel.Query] = Set.empty)
+abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWatch: Set[ExerciseModel.Query] = Set.empty)(implicit prover: SMTInterface)
   extends ActorPublisher[(SensorNetValue, ActorRef)]
   with ActorLogging {
-
-  this: SMTInterface =>
 
   import context.dispatcher
   import ExerciseModel._
@@ -317,9 +315,9 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
     }.mapAsync {
       case UnstableValue(nextQuery) =>
         async {
-          currentState = await(simplify(nextQuery))
+          currentState = await(prover.simplify(nextQuery))
 
-          makeDecision(query, UnstableValue(currentState), await(satisfiable(nextQuery)))
+          makeDecision(query, UnstableValue(currentState), await(prover.satisfiable(nextQuery)))
         }
 
       case value: StableValue =>
