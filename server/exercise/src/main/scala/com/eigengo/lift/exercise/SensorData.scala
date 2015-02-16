@@ -3,7 +3,15 @@ package com.eigengo.lift.exercise
 /**
  * Sensor data marker trait
  */
-trait SensorData
+trait SensorData {
+  def samplingRate: Int
+  def values: List[SensorValue]
+}
+
+/**
+ * Sensor value marker trait
+ */
+trait SensorValue
 
 /**
  * Location of the sensor on the human body. Regardless of what the sensor measures, we
@@ -29,6 +37,65 @@ case object SensorDataSourceLocationChest extends SensorDataSourceLocation
 /// sensor with unknown location or where the location does not make a difference
 case object SensorDataSourceLocationAny extends SensorDataSourceLocation
 
+object Sensor {
+  val sourceLocations = Set(
+    SensorDataSourceLocationWrist,
+    SensorDataSourceLocationWaist,
+    SensorDataSourceLocationFoot,
+    SensorDataSourceLocationChest,
+    SensorDataSourceLocationAny
+  )
+}
+
+/**
+ * Used to model a full sensor network of locations that may transmit data to us. Instances of the case class represent
+ * sensor signals at a given point in time.
+ */
+case class SensorNet(wrist: SensorData, waist: SensorData, foot: SensorData, chest: SensorData, unknown: SensorData) {
+  val toMap = Map[SensorDataSourceLocation, SensorData](
+    SensorDataSourceLocationWrist -> wrist,
+    SensorDataSourceLocationWaist -> waist,
+    SensorDataSourceLocationFoot -> foot,
+    SensorDataSourceLocationChest -> chest,
+    SensorDataSourceLocationAny -> unknown
+  )
+}
+
+object SensorNet {
+  def apply(sensorMap: Map[SensorDataSourceLocation, SensorData]) =
+    new SensorNet(
+      sensorMap(SensorDataSourceLocationWrist),
+      sensorMap(SensorDataSourceLocationWaist),
+      sensorMap(SensorDataSourceLocationFoot),
+      sensorMap(SensorDataSourceLocationChest),
+      sensorMap(SensorDataSourceLocationAny)
+    )
+}
+
+/**
+ * Location or column slice through a sensor network.
+ */
+case class SensorNetValue(wrist: SensorValue, waist: SensorValue, foot: SensorValue, chest: SensorValue, unknown: SensorValue) {
+  val toMap = Map[SensorDataSourceLocation, SensorValue](
+    SensorDataSourceLocationWrist -> wrist,
+    SensorDataSourceLocationWaist -> waist,
+    SensorDataSourceLocationFoot -> foot,
+    SensorDataSourceLocationChest -> chest,
+    SensorDataSourceLocationAny -> unknown
+  )
+}
+
+object SensorNetValue {
+  def apply(sensorMap: Map[SensorDataSourceLocation, SensorValue]) =
+    new SensorNetValue(
+      sensorMap(SensorDataSourceLocationWrist),
+      sensorMap(SensorDataSourceLocationWaist),
+      sensorMap(SensorDataSourceLocationFoot),
+      sensorMap(SensorDataSourceLocationChest),
+      sensorMap(SensorDataSourceLocationAny)
+    )
+}
+
 /**
  * Container for sensor data at a given location. This grouping means that it is possible
  * to receive multiple sensor data from a single location. A watch (on the wrist) may be capable
@@ -38,5 +105,4 @@ case object SensorDataSourceLocationAny extends SensorDataSourceLocation
  * @param location the location
  * @param data the data
  */
-case class SensorDataWithLocation[D <: SensorData](location: SensorDataSourceLocation, data: List[D])
-
+case class SensorDataWithLocation(location: SensorDataSourceLocation, data: List[SensorData])

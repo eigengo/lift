@@ -22,6 +22,6 @@ case class PrintSequence() extends Batch[Int, Unit] {
 
     sc.stop()*/
 
-    Right()
+    Right(())
   }
 }

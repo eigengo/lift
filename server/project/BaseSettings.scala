@@ -22,7 +22,7 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
     graphSettings ++ 
     Seq(
       organization := "com.eigengo.lift",
-      scalaVersion := "2.11.4",
+      scalaVersion := "2.11.5",
       version := "1.0.0-SNAPSHOT",
       scalacOptions in Compile ++= Seq("-encoding", "UTF-8", "-target:jvm-1.7", "-deprecation", "-unchecked", "-Ywarn-dead-code", "-feature"),
       scalacOptions in (Compile, doc) <++= (name in (Compile, doc), version in (Compile, doc)) map DefaultOptions.scaladoc,

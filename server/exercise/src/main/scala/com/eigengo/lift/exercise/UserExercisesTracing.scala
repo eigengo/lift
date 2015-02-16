@@ -24,12 +24,12 @@ object UserExercisesTracing {
     val empty = Tag(tapped = false, None, None)
   }
 
-  def appendSensorData[D <: SensorData](id: SessionId, tag: Tag, sdwls: List[SensorDataWithLocation[D]]): Unit = {
+  def appendSensorData(id: SessionId, tag: Tag, sdwls: List[SensorDataWithLocation]): Unit = {
     def tagged(tag: Tag, s: String): String = {
       s"${tag.tapped},${tag.systemExercise.getOrElse("")},${tag.userExercise.getOrElse("")},$s"
     }
 
-    def save(id: SessionId, tag: Tag)(sdwl: SensorDataWithLocation[D]): Unit = {
+    def save(id: SessionId, tag: Tag)(sdwl: SensorDataWithLocation): Unit = {
       val fos = new FileOutputStream(s"/tmp/lift-$id-${sdwl.location}.csv", true)
       sdwl.data.foreach {
         case AccelerometerData(_, values) ⇒

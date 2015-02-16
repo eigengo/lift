@@ -1,28 +1,73 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
+import com.eigengo.lift.exercise._
+
 object ClassificationAssertions {
 
   /**
-   * Facts that may hold of sensor data
+   * Facts that may hold of sensor data. Facts are presented in positive/negative pairs. This allows us to keep
+   * assertions in negation normal form (NNF).
    */
-  sealed trait Fact
+  trait Fact
+  case object True extends Fact
+  case object False extends Fact
+  /**
+   * Named gesture matches with probability >= `matchProbability`
+   */
   case class Gesture(name: String, matchProbability: Double) extends Fact
-  case object Unknown extends Fact
-
   /**
-   * Quantifier-free assertions that may hold of sensor data
+   * Named gesture matches with probability < `matchProbability`
    */
-  sealed trait Assertion
-  case class Predicate(fact: Fact) extends Assertion
-  case class Conjunction(assert1: Assertion, assert2: Assertion, assertRemaining: Assertion*) extends Assertion
-  case class Disjunction(assert1: Assertion, assert2: Assertion, assertRemaining: Assertion*) extends Assertion
+  case class NegGesture(name: String, matchProbability: Double) extends Fact
 
   /**
-   * Bind an assertion to a sensor data value. In doing this, assertion is true for that value.
+   * Convenience function that provides negation on facts, whilst keeping them in NNF. Translation is linear in the
+   * size of the fact.
+   */
+  def not(fact: Fact): Fact = fact match {
+    case True =>
+      False
+
+    case False =>
+      True
+
+    case Gesture(name, probability) =>
+      NegGesture(name, probability)
+
+    case NegGesture(name, probability) =>
+      Gesture(name, probability)
+  }
+
+  /**
+   * Bind inferred (e.g. machine learnt) assertions to sensors in a network of sensorse.
    *
-   * @param assertion assertion that is true for the sensor data value
-   * @param value     sensor data that assertion holds for
+   * @param wrist   facts true of this location
+   * @param waist   facts true of this location
+   * @param foot    facts true of this location
+   * @param chest   facts true of this location
+   * @param unknown facts true of this location
+   * @param value   raw sensor network data that assertion holds for
    */
-  case class Bind[A](assertion: Assertion, value: A)
+  case class BindToSensors(wrist: Set[Fact], waist: Set[Fact], foot: Set[Fact], chest: Set[Fact], unknown: Set[Fact], value: SensorNetValue) {
+    val toMap = Map[SensorDataSourceLocation, Set[Fact]](
+      SensorDataSourceLocationWrist -> wrist,
+      SensorDataSourceLocationWaist -> waist,
+      SensorDataSourceLocationFoot -> foot,
+      SensorDataSourceLocationChest -> chest,
+      SensorDataSourceLocationAny -> unknown
+    )
+  }
+
+  object BindToSensors {
+    def apply(sensorMap: Map[SensorDataSourceLocation, Set[Fact]], value: SensorNetValue) =
+      new BindToSensors(
+        sensorMap(SensorDataSourceLocationWrist),
+        sensorMap(SensorDataSourceLocationWaist),
+        sensorMap(SensorDataSourceLocationFoot),
+        sensorMap(SensorDataSourceLocationChest),
+        sensorMap(SensorDataSourceLocationAny),
+        value
+      )
+  }
 
 }

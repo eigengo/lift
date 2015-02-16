@@ -2,16 +2,14 @@ package com.eigengo.lift.exercise
 
 import akka.actor.{Props, Actor}
 import com.eigengo.lift.exercise.UserExercisesClassifier._
-import com.eigengo.lift.exercise.classifiers.model.RandomExerciseModel
-import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import UserExercises._
 
 /**
  * Companion object for the classifier
  */
 object UserExercisesClassifier {
-  // By default, we configure exercise classification iwth a random model
-  val props: Props = Props(new UserExercisesClassifier(RandomExerciseModel))
+  def props(sessionProps: SessionProperties, modelProps: Props): Props =
+    Props(new UserExercisesClassifier(sessionProps, modelProps))
 
   /**
    * Muscle group information
@@ -72,16 +70,32 @@ object UserExercisesClassifier {
 /**
  * Match the received exercise data using the given model.
  */
-class UserExercisesClassifier(model: ExerciseModel) extends Actor {
+class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props) extends Actor {
 
-  import ExerciseModel._
+  // Issue "callback" (via sender actor reference) whenever we detect a tap gesture with a matching probability >= 0.80
+  val model = context.actorOf(modelProps)
 
   override def receive: Receive = {
-    case event @ ClassifyExerciseEvt(sessionProps, _) =>
-      model.update(event)
-      model.query(True(sessionProps), sender())
+    // TODO: refactor code so that the following assumptions may be weakened further!
+    case sdwls: ClassifyExerciseEvt =>
+      require(
+        sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.map(_.location).size == Sensor.sourceLocations.size,
+        "for each sensor location, there is a unique and corresponding member in the sensor data for the `ClassifyExerciseEvt` instance"
+      )
+      val sensorMap = sdwls.sensorData.groupBy(_.location).mapValues(_.flatMap(_.data))
+      val blockSize = sensorMap(SensorDataSourceLocationWrist).length
+      require(
+        sensorMap.values.forall(_.length == blockSize),
+        "all sensor data locations have a common data length"
+      )
 
-    case ClassificationExamples(sessionProps) ⇒
+      (0 until blockSize).foreach { block =>
+        val sensorEvent = sensorMap.map { case (loc, _) => (loc, sensorMap(loc)(block)) }.toMap
+
+        model.tell(SensorNet(sensorEvent), sender())
+      }
+
+    case ClassificationExamples(_) =>
       sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
   }
 
