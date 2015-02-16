@@ -2,11 +2,13 @@ package com.eigengo.lift.exercise
 
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
 import java.util.Date
+import com.eigengo.lift.exercise.classifiers.model.ModelGenerators
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{Fact, BindToSensors}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
-trait ExerciseGenerators {
+trait ExerciseGenerators extends ModelGenerators {
 
   val SensorValueGen: Gen[AccelerometerValue] =
     for {
@@ -56,5 +58,21 @@ trait ExerciseGenerators {
     for {
       sensorMap <- listOfN(Sensor.sourceLocations.size, SensorValueGen).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), sv) }.toMap[SensorDataSourceLocation, SensorValue])
     } yield SensorNetValue(sensorMap)
+
+  val BindToSensorsGen: Gen[BindToSensors] = for {
+    wrist <- Gen.containerOf[Set, Fact](FactGen)
+    waist <- Gen.containerOf[Set, Fact](FactGen)
+    foot <- Gen.containerOf[Set, Fact](FactGen)
+    chest <- Gen.containerOf[Set, Fact](FactGen)
+    unknown <- Gen.containerOf[Set, Fact](FactGen)
+    value <- SensorNetValueGen
+  } yield BindToSensors(
+      wrist,
+      waist,
+      foot,
+      chest,
+      unknown,
+      value
+    )
 
 }

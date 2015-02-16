@@ -299,7 +299,7 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   /**
    * Flow that defines how per query evaluation influences decision making (and so messages received by UserExercisesProcessor)
    */
-  private def evaluate(query: Query) = {
+  private[classifiers] def evaluate(query: Query) = {
     require(toWatch.contains(query))
 
     var currentState: Query = query

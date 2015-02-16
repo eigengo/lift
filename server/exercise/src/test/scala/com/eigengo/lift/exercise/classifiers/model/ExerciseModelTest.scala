@@ -1,15 +1,18 @@
-package com.eigengo.lift.exercise.classifiers.model
+package com.eigengo.lift.exercise.classifiers
+
+package model
 
 import akka.actor.{ActorSystem, ActorLogging}
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.testkit.{TestKit, TestProbe, TestActorRef}
-import com.eigengo.lift.exercise.UserExercisesClassifier.Tap
+import com.eigengo.lift.exercise.UserExercisesClassifier.{ClassifiedExercise, Tap}
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
+import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,7 +26,6 @@ class ExerciseModelTest
   with ModelGenerators {
 
   import ClassificationAssertions._
-  import system.dispatcher
   import ExerciseModel._
 
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
@@ -233,6 +235,40 @@ class ExerciseModelTest
       senderProbe.expectMsg(Tap)
       val result = modelProbe.receiveN(2).asInstanceOf[Vector[(Query, QueryValue, Boolean)]].toSet
       result === Set((example1, StableValue(result = true), true), (example2, StableValue(result = true), true))
+    }
+  }
+
+  property("???") {
+    val watchQuery = ???
+    val eventTraceSize = ???
+
+    val sinkProbe = TestProbe()
+    val evaluationProbe = TestProbe()
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with SMTInterface with ActorLogging {
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = {
+        evaluationProbe.ref ! (formula, current, lastState)
+
+        StableValue(result = true)
+      }
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    })
+
+    forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
+      val eventsWithLookahead = events.zip(events.tail).map(p => List(p._1, p._2))
+      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
+
+      evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
+
+      // TODO: assert expectations
+      // FIXME: evaluationProbe == ???
+      assert(sinkProbe.receiveN(events.size).forall(_.asInstanceOf[ClassifiedExercise] == Tap))
     }
   }
 
