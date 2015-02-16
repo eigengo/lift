@@ -26,7 +26,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {
@@ -43,7 +43,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {
@@ -62,7 +62,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {
@@ -100,7 +100,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length + 1) // + OnComplete
       for (msg <- msgs) {
@@ -119,7 +119,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length + 1) // + OnComplete
       for (msg <- msgs) {
@@ -139,7 +139,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length + 1) // + OnComplete
       for (msg <- msgs) {
@@ -161,7 +161,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {
@@ -180,7 +180,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {
@@ -201,7 +201,7 @@ class SlidingWindowTest extends AkkaSpec {
       val out = SubscriberProbe[List[String]]()
 
       sample(Source(in), Sink(out))
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {

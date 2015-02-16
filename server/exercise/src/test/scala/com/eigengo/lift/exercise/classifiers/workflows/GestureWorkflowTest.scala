@@ -38,7 +38,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
       component(inProbe, outProbe)
 
-      val inPub = inProbe.expectSubscription()
+      val inPub = new AutoPublisher(inProbe)
       val outSub = outProbe.expectSubscription()
 
       outSub.request(msgs.length)
@@ -64,7 +64,7 @@ class GestureWorkflowTest extends AkkaSpec(ConfigFactory.load("classification.co
 
       component(inProbe, outProbe)
 
-      val inPub = inProbe.expectSubscription()
+      val inPub = new AutoPublisher(inProbe)
       val outSub = outProbe.expectSubscription()
 
       outSub.request(msgs.length)
