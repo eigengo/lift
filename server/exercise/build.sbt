@@ -29,6 +29,8 @@ libraryDependencies ++= Seq(
   // Apple push notifications
   apns,
   slf4j_simple,
+  // For improving future based chaining
+  async,
   // Testing
   scalatest % "test",
   scalacheck % "test",
