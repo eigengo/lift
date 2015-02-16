@@ -25,7 +25,6 @@ class ExerciseModelTest
   with ExerciseGenerators {
 
   import ClassificationAssertions._
-  import system.dispatcher
   import ExerciseModel._
 
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
