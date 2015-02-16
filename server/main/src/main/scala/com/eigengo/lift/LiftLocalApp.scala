@@ -1,5 +1,6 @@
 package com.eigengo.lift
 
+import collection.JavaConversions._
 import akka.actor._
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
@@ -16,20 +17,17 @@ class LiftLocalApp(routes: Route*) extends HttpServiceActor {
  */
 object LiftLocalApp extends App with LocalAppUtil {
 
-  singleJvmStartup(Seq(2551, 2552, 2553, 2554))
+  val config = {
+    val microserviceProps = MicroserviceProps("Lift")
+    val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
+    val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[${microserviceProps.role}]")
 
-  def singleJvmStartup(ports: Seq[Int]): Unit = {
-    ports.par.foreach(port => {
-      val microserviceProps = MicroserviceProps("Lift")
-      val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
-      val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[${microserviceProps.role}]")
-      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(clusterShardingConfig).withFallback(clusterRoleConfig).withFallback(ConfigFactory.load("main.conf"))
-
-      actorSystemStartUp(port, 10000 + port, config, startupSharedJournal)
-    })
+    clusterShardingConfig
+      .withFallback(clusterRoleConfig)
+      .withFallback(ConfigFactory.load("main.conf"))
   }
 
-  private def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
+  def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
     import akka.pattern.ask
     import scala.concurrent.duration._
 
@@ -53,5 +51,10 @@ object LiftLocalApp extends App with LocalAppUtil {
         system.shutdown()
     }
   }
+
+  val ports = config.getIntList("akka.cluster.jvm-ports")
+  ports.toList.foreach(port => {
+    actorSystemStartUp(port, 10000 + port)
+  })
 
 }

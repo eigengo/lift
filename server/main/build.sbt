@@ -1,4 +1,3 @@
-import Config._
 import Dependencies._
 
 Build.Settings.project
@@ -38,17 +37,9 @@ dockerSettings
 
 // Define a Dockerfile for:
 //   - `LiftLocalApp`
-//   - `LiftContainerApp`
+//   - `LiftMonolithicApp`
 
-// TODO: work out how to do multiple docker container builds!
-//inConfig(LiftLocalApp)(Seq(
-//  mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
-//))
-
-//inConfig(LiftContainerApp)(Seq(
-//  mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
-//))
-mainClass in assembly := Some("com.eigengo.lift.LiftContainerApp")
+mainClass in assembly := Some("com.eigengo.lift.LiftMonolithicApp")
 
 docker <<= (docker dependsOn assembly)
 

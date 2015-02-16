@@ -14,7 +14,13 @@ trait LocalAppUtil {
 
   val LiftActorSystem = "Lift"
 
-  def actorSystemStartUp(port: Int, restPort: Int, config: Config, journalStartUp: (ActorSystem, Boolean, ActorPath) => Unit): Unit = {
+  def config: Config
+
+  def journalStartUp(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
+    // No work to do
+  }
+
+  def actorSystemStartUp(port: Int, restPort: Int): Unit = {
     import scala.collection.JavaConverters._
     // Override the configuration of the port
     val firstSeedNodePort = (for {

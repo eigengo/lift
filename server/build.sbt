@@ -1,5 +1,4 @@
 import sbt._
-import Config._
 import Keys._
 
 name := "domain"
@@ -26,7 +25,7 @@ lazy val notification = project.in(file("notification")).dependsOn(common, notif
 lazy val notificationProtocol = project.in(file("notification-protocol")).dependsOn(common)
 
 //Main
-lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common, kafka).configs(LiftLocalApp, LiftContainerApp)
+lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common, kafka)
 
 //The unified API adapter
 lazy val adapter = project.in(file("adapter")).dependsOn(common)
