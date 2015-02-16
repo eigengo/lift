@@ -17,13 +17,14 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
 
   import ExerciseModel._
   import StreamTestKit._
-  import system.dispatcher
 
-  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  // FIXME: why do we need a maximum prefetch buffer size of 64 here?
+  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 64)
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
   val name = "tap"
+  val windowSize = system.settings.config.getInt(s"classification.gesture.$name.size")
   val threshold = system.settings.config.getDouble(s"classification.gesture.$name.threshold")
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val startDate = dateFormat.parse("1970-01-01")
@@ -46,7 +47,7 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
 
     "correctly detect wrist sensor taps" in {
       val msgs: List[SensorNetValue] = accelerometerData.map(d => SensorNetValue(d, dummyValue, dummyValue, dummyValue, dummyValue))
-      val tapIndex = List(256 until 290, 341 until 344, 379 until 408, 546 until 576).flatten.toList
+      val tapIndex = List(256 until 290, 341 until 344, 379 until 408, 546 until 577).flatten.toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[SensorNetValue]()
       val out = SubscriberProbe[BindToSensors]()
@@ -60,7 +61,7 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
         pub.sendNext(msg)
       }
 
-      for (index <- 0 to msgs.length) {
+      for (index <- 0 to (msgs.length - windowSize)) {
         val fact = if (tapIndex.contains(index)) Gesture(name, threshold) else NegGesture(name, threshold)
 
         out.expectNext(BindToSensors(Set(fact), Set(), Set(), Set(), Set(), msgs(index)))
