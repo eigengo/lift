@@ -12,6 +12,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
+import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.prop._
@@ -31,6 +32,22 @@ class ExerciseModelTest
   val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
   implicit val materializer = ActorFlowMaterializer(settings)
+
+  val BindToSensorsGen: Gen[BindToSensors] = for {
+    wrist <- Gen.containerOf[Set, Fact](FactGen)
+    waist <- Gen.containerOf[Set, Fact](FactGen)
+    foot <- Gen.containerOf[Set, Fact](FactGen)
+    chest <- Gen.containerOf[Set, Fact](FactGen)
+    unknown <- Gen.containerOf[Set, Fact](FactGen)
+    value <- SensorNetValueGen
+  } yield BindToSensors(
+      wrist,
+      waist,
+      foot,
+      chest,
+      unknown,
+      value
+    )
 
   property("meet(complement(x), complement(y)) == complement(join(x, y))") {
     forAll(QueryValueGen, QueryValueGen) { (value1: QueryValue, value2: QueryValue) =>
