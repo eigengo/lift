@@ -124,13 +124,6 @@ class SensorDataGroup {
         }
     }
     
-    private func _debug_printMinMaxValues(type: UInt8, samples: NSData) {
-        let decodedData = samples.asInt13s()
-        let minimumValue = decodedData.minBy { $0 }
-        let maximumValue = decodedData.maxBy { $0 }
-        println("decoded data (type = \(type)): [ \(minimumValue!) - \(maximumValue!) ]")
-    }
-    
     ///
     /// The number of raw SDAs
     ///
@@ -360,25 +353,28 @@ class SensorDataArray {
         let samplesPerSecond = header.samplesPerSecond
         let sampleSize = header.sampleSize
         let bufferBytesCount = Int(floor(range.length * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))
+        if bufferBytesCount > 10 * 1024 * 1024 {
+            // more than 10 MiB is almost certainly wrong
+            fatalError("Request to allocate \(bufferBytesCount) B.")
+        }
+        
         var buffer = [UInt8](count: bufferBytesCount, repeatedValue: gapValue)
         
-        let slices = sensorDatas.flatMap { (current: SensorData) -> (CFAbsoluteTime, [UInt8]?) in
-            return (current.startTime, current.sliceSamples(range, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond))
+        let slicesInRange = sensorDatas.flatMap { (current: SensorData) -> (CFAbsoluteTime, [UInt8])? in
+            if let slice = current.sliceSamples(range, sampleSize: sampleSize, samplesPerSecond: samplesPerSecond) {
+                return (current.startTime, slice)
+            }
+            return nil
         }
         
-        let slicesInRange = slices.filter { (start, bytes) in
-            if let byteArray = bytes { return byteArray.count > 0 }
-            else { return false }
-        }
-        
-        if slicesInRange.count <= 0 { return .None }
+        if slicesInRange.isEmpty { return nil }
         
         let slicesOrdered = slicesInRange.sorted { $0.0 <= $1.0 } // Order by start.
         for (start, bytes) in slicesOrdered {
             let bufferRangeStart = max (0, Int(floor((start - range.start) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize))))
-            let bufferRangeCount = min(bufferBytesCount - bufferRangeStart, bytes!.count)
+            let bufferRangeCount = min(bufferBytesCount - bufferRangeStart, bytes.count)
             if bufferRangeCount > 0 {
-                buffer[bufferRangeStart..<(bufferRangeStart + bufferRangeCount)] = bytes![0..<bufferRangeCount]
+                buffer[bufferRangeStart..<(bufferRangeStart + bufferRangeCount)] = bytes[0..<bufferRangeCount]
             }
         }
         
@@ -545,11 +541,16 @@ class SensorData {
     /// Computes the sample bytes that fall into the time range indicated by ``range``, if any.
     ///
     func sliceSamples(range: TimeRange, sampleSize: UInt8, samplesPerSecond: UInt8) -> [UInt8]? {
-        let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
-        if !range.intersects(myRange) { return .None }
-        let startIndex = max(0, Int(ceil(((range.start - myRange.start) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))))
+        let thisRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
+        if !range.intersects(thisRange) { return nil }
+        
+        let startIndex = max(0, Int(ceil(((range.start - thisRange.start) * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize)))))
         let count = min(samples.length - startIndex, Int(floor(range.length * CFTimeInterval(samplesPerSecond) * CFTimeInterval(sampleSize))))
-        if count <= 0 { return .None }
+        if count <= 0 { return nil }
+        if count > 10 * 1024 * 1024 {
+            fatalError("Request to slice \(count) B")
+        }
+        
         var buffer = [UInt8](count: count, repeatedValue: 0)
         samples.getBytes(&buffer, range: NSMakeRange(startIndex, count))
         return buffer
@@ -560,10 +561,10 @@ class SensorData {
     /// are recorded for the time before ``start``.
     ///
     func sliceFromStart(start: CFAbsoluteTime, sampleSize: UInt8, samplesPerSecond: UInt8) -> SensorData? {
-        let myRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
-        if myRange.end <= start { return .None }
-        if myRange.start >= start { return self }
-        if let bytes = sliceSamples(TimeRange(start: start, end: myRange.end), sampleSize: sampleSize, samplesPerSecond: samplesPerSecond) {
+        let thisRange = TimeRange(start: startTime, end: endTime(sampleSize, samplesPerSecond: samplesPerSecond))
+        if thisRange.end <= start { return .None }
+        if thisRange.start >= start { return self }
+        if let bytes = sliceSamples(TimeRange(start: start, end: thisRange.end), sampleSize: sampleSize, samplesPerSecond: samplesPerSecond) {
             let data = NSMutableData()
             data.appendBytes(bytes)
             return SensorData(startTime: start, samples: data)
