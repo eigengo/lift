@@ -3,6 +3,8 @@ package com.eigengo.lift
 import akka.actor._
 import akka.persistence.journal.leveldb.{SharedLeveldbJournal, SharedLeveldbStore}
 import akka.util.Timeout
+import com.eigengo.lift.common.MicroserviceApp.MicroserviceProps
+import com.typesafe.config.ConfigFactory
 import spray.routing.{HttpServiceActor, Route}
 
 class LiftLocalApp(routes: Route*) extends HttpServiceActor {
@@ -17,7 +19,14 @@ object LiftLocalApp extends App with LocalAppUtil {
   singleJvmStartup(Seq(2551, 2552, 2553, 2554))
 
   def singleJvmStartup(ports: Seq[Int]): Unit = {
-    ports.par.foreach(p => actorSystemStartUp(p, 10000 + p, "main.conf", startupSharedJournal))
+    ports.par.foreach(port => {
+      val microserviceProps = MicroserviceProps("Lift")
+      val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
+      val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[${microserviceProps.role}]")
+      val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").withFallback(clusterShardingConfig).withFallback(clusterRoleConfig).withFallback(ConfigFactory.load("main.conf"))
+
+      actorSystemStartUp(port, 10000 + port, config, startupSharedJournal)
+    })
   }
 
   private def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
