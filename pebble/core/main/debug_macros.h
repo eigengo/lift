@@ -5,6 +5,7 @@
  * Write messages to the pebble console, if defined,
  * otherwise logging is disabled.
  */
+
 /*
 #define DEBUGLOG
 */
