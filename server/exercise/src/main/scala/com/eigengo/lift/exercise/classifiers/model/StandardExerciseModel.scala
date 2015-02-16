@@ -1,6 +1,7 @@
 package com.eigengo.lift.exercise.classifiers.model
 
 import akka.actor.ActorLogging
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
 import com.eigengo.lift.exercise.classifiers.workflows.{ClassificationAssertions, GestureWorkflows}
@@ -23,8 +24,10 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
   import ClassificationAssertions._
   import FlowGraphImplicits._
 
-  // Workflow for recognising 'tap' gestures
+  // Workflow for recognising 'tap' gestures..
   object Tap extends GestureWorkflows("tap", context.system.settings.config)
+  // ..that are detected via wrist sensors
+  val tapSensor = SensorDataSourceLocationWrist
 
   /**
    * Monitor wrist sensor and add in tap gesture detection.
@@ -40,9 +43,9 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
 
       in ~> split
 
-      split ~> Flow[SensorNetValue].map(_.toMap(SensorDataSourceLocationWrist).asInstanceOf[AccelerometerValue]).via(classifier.map(_.toSet)) ~> merge.left
+      split ~> Flow[SensorNetValue].map(_.toMap(tapSensor).asInstanceOf[AccelerometerValue]).via(classifier.map(_.toSet)) ~> merge.left
 
-      split ~> Flow[SensorNetValue] ~> merge.right
+      split ~> merge.right
 
       merge.out ~> Flow[(Set[Fact], SensorNetValue)].map { case (facts, data) => BindToSensors(facts, Set(), Set(), Set(), Set(), data) } ~> out
     }.toFlow(in, out)
