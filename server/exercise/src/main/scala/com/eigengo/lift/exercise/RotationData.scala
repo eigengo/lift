@@ -14,7 +14,7 @@ case class RotationData(samplingRate: Int, values: List[RotationValue]) extends 
  * @param y the y
  * @param z the z
  */
-case class RotationValue(x: Int, y: Int, z: Int)
+case class RotationValue(x: Int, y: Int, z: Int) extends SensorValue
 
 /**
  * Rotation data decoder

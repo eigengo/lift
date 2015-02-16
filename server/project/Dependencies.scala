@@ -13,7 +13,7 @@ object Dependencies {
     val persistence_cassandra = "com.github.krasserm"    %% "akka-persistence-cassandra"    % "0.3.4" intransitive()
 
     object streams {
-      val version = "1.0-M2"
+      val version = "1.0-M3"
 
       val core      = "com.typesafe.akka" %% "akka-stream-experimental"         % version
       val http      = "com.typesafe.akka" %% "akka-http-experimental"           % version
@@ -102,22 +102,25 @@ object Dependencies {
       .exclude("commons-logging", "commons-logging")
   }
 
-  val typesafeConfig   = "com.typesafe" % "config" % "1.2.1"
+  val typesafeConfig   = "com.typesafe"           % "config"        % "1.2.1"
 
-  val scodec_bits      = "org.typelevel"    %% "scodec-bits"  % "1.0.4"
-  val parboiled        = "org.parboiled"    %% "parboiled"    % "2.0.1"
+  val scodec_bits      = "org.typelevel"          %% "scodec-bits"  % "1.0.4"
+  val parboiled        = "org.parboiled"          %% "parboiled"    % "2.0.1"
+
+  val async            = "org.scala-lang.modules" %% "scala-async"  % "0.9.2"
 
   // Scala reflect
-  val scala_reflect    = "org.scala-lang"   % "scala-reflect" % "2.11.4"
+  val scala_reflect    = "org.scala-lang"         % "scala-reflect" % "2.11.4"
 
   // Apple push notifications
-  val apns             = "com.notnoop.apns"  % "apns"         % "0.1.6"
-  val slf4j_simple     = "org.slf4j"         % "slf4j-simple" % "1.6.1"
+  val apns             = "com.notnoop.apns"       % "apns"         % "0.1.6"
+  val slf4j_simple     = "org.slf4j"              % "slf4j-simple" % "1.6.1"
  
   // Datastax Cassandra Client
   val cassandra_driver = "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.1" exclude("io.netty", "netty")
 
   // Testing
-  val scalatest        = "org.scalatest"    %% "scalatest"    % "2.2.1"
-  val scalacheck       = "org.scalacheck"   %% "scalacheck"   % "1.12.1"
+  val scalatest        = "org.scalatest"          %% "scalatest"    % "2.2.1"
+  val scalacheck       = "org.scalacheck"         %% "scalacheck"   % "1.12.1"
+
 }

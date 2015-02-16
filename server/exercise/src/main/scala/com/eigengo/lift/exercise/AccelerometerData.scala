@@ -13,7 +13,7 @@ case class AccelerometerData(samplingRate: Int, values: List[AccelerometerValue]
  * @param y the y
  * @param z the z
  */
-case class AccelerometerValue(x: Int, y: Int, z: Int)
+case class AccelerometerValue(x: Int, y: Int, z: Int) extends SensorValue
 
 /**
  * Decoder for the 0xad type

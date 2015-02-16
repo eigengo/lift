@@ -1,6 +1,6 @@
 package com.eigengo.lift.exercise.classifiers.workflows
 
-import akka.stream.{FlowMaterializer, MaterializerSettings}
+import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.stream.testkit.{StreamTestKit, AkkaSpec}
 
@@ -9,9 +9,9 @@ class ZipNodesTest extends AkkaSpec {
   import FlowGraphImplicits._
   import StreamTestKit._
 
-  val settings = MaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 4)
+  val settings = ActorFlowMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 4)
 
-  implicit val materializer = FlowMaterializer(settings)
+  implicit val materializer = ActorFlowMaterializer(settings)
 
   "ZipN(3)" must {
 
@@ -30,7 +30,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -45,7 +45,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -63,7 +63,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -81,7 +81,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -99,7 +99,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(3)
@@ -117,7 +117,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(2)
@@ -138,7 +138,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(2)
@@ -169,7 +169,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -184,7 +184,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -202,7 +202,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -220,7 +220,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(1)
@@ -238,7 +238,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(3)
@@ -256,7 +256,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(2)
@@ -277,7 +277,7 @@ class ZipNodesTest extends AkkaSpec {
 
       val workflow = merge(inProbe.map(Source.apply[String]).toSet, Sink(out))
       workflow.run()
-      val inPub = inProbe.map(in => in.expectSubscription())
+      val inPub = inProbe.map(in => new AutoPublisher(in))
       val sub = out.expectSubscription()
 
       sub.request(2)

@@ -1,55 +1,104 @@
 package com.eigengo.lift.exercise.classifiers.model
 
-import akka.actor.ActorRef
+import akka.actor.{ActorLogging, Actor}
+import akka.stream.scaladsl._
+import com.eigengo.lift.exercise.UserExercises.ModelMetadata
+import com.eigengo.lift.exercise.UserExercisesClassifier.{UnclassifiedExercise, FullyClassifiedExercise}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.exercise.UserExercises.{ClassifyExerciseEvt, ModelMetadata}
-import com.eigengo.lift.exercise.UserExercisesClassifier.{FullyClassifiedExercise, UnclassifiedExercise, ClassifiedExercise}
+import com.eigengo.lift.exercise.classifiers.ExerciseModel._
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
+
+object RandomExerciseModel {
+  val exercises =
+    Map(
+      "arms" → List("Biceps curl", "Triceps press"),
+      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
+    )
+}
 
 /**
  * Random exercising model. Updates are simply printed out and queries always succeed (by sending a random message to
  * the listening actor).
  */
-object RandomExerciseModel extends ExerciseModel {
+class RandomExerciseModel(sessionProps: SessionProperties)
+  extends ExerciseModel("random", sessionProps, for (sensor <- Sensor.sourceLocations; exercise <- RandomExerciseModel.exercises.values.flatten) yield Formula(Assert(sensor, Gesture(exercise, 0.80))))
+  with SMTInterface
+  with Actor
+  with ActorLogging {
 
-  import ExerciseModel._
+  import context.dispatcher
+  import RandomExerciseModel._
 
-  val name = "random"
-
-  private val exercises =
-    Map(
-      "arms" → List("Biceps curl", "Triceps press"),
-      "chest" → List("Chest press", "Butterfly", "Cable cross-over")
-    )
   private val metadata = ModelMetadata(2)
 
-  private def randomExercise(sessionProps: SessionProperties): ClassifiedExercise = {
+  private def randomExercise(): Set[Fact] = {
     val mgk = Random.shuffle(sessionProps.muscleGroupKeys).head
-    exercises.get(mgk).fold[ClassifiedExercise](UnclassifiedExercise(metadata))(es ⇒ FullyClassifiedExercise(metadata, 1.0, Exercise(Random.shuffle(es).head, None, None)))
-  }
+    if (exercises.get(mgk).isEmpty) {
+      Set.empty
+    } else {
+      val exerciseType = Random.shuffle(exercises.get(mgk).get).head
 
-  // No update occurs here, we simply print out a summary of the received data
-  def update[A <: SensorData](sdwls: ClassifyExerciseEvt[A]) = {
-    sdwls.sensorData.foreach { sdwl =>
-      sdwl.data.foreach {
-        case AccelerometerData(sr, values) =>
-          val xs = values.map(_.x)
-          val ys = values.map(_.y)
-          val zs = values.map(_.z)
-          println(s"****** Acceleration ${sdwl.location} | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
-        case RotationData(_, values) ⇒
-          val xs = values.map(_.x)
-          val ys = values.map(_.y)
-          val zs = values.map(_.z)
-          println(s"****** Rotation ${sdwl.location} | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
-      }
+      Set(Gesture(exerciseType, 0.80))
     }
   }
 
-  // We only expect `true` queries here
-  def query(query: Query, listener: ActorRef) = {
-    listener ! randomExercise(query.session)
+  // Workflow simply adds random facts to random sensors
+  val workflow =
+    Flow[SensorNetValue]
+      .map { sn =>
+        val classification = randomExercise()
+        val sensor = Random.shuffle(sn.toMap.keys).head
+
+        BindToSensors(sn.toMap.map { case (location, _) => if (location == sensor) (location, classification) else (location, Set.empty[Fact]) }.toMap, sn)
+      }
+
+  // Random model performs no query simplification
+  def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+
+  // Random model always claims that query is satisfiable
+  def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+
+  // Random model evaluator always returns true!
+  def evaluateQuery(query: Query)(current: BindToSensors, lastState: Boolean) =
+    StableValue(result = true)
+
+  def makeDecision(query: Query, value: QueryValue, result: Boolean) =
+    if (result) {
+      val exercise = (query: @unchecked) match {
+        case Formula(Assert(_, Gesture(nm, _))) =>
+          Exercise(nm, None, None)
+      }
+
+      FullyClassifiedExercise(metadata, 1.0, exercise)
+    } else {
+      UnclassifiedExercise(metadata)
+    }
+
+  /**
+   * We use `aroundReceive` here to print out a summary `SensorNet` message.
+   */
+  override def aroundReceive(receive: Receive, msg: Any) = msg match {
+    case event: SensorNet =>
+      event.toMap.foreach { x => (x: @unchecked) match {
+        case (location, AccelerometerData(sr, values)) =>
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** Acceleration $location | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+
+        case (location, RotationData(_, values)) =>
+          val xs = values.map(_.x)
+          val ys = values.map(_.y)
+          val zs = values.map(_.z)
+          println(s"****** Rotation $location | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+      }}
+      super.aroundReceive(receive, msg)
+
+    case _ =>
+      super.aroundReceive(receive, msg)
   }
 
 }
