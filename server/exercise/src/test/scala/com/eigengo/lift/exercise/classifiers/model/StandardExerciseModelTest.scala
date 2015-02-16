@@ -53,7 +53,7 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
 
       component(Source(in), Sink(out))
 
-      val pub = in.expectSubscription()
+      val pub = new AutoPublisher(in)
       val sub = out.expectSubscription()
       sub.request(msgs.length)
       for (msg <- msgs) {
