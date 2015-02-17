@@ -2,7 +2,7 @@ import Foundation
 
 class LiveSessionClassificationCell : UITableViewCell {
     struct Height {
-        static let expanded: CGFloat = 185
+        static let expanded: CGFloat = 140
         static let collapsed: CGFloat = 40
     }
     
