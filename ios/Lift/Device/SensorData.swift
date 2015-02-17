@@ -465,7 +465,11 @@ class SensorData {
     ///
     /* mutating */
     func removeFromEnd(count: Int) {
-        samples.length -= count
+        if samples.length > count {
+            samples.length -= count
+        } else {
+            samples.length = 0
+        }
     }
     
     ///
