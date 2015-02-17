@@ -1,6 +1,6 @@
 import Foundation
 
-class LiveSessionClassificationController : UITableViewController, ExerciseSessionSettable, UIActionSheetDelegate {
+class LiveSessionClassificationController : UITableViewController, ExerciseSessionSettable, UIAlertViewDelegate {
     private var classificationExamples: [Exercise.Exercise] = []
     private var session: ExerciseSession!
     private var popoverContentController: LiveSessionClassificationPopoverController!
@@ -9,11 +9,6 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
         super.viewDidLoad()
         popoverContentController = LiveSessionClassificationPopoverController(nibName: "LiveSessionClassificationPopoverController", bundle: nil)
         popoverContentController.view.frame = CGRectMake(0, 0, 320, 60)
-    }
-    
-    // MARK: UIActionSheetDelegate implementation
-    func willPresentActionSheet(actionSheet: UIActionSheet) {
-        actionSheet.addSubview(popoverContentController.view)
     }
     
     // MARK: ExerciseSessionSettable implementation
@@ -47,10 +42,9 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         switch (indexPath.section, indexPath.row) {
         case (0, let x):
-            let sheet = UIActionSheet(title: nil, delegate: self, cancelButtonTitle: nil, destructiveButtonTitle: nil)
-            let height: CGFloat = 100.0
-            sheet.showInView(view)
-            sheet.bounds = CGRectMake(0, 0, 320, 600)
+            let c = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.ActionSheet)
+            c.view = popoverContentController.view
+            presentViewController(c, animated: true, completion: nil)
             
             tableView.deselectRowAtIndexPath(indexPath, animated: false)
         default: return
