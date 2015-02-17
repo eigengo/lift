@@ -17,7 +17,7 @@ class LiftLocalApp(routes: Route*) extends HttpServiceActor {
  */
 object LiftLocalApp extends App with LocalAppUtil {
 
-  val config = {
+  lazy val config = {
     val microserviceProps = MicroserviceProps("Lift")
     val clusterShardingConfig = ConfigFactory.parseString(s"akka.contrib.cluster.sharding.role=${microserviceProps.role}")
     val clusterRoleConfig = ConfigFactory.parseString(s"akka.cluster.roles=[${microserviceProps.role}]")
@@ -27,7 +27,7 @@ object LiftLocalApp extends App with LocalAppUtil {
       .withFallback(ConfigFactory.load("main.conf"))
   }
 
-  def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
+  override def journalStartUp(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
     import akka.pattern.ask
     import scala.concurrent.duration._
 
@@ -41,20 +41,19 @@ object LiftLocalApp extends App with LocalAppUtil {
     val f = system.actorSelection(path) ? Identify(None)
     f.onSuccess {
       case ActorIdentity(_, Some(ref)) ⇒ SharedLeveldbJournal.setStore(ref, system)
-      case _ =>
+      case x ⇒
+        println(x)
         system.log.error("Shared journal not started at {}", path)
         system.shutdown()
     }
     f.onFailure {
-      case _ =>
+      case _ ⇒
         system.log.error("Lookup of shared journal at {} timed out", path)
         system.shutdown()
     }
   }
 
   val ports = config.getIntList("akka.cluster.jvm-ports")
-  ports.toList.foreach(port => {
-    actorSystemStartUp(port, 10000 + port)
-  })
+  ports.toList.foreach(port ⇒ actorSystemStartUp(port, 10000 + port))
 
 }
