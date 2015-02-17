@@ -50,6 +50,8 @@ object Sensor {
 /**
  * Used to model a full sensor network of locations that may transmit data to us. Instances of the case class represent
  * sensor signals at a given point in time.
+ *
+ * Sensor networks relate a location and a point (an instance or position index) to the `SensorData` they produce.
  */
 case class SensorNet(wrist: Vector[SensorData], waist: Vector[SensorData], foot: Vector[SensorData], chest: Vector[SensorData], unknown: Vector[SensorData]) {
   val toMap = Map[SensorDataSourceLocation, Vector[SensorData]](
@@ -74,6 +76,8 @@ object SensorNet {
 
 /**
  * Location or column slice through a sensor network.
+ *
+ * Sensor points produce `SensorNetValue`. They have a location and an instance or position index (the point).
  */
 case class SensorNetValue(wrist: Vector[SensorValue], waist: Vector[SensorValue], foot: Vector[SensorValue], chest: Vector[SensorValue], unknown: Vector[SensorValue]) {
   val toMap = Map[SensorDataSourceLocation, Vector[SensorValue]](

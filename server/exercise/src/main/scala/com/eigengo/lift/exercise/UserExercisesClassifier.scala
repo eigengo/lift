@@ -76,24 +76,22 @@ class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props
   val model = context.actorOf(modelProps)
 
   override def receive: Receive = {
-    // FIXME: locations may be the source of multiple signal data types!!
-    case ClassifyExerciseEvt(_, _) =>
-
     // TODO: refactor code so that the following assumptions may be weakened further!
     case sdwls: ClassifyExerciseEvt if false =>
       require(
-        sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.map(_.location).size == Sensor.sourceLocations.size,
-        "for each sensor location, there is a unique and corresponding member in the sensor data for the `ClassifyExerciseEvt` instance"
+        sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.forall(_.data.nonEmpty),
+        "all sensor locations are present in the `ClassifyExerciseEvt` instance and have data"
       )
-      val sensorMap = sdwls.sensorData.groupBy(_.location).mapValues(_.flatMap(_.data))
-      val blockSize = sensorMap(SensorDataSourceLocationWrist).length
+      // (SensorDataSourceLocation, Int) -> List[SensorData]
+      val sensorMap: Map[SensorDataSourceLocation, List[List[SensorData]]] = sdwls.sensorData.groupBy(_.location).mapValues(_.map(_.data))
+      val blockSize = sensorMap(SensorDataSourceLocationWrist).head.length
       require(
-        sensorMap.values.forall(_.length == blockSize),
-        "all sensor data locations have a common data length"
+        sensorMap.values.forall(_.forall(_.length == blockSize)),
+        "all sensor data location points have a common data length"
       )
 
       (0 until blockSize).foreach { block =>
-        val sensorEvent = sensorMap.map { case (loc, _) => (loc, sensorMap(loc)(block)) }.toMap
+        val sensorEvent = sensorMap.map { case (loc, data) => (loc, (0 to data.size).map(point => sensorMap(loc)(point)(block)).toVector) }.toMap
 
         model.tell(SensorNet(sensorEvent), sender())
       }
