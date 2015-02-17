@@ -1,7 +1,7 @@
-package com.eigengo.lift.util
+package com.eigengo.lift.exercise
 
-import com.eigengo.lift.exercise._
 import java.io._
+
 import scodec.bits.BitVector
 
 /**
