@@ -28,8 +28,8 @@ class UserExercisesClassifierTest
   }
 
   property("UserExercisesClassifier should correctly 'slice up' ClassifyExerciseEvt into SensorNet events") {
-    val width = 2//0
-    val height = 3//0
+    val width = 20
+    val height = 30
 
     forAll(ClassifyExerciseEvtGen(width, height)) { (event: ClassifyExerciseEvt) =>
       val modelProbe = TestProbe()
