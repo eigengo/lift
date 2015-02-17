@@ -1,21 +1,35 @@
 import Foundation
 
+protocol LiveSessionClassificationCellDelegate {
+    
+    func repetitions(count: Int, of exercise: Exercise.Exercise)
+    
+}
+
 class LiveSessionClassificationCell : UITableViewCell {
     struct Height {
-        static let expanded: CGFloat = 140
+        static let expanded: CGFloat = 190
         static let collapsed: CGFloat = 40
     }
+    private var delegate: LiveSessionClassificationCellDelegate?
     
     @IBOutlet
     var titleLabel: UILabel!
+    private var exercise: Exercise.Exercise!
 
     func setExercise(exercise: Exercise.Exercise) {
         titleLabel.text = exercise.name
+        self.exercise = exercise
+    }
+    
+    @IBAction
+    func repetition(sender: UIButton) {
+        delegate?.repetitions(sender.tag, of: exercise)
     }
     
 }
 
-class LiveSessionClassificationController : UITableViewController, ExerciseSessionSettable, UIAlertViewDelegate {
+class LiveSessionClassificationController : UITableViewController, ExerciseSessionSettable, LiveSessionClassificationCellDelegate {
     private var classificationExamples: [Exercise.Exercise] = []
     private var session: ExerciseSession!
     private var selectedIndexPath: NSIndexPath?
@@ -56,6 +70,7 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
         case (0, let x):
             let cell = tableView.dequeueReusableCellWithIdentifier("manual") as LiveSessionClassificationCell
             cell.setExercise(classificationExamples[x])
+            cell.delegate = self
             return cell
         default: fatalError("Match error")
         }
@@ -72,6 +87,15 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
             selectedIndexPath = indexPath
         }
         tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
+    }
+    
+    // MARK: LiveSessionClassificationCellDelegate code
+    func repetitions(count: Int, of exercise: Exercise.Exercise) {
+        // note that we're sending one fewer request
+        // the act of selecting the cell has already sent one
+        for _ in 1..<count {
+            session.startExplicitClassification(exercise)
+        }
     }
     
 }
