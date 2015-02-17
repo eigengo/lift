@@ -24,7 +24,8 @@ class LiveSessionClassificationCell : UITableViewCell {
     
     @IBAction
     func repetition(sender: UIButton) {
-        delegate?.repetitions(sender.tag, of: exercise)
+        let delta = sender.tag
+        delegate?.repetitions(delta, of: exercise)
     }
     
 }
