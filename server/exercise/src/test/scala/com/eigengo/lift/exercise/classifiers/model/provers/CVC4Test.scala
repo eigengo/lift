@@ -2,6 +2,7 @@ package com.eigengo.lift.exercise.classifiers.model.provers
 
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.model.ModelGenerators
+import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import org.scalatest.prop._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,7 +17,7 @@ class CVC4Test
 
   import ExerciseModel._
 
-  val cvc4 = new CVC4()
+  val cvc4 = new CVC4(ConfigFactory.load("test.conf"))
 
   override def afterAll() {
     println("CVC4 prover statistics:")

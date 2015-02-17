@@ -51,6 +51,10 @@ dockerfile in docker := {
     val f = new File(s"${Path.userHome.absolutePath}/.ios")
     if (f.exists) add(f, "/root/.ios")
     add(artifact, artifactTargetPath)
+    // Install CVC4, JNI shared library/bindings - used by exercise classification models
+    runShell("echo", "deb http://cvc4.cs.nyu.edu/debian unstable/", ">>", "/etc/apt/sources.list")
+    run("apt-get", "update")
+    run("apt-get", "install", "-y", "--force-yes", "cvc4", "libcvc4bindings-java3")
     entryPoint("java", "-jar", artifactTargetPath)
   }
 }

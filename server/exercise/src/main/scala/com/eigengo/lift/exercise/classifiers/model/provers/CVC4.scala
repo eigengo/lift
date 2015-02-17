@@ -3,6 +3,7 @@ package com.eigengo.lift.exercise.classifiers.model.provers
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{False, True}
+import com.typesafe.config.Config
 import edu.nyu.acsys.CVC4._
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -13,12 +14,14 @@ import scala.concurrent.{ExecutionContext, Future}
  *   - wget http://cvc4.cs.nyu.edu/builds/src/cvc4-1.4.tar.gz
  *   - tar -xzvf cvc4-1.4.tar.gz
  *   - cd cvc4-1.4
- *   - brew install libantlr3c swig
+ *   - brew install cln gmp boost libantlr3c swig
+ *   - export CPPFLAGS="-I/usr/local/include"
+ *   - export LDFLAGS="-L/usr/local/lib"
  *   - ./configure --prefix=/usr/local/Cellar/cvc4/1.4 --enable-language-bindings=java JAVA_CPPFLAGS=-I/System/Library/Frameworks/JavaVM.framework/Headers && make && make install && brew link cvc4
  */
-class CVC4 extends SMTInterface {
+class CVC4(config: Config) extends SMTInterface {
 
-  System.load("/usr/local/Cellar/cvc4/1.4/lib/jni/libcvc4jni.dylib")
+  System.load(config.getString("prover.cvc.library"))
 
   import ExerciseModel._
 

@@ -272,7 +272,7 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    implicit val cvc4 = new CVC4
+    implicit val cvc4 = new CVC4(system.settings.config)
     val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = {
