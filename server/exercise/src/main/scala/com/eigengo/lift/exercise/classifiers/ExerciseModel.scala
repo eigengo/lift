@@ -381,6 +381,7 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
     model.run()
   }
 
+  // FIXME:
   def receive = LoggingReceive {
     // TODO: refactor code so that the following assumptions may be weakened further!
     case event: SensorNet =>

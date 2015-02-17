@@ -170,8 +170,9 @@ class ExerciseModelTest
       }
     })
 
+    // FIXME:
     forAll(SensorNetGen(30)) { (rawEvent: SensorNet) =>
-      val event = SensorNet(rawEvent.toMap.mapValues(evt => new SensorData { val samplingRate = rate; val values = evt.values }))
+      val event = SensorNet(rawEvent.toMap.mapValues(_.map(evt => new SensorData { val samplingRate = rate; val values = evt.values })))
 
       model ! event
 

@@ -49,12 +49,12 @@ trait ExerciseGenerators {
 
   def SensorNetGen(size: Int): Gen[SensorNet] =
     for {
-      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorDataGen(size)).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), sv) }.toMap[SensorDataSourceLocation, SensorData])
+      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorDataGen(size)).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), Vector(sv)) }.toMap[SensorDataSourceLocation, Vector[SensorData]])
     } yield SensorNet(sensorMap)
 
   val SensorNetValueGen: Gen[SensorNetValue] =
     for {
-      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorValueGen).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), sv) }.toMap[SensorDataSourceLocation, SensorValue])
+      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorValueGen).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), Vector(sv)) }.toMap[SensorDataSourceLocation, Vector[SensorValue]])
     } yield SensorNetValue(sensorMap)
 
 }

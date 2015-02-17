@@ -43,7 +43,9 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
 
       in ~> split
 
-      split ~> Flow[SensorNetValue].map(_.toMap(tapSensor).asInstanceOf[AccelerometerValue]).via(classifier.map(_.toSet)) ~> merge.left
+      split ~> Flow[SensorNetValue]
+        .mapConcat(_.toMap(tapSensor).find(_.isInstanceOf[AccelerometerValue]).asInstanceOf[Option[AccelerometerValue]].toList)
+        .via(classifier.map(_.toSet)) ~> merge.left
 
       split ~> merge.right
 
