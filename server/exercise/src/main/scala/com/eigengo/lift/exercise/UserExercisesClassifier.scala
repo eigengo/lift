@@ -77,7 +77,7 @@ class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props
 
   override def receive: Receive = {
     // TODO: refactor code so that the following assumptions may be weakened further!
-    case sdwls: ClassifyExerciseEvt if false =>
+    case sdwls: ClassifyExerciseEvt =>
       require(
         sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.forall(_.data.nonEmpty),
         "all sensor locations are present in the `ClassifyExerciseEvt` instance and have data"
@@ -91,7 +91,7 @@ class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props
       )
 
       (0 until blockSize).foreach { block =>
-        val sensorEvent = sensorMap.map { case (loc, data) => (loc, (0 to data.size).map(point => sensorMap(loc)(point)(block)).toVector) }.toMap
+        val sensorEvent = sensorMap.map { case (loc, data) => (loc, (0 until data.size).map(point => sensorMap(loc)(point)(block)).toVector) }.toMap
 
         model.tell(SensorNet(sensorEvent), sender())
       }

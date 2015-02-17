@@ -398,7 +398,7 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
         "all sensor points have a fixed known sample rate"
       )
 
-      val sensorEvents = (0 until blockSize).map(block => SensorNetValue(event.toMap.mapValues(data => (0 to data.size).map(point => data(point).values(block)).toVector)))
+      val sensorEvents = (0 until blockSize).map(block => SensorNetValue(event.toMap.mapValues(data => (0 until data.size).map(point => data(point).values(block)).toVector)))
 
       for (evt <- sensorEvents) {
         self.tell(evt, sender())

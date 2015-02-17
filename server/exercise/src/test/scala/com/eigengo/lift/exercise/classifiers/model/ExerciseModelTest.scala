@@ -179,7 +179,7 @@ class ExerciseModelTest
       for (sensor <- Sensor.sourceLocations) {
         val numberOfPoints = rawEvent.wrist.length
 
-        for (point <- 0 to numberOfPoints) {
+        for (point <- 0 until numberOfPoints) {
           assert(msgs.map(_.toMap(sensor)(point)) == event.toMap(sensor)(point).values)
         }
       }
