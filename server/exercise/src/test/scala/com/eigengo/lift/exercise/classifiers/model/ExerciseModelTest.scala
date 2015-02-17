@@ -263,6 +263,36 @@ class ExerciseModelTest
     }
   }
 
+  property("[ <true(wrist)*>true ] a random generator should see the correct number of events") {
+    val watchQuery = Exists(Repeat(AssertFact(Assert(SensorDataSourceLocationWrist, True))), TT)
+    val eventTraceSize = 10
+
+    val sinkProbe = TestProbe()
+    val evaluationProbe = TestProbe()
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    implicit val cvc4 = new CVC4(system.settings.config)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with ActorLogging {
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
+      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = {
+        evaluationProbe.ref ! (formula, current, lastState)
+
+        StableValue(result = true)
+      }
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
+    })
+
+    forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
+      val eventsWithLookahead = events.zip(events.tail).map(p => List(p._1, p._2))
+      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
+
+      evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
+
+      assert(sinkProbe.receiveN(events.size).forall(_.asInstanceOf[ClassifiedExercise] == Tap))
+    }
+  }
+
   property("???") {
     val watchQuery = ???
     val eventTraceSize = ???

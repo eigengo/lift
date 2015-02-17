@@ -20,28 +20,28 @@ trait ModelGenerators {
     1 -> (for { name <- arbitrary[String]; matchProbability <- arbitrary[Double] } yield NegGesture(name, matchProbability))
   )
 
-  def PropositionGen(depth: Int = defaultDepth): Gen[Proposition] = frequency(
-    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(FactGen) } yield Assert(sensor, fact)),
-    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1)); fact2 <- Gen.lzy(PropositionGen(depth-1)) } yield Conjunction(fact1, fact2)),
-    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1)); fact2 <- Gen.lzy(PropositionGen(depth-1)) } yield Disjunction(fact1, fact2))
+  def PropositionGen(depth: Int = defaultDepth, sensorGen: Option[Gen[SensorDataSourceLocation]] = None): Gen[Proposition] = frequency(
+    5 -> (for { sensor <- Gen.lzy(sensorGen.getOrElse(SensorQueryGen)); fact <- Gen.lzy(FactGen) } yield Assert(sensor, fact)),
+    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1, sensorGen)); fact2 <- Gen.lzy(PropositionGen(depth-1, sensorGen)) } yield Conjunction(fact1, fact2)),
+    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1, sensorGen)); fact2 <- Gen.lzy(PropositionGen(depth-1, sensorGen)) } yield Disjunction(fact1, fact2))
   )
 
-  def PathGen(depth: Int = defaultDepth): Gen[Path] = frequency(
-    5 -> Gen.lzy(PropositionGen(depth-1)).map(AssertFact),
-    5 -> Gen.lzy(QueryGen(depth-1)).map(Test),
-    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Choice(path1, path2)),
-    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Sequence(path1, path2)),
-    5 -> Gen.lzy(PathGen(depth-1)).map(Repeat)
+  def PathGen(depth: Int = defaultDepth, sensorGen: Option[Gen[SensorDataSourceLocation]] = None): Gen[Path] = frequency(
+    5 -> Gen.lzy(PropositionGen(depth-1, sensorGen)).map(AssertFact),
+    5 -> Gen.lzy(QueryGen(depth-1, sensorGen)).map(Test),
+    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1, sensorGen)); path2 <- Gen.lzy(PathGen(depth-1, sensorGen)) } yield Choice(path1, path2)),
+    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1, sensorGen)); path2 <- Gen.lzy(PathGen(depth-1, sensorGen)) } yield Sequence(path1, path2)),
+    5 -> Gen.lzy(PathGen(depth-1, sensorGen)).map(Repeat)
   )
 
-  def QueryGen(depth: Int = defaultDepth): Gen[Query] = frequency(
-    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(PropositionGen(depth-1)) } yield Formula(fact)),
+  def QueryGen(depth: Int = defaultDepth, sensorGen: Option[Gen[SensorDataSourceLocation]] = None): Gen[Query] = frequency(
+    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(PropositionGen(depth-1, sensorGen)) } yield Formula(fact)),
     5 -> Gen.const(TT),
     5 -> Gen.const(FF),
-    1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1)); query2 <- Gen.lzy(QueryGen(depth-1)) } yield And(query1, query2)),
-    1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1)); query2 <- Gen.lzy(QueryGen(depth-1)) } yield Or(query1, query2)),
-    5 -> (for { path <- Gen.lzy(PathGen(depth-1)); query <- Gen.lzy(QueryGen(depth-1)) } yield Exists(path, query)),
-    5 -> (for { path <- Gen.lzy(PathGen(depth-1)); query <- Gen.lzy(QueryGen(depth-1)) } yield All(path, query))
+    1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1, sensorGen)); query2 <- Gen.lzy(QueryGen(depth-1, sensorGen)) } yield And(query1, query2)),
+    1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1, sensorGen)); query2 <- Gen.lzy(QueryGen(depth-1, sensorGen)) } yield Or(query1, query2)),
+    5 -> (for { path <- Gen.lzy(PathGen(depth-1, sensorGen)); query <- Gen.lzy(QueryGen(depth-1, sensorGen)) } yield Exists(path, query)),
+    5 -> (for { path <- Gen.lzy(PathGen(depth-1, sensorGen)); query <- Gen.lzy(QueryGen(depth-1, sensorGen)) } yield All(path, query))
   )
 
   val QueryValueGen: Gen[QueryValue] = frequency(
