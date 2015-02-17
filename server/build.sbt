@@ -14,7 +14,7 @@ val longRunningTests = Seq(
 )
 
 // Common code, but not protocols
-lazy val common = project.in(file("common")).dependsOn(contrib)
+lazy val common = project.in(file("common"))
 
 // Spark
 lazy val spark = project.in(file("spark"))
@@ -40,9 +40,6 @@ lazy val notificationProtocol = project.in(file("notification-protocol")).depend
 
 // Main
 lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
-
-// The cluster config
-lazy val contrib = project.in(file("contrib"))
 
 // The main aggregate
 lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, spark)
