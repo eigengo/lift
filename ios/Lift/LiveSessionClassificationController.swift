@@ -63,8 +63,12 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if selectedIndexPath == .Some(indexPath) {
+            session.endExplicitClassification()
             selectedIndexPath = nil
         } else {
+            if selectedIndexPath != nil { session.endExplicitClassification() }
+            let exercise = classificationExamples[indexPath.row]
+            session.startExplicitClassification(exercise)
             selectedIndexPath = indexPath
         }
         tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)

@@ -118,7 +118,6 @@
                                     </subviews>
                                 </tableViewCellContentView>
                                 <connections>
-                                    <outlet property="detailView" destination="tX2-9n-75C" id="fu3-MW-Cnh"/>
                                     <outlet property="titleLabel" destination="4N6-an-MFy" id="uGy-eF-Q7s"/>
                                 </connections>
                             </tableViewCell>
