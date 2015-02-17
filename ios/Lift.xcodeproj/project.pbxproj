@@ -16,6 +16,9 @@
 		390DD5F7C530950EB2D40268 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 604C4FB0BC879EB56AD28A81 /* libPods.a */; };
 		54008B591A49EC730049A8EA /* String+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54008B581A49EC730049A8EA /* String+MD5.swift */; };
 		5405D78B1A87DC500037382A /* LiveSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5405D78A1A87DC500037382A /* LiveSessionController.swift */; };
+		5407827C1A9396FE00EA195B /* LiveSessionClassificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5407827B1A9396FE00EA195B /* LiveSessionClassificationController.swift */; };
+		5407827E1A93A77900EA195B /* LiveSessionClassificationPopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5407827D1A93A77900EA195B /* LiveSessionClassificationPopoverController.swift */; };
+		540782801A93AC4C00EA195B /* LiveSessionClassificationPopoverController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5407827F1A93AC4C00EA195B /* LiveSessionClassificationPopoverController.xib */; };
 		540A1AC11A78073200F5D84B /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540A1AC01A78073200F5D84B /* SensorData.swift */; };
 		541C41D41A797FD300F49124 /* SensorDataProtocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 541C41D31A797FD300F49124 /* SensorDataProtocol.c */; };
 		542037861A8959DC00839A59 /* SensorData+Time.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542037851A8959DC00839A59 /* SensorData+Time.swift */; };
@@ -200,6 +203,9 @@
 		4426590D0160CE631890E9AC /* libPods-LiftTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LiftTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54008B581A49EC730049A8EA /* String+MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+MD5.swift"; sourceTree = "<group>"; };
 		5405D78A1A87DC500037382A /* LiveSessionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveSessionController.swift; sourceTree = "<group>"; };
+		5407827B1A9396FE00EA195B /* LiveSessionClassificationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveSessionClassificationController.swift; sourceTree = "<group>"; };
+		5407827D1A93A77900EA195B /* LiveSessionClassificationPopoverController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveSessionClassificationPopoverController.swift; sourceTree = "<group>"; };
+		5407827F1A93AC4C00EA195B /* LiveSessionClassificationPopoverController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LiveSessionClassificationPopoverController.xib; sourceTree = "<group>"; };
 		540A1AB71A78034100F5D84B /* SensorDataProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SensorDataProtocol.h; sourceTree = "<group>"; };
 		540A1AC01A78073200F5D84B /* SensorData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorData.swift; sourceTree = "<group>"; };
 		541C41D31A797FD300F49124 /* SensorDataProtocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SensorDataProtocol.c; sourceTree = "<group>"; };
@@ -376,6 +382,9 @@
 				54306B6F1A2A2AD6005D6BC9 /* NewSessionController.swift */,
 				54D8DD291A2E58660005E2ED /* DemoSessionController.swift */,
 				5405D78A1A87DC500037382A /* LiveSessionController.swift */,
+				5407827B1A9396FE00EA195B /* LiveSessionClassificationController.swift */,
+				5407827D1A93A77900EA195B /* LiveSessionClassificationPopoverController.swift */,
+				5407827F1A93AC4C00EA195B /* LiveSessionClassificationPopoverController.xib */,
 				54CC699E19C4AD8E00B29EC8 /* LiveSessionDevicesController.swift */,
 				545E4F841A88F38000A009AB /* LiveSessionSensorDataGroupController.swift */,
 				54DF27DF1A87E2D300DB1323 /* LiveSession.storyboard */,
@@ -843,6 +852,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				540782801A93AC4C00EA195B /* LiveSessionClassificationPopoverController.xib in Resources */,
 				54FBCD1F1A5BF0FA00E2CB2C /* arms-bicep-curl.dat in Resources */,
 				54C37B811A4C0A9A0036C0C8 /* DeviceTableViewCell.xib in Resources */,
 				5475FA301A31E9D200877655 /* Settings.bundle in Resources */,
@@ -977,6 +987,7 @@
 				54C6EFE41A2F899A0044BDAB /* HomeController.swift in Sources */,
 				54B562231A77937200F6FD5D /* DeviceSessionStats.swift in Sources */,
 				54204A041A4E08F800DAF6C0 /* UserModel+Marshalling.swift in Sources */,
+				5407827C1A9396FE00EA195B /* LiveSessionClassificationController.swift in Sources */,
 				54CB508D1A5835A600CB40F9 /* UIView+Rounded.swift in Sources */,
 				54567B1C1A894AFA0096DAC7 /* GCDTimer.swift in Sources */,
 				54D320811A276747002527C8 /* Alamofire.swift in Sources */,
@@ -998,6 +1009,7 @@
 				547D51541A3061800055EB35 /* ExerciseModel+Marshalling.swift in Sources */,
 				540A1AC11A78073200F5D84B /* SensorData.swift in Sources */,
 				549BAE5B1A6C24B5000FBB78 /* ExerciseSessionManager.swift in Sources */,
+				5407827E1A93A77900EA195B /* LiveSessionClassificationPopoverController.swift in Sources */,
 				541C41D41A797FD300F49124 /* SensorDataProtocol.c in Sources */,
 				549BAE591A6BFD09000FBB78 /* Result+GetOrUnit.swift in Sources */,
 				54B562291A77964200F6FD5D /* PebbleDeviceSession.swift in Sources */,
