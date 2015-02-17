@@ -39,10 +39,14 @@ class UserExercisesClassifierTest
 
       val msgs = modelProbe.receiveN(width).asInstanceOf[Vector[SensorNet]].toList
       for (result <- msgs) {
-        assert(result.toMap.values.forall(_.values.length == height))
+        assert(result.toMap.values.forall(_.forall(_.values.length == height)))
       }
       for (sensor <- Sensor.sourceLocations) {
-        assert(msgs.flatMap(_.toMap(sensor).values) == event.sensorData.find(_.location == sensor).get.data.flatMap(_.values))
+        val numberOfPoints = event.sensorData.count(_.location == sensor)
+
+        for (point <- 0 to numberOfPoints) {
+          assert(msgs.flatMap(_.toMap(sensor)(point).values) == event.sensorData.filter(_.location == sensor).map(_.data.flatMap(_.values)).toVector(point))
+        }
       }
     }
   }

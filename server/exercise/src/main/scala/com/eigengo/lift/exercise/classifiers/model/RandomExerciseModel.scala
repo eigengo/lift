@@ -83,17 +83,19 @@ class RandomExerciseModel(sessionProps: SessionProperties)
   override def aroundReceive(receive: Receive, msg: Any) = msg match {
     case event: SensorNet =>
       event.toMap.foreach { x => (x: @unchecked) match {
-        case (location, AccelerometerData(sr, values)) =>
-          val xs = values.map(_.x)
-          val ys = values.map(_.y)
-          val zs = values.map(_.z)
-          println(s"****** Acceleration $location | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
-
-        case (location, RotationData(_, values)) =>
-          val xs = values.map(_.x)
-          val ys = values.map(_.y)
-          val zs = values.map(_.z)
-          println(s"****** Rotation $location | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+        case (location, data: Vector[_]) =>
+          for ((AccelerometerData(_, values), point) <- data.zipWithIndex) {
+            val xs = values.map(_.x)
+            val ys = values.map(_.y)
+            val zs = values.map(_.z)
+            println(s"****** Acceleration $location@$point | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+          }
+          for ((RotationData(_, values), point) <- data.zipWithIndex) {
+            val xs = values.map(_.x)
+            val ys = values.map(_.y)
+            val zs = values.map(_.z)
+            println(s"****** Rotation $location@$point | X: (${xs.min}, ${xs.max}), Y: (${ys.min}, ${ys.max}), Z: (${zs.min}, ${zs.max})")
+          }
       }}
       super.aroundReceive(receive, msg)
 
