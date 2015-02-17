@@ -173,14 +173,13 @@ void am_stop() {
     
     queue_destroy(&_am_message_queue);
     
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 5; ++i) {
         DictionaryIterator *iter;
         if (app_message_outbox_begin(&iter) == APP_MSG_OK) {
             dict_write_int8(iter, 0x0000dead, 1);
             dict_write_end(iter);
             if (app_message_outbox_send() == APP_MSG_OK) break;
         }
-        
         psleep(50);
     }
     _am_last_error = 0;

@@ -41,7 +41,8 @@ class PebbleDeviceSession : DeviceSession {
         let deadKey = NSNumber(uint32: 0x0000dead)
         if let x = data[adKey] as? NSData {
             accelerometerDataReceived(x)
-        } else if let x: AnyObject = data[deadKey] {
+        }
+        if let x: AnyObject = data[deadKey] {
             stop()
         }
         return true
