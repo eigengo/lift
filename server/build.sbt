@@ -41,14 +41,11 @@ lazy val notificationProtocol = project.in(file("notification-protocol")).depend
 // Main
 lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
 
-// The unified API adapter
-lazy val adapter = project.in(file("adapter")).dependsOn(common)
-
 // The cluster config
 lazy val contrib = project.in(file("contrib"))
 
 // The main aggregate
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, spark)
+lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, spark)
 
 fork in Test := false
 
