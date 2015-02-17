@@ -1,14 +1,27 @@
 import Foundation
 
+class LiveSessionClassificationCell : UITableViewCell {
+    struct Height {
+        static let expanded: CGFloat = 185
+        static let collapsed: CGFloat = 40
+    }
+    
+    @IBOutlet
+    var titleLabel: UILabel!
+
+    func setExercise(exercise: Exercise.Exercise) {
+        titleLabel.text = exercise.name
+    }
+    
+}
+
 class LiveSessionClassificationController : UITableViewController, ExerciseSessionSettable, UIAlertViewDelegate {
     private var classificationExamples: [Exercise.Exercise] = []
     private var session: ExerciseSession!
-    private var popoverContentController: LiveSessionClassificationPopoverController!
+    private var selectedIndexPath: NSIndexPath?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        popoverContentController = LiveSessionClassificationPopoverController(nibName: "LiveSessionClassificationPopoverController", bundle: nil)
-        popoverContentController.view.frame = CGRectMake(0, 0, 320, 60)
     }
     
     // MARK: ExerciseSessionSettable implementation
@@ -25,6 +38,15 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
         return 1
     }
     
+    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        if let sip = selectedIndexPath {
+            if sip == indexPath { return LiveSessionClassificationCell.Height.expanded }
+            return LiveSessionClassificationCell.Height.collapsed
+        }
+        
+        return 40
+    }
+    
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return classificationExamples.count
     }
@@ -32,22 +54,20 @@ class LiveSessionClassificationController : UITableViewController, ExerciseSessi
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         switch (indexPath.section, indexPath.row) {
         case (0, let x):
-            let cell = tableView.dequeueReusableCellWithIdentifier("manual") as UITableViewCell
-            cell.textLabel!.text = classificationExamples[x].name
+            let cell = tableView.dequeueReusableCellWithIdentifier("manual") as LiveSessionClassificationCell
+            cell.setExercise(classificationExamples[x])
             return cell
         default: fatalError("Match error")
         }
     }
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        switch (indexPath.section, indexPath.row) {
-        case (0, let x):
-            let c = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.ActionSheet)
-            c.view = popoverContentController.view
-            presentViewController(c, animated: true, completion: nil)
-            
-            tableView.deselectRowAtIndexPath(indexPath, animated: false)
-        default: return
+        if selectedIndexPath == .Some(indexPath) {
+            selectedIndexPath = nil
+        } else {
+            selectedIndexPath = indexPath
         }
+        tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
     }
+    
 }
