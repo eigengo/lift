@@ -35,12 +35,11 @@ import sbtdocker.mutable.Dockerfile
 
 dockerSettings
 
-// Define a Dockerfile
+// Define a Dockerfile for:
+//   - `LiftLocalApp`
+//   - `LiftMonolithicApp`
 
-mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
-
-// Main class for running in Phase 2
-// mainClass in assembly := Some("com.eigengo.lift.LiftLocalApp")
+mainClass in assembly := Some("com.eigengo.lift.LiftMonolithicApp")
 
 docker <<= (docker dependsOn assembly)
 
@@ -60,5 +59,5 @@ imageName in docker := {
   ImageName(
     namespace = Some("janm399"),
     repository = "lift",
-    tag = Some(name.value))
+    tag = Some(s"${name.value}-production"))
 }
