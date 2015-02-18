@@ -39,14 +39,6 @@ object Dependencies {
     val testkit = "io.spray" %% "spray-testkit"            % version
   }
 
-  object kafka {
-    val version = "0.8.2-beta"
-    val kafka   = ("org.apache.kafka" %% "kafka" % version)
-      .exclude("org.slf4j", "slf4j-simple")
-      .exclude("org.slf4j","slf4j-log4j12")
-      .exclude("org.slf4j", "slf4j-api")
-  }
-
   object scalaz {
     val core = "org.scalaz" %% "scalaz-core" % "7.1.0"
   }

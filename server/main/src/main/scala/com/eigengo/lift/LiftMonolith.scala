@@ -3,7 +3,6 @@ package com.eigengo.lift
 import akka.actor.{ActorPath, Props, ActorSystem}
 import akka.io.IO
 import com.eigengo.lift.exercise.ExerciseBoot
-import com.eigengo.lift.kafka.KafkaBoot
 import com.eigengo.lift.notification.NotificationBoot
 import com.eigengo.lift.profile.ProfileBoot
 import com.typesafe.config.{ConfigFactory, Config}
@@ -64,10 +63,9 @@ trait LiftMonolith {
     journalStartUp(system, port == firstSeedNodePort, ActorPath.fromString(s"akka.tcp://$LiftActorSystem@127.0.0.1:$firstSeedNodePort/user/store"))
 
     // boot the microservices
-    val kafka = KafkaBoot.boot(config)
     val profile = ProfileBoot.boot
     val notification = NotificationBoot.boot
-    val exercise = ExerciseBoot.boot(kafka.kafka, notification.notification, profile.userProfile)
+    val exercise = ExerciseBoot.boot(notification.notification, profile.userProfile)
 
     startupHttpService(system, restPort, exercise.route(system.dispatcher), profile.route(system.dispatcher))
   }
@@ -82,5 +80,4 @@ trait LiftMonolith {
     val restService = system.actorOf(Props(classOf[LiftMonolithService], routes))
     IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
   }
-
 }

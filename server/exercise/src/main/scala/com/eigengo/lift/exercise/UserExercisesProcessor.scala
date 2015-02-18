@@ -2,7 +2,7 @@ package com.eigengo.lift.exercise
 
 import akka.actor._
 import akka.contrib.pattern.ShardRegion
-import akka.persistence.SnapshotOffer
+import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.eigengo.lift.common.{AutoPassivation, UserId}
 import java.io.FileOutputStream
 import com.eigengo.lift.exercise.classifiers.ExerciseModelChecking
@@ -17,7 +17,7 @@ object UserExercisesProcessor {
   /** The shard name */
   val shardName = "user-exercises"
   /** The sessionProps to create the actor on a node */
-  def props(kafka: ActorRef, notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], kafka, notification, userProfile)
+  def props(notification: ActorRef, userProfile: ActorRef) = Props(classOf[UserExercisesProcessor], notification, userProfile)
 
   /**
    * Remove a session identified by ``sessionId`` for user identified by ``userId``
@@ -260,8 +260,8 @@ object UserExercisesProcessor {
  * and this instance must process them as though it received the data by parts as part of an online
  * session.
  */
-class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRef, userProfile: ActorRef)
-  extends KafkaProducerPersistentActor
+class UserExercisesProcessor(notification: ActorRef, userProfile: ActorRef)
+  extends PersistentActor
   with ExerciseModelChecking
   with ActorLogging
   with AutoPassivation {
@@ -368,7 +368,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
 
     // explicit classification
     case ExerciseExplicitClassificationStart(`id`, exercise) =>
-      persistAndProduceToKafka(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
+      persist(ExerciseEvt(id, ModelMetadata.user, exercise)) { evt ⇒ }
 
     case ExerciseExplicitClassificationEnd(`id`) ⇒
       self ! NoExercise(ModelMetadata.user)
@@ -420,7 +420,7 @@ class UserExercisesProcessor(override val kafka: ActorRef, notification: ActorRe
       sender() ! \/.left("Not in session")
 
     case ExerciseSessionDelete(sessionId) ⇒
-      persistAndProduceToKafka(SessionDeletedEvt(sessionId)) { evt ⇒
+      persist(SessionDeletedEvt(sessionId)) { evt ⇒
         sender() ! \/.right(())
       }
 
