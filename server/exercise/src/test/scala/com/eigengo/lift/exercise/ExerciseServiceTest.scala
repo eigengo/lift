@@ -87,7 +87,7 @@ class ExerciseServiceTest
 
   val probe = ExerciseServiceTest.probe
 
-  val underTest = exerciseRoute(probe.ref, probe.ref, probe.ref)
+  val underTest = exerciseRoute(probe.ref, probe.ref)
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 
