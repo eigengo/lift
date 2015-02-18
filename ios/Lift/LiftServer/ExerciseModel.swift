@@ -13,6 +13,18 @@ struct Exercise {
     typealias ExerciseIntensityKey = Double
     
     ///
+    /// Default exercise intensities
+    ///
+    static let defaultIntensities = [
+        ExerciseIntensity.veryLight,
+        ExerciseIntensity.light,
+        ExerciseIntensity.moderate,
+        ExerciseIntensity.hard,
+        ExerciseIntensity.veryHard,
+        ExerciseIntensity.brutal
+    ]
+    
+    ///
     /// Single muscle group cell holding the key, which is the communication key with the server
     /// together with the (localisable) title and set of exercises
     ///
@@ -69,6 +81,14 @@ struct Exercise {
         var intensity: ExerciseIntensityKey
         var title: String
         var userNotes: String
+        
+        /// Default intensities
+        static let veryLight = ExerciseIntensity(intensity: 0.30, title: "VeryLight".localized(), userNotes: "VeryLightUserNotes".localized())
+        static let light     = ExerciseIntensity(intensity: 0.45, title: "Light".localized(),     userNotes: "LightUserNotes".localized())
+        static let moderate  = ExerciseIntensity(intensity: 0.65, title: "Moderate".localized(),  userNotes: "ModerateUserNotes".localized())
+        static let hard      = ExerciseIntensity(intensity: 0.75, title: "Hard".localized(),      userNotes: "HardUserNotes".localized())
+        static let veryHard  = ExerciseIntensity(intensity: 0.87, title: "VeryHard".localized(),  userNotes: "VeryHardUserNotes".localized())
+        static let brutal    = ExerciseIntensity(intensity: 0.95, title: "Brutal".localized(),    userNotes: "BrutalUserNotes".localized())
     }
     
     ///

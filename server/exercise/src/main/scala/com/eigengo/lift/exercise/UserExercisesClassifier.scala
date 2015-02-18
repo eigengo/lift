@@ -70,7 +70,7 @@ object UserExercisesClassifier {
 /**
  * Match the received exercise data using the given model.
  */
-class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props) extends Actor {
+class UserExercisesClassifier(sessionProperties: SessionProperties, modelProps: Props) extends Actor {
 
   // Issue "callback" (via sender actor reference) whenever we detect a tap gesture with a matching probability >= 0.80
   val model = context.actorOf(modelProps)
@@ -98,7 +98,14 @@ class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props
       }
 
     case ClassificationExamples(_) =>
-      sender() ! List(Exercise("chest press", Some(1.0), Some(Metric(80.0, Mass.Kilogram))), Exercise("foobar", Some(1.0), Some(Metric(50.0, Distance.Kilometre))), Exercise("barfoo", Some(1.0), Some(Metric(10.0, Distance.Kilometre))))
+      val examples = sessionProperties.muscleGroupKeys.foldLeft(List.empty[Exercise]) { (r, b) ⇒
+        supportedMuscleGroups
+          .find(_.key == b)
+          .map { mg ⇒ r ++ mg.exercises.map(exercise ⇒ Exercise(exercise, None, None)) }
+          .getOrElse(r)
+      }
+
+      sender() ! examples
   }
 
 }
