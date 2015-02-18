@@ -29,6 +29,8 @@
 		543911961A852745001EC62A /* DeviceSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543911951A852745001EC62A /* DeviceSettingsController.swift */; };
 		543B26FD1A49D18800381298 /* DeviceSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */; };
 		543B27001A49D1A800381298 /* PebbleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543B26FF1A49D1A800381298 /* PebbleDevice.swift */; };
+		543FD79A1A94DA3D00E5B1EC /* ExerciseIntensityKey+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543FD7991A94DA3D00E5B1EC /* ExerciseIntensityKey+Localisation.swift */; };
+		543FD79B1A94DD5F00E5B1EC /* String+Localisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DB7DC61A4A01290075A420 /* String+Localisation.swift */; };
 		54543A2C1A7A2C6100D599AB /* SensorDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */; };
 		54543A2E1A7A2F3400D599AB /* SensorData+Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54543A2D1A7A2F3400D599AB /* SensorData+Test.swift */; };
 		5455B3B11A31A8FB002A8D11 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */; };
@@ -216,6 +218,7 @@
 		543911951A852745001EC62A /* DeviceSettingsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceSettingsController.swift; sourceTree = "<group>"; };
 		543B26FC1A49D18800381298 /* DeviceSessionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceSessionDelegate.swift; sourceTree = "<group>"; };
 		543B26FF1A49D1A800381298 /* PebbleDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PebbleDevice.swift; sourceTree = "<group>"; };
+		543FD7991A94DA3D00E5B1EC /* ExerciseIntensityKey+Localisation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExerciseIntensityKey+Localisation.swift"; sourceTree = "<group>"; };
 		54543A2B1A7A2C6100D599AB /* SensorDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorDataTests.swift; sourceTree = "<group>"; };
 		54543A2D1A7A2F3400D599AB /* SensorData+Test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SensorData+Test.swift"; sourceTree = "<group>"; };
 		5455B3B01A31A8FB002A8D11 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -564,6 +567,7 @@
 				547F64771A2E4EDB00F887EE /* CurrentLiftUser.swift */,
 				54E5B1521A4B03E600BC71C0 /* LiftUserDefaults.swift */,
 				545E060F1A30540A00AB633B /* ExerciseIntensityKey+Color.swift */,
+				543FD7991A94DA3D00E5B1EC /* ExerciseIntensityKey+Localisation.swift */,
 				54231EAF1A49DC8500F7C640 /* NSError+Convenience.swift */,
 				54008B581A49EC730049A8EA /* String+MD5.swift */,
 				54DB7DC61A4A01290075A420 /* String+Localisation.swift */,
@@ -954,6 +958,7 @@
 			files = (
 				54D8DD2C1A2E59FA0005E2ED /* ExerciseSession.swift in Sources */,
 				54988A9C1A87604A00446DC2 /* ThisDeviceSession+Motion.swift in Sources */,
+				543FD79A1A94DA3D00E5B1EC /* ExerciseIntensityKey+Localisation.swift in Sources */,
 				548296401A4D7F3A00EDCAF0 /* Devices.swift in Sources */,
 				54C37B831A4C0BD80036C0C8 /* UITableView+CustomCells.swift in Sources */,
 				54008B591A49EC730049A8EA /* String+MD5.swift in Sources */,
@@ -1088,6 +1093,7 @@
 				54DC83951A40ACEA006DD311 /* InterfaceController.swift in Sources */,
 				54DC83B51A40AF82006DD311 /* NotificationModel.swift in Sources */,
 				54DC83991A40ACEA006DD311 /* GlanceController.swift in Sources */,
+				543FD79B1A94DD5F00E5B1EC /* String+Localisation.swift in Sources */,
 				54DC83B61A40B13B006DD311 /* ExerciseModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

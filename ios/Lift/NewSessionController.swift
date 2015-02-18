@@ -65,14 +65,7 @@ class NewSessionPropsController : UIViewController, UITableViewDelegate, UITable
 
     override func viewDidAppear(animated: Bool) {
         // TODO: Lift server: get intensities
-        intensities = [
-            Exercise.ExerciseIntensity(intensity: 0.30, title: "Very light", userNotes: "Just stretching bones on a rest day."),
-            Exercise.ExerciseIntensity(intensity: 0.45, title: "Light",      userNotes: "Basic endurance."),
-            Exercise.ExerciseIntensity(intensity: 0.65, title: "Moderate",   userNotes: "Aerobic fitness improvement."),
-            Exercise.ExerciseIntensity(intensity: 0.75, title: "Hard",       userNotes: "FTP improvement."),
-            Exercise.ExerciseIntensity(intensity: 0.87, title: "Very hard",  userNotes: "Maximum performance development."),
-            Exercise.ExerciseIntensity(intensity: 0.95, title: "Brutal",     userNotes: "Bleeding eyes!")
-        ]
+        intensities = Exercise.defaultIntensities
         self.tableView.reloadData()
     }
 
