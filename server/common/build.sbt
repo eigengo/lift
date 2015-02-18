@@ -16,5 +16,6 @@ libraryDependencies ++= Seq(
   spray.routing,
   spray.can,
   // Scodec
-  scodec_bits
+  scodec_bits,
+  json4s.native
 )
