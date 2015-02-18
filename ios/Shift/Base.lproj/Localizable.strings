@@ -1,0 +1,88 @@
+"Device.Pebble.tooManyWatches"="Too many connected watches";
+"Device.Pebble.noWatches"="No connected watches";
+
+"DeviceTableViewCell.noDevice"="No device";
+"DeviceTableViewCell.deviceInfoWithDetail"="Model %@\nAddress: %@";
+"DeviceTableViewCell.deviceInfo"="Model %@";
+"DeviceTableViewCell.disconnectedType.pebble"="Pebble";
+"DeviceTableViewCell.disconnectedType.androidwear"="Android Wear";
+"DeviceTableViewCell.disconnectedType.applewatch"="Apple Watch";
+"DeviceTableViewCell.disconnected"="%@";
+"DeviceTableViewCell.notAvailableType.pebble"="Pebble";
+"DeviceTableViewCell.notAvailableType.androidwear"="Android Wear";
+"DeviceTableViewCell.notAvailableType.applewatch"="Apple Watch";
+"DeviceTableViewCell.notAvailable"="%@";
+
+"LiveSessionController.exercise"="Exercise";
+"LiveSessionController.elapsed"="Elapsed %d:%02d";
+
+"LiveSessionDevicesController.stats"="%d bytes, %d packets";
+
+"PublicProfileController.pictures"="Pictures";
+"PublicProfileController.profile"="Profile";
+"PublicProfileController.devices"="Devices";
+"PublicProfileController.social"="Social";
+"PublicProfileController.followingText"="Following";
+"PublicProfileController.followingDetail"="%d users";
+"PublicProfileController.followersText"="Followers";
+"PublicProfileController.followersDetail"="%d users";
+"PublicProfileController.buddiesText"="Gym buddies";
+"PublicProfileController.buddiesDetail"="%d gym buddies";
+
+"HomeController.SessionSuggestions"="Suggestions";
+"HomeController.SessionSummaries"="Sessions";
+"HomeController.OfflineSessions"="Offline sessions";
+
+"DeviceSessionStatsKey.Accelerometer"="Accelerometer";
+"DeviceSessionStatsKey.Gyroscope"="Gyroscope";
+"DeviceSessionStatsKey.GPS"="GPS";
+"DeviceSessionStatsKey.HeartRate"="Heart rate";
+"DeviceSessionStatsKey.Other"="Other";
+
+"Profile.firstName"="First name";
+"Profile.lastName"="Last name";
+"Profile.age"="Age";
+"Profile.weight"="Weight";
+
+"PropertyTableViewCell.emptyButValueNeeded"="Value missing";
+"PropertyTableViewCell.integerOutOfRange"="Number out of range";
+"PropertyTableViewCell.integerFormatError"="Not an integer";
+
+"NSError.notImplemented"="Not implemented";
+
+"(This device)"="(This device)";
+"Cancel"="Cancel";
+"Logout"="Logout";
+"Stop"="Stop";
+"Really?"="Really ?";
+"Offline"="Offline";
+"Retry?"="Retry?";
+"Home"="Home";
+
+"Devices"="Devices";
+"Sensors"="Sensors";
+
+"Wrist"="Wrist";
+"Waist"="Waist";
+"Chest"="Chest";
+"Foot"="Foot";
+"Any"="Any";
+"WristDescription"="Left or right wrist";
+"WaistDescription"="Pocket or belt";
+"ChestDescription"="Across the chest";
+"FootDescription"="Left or right ankle";
+"AnyDescription"="Any location";
+
+"VeryLight"="Very light";
+"Light"="Light";
+"Moderate"="Moderate";
+"Hard"="Hard";
+"VeryHard"="Very hard";
+"Brutal"="Brutal";
+
+"VeryLightUserNotes"="Just stretching bones on a rest day.";
+"LightUserNotes"="Basic endurance.";
+"ModerateUserNotes"="Aerobic fitness improvement.";
+"HardUserNotes"="FTP improvement.";
+"VeryHardUserNotes"="Maximum performance development.";
+"BrutalUserNotes"="Bleeding eyes!";

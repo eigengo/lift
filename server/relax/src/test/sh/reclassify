@@ -1,0 +1,4 @@
+#!/bin/sh
+
+USER_ID=$1
+curl --request POST http://localhost:12552/exercise/$USER_ID/reclassify

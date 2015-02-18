@@ -1,0 +1,43 @@
+#!/bin/sh
+# register user
+PROFILE_URL="http://192.168.59.103:49269/user"
+EXERCISE_URL="http://192.168.59.103:8082/exercise"
+#PROFILE_URL="http://localhost:12553/user"
+#EXERCISE_URL="http://localhost:12553/exercise"
+
+RND=`uuidgen`
+USERNAME="foo@xxx'$RND'xxx.com"
+DEVICE_TOKEN="5ab84805 f8d0cc63 0a8990a8 4d480841 c3684003 6c122c8e 52a8dcfd 68a6f6f8"
+
+USER_ID=`curl -s --request POST -H "Content-Type:application/json" --data '{"email": "'$USERNAME'", "password":"letmein"}' $PROFILE_URL`
+USER_ID="${USER_ID//\"}"
+echo "Registered $USERNAME as $USER_ID"
+
+curl --request POST -H "Content-Type:application/json" --data "{\"deviceToken\": \"$DEVICE_TOKEN\" }" $PROFILE_URL/$USER_ID/device/ios
+echo ""
+echo "Set iOS device with device token $DEVICE_TOKEN"
+
+exit 1
+
+SESSION_ID=`uuidgen`
+ST=`date +%FT%T.000%z`
+echo "Starting session $SESSION_ID"
+
+# start the session
+curl --request POST -H "Content-Type:application/json" --data "{\"id\": \"$SESSION_ID\", \"startDate\":\"$ST\", \"muscleGroups\": [], \"intendedIntensity\": 0.7}" $EXERCISE_URL/$USER_ID
+
+# post session data
+curl --request PUT --data-binary @../resources/training/arm1.dat $EXERCISE_URL/$USER_ID/$SESSION_ID
+sleep 4
+curl --request PUT --data-binary @../resources/training/arm2.dat $EXERCISE_URL/$USER_ID/$SESSION_ID
+sleep 4
+curl --request PUT --data-binary @../resources/training/arm3.dat $EXERCISE_URL/$USER_ID/$SESSION_ID
+sleep 5
+curl --request PUT --data-binary @../resources/training/chest1.dat $EXERCISE_URL/$USER_ID/$SESSION_ID
+sleep 8
+
+# end the session
+curl --request DELETE $EXERCISE_URL/$USER_ID/$SESSION_ID
+
+echo "Done"
+echo $USER_ID | pbcopy
