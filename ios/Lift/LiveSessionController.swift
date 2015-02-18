@@ -75,6 +75,16 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
         }
         
         multiDeviceSessionEncoding(multi)
+        
+        // propagate to children
+        if let session = exerciseSession {
+            pageViewControllers.foreach { e in
+                if let s = e as? ExerciseSessionSettable {
+                    s.setExerciseSession(session)
+                }
+            }
+        }
+
         startTime = NSDate()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }

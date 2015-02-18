@@ -76,8 +76,10 @@ class UserExercisesClassifier(sessionProps: SessionProperties, modelProps: Props
   val model = context.actorOf(modelProps)
 
   override def receive: Receive = {
-    // TODO: refactor code so that the following assumptions may be weakened further!
     case sdwls: ClassifyExerciseEvt =>
+    // TODO: refactor code so that the following assumptions may be weakened further!
+    // TODO: Noop for now
+    case sdwls: ClassifyExerciseEvt if false =>
       require(
         sdwls.sensorData.map(_.location).toSet == Sensor.sourceLocations && sdwls.sensorData.map(_.location).size == Sensor.sourceLocations.size,
         "for each sensor location, there is a unique and corresponding member in the sensor data for the `ClassifyExerciseEvt` instance"

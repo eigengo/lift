@@ -3,13 +3,12 @@ package com.eigengo.lift.exercise
 import java.nio.ByteBuffer
 
 import org.scalatest.{FlatSpec, Matchers}
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits.ByteVector
 
-import scala.io.Source
 import scalaz.{-\/, \/-}
 
 class MultiPacketDecoderTest extends FlatSpec with Matchers {
-  import RichArray._
+  import com.eigengo.lift.exercise.RichArray._
 
   /// writes payload of the given size at sloc and content.
   /// note that we pass size and content explicitly to allow us to construct
