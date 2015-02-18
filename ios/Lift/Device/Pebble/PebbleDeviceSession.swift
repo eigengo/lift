@@ -12,6 +12,7 @@ class PebbleDeviceSession : DeviceSession {
     private var updateHandler: AnyObject?
     private var watch: PBWatch!
     private var deviceId: NSUUID!
+    private var lastData: NSData?
     
     required init(deviceId: NSUUID, watch: PBWatch!, deviceSessionDelegate: DeviceSessionDelegate) {
         super.init()
@@ -38,14 +39,25 @@ class PebbleDeviceSession : DeviceSession {
     
     private func appMessagesReceiveUpdateHandler(watch: PBWatch!, data: [NSObject : AnyObject]!) -> Bool {
         let adKey = NSNumber(uint32: 0xface0fb0)
-        let deadKey = NSNumber(uint32: 0x0000dead)
         if let x = data[adKey] as? NSData {
-            accelerometerDataReceived(x)
+            let duplicatedData = (lastData != nil) && (lastData! == x)
+            if !duplicatedData {
+                accelerometerDataReceived(x)
+                lastData = x
+            } else {
+                NSLog("INFO: Received duplicated data from Pebble.")
+            }
         }
-        if let x: AnyObject = data[deadKey] {
+        stopIfDeadKeyReceived(data)
+        return true
+    }
+    
+    private func stopIfDeadKeyReceived(data: [NSObject: AnyObject]) {
+        let deadKey = NSNumber(uint32: 0x0000dead)
+        let hasDeadKey = (data[deadKey] != nil)
+        if hasDeadKey {
             stop()
         }
-        return true
     }
     
     private func accelerometerDataReceived(data: NSData) {
