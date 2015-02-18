@@ -36,10 +36,10 @@ import sbtdocker.mutable.Dockerfile
 dockerSettings
 
 // Define a Dockerfile for:
-//   - `LiftLocalApp`
-//   - `LiftMonolithicApp`
+//   - `LiftLocalMonolithApp`
+//   - `LiftMonolithApp`
 
-mainClass in assembly := Some("com.eigengo.lift.LiftMonolithicApp")
+mainClass in assembly := Some("com.eigengo.lift.LiftMonolithApp")
 
 docker <<= (docker dependsOn assembly)
 

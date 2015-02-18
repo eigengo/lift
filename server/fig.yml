@@ -9,26 +9,52 @@ cassandra:
     - "22"
     - "8012"
     - "61621"
-etcd:
-  image: coreos/etcd
-  expose:
-    - "4001"
-  ports:
-    - "7001:7001"
-    - "4001:4001"
+  net: "host"
 main:
-  image: janm399/lift:main
+  image: janm399/lift:main-production
   environment:
+    HOST: 192.168.59.103
+    APP_PORT: 2551
+    SEED_NODES: akka.tcp://Lift@192.168.59.103:2551
+    REST_PORT: 8080
     APP_ADDR:
-    JOURNAL: journal.lift.eigengo.com
-    SNAPSHOT: snapshot.lift.eigengo.com
-    ETCD_URL: http://etcd.lift.eigengo.com:4001
+    JOURNAL: 192.168.59.103
+    SNAPSHOT: 192.168.59.103
   ports:
-    - "2552"
+    - "2551:2551"
     - "8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
-  links:
-    - cassandra:journal.lift.eigengo.com
-    - cassandra:snapshot.lift.eigengo.com
-    - etcd:etcd.lift.eigengo.com
+  net: "host"
+maintwo:
+  image: janm399/lift:main-production
+  environment:
+    HOST: 192.168.59.103
+    APP_PORT: 2552
+    SEED_NODES: akka.tcp://Lift@192.168.59.103:2551
+    REST_PORT: 8080
+    APP_ADDR:
+    JOURNAL: 192.168.59.103
+    SNAPSHOT: 192.168.59.103
+  ports:
+    - "2552:2552"
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  net: "host"
+mainthree:
+  image: janm399/lift:main-production
+  environment:
+    HOST: 192.168.59.103
+    APP_PORT: 2553
+    SEED_NODES: akka.tcp://Lift@192.168.59.103:2551
+    REST_PORT: 8080
+    APP_ADDR:
+    JOURNAL: 192.168.59.103
+    SNAPSHOT: 192.168.59.103
+  ports:
+    - "2553:2553"
+    - "8080"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  net: "host"

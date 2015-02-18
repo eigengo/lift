@@ -4,8 +4,6 @@ import java.net.InetAddress
 
 import akka.actor._
 import akka.cluster.Cluster
-import akka.contrib.pattern.ClusterInventory.UnresolvedDependencies
-import akka.contrib.pattern._
 import akka.io.IO
 import com.eigengo.lift.common.MicroserviceApp.{BootedNode, MicroserviceProps}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -106,39 +104,29 @@ abstract class MicroserviceApp(microserviceProps: MicroserviceProps) extends App
     val cluster = Cluster(system)
     val log = Logger(getClass)
 
-    NodeManager(JmxConnector).apply(microserviceProps.name)
+    val hostname = InetAddress.getLocalHost.getHostAddress
+    log.debug(s"Starting Up microservice $microserviceProps at $hostname")
+    Thread.sleep(10000)
 
-    ClusterInventory(system).resolveDependencies(microserviceProps.dependencies, 60.seconds).onComplete {
-      case Success(_) ⇒
-        val hostname = InetAddress.getLocalHost.getHostAddress
-        log.debug(s"Starting Up microservice $microserviceProps at $hostname")
-        Thread.sleep(10000)
+    // Create the ActorSystem for the microservice
+    log.debug("Creating the microservice's ActorSystem")
 
-        // Create the ActorSystem for the microservice
-        log.debug("Creating the microservice's ActorSystem")
-        ClusterStartup(system).join {
-          val selfAddress = cluster.selfAddress
-          log.debug(s"Node $selfAddress booting up")
-          // boot the microservice code
-          val bootedNode = boot(config)(system, cluster)
-          log.debug(s"Node $selfAddress booted up $bootedNode")
-          bootedNode.api.foreach { api ⇒
-            import RouteConcatenation._
-            val route: Route = api(system.dispatcher) ~ NodeManager(SprayConnector).apply("deleteme")
-            val port: Int = 8080
-            val restService = system.actorOf(Props(classOf[RestAPIActor], route))
-            IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
-            ClusterInventory(system).set("api", s"http://$hostname:$port?version=${microserviceProps.version}&side=${microserviceProps.cqrs.mkString(",")}")
-          }
-          // logme!
-          log.debug(s"Node $selfAddress Up")
-        }
-      case Failure(UnresolvedDependencies(resolved, remaining)) ⇒
-        log.error(s"Could not resolve dependencies for $microserviceProps: resolved $resolved, $remaining remaining.")
-        system.shutdown()
-      case Failure(ex) ⇒
-        log.error(s"Could start the $microserviceProps: ${ex.getMessage}.")
-        system.shutdown()
+    cluster.registerOnMemberUp {
+      val selfAddress = cluster.selfAddress
+      log.debug(s"Node $selfAddress booting up")
+      // boot the microservice code
+      val bootedNode = boot(config)(system, cluster)
+      log.debug(s"Node $selfAddress booted up $bootedNode")
+      bootedNode.api.foreach { api ⇒
+        import RouteConcatenation._
+        val route: Route = api(system.dispatcher)
+        val port: Int = 8080
+        val restService = system.actorOf(Props(classOf[RestAPIActor], route))
+        IO(Http)(system) ! Http.Bind(restService, interface = "0.0.0.0", port = port)
+      }
+
+      // logme!
+      log.debug(s"Node $selfAddress Up")
     }
   }
 

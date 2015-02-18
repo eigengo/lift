@@ -13,7 +13,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
   import akka.pattern.ask
   import com.eigengo.lift.common.Timeouts.defaults._
 
-  def exerciseRoute(kafkaProducer: ActorRef, userExercisesProcessor: ActorRef, userExercisesView: ActorRef)(implicit ec: ExecutionContext) =
+  def exerciseRoute(userExercisesProcessor: ActorRef, userExercisesSessions: ActorRef)(implicit ec: ExecutionContext) =
     path("exercise" / "musclegroups") {
       get {
         complete {
@@ -25,16 +25,16 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
       get {
         parameters('startDate.as[Date], 'endDate.as[Date]) { (startDate, endDate) ⇒
           complete {
-            (userExercisesView ? UserGetExerciseSessionsSummary(userId, startDate, endDate)).mapTo[List[SessionSummary]]
+            (userExercisesSessions ? UserGetExerciseSessionsSummary(userId, startDate, endDate)).mapTo[List[SessionSummary]]
           }
         } ~
         parameter('date.as[Date]) { date ⇒
           complete {
-            (userExercisesView ? UserGetExerciseSessionsSummary(userId, date, date)).mapTo[List[SessionSummary]]
+            (userExercisesSessions ? UserGetExerciseSessionsSummary(userId, date, date)).mapTo[List[SessionSummary]]
           }
         } ~
         complete {
-          (userExercisesView ? UserGetExerciseSessionsDates(userId)).mapTo[List[SessionDate]]
+          (userExercisesSessions ? UserGetExerciseSessionsDates(userId)).mapTo[List[SessionDate]]
         }
       }
     } ~
@@ -55,7 +55,7 @@ trait ExerciseService extends Directives with ExerciseMarshallers {
     path("exercise" / UserIdValue / SessionIdValue) { (userId, sessionId) ⇒
       get {
         complete {
-          (userExercisesView ? UserGetExerciseSession(userId, sessionId)).mapTo[Option[ExerciseSession]]
+          (userExercisesSessions ? UserGetExerciseSession(userId, sessionId)).mapTo[Option[ExerciseSession]]
         }
       } ~
       put {
