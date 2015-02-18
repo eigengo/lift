@@ -63,7 +63,7 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
         delegate = self
 
         let pagesStoryboard = UIStoryboard(name: "LiveSession", bundle: nil)
-        pageViewControllers = ["devices", "sensorDataGroup", "classification"].map { pagesStoryboard.instantiateViewControllerWithIdentifier($0) as UIViewController }
+        pageViewControllers = ["classification", "devices", "sensorDataGroup"].map { pagesStoryboard.instantiateViewControllerWithIdentifier($0) as UIViewController }
         setViewControllers([pageViewControllers.first!], direction: UIPageViewControllerNavigationDirection.Forward, animated: false, completion: nil)
         
         if let nc = navigationController {
@@ -75,6 +75,16 @@ class LiveSessionController: UIPageViewController, UIPageViewControllerDataSourc
         }
         
         multiDeviceSessionEncoding(multi)
+        
+        // propagate to children
+        if let session = exerciseSession {
+            pageViewControllers.foreach { e in
+                if let s = e as? ExerciseSessionSettable {
+                    s.setExerciseSession(session)
+                }
+            }
+        }
+
         startTime = NSDate()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "tick", userInfo: nil, repeats: true)
     }

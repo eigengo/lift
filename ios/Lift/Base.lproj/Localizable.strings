@@ -72,3 +72,17 @@
 "ChestDescription"="Across the chest";
 "FootDescription"="Left or right ankle";
 "AnyDescription"="Any location";
+
+"VeryLight"="Very light";
+"Light"="Light";
+"Moderate"="Moderate";
+"Hard"="Hard";
+"VeryHard"="Very hard";
+"Brutal"="Brutal";
+
+"VeryLightUserNotes"="Just stretching bones on a rest day.";
+"LightUserNotes"="Basic endurance.";
+"ModerateUserNotes"="Aerobic fitness improvement.";
+"HardUserNotes"="FTP improvement.";
+"VeryHardUserNotes"="Maximum performance development.";
+"BrutalUserNotes"="Bleeding eyes!";

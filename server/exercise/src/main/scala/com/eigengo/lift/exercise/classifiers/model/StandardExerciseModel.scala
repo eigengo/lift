@@ -1,7 +1,6 @@
 package com.eigengo.lift.exercise.classifiers.model
 
 import akka.actor.ActorLogging
-import akka.stream.OverflowStrategy
 import akka.stream.scaladsl._
 import com.eigengo.lift.exercise.classifiers.ExerciseModel.Query
 import com.eigengo.lift.exercise.classifiers.workflows.{ClassificationAssertions, GestureWorkflows}
@@ -14,7 +13,7 @@ import com.eigengo.lift.exercise.classifiers.ExerciseModel
  * Essentially, we view our model traces as being streams here. As a result, all queries are evaluated (on the actual
  * stream) from the time point they are received by the model.
  */
-abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: Set[Query] = Set.empty)(implicit prover: SMTInterface)
+abstract class StandardExerciseModel(sessionProps: SessionProperties, tapSensor: SensorDataSourceLocation, toWatch: Set[Query] = Set.empty)(implicit prover: SMTInterface)
   extends ExerciseModel("tap", sessionProps, toWatch)
   with StandardEvaluation
   with ActorLogging {
@@ -22,10 +21,8 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
   import ClassificationAssertions._
   import FlowGraphImplicits._
 
-  // Workflow for recognising 'tap' gestures..
+  // Workflow for recognising 'tap' gestures that are detected via `tapSensor`
   object Tap extends GestureWorkflows("tap", context.system.settings.config)
-  // ..that are detected via wrist sensors
-  val tapSensor = SensorDataSourceLocationWrist
 
   /**
    * Monitor wrist sensor and add in tap gesture detection.
@@ -41,7 +38,9 @@ abstract class StandardExerciseModel(sessionProps: SessionProperties, toWatch: S
 
       in ~> split
 
-      split ~> Flow[SensorNetValue].map(_.toMap(tapSensor).asInstanceOf[AccelerometerValue]).via(classifier.map(_.toSet)) ~> merge.left
+      split ~> Flow[SensorNetValue]
+        .mapConcat(_.toMap(tapSensor).find(_.isInstanceOf[AccelerometerValue]).asInstanceOf[Option[AccelerometerValue]].toList)
+        .via(classifier.map(_.toSet)) ~> merge.left
 
       split ~> merge.right
 

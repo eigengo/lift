@@ -151,14 +151,18 @@ class ExerciseModelTest
       }
     })
 
-    forAll(SensorNetGen(30)) { (rawEvent: SensorNet) =>
-      val event = SensorNet(rawEvent.toMap.mapValues(evt => new SensorData { val samplingRate = rate; val values = evt.values }))
+    forAll(MultiSensorNetGen(30)) { (rawEvent: SensorNet) =>
+      val event = SensorNet(rawEvent.toMap.mapValues(_.map(evt => new SensorData { val samplingRate = rate; val values = evt.values })))
 
       model ! event
 
-      val msgs = modelProbe.receiveN(event.wrist.values.length).asInstanceOf[Vector[SensorNetValue]].toList
+      val msgs = modelProbe.receiveN(event.wrist.head.values.length).asInstanceOf[Vector[SensorNetValue]].toList
       for (sensor <- Sensor.sourceLocations) {
-        assert(msgs.map(_.toMap(sensor)) == event.toMap(sensor).values)
+        val numberOfPoints = rawEvent.toMap(sensor).length
+
+        for (point <- 0 until numberOfPoints) {
+          assert(msgs.map(_.toMap(sensor)(point)) == event.toMap(sensor)(point).values)
+        }
       }
     }
   }

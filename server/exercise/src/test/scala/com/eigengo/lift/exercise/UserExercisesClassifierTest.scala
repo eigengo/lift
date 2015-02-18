@@ -28,8 +28,8 @@ class UserExercisesClassifierTest
   }
 
   property("UserExercisesClassifier should correctly 'slice up' ClassifyExerciseEvt into SensorNet events") {
-    val width = 2//0
-    val height = 3//0
+    val width = 20
+    val height = 30
 
     forAll(ClassifyExerciseEvtGen(width, height)) { (event: ClassifyExerciseEvt) =>
       val modelProbe = TestProbe()
@@ -39,10 +39,14 @@ class UserExercisesClassifierTest
 
       val msgs = modelProbe.receiveN(width).asInstanceOf[Vector[SensorNet]].toList
       for (result <- msgs) {
-        assert(result.toMap.values.forall(_.values.length == height))
+        assert(result.toMap.values.forall(_.forall(_.values.length == height)))
       }
       for (sensor <- Sensor.sourceLocations) {
-        assert(msgs.flatMap(_.toMap(sensor).values) == event.sensorData.find(_.location == sensor).get.data.flatMap(_.values))
+        val numberOfPoints = event.sensorData.count(_.location == sensor)
+
+        for (point <- 0 until numberOfPoints) {
+          assert(msgs.flatMap(_.toMap(sensor)(point).values) == event.sensorData.filter(_.location == sensor).map(_.data.flatMap(_.values)).toVector(point))
+        }
       }
     }
   }

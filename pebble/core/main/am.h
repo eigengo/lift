@@ -1,6 +1,7 @@
 #pragma once
 #include "gfs.h"
 #include "queue.h"
+#include "debug_macros.h"
 
 #define DL_TAG 0x0fb0
 

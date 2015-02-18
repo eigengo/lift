@@ -119,15 +119,23 @@ extension ThisDeviceSession {
     class DummyCMDeviceMotion : CMDeviceMotion {
         private let _userAcceleration: CMAcceleration!
         private let _rotationRate: CMRotationRate!
+        private let _gravity: CMAcceleration!
         
         override init() {
             _userAcceleration = CMAcceleration(x: 0, y: 0, z: 0)
+            _gravity = CMAcceleration(x: 0, y: 0, z: 0)
             _rotationRate = CMRotationRate(x: 0, y: 0, z: 0)
             super.init()
         }
      
         required init(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
+        }
+        
+        override var gravity: CMAcceleration {
+            get {
+                return _gravity
+            }
         }
    
         override var userAcceleration: CMAcceleration {

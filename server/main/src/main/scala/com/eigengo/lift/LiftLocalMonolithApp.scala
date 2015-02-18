@@ -48,5 +48,4 @@ object LiftLocalMonolithApp extends App with LiftMonolith {
 
   val ports = config.getIntList("akka.cluster.jvm-ports")
   ports.foreach(port ⇒ actorSystemStartUp(port, 10000 + port))
-
 }

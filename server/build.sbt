@@ -14,18 +14,14 @@ val longRunningTests = Seq(
 )
 
 // Common code, but not protocols
-lazy val common = project.in(file("common")).dependsOn(contrib)
-
-// Kafka integration
-lazy val kafkaUtil = project.in(file("kafka-util"))
-lazy val kafka = project.in(file("kafka")).dependsOn(common, kafkaUtil)
+lazy val common = project.in(file("common"))
 
 // Spark
 lazy val spark = project.in(file("spark"))
 
 // Exercise
 lazy val exercise = project.in(file("exercise"))
-  .dependsOn(notificationProtocol, profileProtocol, common, kafka)
+  .dependsOn(notificationProtocol, profileProtocol, common)
   .configs(LongRunningTest, ShortRunningTest)
   .settings(inConfig(LongRunningTest)(Defaults.testTasks): _*)
   .settings(inConfig(ShortRunningTest)(Defaults.testTasks): _*)
@@ -43,16 +39,10 @@ lazy val notification = project.in(file("notification")).dependsOn(common, notif
 lazy val notificationProtocol = project.in(file("notification-protocol")).dependsOn(common)
 
 // Main
-lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common, kafka)
-
-// The unified API adapter
-lazy val adapter = project.in(file("adapter")).dependsOn(common)
-
-// The cluster config
-lazy val contrib = project.in(file("contrib"))
+lazy val main = project.in(file("main")).dependsOn(exercise, profile, notification, common)
 
 // The main aggregate
-lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, adapter, kafka, spark, kafkaUtil)
+lazy val root = (project in file(".")).aggregate(main, exercise, profile, notification, common, spark)
 
 fork in Test := false
 
