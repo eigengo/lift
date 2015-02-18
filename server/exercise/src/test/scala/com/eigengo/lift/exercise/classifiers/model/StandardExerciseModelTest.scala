@@ -7,7 +7,7 @@ import akka.testkit.TestActorRef
 import com.eigengo.lift.exercise.UserExercisesClassifier.{Tap => TapEvent}
 import com.eigengo.lift.exercise.classifiers.ExerciseModel
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{NegGesture, Gesture, BindToSensors}
-import com.eigengo.lift.exercise.{AccelerometerValue, SensorNetValue, SessionProperties}
+import com.eigengo.lift.exercise.{SensorDataSourceLocationWrist, AccelerometerValue, SensorNetValue, SessionProperties}
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +37,7 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
   "StandardExerciseModel workflow" must {
 
     def component(in: Source[SensorNetValue], out: Sink[BindToSensors]) = {
-      val workflow = TestActorRef(new StandardExerciseModel(sessionProps) with SMTInterface {
+      val workflow = TestActorRef(new StandardExerciseModel(sessionProps, SensorDataSourceLocationWrist) with SMTInterface {
         def makeDecision(query: Query, value: QueryValue, result: Boolean) = TapEvent
         def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
         def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
@@ -46,7 +46,8 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
     }
 
     "correctly detect wrist sensor taps" in {
-      val msgs: List[SensorNetValue] = accelerometerData.map(d => SensorNetValue(d, dummyValue, dummyValue, dummyValue, dummyValue))
+      // FIXME: is this correct?
+      val msgs: List[SensorNetValue] = accelerometerData.map(d => SensorNetValue(Vector(d), Vector(dummyValue), Vector(dummyValue), Vector(dummyValue), Vector(dummyValue)))
       val tapIndex = List(256 until 290, 341 until 344, 379 until 408, 546 until 577).flatten.toList
       // Simulate source that outputs messages and then blocks
       val in = PublisherProbe[SensorNetValue]()

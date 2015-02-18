@@ -385,20 +385,20 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
     // TODO: refactor code so that the following assumptions may be weakened further!
     case event: SensorNet =>
       require(
-        event.toMap.values.forall(_.values.nonEmpty),
-        "all sensors in a network should produce some sensor value"
+        event.toMap.values.forall(_.forall(_.values.nonEmpty)),
+        "all sensor points in a network should produce some sensor value"
       )
-      val blockSize = event.toMap.values.head.values.length
+      val blockSize = event.toMap.values.head.head.values.length
       require(
-        event.toMap.values.forall(_.values.length == blockSize),
-        "all sensors in a network produce the same number of sensor values"
+        event.toMap.values.forall(_.forall(_.values.length == blockSize)),
+        "all sensor points in a network produce the same number of sensor values"
       )
       require(
-        event.toMap.values.forall(_.samplingRate == samplingRate),
-        "all sensors have a fixed known sample rate"
+        event.toMap.values.forall(_.forall(_.samplingRate == samplingRate)),
+        "all sensor points have a fixed known sample rate"
       )
 
-      val sensorEvents = (0 until blockSize).map(block => SensorNetValue(event.toMap.mapValues(_.values(block))))
+      val sensorEvents = (0 until blockSize).map(block => SensorNetValue(event.toMap.mapValues(data => (0 until data.size).map(point => data(point).values(block)).toVector)))
 
       for (evt <- sensorEvents) {
         self.tell(evt, sender())

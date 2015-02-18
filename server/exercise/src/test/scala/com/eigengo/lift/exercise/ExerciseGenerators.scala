@@ -45,16 +45,24 @@ trait ExerciseGenerators {
     for {
       sessionProps <- SessionPropertiesGen
       events <- listOfN(Sensor.sourceLocations.size, SensorDataWithLocationGen(width, height)).map(_.zipWithIndex.map { case (sdwl, n) => sdwl.copy(location = Sensor.sourceLocations.toList(n)) })
-    } yield ClassifyExerciseEvt(sessionProps, events)
+      data <- SensorDataWithLocationGen(width, height)
+    } yield ClassifyExerciseEvt(sessionProps, events :+ data)
 
   def SensorNetGen(size: Int): Gen[SensorNet] =
     for {
-      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorDataGen(size)).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), sv) }.toMap[SensorDataSourceLocation, SensorData])
+      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorDataGen(size)).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), Vector(sv)) }.toMap[SensorDataSourceLocation, Vector[SensorData]])
     } yield SensorNet(sensorMap)
+
+  def MultiSensorNetGen(size: Int): Gen[SensorNet] =
+    for {
+      sensorNet <- SensorNetGen(size)
+      location <- SensorDataSourceLocationGen
+      value <- SensorDataGen(size)
+    } yield SensorNet(sensorNet.toMap + (location -> (sensorNet.toMap(location) :+ value)))
 
   val SensorNetValueGen: Gen[SensorNetValue] =
     for {
-      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorValueGen).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), sv) }.toMap[SensorDataSourceLocation, SensorValue])
+      sensorMap <- listOfN(Sensor.sourceLocations.size, SensorValueGen).map(_.zipWithIndex.map { case (sv, n) => (Sensor.sourceLocations.toList(n), Vector(sv)) }.toMap[SensorDataSourceLocation, Vector[SensorValue]])
     } yield SensorNetValue(sensorMap)
 
 }
