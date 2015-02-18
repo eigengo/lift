@@ -30,7 +30,7 @@ class LiveSessionClassificationCell : UITableViewCell {
             Exercise.ExerciseIntensity.moderate,
             Exercise.ExerciseIntensity.light,
             Exercise.ExerciseIntensity.hard,
-            Exercise.ExerciseIntensity.veryHard
+            Exercise.ExerciseIntensity.brutal
         ].map { $0.intensity }
     }
     
@@ -61,16 +61,17 @@ class LiveSessionClassificationCell : UITableViewCell {
         
         repetitions = Defaults.repetitions
         intensities = Defaults.intensities
+
+        let allStates = UIControlState.Normal | UIControlState.Highlighted | UIControlState.Selected
+        defaultIntensityButton.setTitle(intensities[0].intensity.title, forState: allStates)
+        leftIntensityButton.setTitle(   intensities[1].intensity.title, forState: allStates)
+        middleIntensityButton.setTitle( intensities[2].intensity.title, forState: allStates)
+        rightIntensityButton.setTitle(  intensities[3].intensity.title, forState: allStates)
         
-        defaultIntensityButton.titleLabel!.text = intensities[0].intensity.title
-        leftIntensityButton.titleLabel!.text    = intensities[1].intensity.title
-        middleIntensityButton.titleLabel!.text  = intensities[2].intensity.title
-        rightIntensityButton.titleLabel!.text   = intensities[3].intensity.title
-        
-        defaultRepetitionsButton.titleLabel!.text = String(repetitions[0])
-        leftRepetitionsButton.titleLabel!.text    = String(repetitions[1])
-        middleRepetitionsButton.titleLabel!.text  = String(repetitions[2])
-        rightRepetitionsButton.titleLabel!.text   = String(repetitions[3])
+        defaultRepetitionsButton.setTitle(String(repetitions[0]), forState: allStates)
+        leftRepetitionsButton.setTitle(   String(repetitions[1]), forState: allStates)
+        middleRepetitionsButton.setTitle( String(repetitions[2]), forState: allStates)
+        rightRepetitionsButton.setTitle(  String(repetitions[3]), forState: allStates)
         
         self.exercise = exercise
     }
