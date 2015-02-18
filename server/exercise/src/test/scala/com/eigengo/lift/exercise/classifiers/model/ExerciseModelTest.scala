@@ -177,7 +177,7 @@ class ExerciseModelTest
 
       val msgs = modelProbe.receiveN(event.wrist.head.values.length).asInstanceOf[Vector[SensorNetValue]].toList
       for (sensor <- Sensor.sourceLocations) {
-        val numberOfPoints = rawEvent.wrist.length
+        val numberOfPoints = rawEvent.toMap(sensor).length
 
         for (point <- 0 until numberOfPoints) {
           assert(msgs.map(_.toMap(sensor)(point)) == event.toMap(sensor)(point).values)
