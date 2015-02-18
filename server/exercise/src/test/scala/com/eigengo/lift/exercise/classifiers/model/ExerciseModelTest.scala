@@ -268,9 +268,9 @@ class ExerciseModelTest
     }
   }
 
-  property("[ <tap(0.8)@wrist *> true ] a random generator should see the correct number of events") {
+  property("[tap(0.8)@wrist *] true") {
     val watchQuery =
-      Exists(
+      All(
         Repeat(
           AssertFact(Assert(True, SensorDataSourceLocationWrist))
         ),
@@ -285,6 +285,7 @@ class ExerciseModelTest
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
     implicit val cvc4 = new CVC4(system.settings.config)
     val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with StandardEvaluation with ActorLogging {
+      // Simulate a constant wrist classifier
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(Gesture("tap", 0.80)), Set(), Set(), Set(), Set(), snv))
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         if (result) {
@@ -302,13 +303,13 @@ class ExerciseModelTest
       val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
       evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
 
-      assert(sinkProbe.receiveN(events.size).forall(_.asInstanceOf[ClassifiedExercise] == Tap))
+      assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
     }
   }
 
-  property("[ <(tap(0.8)@wrist; heartrate(180)@chest) *> true ] ") {
+  property("[(tap(0.8)@wrist; heartrate(180)@chest) *] true") {
     val watchQuery =
-      Exists(
+      All(
         Repeat(
           Sequence(
             AssertFact(Assert(True, SensorDataSourceLocationWrist)),
@@ -330,6 +331,7 @@ class ExerciseModelTest
     implicit val cvc4 = new CVC4(system.settings.config)
     val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with StandardEvaluation with ActorLogging {
       var tap: Boolean = true
+      // Simulate an alternating wrist/chest classifier
       val workflow = Flow[SensorNetValue].map {
         case snv if tap =>
           tap = !tap
@@ -355,7 +357,7 @@ class ExerciseModelTest
       val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
       evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
 
-      assert(sinkProbe.receiveN(events.size).forall(_.asInstanceOf[ClassifiedExercise] == Tap))
+      assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
     }
   }
 
