@@ -35,15 +35,15 @@ object ExerciseModel {
 
   sealed trait Proposition
 
-  case class Assert(sensor: SensorDataSourceLocation, fact: Fact) extends Proposition
+  case class Assert(fact: Fact, sensor: SensorDataSourceLocation) extends Proposition
 
   case class Conjunction(fact1: Proposition, fact2: Proposition, remainingFacts: Proposition*) extends Proposition
 
   case class Disjunction(fact1: Proposition, fact2: Proposition, remainingFacts: Proposition*) extends Proposition
 
   def not(fact: Proposition): Proposition = fact match {
-    case Assert(sensor, fact1) =>
-      Assert(sensor, ClassificationAssertions.not(fact1))
+    case Assert(fact1, sensor) =>
+      Assert(ClassificationAssertions.not(fact1), sensor)
 
     case Conjunction(fact1, fact2, remaining @ _*) =>
       Disjunction(not(fact1), not(fact2), remaining.map(not): _*)
@@ -147,12 +147,12 @@ object ExerciseModel {
   /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
-  def End(location: SensorDataSourceLocation): Query = All(Test(Formula(Assert(location, True))), FF)
+  def End(location: SensorDataSourceLocation): Query = All(Test(Formula(Assert(True, location))), FF)
 
   /**
    * Denotes the last step of the exercise session
    */
-  def Last(location: SensorDataSourceLocation): Query = Exists(AssertFact(Assert(location, True)), End(location))
+  def Last(location: SensorDataSourceLocation): Query = Exists(AssertFact(Assert(True, location)), End(location))
 
   /**
    * Following definitions allow linear-time logic to be encoded within the current logic. Translation here is linear in
@@ -162,23 +162,23 @@ object ExerciseModel {
   /**
    * At the next point of the exercise session, the query will hold
    */
-  def Next(location: SensorDataSourceLocation, query: Query): Query = Exists(AssertFact(Assert(location, True)), query)
+  def Next(location: SensorDataSourceLocation, query: Query): Query = Exists(AssertFact(Assert(True, location)), query)
 
   /**
    * At some point in the exercise session, the query will hold
    */
-  def Diamond(location: SensorDataSourceLocation, query: Query): Query = Exists(Repeat(AssertFact(Assert(location, True))), query)
+  def Diamond(location: SensorDataSourceLocation, query: Query): Query = Exists(Repeat(AssertFact(Assert(True, location))), query)
 
   /**
    * For all points in the exercise session, the query holds
    */
-  def Box(location: SensorDataSourceLocation, query: Query): Query = All(Repeat(AssertFact(Assert(location, True))), query)
+  def Box(location: SensorDataSourceLocation, query: Query): Query = All(Repeat(AssertFact(Assert(True, location))), query)
 
   /**
    * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
    * session.
    */
-  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Sequence(Test(query1), AssertFact(Assert(location, True)))), query2)
+  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Sequence(Test(query1), AssertFact(Assert(True, location)))), query2)
 
   /**
    * Values representing the current evaluation state of a given query:

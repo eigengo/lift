@@ -35,7 +35,7 @@ object RandomExerciseModel {
  * the listening actor).
  */
 class RandomExerciseModel(sessionProps: SessionProperties)
-  extends ExerciseModel("random", sessionProps, for (sensor <- Sensor.sourceLocations; exercise <- RandomExerciseModel.exercises.values.flatten) yield Formula(Assert(sensor, Gesture(exercise, 0.80))))(RandomExerciseModel.prover)
+  extends ExerciseModel("random", sessionProps, for (sensor <- Sensor.sourceLocations; exercise <- RandomExerciseModel.exercises.values.flatten) yield Formula(Assert(Gesture(exercise, 0.80), sensor)))(RandomExerciseModel.prover)
   with Actor
   with ActorLogging {
 
@@ -71,7 +71,7 @@ class RandomExerciseModel(sessionProps: SessionProperties)
   def makeDecision(query: Query, value: QueryValue, result: Boolean) =
     if (result) {
       val exercise = (query: @unchecked) match {
-        case Formula(Assert(_, Gesture(nm, _))) =>
+        case Formula(Assert(Gesture(nm, _), _)) =>
           Exercise(nm, None, None)
       }
 

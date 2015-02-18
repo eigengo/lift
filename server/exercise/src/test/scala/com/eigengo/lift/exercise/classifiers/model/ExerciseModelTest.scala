@@ -6,7 +6,8 @@ import akka.actor.{ActorSystem, ActorLogging}
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.testkit.{TestKit, TestProbe, TestActorRef}
-import com.eigengo.lift.exercise.UserExercisesClassifier.{ClassifiedExercise, Tap}
+import com.eigengo.lift.exercise.UserExercises.ModelMetadata
+import com.eigengo.lift.exercise.UserExercisesClassifier.{ClassifiedExercise, NoExercise, Tap}
 import com.eigengo.lift.exercise._
 import com.eigengo.lift.exercise.classifiers.model.provers.CVC4
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
@@ -202,7 +203,7 @@ class ExerciseModelTest
     val rate = system.settings.config.getInt("classification.frequency")
     val senderProbe = TestProbe()
     val modelProbe = TestProbe()
-    val example = Formula(Assert(SensorDataSourceLocationAny, Gesture("example", 0.9876)))
+    val example = Formula(Assert(Gesture("example", 0.9876), SensorDataSourceLocationAny))
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
@@ -238,8 +239,8 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val example1 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example1", 0.9876)))
-    val example2 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example2", 0.5432)))
+    val example1 = Formula(Assert(Gesture("example1", 0.9876), SensorDataSourceLocationAny))
+    val example2 = Formula(Assert(Gesture("example2", 0.5432), SensorDataSourceLocationAny))
     implicit val prover = new SMTInterface {
       def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
       def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
@@ -267,64 +268,93 @@ class ExerciseModelTest
     }
   }
 
-  property("[ <true(wrist)*>true ] a random generator should see the correct number of events") {
-    val watchQuery = Exists(Repeat(AssertFact(Assert(SensorDataSourceLocationWrist, True))), TT)
+  property("[ <tap(0.8)@wrist *> true ] a random generator should see the correct number of events") {
+    val watchQuery =
+      Exists(
+        Repeat(
+          AssertFact(Assert(True, SensorDataSourceLocationWrist))
+        ),
+        TT
+      )
     val eventTraceSize = 10
 
     val sinkProbe = TestProbe()
-    val evaluationProbe = TestProbe()
+    val metadata = ModelMetadata(42)
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
     implicit val cvc4 = new CVC4(system.settings.config)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with ActorLogging {
-      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
-      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = {
-        evaluationProbe.ref ! (formula, current, lastState)
-
-        StableValue(result = true)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with StandardEvaluation with ActorLogging {
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(Gesture("tap", 0.80)), Set(), Set(), Set(), Set(), snv))
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
+        if (result) {
+          Tap
+        } else {
+          NoExercise(metadata)
+        }
       }
-      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
     })
 
     forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
-      val eventsWithLookahead = events.zip(events.tail).map(p => List(p._1, p._2))
-      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
+      // Simulate a lookahead 2-element sliding window
+      val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
 
+      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
       evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
 
       assert(sinkProbe.receiveN(events.size).forall(_.asInstanceOf[ClassifiedExercise] == Tap))
     }
   }
 
-  property("???") {
-    val watchQuery = ???
-    val eventTraceSize = ???
+  property("[ <(tap(0.8)@wrist; heartrate(180)@chest) *> true ] ") {
+    val watchQuery =
+      Exists(
+        Repeat(
+          Sequence(
+            AssertFact(Assert(True, SensorDataSourceLocationWrist)),
+            AssertFact(Assert(True, SensorDataSourceLocationChest))
+          )
+        ),
+        TT
+      )
+    val eventTraceSize = 20
+
+    case class Heartrate(rate: Int) extends Fact
 
     val sinkProbe = TestProbe()
     val evaluationProbe = TestProbe()
+    val metadata = ModelMetadata(42)
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
     implicit val cvc4 = new CVC4(system.settings.config)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with ActorLogging {
-      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
-      def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = {
-        evaluationProbe.ref ! (formula, current, lastState)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with StandardEvaluation with ActorLogging {
+      var tap: Boolean = true
+      val workflow = Flow[SensorNetValue].map {
+        case snv if tap =>
+          tap = !tap
+          new BindToSensors(Set(Gesture("tap", 0.80)), Set(), Set(), Set(), Set(), snv)
 
-        StableValue(result = true)
+        case snv =>
+          tap = !tap
+          new BindToSensors(Set(), Set(), Set(), Set(Heartrate(180)), Set(), snv)
       }
-      def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
+        if (result) {
+          Tap
+        } else {
+          NoExercise(metadata)
+        }
+      }
     })
 
     forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
-      val eventsWithLookahead = events.zip(events.tail).map(p => List(p._1, p._2))
-      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
+      // Simulate a lookahead 2-element sliding window
+      val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
 
+      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
       evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
 
-      // TODO: assert expectations
-      // FIXME: evaluationProbe == ???
       assert(sinkProbe.receiveN(events.size).forall(_.asInstanceOf[ClassifiedExercise] == Tap))
     }
   }

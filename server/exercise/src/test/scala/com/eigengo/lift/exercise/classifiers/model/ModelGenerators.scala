@@ -21,7 +21,7 @@ trait ModelGenerators {
   )
 
   def PropositionGen(depth: Int = defaultDepth, sensorGen: Option[Gen[SensorDataSourceLocation]] = None): Gen[Proposition] = frequency(
-    5 -> (for { sensor <- Gen.lzy(sensorGen.getOrElse(SensorQueryGen)); fact <- Gen.lzy(FactGen) } yield Assert(sensor, fact)),
+    5 -> (for { sensor <- Gen.lzy(sensorGen.getOrElse(SensorQueryGen)); fact <- Gen.lzy(FactGen) } yield Assert(fact, sensor)),
     1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1, sensorGen)); fact2 <- Gen.lzy(PropositionGen(depth-1, sensorGen)) } yield Conjunction(fact1, fact2)),
     1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1, sensorGen)); fact2 <- Gen.lzy(PropositionGen(depth-1, sensorGen)) } yield Disjunction(fact1, fact2))
   )

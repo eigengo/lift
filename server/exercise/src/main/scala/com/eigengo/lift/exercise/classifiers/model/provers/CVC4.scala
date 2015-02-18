@@ -36,10 +36,10 @@ class CVC4(config: Config) extends SMTInterface {
   smt.setLogic("QF_UF")
 
   private def propositionToExpr(fact: Proposition): Expr = fact match {
-    case Assert(_, True) =>
+    case Assert(True, _) =>
       em.mkConst(true)
 
-    case Assert(_, False) =>
+    case Assert(False, _) =>
       em.mkConst(false)
 
     case prop: Assert =>
