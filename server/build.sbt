@@ -4,6 +4,16 @@ import Keys._
 
 name := "domain"
 
+// Configuration information used to classify tests based on the time they take to run
+lazy val LongRunningTest = config("long") extend Test
+lazy val ShortRunningTest = config("short") extend Test
+
+// List of tests that require extra running time (used by CI to stage testing runs)
+val longRunningTests = Seq(
+  "com.eigengo.lift.exercise.classifiers.model.ExerciseModelTest",
+  "com.eigengo.lift.exercise.classifiers.model.provers.CVC4Test"
+)
+
 //Common code, but not protocols
 lazy val common = project.in(file("common")).dependsOn(contrib)
 
@@ -15,7 +25,15 @@ lazy val kafka = project.in(file("kafka")).dependsOn(common, kafkaUtil)
 lazy val spark = project.in(file("spark"))
 
 //Exercise
-lazy val exercise = project.in(file("exercise")).dependsOn(notificationProtocol, profileProtocol, common, kafka)
+lazy val exercise = project.in(file("exercise"))
+  .dependsOn(notificationProtocol, profileProtocol, common, kafka)
+  .configs(LongRunningTest, ShortRunningTest)
+  .settings(inConfig(LongRunningTest)(Defaults.testTasks): _*)
+  .settings(inConfig(ShortRunningTest)(Defaults.testTasks): _*)
+  .settings(
+    testOptions in LongRunningTest := Seq(Tests.Filter(longRunningTests.contains)),
+    testOptions in ShortRunningTest := Seq(Tests.Filter((name: String) => !longRunningTests.contains(name)))
+  )
 
 //User profiles
 lazy val profile = project.in(file("profile")).dependsOn(profileProtocol, common)
