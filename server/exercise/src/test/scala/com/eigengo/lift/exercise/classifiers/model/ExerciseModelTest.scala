@@ -274,11 +274,11 @@ class ExerciseModelTest
     }
   }
 
-  property("<(tap@wrist >= 0.8) *> true") {
+  property("[(tap@wrist >= 0.8) *] true") {
     val watchQuery =
-      Exists(
+      All(
         Repeat(
-          AssertFact(Assert(True, SensorDataSourceLocationWrist))
+          AssertFact(Assert(Gesture("tap", 0.8), SensorDataSourceLocationWrist))
         ),
         TT
       )
@@ -316,20 +316,20 @@ class ExerciseModelTest
     }
   }
 
-  property("<(tap@wrist >= 0.8; heartrate@chest >= 180) *> true") {
+  property("[(tap@wrist >= 0.8; heartrate@chest >= 180) *] true") {
+    case class Heartrate(rate: Int) extends Fact
+
     val watchQuery =
-      Exists(
+      All(
         Repeat(
           Sequence(
-            AssertFact(Assert(True, SensorDataSourceLocationWrist)),
-            AssertFact(Assert(True, SensorDataSourceLocationChest))
+            AssertFact(Assert(Gesture("tap", 0.8), SensorDataSourceLocationWrist)),
+            AssertFact(Assert(Heartrate(180), SensorDataSourceLocationChest))
           )
         ),
         TT
       )
     val eventTraceSize = 20
-
-    case class Heartrate(rate: Int) extends Fact
 
     val sinkProbe = TestProbe()
     val evaluationProbe = TestProbe()
