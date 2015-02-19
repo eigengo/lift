@@ -321,7 +321,7 @@ class SensorDataArray {
             let currentStart = data.startTime
             let lastEnd = last.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
             if currentStart < lastEnd {
-                let bytesToRemove = Int(round(Double(lastEnd - currentStart) * Double(header.samplesPerSecond))) * Int(header.sampleSize)
+                let bytesToRemove = Int(ceil(Double(lastEnd - currentStart) * Double(header.samplesPerSecond))) * Int(header.sampleSize)
                 last.removeFromEnd(bytesToRemove)
                 last.append(samples: data.samples)
                 return
