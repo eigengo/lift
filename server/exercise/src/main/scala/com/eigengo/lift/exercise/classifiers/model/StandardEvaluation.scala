@@ -11,6 +11,12 @@ trait StandardEvaluation {
   // TODO: introduce memoisation into `evaluate` functions?
 
   def evaluateAtSensor(path: Proposition, state: BindToSensors): Boolean = path match {
+    case Assert(True, _) =>
+      true
+
+    case Assert(False, _) =>
+      false
+
     case Assert(fact, sensor) =>
       state.toMap(sensor).contains(fact)
 

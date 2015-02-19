@@ -268,9 +268,9 @@ class ExerciseModelTest
     }
   }
 
-  property("[tap(0.8)@wrist *] true") {
+  property("<(tap@wrist >= 0.8) *> true") {
     val watchQuery =
-      All(
+      Exists(
         Repeat(
           AssertFact(Assert(True, SensorDataSourceLocationWrist))
         ),
@@ -297,19 +297,22 @@ class ExerciseModelTest
     })
 
     forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
-      // Simulate a lookahead 2-element sliding window
-      val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
+      // Protects against the effects of shrinking (during test failure)
+      whenever(events.nonEmpty) {
+        // Simulate a lookahead 2-element sliding window
+        val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
 
-      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
-      evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
+        val evaluationFlow = model.underlyingActor.evaluate(watchQuery)
+        evaluationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
 
-      assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
+        assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
+      }
     }
   }
 
-  property("[(tap(0.8)@wrist; heartrate(180)@chest) *] true") {
+  property("<(tap@wrist >= 0.8; heartrate@chest >= 180) *> true") {
     val watchQuery =
-      All(
+      Exists(
         Repeat(
           Sequence(
             AssertFact(Assert(True, SensorDataSourceLocationWrist)),
@@ -351,13 +354,16 @@ class ExerciseModelTest
     })
 
     forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
-      // Simulate a lookahead 2-element sliding window
-      val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
+      // Protects against the effects of shrinking (during test failure)
+      whenever(events.nonEmpty) {
+        // Simulate a lookahead 2-element sliding window
+        val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
 
-      val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
-      evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
+        val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
+        evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
 
-      assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
+        assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
+      }
     }
   }
 
