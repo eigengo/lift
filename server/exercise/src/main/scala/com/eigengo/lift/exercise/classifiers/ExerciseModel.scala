@@ -3,8 +3,9 @@ package com.eigengo.lift.exercise.classifiers
 import akka.actor.{ActorRef, ActorLogging}
 import akka.event.LoggingReceive
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
-import akka.stream.actor.ActorPublisher
+import akka.stream.actor.{ActorPublisherMessage, ActorPublisher}
 import akka.stream.scaladsl._
+import scala.annotation.tailrec
 import scala.async.Async._
 import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
@@ -258,6 +259,7 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   extends ActorPublisher[(SensorNetValue, ActorRef)]
   with ActorLogging {
 
+  import ActorPublisherMessage._
   import context.dispatcher
   import ExerciseModel._
   import FlowGraphImplicits._
@@ -267,8 +269,11 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   // Received sensor data is buffered - configuration data determines buffer size
   val bufferSize = config.getInt("classification.buffer")
   val samplingRate = config.getInt("classification.frequency")
+  val maxBufferSize = config.getInt("classification.model.receive.buffer")
 
   implicit val materializer = ActorFlowMaterializer(settings)
+
+  var buffer = Vector.empty[SensorNetValue]
 
   /**
    * Defined by implementing subclasses. Given a new event in our sensor trace, determines the next state that our model
@@ -402,15 +407,41 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
         self.tell(evt, sender())
       }
 
+    /**
+     * We use a buffer to hold `SensorNetValue`s when there is no downstream demand
+     */
+
+    case event: SensorNetValue if buffer.size == maxBufferSize =>
+      log.error(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
+
     case event: SensorNetValue =>
-      if (isActive && totalDemand > 0) {
+      if (buffer.isEmpty && isActive && totalDemand > 0) {
         onNext((event, sender()))
-      } else if (isActive) {
-        // FIXME: do we need an internal buffer for storing excess SensorNetValue events?
-        log.error(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
+      } else if (buffer.nonEmpty && isActive) {
+        buffer :+= event
+        deliverSensorNetValue()
       } else {
         log.warning(s"Actor publisher is inactive and we received a SensorNet event, so dropping $event")
       }
+
+    case Request(_) =>
+      deliverSensorNetValue()
+  }
+
+  @tailrec private def deliverSensorNetValue(): Unit = {
+    if (totalDemand > 0) {
+      // totalDemand is a Long and could be larger than what buf.splitAt can accept
+      if (totalDemand <= Int.MaxValue) {
+        val (use, keep) = buffer.splitAt(totalDemand.toInt)
+        buffer = keep
+        use.foreach(snv => onNext((snv, sender())))
+      } else {
+        val (use, keep) = buffer.splitAt(Int.MaxValue)
+        buffer = keep
+        use.foreach(snv => onNext((snv, sender())))
+        deliverSensorNetValue()
+      }
+    }
   }
 
 }

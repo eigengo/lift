@@ -191,6 +191,8 @@ class ExerciseModelTest
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
     forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.underlyingActor.buffer = Vector.empty[SensorNetValue]
+
       model.tell(event1, senderProbe.ref)
       model.tell(event2, senderProbe.ref)
 
@@ -223,6 +225,8 @@ class ExerciseModelTest
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
     forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.underlyingActor.buffer = Vector.empty[SensorNetValue]
+
       model.tell(event1, senderProbe.ref)
       model.tell(event2, senderProbe.ref)
 
@@ -257,6 +261,8 @@ class ExerciseModelTest
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
     forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.underlyingActor.buffer = Vector.empty[SensorNetValue]
+
       model.tell(event1, senderProbe.ref)
       model.tell(event2, senderProbe.ref)
 
