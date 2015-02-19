@@ -318,7 +318,14 @@ class SensorDataArray {
     /* mutating */
     func append(sensorData data: SensorData, maximumGap gap: CFTimeInterval, gapValue: UInt8) {
         if var last = sensorDatas.last {
-            if data.startTime - last.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond) < gap {
+            let currentStart = data.startTime
+            let lastEnd = last.endTime(header.sampleSize, samplesPerSecond: header.samplesPerSecond)
+            if currentStart < lastEnd {
+                let bytesToRemove = Int(ceil(Double(lastEnd - currentStart) * Double(header.samplesPerSecond))) * Int(header.sampleSize)
+                last.removeFromEnd(bytesToRemove)
+                last.append(samples: data.samples)
+                return
+            } else if currentStart - lastEnd < gap {
                 last.padEnd(header.sampleSize, samplesPerSecond: header.samplesPerSecond, gapValue: gapValue, until: data.startTime)
                 last.append(samples: data.samples)
                 return
@@ -451,6 +458,18 @@ class SensorData {
     /* mutating */
     func append(samples data: NSData) {
         samples.appendData(data)
+    }
+    
+    ///
+    /// Removes ``count`` bytes from the end of the sample
+    ///
+    /* mutating */
+    func removeFromEnd(count: Int) {
+        if samples.length > count {
+            samples.length -= count
+        } else {
+            samples.length = 0
+        }
     }
     
     ///
