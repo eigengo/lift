@@ -307,8 +307,15 @@ class HomeController : UIViewController, UITableViewDataSource,
     }
     
     // MARK: RemoteNotificationDelegate
-    func remoteNotificationReceivedAlert(alert: String) {
+    func remoteNotificationReceived(#alert: String) {
         calendarDidDateSelected(self.calendar, date: NSDate())
+    }
+    
+    func remoteNotificatioReceived(#data: NSData) {
+        let json = JSON(data: data)
+        if json["type"].string == "offline-management" {
+            if json["replay"].bool == true { replayOfflineSessions() }
+        }
     }
     
     // MARK: LiftServerDelegate

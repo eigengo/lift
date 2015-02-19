@@ -1,8 +1,13 @@
 import Foundation
 
+///
+/// Implementatiosn will receive the given ``alert``
+///
 @objc
 protocol RemoteNotificationDelegate {
     
-    func remoteNotificationReceivedAlert(alert: String)
+    func remoteNotificationReceived(#alert: String)
+    
+    func remoteNotificatioReceived(#data: NSData)
     
 }

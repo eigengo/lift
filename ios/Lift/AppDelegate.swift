@@ -120,18 +120,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, LiftServerDelegate {
     
     func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject]) {
         if let x = currentRemoteNotificationDelegate {
-            x.remoteNotificationReceivedAlert("foo")
+            if let data = userInfo["data"] as? String {
+                let nsdData = data.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+                x.remoteNotificatioReceived(data: nsdData)
+            } else {
+                let aps = userInfo["aps"] as [NSObject : AnyObject]
+                if let alert = aps["alert"] as? String {
+                    x.remoteNotificationReceived(alert: alert)
+                }
+            }
         } else if self.alertView == nil {
             let aps = userInfo["aps"] as [NSObject : AnyObject]
-            let alert = aps["alert"] as String
-            
-            AudioServicesPlayAlertSound(1007)
-            self.alertView = UIAlertView(title: "Exercise", message: alert, delegate: nil, cancelButtonTitle: nil)
-            self.alertView!.show()
-            let delay = dispatch_time(DISPATCH_TIME_NOW, Int64(2 * Double(NSEC_PER_SEC)))
-            dispatch_after(delay, dispatch_get_main_queue()) {
-                self.alertView!.dismissWithClickedButtonIndex(0, animated: true)
-                self.alertView = nil
+            if let alert = aps["alert"] as? String {
+                AudioServicesPlayAlertSound(1007)
+                self.alertView = UIAlertView(title: "Exercise", message: alert, delegate: nil, cancelButtonTitle: nil)
+                self.alertView!.show()
+                let delay = dispatch_time(DISPATCH_TIME_NOW, Int64(2 * Double(NSEC_PER_SEC)))
+                dispatch_after(delay, dispatch_get_main_queue()) {
+                    self.alertView!.dismissWithClickedButtonIndex(0, animated: true)
+                    self.alertView = nil
+                }
             }
         }
     }
