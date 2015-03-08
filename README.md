@@ -1,3 +1,5 @@
+__For most up-to-date version, head over to https://github.com/muvr/open-muvr.__
+
 lift
 ====
 A demonstration of an application that uses _wearable devices_ (Pebble)—in combination with a mobile app—to submit 
