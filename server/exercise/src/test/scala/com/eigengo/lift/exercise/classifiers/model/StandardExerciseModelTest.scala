@@ -33,14 +33,17 @@ class StandardExerciseModelTest extends AkkaSpec(ConfigFactory.load("classificat
     IOSource.fromURL(dataFile, "UTF-8").getLines().map(line => { val List(x, y, z) = line.split(",").toList.map(_.toInt); AccelerometerValue(x, y, z) })
   }.get.toList
   val dummyValue = AccelerometerValue(0, 0, 0)
+  implicit val prover = new SMTInterface {
+    def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+    def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+  }
 
   "StandardExerciseModel workflow" must {
 
     def component(in: Source[SensorNetValue], out: Sink[BindToSensors]) = {
-      val workflow = TestActorRef(new StandardExerciseModel(sessionProps, SensorDataSourceLocationWrist) with SMTInterface {
+      val workflow = TestActorRef(new StandardExerciseModel(sessionProps, SensorDataSourceLocationWrist) {
         def makeDecision(query: Query, value: QueryValue, result: Boolean) = TapEvent
-        def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-        def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
       }).underlyingActor.workflow
       workflow.runWith(in, out)
     }

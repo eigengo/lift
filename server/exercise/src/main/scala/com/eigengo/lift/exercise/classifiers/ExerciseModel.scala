@@ -3,8 +3,9 @@ package com.eigengo.lift.exercise.classifiers
 import akka.actor.{ActorRef, ActorLogging}
 import akka.event.LoggingReceive
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
-import akka.stream.actor.ActorPublisher
+import akka.stream.actor.{ActorPublisherMessage, ActorPublisher}
 import akka.stream.scaladsl._
+import scala.annotation.tailrec
 import scala.async.Async._
 import com.eigengo.lift.exercise.UserExercisesClassifier.ClassifiedExercise
 import com.eigengo.lift.exercise.classifiers.model.SMTInterface
@@ -35,15 +36,15 @@ object ExerciseModel {
 
   sealed trait Proposition
 
-  case class Assert(sensor: SensorDataSourceLocation, fact: Fact) extends Proposition
+  case class Assert(fact: Fact, sensor: SensorDataSourceLocation) extends Proposition
 
   case class Conjunction(fact1: Proposition, fact2: Proposition, remainingFacts: Proposition*) extends Proposition
 
   case class Disjunction(fact1: Proposition, fact2: Proposition, remainingFacts: Proposition*) extends Proposition
 
   def not(fact: Proposition): Proposition = fact match {
-    case Assert(sensor, fact1) =>
-      Assert(sensor, ClassificationAssertions.not(fact1))
+    case Assert(fact1, sensor) =>
+      Assert(ClassificationAssertions.not(fact1), sensor)
 
     case Conjunction(fact1, fact2, remaining @ _*) =>
       Disjunction(not(fact1), not(fact2), remaining.map(not): _*)
@@ -147,12 +148,12 @@ object ExerciseModel {
   /**
    * Indicates that the exercise session has completed (remaining trace is empty)
    */
-  def End(location: SensorDataSourceLocation): Query = All(Test(Formula(Assert(location, True))), FF)
+  def End(location: SensorDataSourceLocation): Query = All(Test(Formula(Assert(True, location))), FF)
 
   /**
    * Denotes the last step of the exercise session
    */
-  def Last(location: SensorDataSourceLocation): Query = Exists(AssertFact(Assert(location, True)), End(location))
+  def Last(location: SensorDataSourceLocation): Query = Exists(AssertFact(Assert(True, location)), End(location))
 
   /**
    * Following definitions allow linear-time logic to be encoded within the current logic. Translation here is linear in
@@ -162,23 +163,23 @@ object ExerciseModel {
   /**
    * At the next point of the exercise session, the query will hold
    */
-  def Next(location: SensorDataSourceLocation, query: Query): Query = Exists(AssertFact(Assert(location, True)), query)
+  def Next(location: SensorDataSourceLocation, query: Query): Query = Exists(AssertFact(Assert(True, location)), query)
 
   /**
    * At some point in the exercise session, the query will hold
    */
-  def Diamond(location: SensorDataSourceLocation, query: Query): Query = Exists(Repeat(AssertFact(Assert(location, True))), query)
+  def Diamond(location: SensorDataSourceLocation, query: Query): Query = Exists(Repeat(AssertFact(Assert(True, location))), query)
 
   /**
    * For all points in the exercise session, the query holds
    */
-  def Box(location: SensorDataSourceLocation, query: Query): Query = All(Repeat(AssertFact(Assert(location, True))), query)
+  def Box(location: SensorDataSourceLocation, query: Query): Query = All(Repeat(AssertFact(Assert(True, location))), query)
 
   /**
    * Until query2 holds, query1 will hold in the exercise session. Query2 will hold at some point during the exercise
    * session.
    */
-  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Sequence(Test(query1), AssertFact(Assert(location, True)))), query2)
+  def Until(location: SensorDataSourceLocation, query1: Query, query2: Query): Query = Exists(Repeat(Sequence(Test(query1), AssertFact(Assert(True, location)))), query2)
 
   /**
    * Values representing the current evaluation state of a given query:
@@ -254,12 +255,11 @@ object ExerciseModel {
  * Exercising model interface. Implementations of this abstract class define specific exercising models that may be updated and queried.
  * Querying determines the states or points in time at which a `watch` query is satisfiable.
  */
-abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWatch: Set[ExerciseModel.Query] = Set.empty)
+abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWatch: Set[ExerciseModel.Query] = Set.empty)(implicit prover: SMTInterface)
   extends ActorPublisher[(SensorNetValue, ActorRef)]
   with ActorLogging {
 
-  this: SMTInterface =>
-
+  import ActorPublisherMessage._
   import context.dispatcher
   import ExerciseModel._
   import FlowGraphImplicits._
@@ -269,8 +269,11 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   // Received sensor data is buffered - configuration data determines buffer size
   val bufferSize = config.getInt("classification.buffer")
   val samplingRate = config.getInt("classification.frequency")
+  val maxBufferSize = config.getInt("classification.model.receive.buffer")
 
   implicit val materializer = ActorFlowMaterializer(settings)
+
+  var buffer = Vector.empty[SensorNetValue]
 
   /**
    * Defined by implementing subclasses. Given a new event in our sensor trace, determines the next state that our model
@@ -299,7 +302,7 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
   /**
    * Flow that defines how per query evaluation influences decision making (and so messages received by UserExercisesProcessor)
    */
-  private def evaluate(query: Query) = {
+  private[classifiers] def evaluate(query: Query) = {
     require(toWatch.contains(query))
 
     var currentState: Query = query
@@ -317,9 +320,9 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
     }.mapAsync {
       case UnstableValue(nextQuery) =>
         async {
-          currentState = await(simplify(nextQuery))
+          currentState = await(prover.simplify(nextQuery))
 
-          makeDecision(query, UnstableValue(currentState), await(satisfiable(nextQuery)))
+          makeDecision(query, UnstableValue(currentState), await(prover.satisfiable(nextQuery)))
         }
 
       case value: StableValue =>
@@ -404,15 +407,41 @@ abstract class ExerciseModel(name: String, sessionProps: SessionProperties, toWa
         self.tell(evt, sender())
       }
 
+    /**
+     * We use a buffer to hold `SensorNetValue`s when there is no downstream demand
+     */
+
+    case event: SensorNetValue if buffer.size == maxBufferSize =>
+      log.error(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
+
     case event: SensorNetValue =>
-      if (isActive && totalDemand > 0) {
+      if (buffer.isEmpty && isActive && totalDemand > 0) {
         onNext((event, sender()))
-      } else if (isActive) {
-        // FIXME: do we need an internal buffer for storing excess SensorNetValue events?
-        log.error(s"No demand for the actor publisher and we received a SensorNet event, so dropping $event")
+      } else if (buffer.nonEmpty && isActive) {
+        buffer :+= event
+        deliverSensorNetValue()
       } else {
         log.warning(s"Actor publisher is inactive and we received a SensorNet event, so dropping $event")
       }
+
+    case Request(_) =>
+      deliverSensorNetValue()
+  }
+
+  @tailrec private def deliverSensorNetValue(): Unit = {
+    if (totalDemand > 0) {
+      // totalDemand is a Long and could be larger than what buf.splitAt can accept
+      if (totalDemand <= Int.MaxValue) {
+        val (use, keep) = buffer.splitAt(totalDemand.toInt)
+        buffer = keep
+        use.foreach(snv => onNext((snv, sender())))
+      } else {
+        val (use, keep) = buffer.splitAt(Int.MaxValue)
+        buffer = keep
+        use.foreach(snv => onNext((snv, sender())))
+        deliverSensorNetValue()
+      }
+    }
   }
 
 }

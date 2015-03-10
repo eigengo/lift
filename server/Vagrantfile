@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# This Vagrantfile is used to provision a development environment with support for the following libraries:
+#   - CVC4 (see http://cvc4.cs.nyu.edu/web/)
+#
+# It can be used to run all tests within a development environment (e.g. via `cd /vagrant; sbt test`)
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu-trusty64"
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Customize the amount of memory on the VM:
+    vb.memory = "4096"
+  end
+
+  # Ensure that the image is provisioned with:
+  #   - JDK 8
+  #   - SBT
+  #   - CVC4 (with Java JNI bindings)
+  config.vm.provision "shell", inline: <<-SHELL
+    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+    sudo add-apt-repository -y ppa:webupd8team/java
+    echo "deb http://dl.bintray.com/sbt/debian /" | sudo tee /etc/apt/sources.list.d/sbt.list
+    echo "deb http://cvc4.cs.nyu.edu/debian unstable/" | sudo tee /etc/apt/sources.list.d/cvc4.list
+    sudo apt-get -y update
+    sudo apt-get install -y git
+    sudo apt-get install -y oracle-java8-installer
+    sudo apt-get install -y --force-yes sbt
+    sudo apt-get install -y --force-yes cvc4 libcvc4bindings-java3
+  SHELL
+end

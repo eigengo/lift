@@ -1,16 +1,18 @@
-package com.eigengo.lift.exercise.classifiers.model
+package com.eigengo.lift.exercise.classifiers
+
+package model
 
 import akka.actor.{ActorSystem, ActorLogging}
 import akka.stream.{ActorFlowMaterializer, ActorFlowMaterializerSettings}
 import akka.stream.scaladsl._
 import akka.testkit.{TestKit, TestProbe, TestActorRef}
-import com.eigengo.lift.exercise.UserExercisesClassifier.Tap
+import com.eigengo.lift.exercise.UserExercises.ModelMetadata
+import com.eigengo.lift.exercise.UserExercisesClassifier.{ClassifiedExercise, NoExercise, Tap}
 import com.eigengo.lift.exercise._
-import com.eigengo.lift.exercise.classifiers.ExerciseModel
+import com.eigengo.lift.exercise.classifiers.model.provers.CVC4
 import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions
 import com.typesafe.config.ConfigFactory
 import java.text.SimpleDateFormat
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest._
@@ -22,7 +24,8 @@ class ExerciseModelTest
   with PropSpecLike
   with PropertyChecks
   with Matchers
-  with ExerciseGenerators {
+  with ExerciseGenerators
+  with ModelGenerators {
 
   import ClassificationAssertions._
   import ExerciseModel._
@@ -31,45 +34,21 @@ class ExerciseModelTest
 
   implicit val materializer = ActorFlowMaterializer(settings)
 
-  val defaultDepth = 3
-
-  val SensorQueryGen: Gen[SensorDataSourceLocation] =
-    Gen.oneOf(SensorDataSourceLocationWrist, SensorDataSourceLocationWaist, SensorDataSourceLocationFoot, SensorDataSourceLocationChest, SensorDataSourceLocationAny)
-
-  val FactGen: Gen[Fact] = frequency(
-    1 -> Gen.oneOf(True, False),
-    1 -> (for { name <- arbitrary[String]; matchProbability <- arbitrary[Double] } yield Gesture(name, matchProbability)),
-    1 -> (for { name <- arbitrary[String]; matchProbability <- arbitrary[Double] } yield NegGesture(name, matchProbability))
-  )
-
-  def PropositionGen(depth: Int = defaultDepth): Gen[Proposition] = frequency(
-    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(FactGen) } yield Assert(sensor, fact)),
-    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1)); fact2 <- Gen.lzy(PropositionGen(depth-1)) } yield Conjunction(fact1, fact2)),
-    1 -> (for { fact1 <- Gen.lzy(PropositionGen(depth-1)); fact2 <- Gen.lzy(PropositionGen(depth-1)) } yield Disjunction(fact1, fact2))
-  )
-
-  def PathGen(depth: Int = defaultDepth): Gen[Path] = frequency(
-    5 -> Gen.lzy(PropositionGen(depth-1)).map(AssertFact),
-    5 -> Gen.lzy(QueryGen(depth-1)).map(Test),
-    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Choice(path1, path2)),
-    1 -> (for { path1 <- Gen.lzy(PathGen(depth-1)); path2 <- Gen.lzy(PathGen(depth-1)) } yield Sequence(path1, path2)),
-    5 -> Gen.lzy(PathGen(depth-1)).map(Repeat)
-  )
-
-  def QueryGen(depth: Int = defaultDepth): Gen[Query] = frequency(
-    5 -> (for { sensor <- Gen.lzy(SensorQueryGen); fact <- Gen.lzy(PropositionGen(depth-1)) } yield Formula(fact)),
-    5 -> Gen.const(TT),
-    5 -> Gen.const(FF),
-    1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1)); query2 <- Gen.lzy(QueryGen(depth-1)) } yield And(query1, query2)),
-    1 -> (for { query1 <- Gen.lzy(QueryGen(depth-1)); query2 <- Gen.lzy(QueryGen(depth-1)) } yield Or(query1, query2)),
-    5 -> (for { path <- Gen.lzy(PathGen(depth-1)); query <- Gen.lzy(QueryGen(depth-1)) } yield Exists(path, query)),
-    5 -> (for { path <- Gen.lzy(PathGen(depth-1)); query <- Gen.lzy(QueryGen(depth-1)) } yield All(path, query))
-  )
-
-  val QueryValueGen: Gen[QueryValue] = frequency(
-    1 -> arbitrary[Boolean].map(StableValue),
-    1 -> (for { query <- QueryGen() } yield UnstableValue(query))
-  )
+  val BindToSensorsGen: Gen[BindToSensors] = for {
+    wrist <- Gen.containerOf[Set, Fact](FactGen)
+    waist <- Gen.containerOf[Set, Fact](FactGen)
+    foot <- Gen.containerOf[Set, Fact](FactGen)
+    chest <- Gen.containerOf[Set, Fact](FactGen)
+    unknown <- Gen.containerOf[Set, Fact](FactGen)
+    value <- SensorNetValueGen
+  } yield BindToSensors(
+      wrist,
+      waist,
+      foot,
+      chest,
+      unknown,
+      value
+    )
 
   property("meet(complement(x), complement(y)) == complement(join(x, y))") {
     forAll(QueryValueGen, QueryValueGen) { (value1: QueryValue, value2: QueryValue) =>
@@ -155,12 +134,15 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = Tap
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
       override def aroundReceive(receive: Receive, msg: Any) = msg match {
         case value: SensorNetValue =>
           modelProbe.ref ! value
@@ -193,19 +175,24 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps) with SMTInterface with ActorLogging {
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
     forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.underlyingActor.buffer = Vector.empty[SensorNetValue]
+
       model.tell(event1, senderProbe.ref)
       model.tell(event2, senderProbe.ref)
 
@@ -218,23 +205,28 @@ class ExerciseModelTest
     val rate = system.settings.config.getInt("classification.frequency")
     val senderProbe = TestProbe()
     val modelProbe = TestProbe()
-    val example = Formula(Assert(SensorDataSourceLocationAny, Gesture("example", 0.9876)))
+    val example = Formula(Assert(Gesture("example", 0.9876), SensorDataSourceLocationAny))
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example)) with SMTInterface with ActorLogging {
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example)) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
     forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.underlyingActor.buffer = Vector.empty[SensorNetValue]
+
       model.tell(event1, senderProbe.ref)
       model.tell(event2, senderProbe.ref)
 
@@ -251,21 +243,26 @@ class ExerciseModelTest
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     val startDate = dateFormat.parse("1970-01-01")
     val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
-    val example1 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example1", 0.9876)))
-    val example2 = Formula(Assert(SensorDataSourceLocationAny, Gesture("example2", 0.5432)))
-    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example1, example2)) with SMTInterface with ActorLogging {
+    val example1 = Formula(Assert(Gesture("example1", 0.9876), SensorDataSourceLocationAny))
+    val example2 = Formula(Assert(Gesture("example2", 0.5432), SensorDataSourceLocationAny))
+    implicit val prover = new SMTInterface {
+      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
+      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
+      def valid(query: Query)(implicit ec: ExecutionContext) = Future(true)
+    }
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(example1, example2)) with ActorLogging {
       val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(), Set(), Set(), Set(), Set(), snv))
       def evaluateQuery(formula: Query)(current: BindToSensors, lastState: Boolean) = StableValue(result = true)
       def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
         modelProbe.ref ! (query, value, result)
         Tap
       }
-      def simplify(query: Query)(implicit ec: ExecutionContext) = Future(query)
-      def satisfiable(query: Query)(implicit ec: ExecutionContext) = Future(true)
     })
 
     // As a sliding window of size 2 is used, we need to submit at least 2 events to the model!
     forAll(SensorNetValueGen, SensorNetValueGen) { (event1: SensorNetValue, event2: SensorNetValue) =>
+      model.underlyingActor.buffer = Vector.empty[SensorNetValue]
+
       model.tell(event1, senderProbe.ref)
       model.tell(event2, senderProbe.ref)
 
@@ -274,6 +271,105 @@ class ExerciseModelTest
       senderProbe.expectMsg(Tap)
       val result = modelProbe.receiveN(2).asInstanceOf[Vector[(Query, QueryValue, Boolean)]].toSet
       result === Set((example1, StableValue(result = true), true), (example2, StableValue(result = true), true))
+    }
+  }
+
+  property("[(tap@wrist >= 0.8) *] true") {
+    val watchQuery =
+      All(
+        Repeat(
+          AssertFact(Assert(Gesture("tap", 0.8), SensorDataSourceLocationWrist))
+        ),
+        TT
+      )
+    val eventTraceSize = 10
+
+    val sinkProbe = TestProbe()
+    val metadata = ModelMetadata(42)
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    implicit val cvc4 = new CVC4(system.settings.config)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with StandardEvaluation with ActorLogging {
+      // Simulate a constant wrist classifier
+      val workflow = Flow[SensorNetValue].map(snv => new BindToSensors(Set(Gesture("tap", 0.80)), Set(), Set(), Set(), Set(), snv))
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
+        if (result) {
+          Tap
+        } else {
+          NoExercise(metadata)
+        }
+      }
+    })
+
+    forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
+      // Protects against the effects of shrinking (during test failure)
+      whenever(events.nonEmpty) {
+        // Simulate a lookahead 2-element sliding window
+        val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
+
+        val evaluationFlow = model.underlyingActor.evaluate(watchQuery)
+        evaluationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
+
+        assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
+      }
+    }
+  }
+
+  property("[(tap@wrist >= 0.8; heartrate@chest >= 180) *] true") {
+    case class Heartrate(rate: Int) extends Fact
+
+    val watchQuery =
+      All(
+        Repeat(
+          Sequence(
+            AssertFact(Assert(Gesture("tap", 0.8), SensorDataSourceLocationWrist)),
+            AssertFact(Assert(Heartrate(180), SensorDataSourceLocationChest))
+          )
+        ),
+        TT
+      )
+    val eventTraceSize = 20
+
+    val sinkProbe = TestProbe()
+    val evaluationProbe = TestProbe()
+    val metadata = ModelMetadata(42)
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val startDate = dateFormat.parse("1970-01-01")
+    val sessionProps = SessionProperties(startDate, Seq("Legs"), 1.0)
+    implicit val cvc4 = new CVC4(system.settings.config)
+    val model = TestActorRef(new ExerciseModel("test", sessionProps, Set(watchQuery)) with StandardEvaluation with ActorLogging {
+      var tap: Boolean = true
+      // Simulate an alternating wrist/chest classifier
+      val workflow = Flow[SensorNetValue].map {
+        case snv if tap =>
+          tap = !tap
+          new BindToSensors(Set(Gesture("tap", 0.80)), Set(), Set(), Set(), Set(), snv)
+
+        case snv =>
+          tap = !tap
+          new BindToSensors(Set(), Set(), Set(), Set(Heartrate(180)), Set(), snv)
+      }
+      def makeDecision(query: Query, value: QueryValue, result: Boolean) = {
+        if (result) {
+          Tap
+        } else {
+          NoExercise(metadata)
+        }
+      }
+    })
+
+    forAll(listOfN(eventTraceSize, BindToSensorsGen)) { (events: List[BindToSensors]) =>
+      // Protects against the effects of shrinking (during test failure)
+      whenever(events.nonEmpty) {
+        // Simulate a lookahead 2-element sliding window
+        val eventsWithLookahead = events.dropRight(1).zip(events.tail).map(p => List(p._1, p._2)) :+ List(events.last)
+
+        val evalutationFlow = model.underlyingActor.evaluate(watchQuery)
+        evalutationFlow.runWith(Source(eventsWithLookahead), Sink.foreach[ClassifiedExercise](sinkProbe.ref ! _))
+
+        assert(sinkProbe.receiveN(events.size).forall(_.isInstanceOf[Tap.type]))
+      }
     }
   }
 

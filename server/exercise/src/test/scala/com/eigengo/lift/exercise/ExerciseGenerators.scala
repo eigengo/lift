@@ -2,6 +2,8 @@ package com.eigengo.lift.exercise
 
 import com.eigengo.lift.exercise.UserExercises.ClassifyExerciseEvt
 import java.util.Date
+import com.eigengo.lift.exercise.classifiers.model.ModelGenerators
+import com.eigengo.lift.exercise.classifiers.workflows.ClassificationAssertions.{Fact, BindToSensors}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
