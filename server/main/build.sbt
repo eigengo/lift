@@ -56,7 +56,7 @@ dockerfile in docker := {
   val artifact = (outputPath in assembly).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
-    from("dockerfile/java")
+    from("java")
     val f = new File(s"${Path.userHome.absolutePath}/.ios")
     if (f.exists) add(f, "/root/.ios")
     add(artifact, artifactTargetPath)
