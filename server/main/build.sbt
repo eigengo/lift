@@ -60,7 +60,7 @@ dockerfile in docker := {
     val f = new File(s"${Path.userHome.absolutePath}/.ios")
     if (f.exists) add(f, "/root/.ios")
     add(artifact, artifactTargetPath)
-    entryPoint("java", "-jar", artifactTargetPath)
+    entryPoint("java", "-jar", "-Dcom.sun.management.jmxremote.port=9999", "-Dcom.sun.management.jmxremote.authenticate=false", "-Dcom.sun.management.jmxremote.ssl=false", artifactTargetPath)
   }
 }
 
